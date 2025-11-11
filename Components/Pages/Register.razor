@@ -3,29 +3,116 @@
 
 <div class="auth-container">
     <div class="auth-card">
-        <div class="auth-logo">FINEbank.io</div>
-        <h1 class="auth-title">Create Account</h1>
-        <p class="auth-subtitle">Join FINEbank.io today</p>
+        <!-- Logo & Branding -->
+        <div style="text-align: center; margin-bottom: 32px;">
+            <img src="images/finsys-logo.png" alt="FINSYS Logo" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
+            <div>
+                <div style="font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 4px;">FINSYS</div>
+                <div class="system-tagline">Finance Account and Banking Transaction System</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; font-style: italic;">SECURE. TRUSTED. RELIABLE</div>
+            </div>
+        </div>
 
-        <form @onsubmit="HandleRegister">
+        <div class="auth-header">
+            <h1>Create Account</h1>
+            <p>Start your banking journey with us today</p>
+        </div>
+
+        <form @onsubmit="HandleRegister" @onsubmit:preventDefault>
             <div class="form-group">
-                <label class="form-label">Full Name</label>
-                <input type="text" class="form-control" @bind="fullName" placeholder="Enter your full name" required />
+                <label class="form-label required-field">Full Name</label>
+                <div class="input-icon">
+                    <span class="input-icon-symbol">●</span>
+                    <input type="text" 
+                           class="form-control @(showError && string.IsNullOrEmpty(fullName) ? "error" : "")" 
+                           @bind="fullName" 
+                           placeholder="Enter your full name" 
+                           @oninput="() => showError = false" />
+                </div>
+                @if (showError && string.IsNullOrEmpty(fullName))
+                {
+                    <span class="form-error">! Full name is required</span>
+                }
+                <span class="form-help">Enter your first and last name as per official documents</span>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-control" @bind="email" placeholder="Enter your email" required />
+                <label class="form-label required-field">Email Address</label>
+                <div class="input-icon">
+                    <span class="input-icon-symbol">@@</span>
+                    <input type="email" 
+                           class="form-control @(showError && string.IsNullOrEmpty(email) ? "error" : "")" 
+                           @bind="email" 
+                           placeholder="your@email.com" 
+                           @oninput="() => showError = false" />
+                </div>
+                @if (showError && string.IsNullOrEmpty(email))
+                {
+                    <span class="form-error">! Valid email address is required</span>
+                }
+                <span class="form-help">We'll send verification and important updates to this email</span>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Password</label>
-                <input type="password" class="form-control" @bind="password" placeholder="Create a password" required />
+                <label class="form-label required-field">Username</label>
+                <div class="input-icon">
+                    <span class="input-icon-symbol">#</span>
+                    <input type="text" 
+                           class="form-control @(showError && string.IsNullOrEmpty(username) ? "error" : "")" 
+                           @bind="username" 
+                           placeholder="Choose a unique username" 
+                           @oninput="() => showError = false" />
+                </div>
+                @if (showError && string.IsNullOrEmpty(username))
+                {
+                    <span class="form-error">! Username is required</span>
+                }
+                <span class="form-help">Must be 4-20 characters, letters and numbers only</span>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Confirm Password</label>
-                <input type="password" class="form-control" @bind="confirmPassword" placeholder="Confirm your password" required />
+                <label class="form-label required-field">Password</label>
+                <div class="input-icon">
+                    <span class="input-icon-symbol">◆</span>
+                    <input type="@(showPassword ? "text" : "password")" 
+                           class="form-control @(showError && string.IsNullOrEmpty(password) ? "error" : "")" 
+                           @bind="password" 
+                           placeholder="Create a strong password" 
+                           @oninput="() => showError = false" />
+                </div>
+                @if (showError && string.IsNullOrEmpty(password))
+                {
+                    <span class="form-error">! Password is required</span>
+                }
+                else if (showError && password.Length < 8)
+                {
+                    <span class="form-error">! Password must be at least 8 characters</span>
+                }
+                <span class="form-help">• Minimum 8 characters  • Include numbers  • Mix upper & lowercase</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required-field">Confirm Password</label>
+                <div class="input-icon">
+                    <span class="input-icon-symbol">✓</span>
+                    <input type="@(showPassword ? "text" : "password")" 
+                           class="form-control @(showError && password != confirmPassword ? "error" : "")" 
+                           @bind="confirmPassword" 
+                           placeholder="Re-enter your password" 
+                           @oninput="() => showError = false" />
+                </div>
+                @if (showError && string.IsNullOrEmpty(confirmPassword))
+                {
+                    <span class="form-error">! Please confirm your password</span>
+                }
+                else if (showError && password != confirmPassword)
+                {
+                    <span class="form-error">! Passwords do not match</span>
+                }
+                <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer; margin-top: 8px;">
+                    <input type="checkbox" @onchange="() => showPassword = !showPassword" />
+                    Show passwords
+                </label>
             </div>
 
             <div class="form-group">
@@ -37,13 +124,45 @@
                 </select>
             </div>
 
+            <div class="form-group">
+                <label style="font-size: 13px; display: flex; align-items: start; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" @bind="agreeToTerms" style="margin-top: 2px;" />
+                    <span>I agree to the <a href="/terms" style="color: var(--accent); text-decoration: none;">Terms of Service</a> and <a href="/privacy" style="color: var(--accent); text-decoration: none;">Privacy Policy</a></span>
+                </label>
+                @if (showError && !agreeToTerms)
+                {
+                    <span class="form-error">! You must agree to the terms to continue</span>
+                }
+            </div>
+
             @if (!string.IsNullOrEmpty(errorMessage))
             {
-                <div class="validation-message">@errorMessage</div>
+                <div style="padding: 12px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                    <span style="font-size: 18px; font-weight: bold;">!</span>
+                    <div>
+                        <strong>Registration Failed</strong><br />
+                        <span>@errorMessage</span>
+                    </div>
+                </div>
             }
 
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
-                Create Account
+            @if (isLoading)
+            {
+                <div style="padding: 12px; background: var(--primary-bg); border: 1px solid var(--border); border-radius: 8px; color: var(--accent); font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                    <span style="font-size: 18px;">•••</span>
+                    <span>Creating your account...</span>
+                </div>
+            }
+
+            <button class="btn btn-primary" type="submit" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span>••• Creating Account...</span>
+                }
+                else
+                {
+                    <span>+ Create My Account</span>
+                }
             </button>
         </form>
 
@@ -56,16 +175,43 @@
 @code {
     private string fullName = "";
     private string email = "";
+    private string username = "";
     private string password = "";
     private string confirmPassword = "";
-    private string selectedRole = "Customer";
     private string errorMessage = "";
+    private bool showError = false;
+    private bool showPassword = false;
+    private bool isLoading = false;
+    private bool agreeToTerms = false;
+    private string selectedRole = "Customer";
 
-    private void HandleRegister()
+    private async Task HandleRegister()
     {
-        if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        showError = true;
+        errorMessage = "";
+
+        // Comprehensive validation with clear messages
+        if (string.IsNullOrEmpty(fullName))
         {
-            errorMessage = "Please fill in all fields";
+            errorMessage = "Full name is required";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(email) || !email.Contains("@"))
+        {
+            errorMessage = "Please enter a valid email address";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(username) || username.Length < 4)
+        {
+            errorMessage = "Username must be at least 4 characters";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(password) || password.Length < 8)
+        {
+            errorMessage = "Password must be at least 8 characters";
             return;
         }
 
@@ -75,7 +221,18 @@
             return;
         }
 
-        // Success - redirect to login
+        if (!agreeToTerms)
+        {
+            errorMessage = "You must agree to the Terms of Service and Privacy Policy";
+            return;
+        }
+
+        // Simulate registration process (UI feedback)
+        isLoading = true;
+        await Task.Delay(1500); // Simulate API call
+
+        // Simulate success
+        isLoading = false;
         Navigation.NavigateTo("/login");
     }
 }

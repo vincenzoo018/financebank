@@ -1,0 +1,139 @@
+@* OTP Verification Modal Component *@
+
+@if (IsVisible)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.3s ease-out;" @onclick="Close">
+        <div style="background: white; border-radius: 24px; padding: 40px; max-width: 480px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out;" @onclick:stopPropagation>
+            
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 32px;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(59,130,246,0.3);">
+                    <span style="font-size: 40px;">🔐</span>
+                </div>
+                <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 8px;">OTP Verification</h2>
+                <p style="font-size: 14px; color: #6b7280;">Enter the 6-digit code sent to your</p>
+                <p style="font-size: 14px; color: #3b82f6; font-weight: 600;">@MaskedContact</p>
+            </div>
+
+            <!-- OTP Input -->
+            <div style="margin-bottom: 32px;">
+                <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 20px;">
+                    @for (int i = 0; i < 6; i++)
+                    {
+                        int index = i;
+                        <input type="text" 
+                               maxlength="1" 
+                               @bind="otpDigits[index]"
+                               @oninput="@((e) => HandleOtpInput(index, e.Value?.ToString()))"
+                               style="width: 50px; height: 60px; text-align: center; font-size: 24px; font-weight: 700; border: 2px solid #e5e7eb; border-radius: 12px; outline: none; transition: all 0.3s;"
+                               class="otp-input" />
+                    }
+                </div>
+
+                @if (ShowError && !string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <div style="padding: 12px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px; text-align: center; margin-bottom: 16px;">
+                        <strong>❌</strong> @ErrorMessage
+                    </div>
+                }
+
+                <!-- Resend Code -->
+                <div style="text-align: center;">
+                    <p style="font-size: 13px; color: #6b7280; margin-bottom: 8px;">Didn't receive the code?</p>
+                    @if (canResend)
+                    {
+                        <button type="button" @onclick="ResendOTP" style="background: none; border: none; color: #3b82f6; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: underline;">
+                            Resend OTP
+                        </button>
+                    }
+                    else
+                    {
+                        <p style="font-size: 13px; color: #9ca3af;">Resend available in @remainingSeconds seconds</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 12px;">
+                <button type="button" @onclick="Close" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    Cancel
+                </button>
+                <button type="button" @onclick="VerifyOTP" disabled="@(!IsOTPComplete)" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; border-radius: 12px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; opacity: @(IsOTPComplete ? "1" : "0.5");">
+                    Verify OTP
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .otp-input:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string MaskedContact { get; set; } = "+63 ****7890";
+    [Parameter] public EventCallback OnVerified { get; set; }
+    [Parameter] public EventCallback OnClosed { get; set; }
+    [Parameter] public bool ShowError { get; set; }
+    [Parameter] public string ErrorMessage { get; set; } = "";
+
+    private string[] otpDigits = new string[6];
+    private bool canResend = false;
+    private int remainingSeconds = 30;
+
+    private bool IsOTPComplete => otpDigits.All(d => !string.IsNullOrEmpty(d));
+
+    private void HandleOtpInput(int index, string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            otpDigits[index] = value.Substring(value.Length - 1);
+            // Auto-focus next input
+            if (index < 5)
+            {
+                // Focus logic would go here (requires JS interop)
+            }
+        }
+    }
+
+    private async Task VerifyOTP()
+    {
+        string otp = string.Join("", otpDigits);
+        // TODO: Implement actual OTP verification
+        await OnVerified.InvokeAsync();
+    }
+
+    private async Task ResendOTP()
+    {
+        canResend = false;
+        remainingSeconds = 30;
+        // TODO: Implement actual OTP resend logic
+        // Start countdown timer
+        StateHasChanged();
+    }
+
+    private async Task Close()
+    {
+        await OnClosed.InvokeAsync();
+    }
+}

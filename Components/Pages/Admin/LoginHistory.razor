@@ -1,0 +1,195 @@
+@page "/admin/login-history"
+@page "/customer/login-history"
+@layout AdminLayout
+
+<div class="section-header">
+    <h2 class="section-title">📜 Login History & Activity Log</h2>
+    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">
+        Monitor all login attempts and account access
+    </p>
+</div>
+
+<!-- Filter Options -->
+<div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border); margin-bottom: 24px;">
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+        <div class="form-group">
+            <label class="form-label">Date Range</label>
+            <select class="form-control">
+                <option>Last 7 Days</option>
+                <option>Last 30 Days</option>
+                <option>Last 3 Months</option>
+                <option>Custom Range</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-control">
+                <option>All Status</option>
+                <option>Successful</option>
+                <option>Failed</option>
+                <option>Blocked</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Device Type</label>
+            <select class="form-control">
+                <option>All Devices</option>
+                <option>Desktop</option>
+                <option>Mobile</option>
+                <option>Tablet</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label" style="visibility: hidden;">Action</label>
+            <button class="btn btn-primary" style="width: 100%;">🔍 Apply Filter</button>
+        </div>
+    </div>
+</div>
+
+<!-- Login History Table -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="font-size: 18px; font-weight: 700; margin: 0;">📊 Login Activity Records</h3>
+        <button class="btn" style="background: #f3f4f6; color: #374151; padding: 8px 16px;">
+            📥 Export CSV
+        </button>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 2px solid var(--border); background: #f9fafb;">
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">DATE & TIME</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">STATUS</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">IP ADDRESS</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">LOCATION</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">DEVICE</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">BROWSER</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 16px;">
+                    <div style="font-weight: 600;">Nov 12, 2025</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">12:15 AM</div>
+                </td>
+                <td style="padding: 16px;">
+                    <span style="padding: 6px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                        ✓ SUCCESS
+                    </span>
+                </td>
+                <td style="padding: 16px; font-family: monospace; font-size: 13px;">112.199.45.78</td>
+                <td style="padding: 16px;">
+                    <div style="font-weight: 600;">Manila, Philippines</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">🌏 Philippines</div>
+                </td>
+                <td style="padding: 16px;">
+                    <div>💻 Desktop</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Windows 11</div>
+                </td>
+                <td style="padding: 16px;">Chrome 119</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 16px;">
+                    <div style="font-weight: 600;">Nov 11, 2025</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">11:45 PM</div>
+                </td>
+                <td style="padding: 16px;">
+                    <span style="padding: 6px 12px; background: #fee2e2; color: #991b1b; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                        ✗ FAILED
+                    </span>
+                </td>
+                <td style="padding: 16px; font-family: monospace; font-size: 13px;">203.177.89.45</td>
+                <td style="padding: 16px;">
+                    <div style="font-weight: 600;">Unknown Location</div>
+                    <div style="font-size: 11px; color: #dc2626;">⚠️ Suspicious</div>
+                </td>
+                <td style="padding: 16px;">
+                    <div>📱 Mobile</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Android 13</div>
+                </td>
+                <td style="padding: 16px;">Firefox 120</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 16px;">
+                    <div style="font-weight: 600;">Nov 11, 2025</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">6:30 PM</div>
+                </td>
+                <td style="padding: 16px;">
+                    <span style="padding: 6px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                        ✓ SUCCESS
+                    </span>
+                </td>
+                <td style="padding: 16px; font-family: monospace; font-size: 13px;">112.199.45.78</td>
+                <td style="padding: 16px;">
+                    <div style="font-weight: 600;">Manila, Philippines</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">🌏 Philippines</div>
+                </td>
+                <td style="padding: 16px;">
+                    <div>📱 Mobile</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">iOS 17</div>
+                </td>
+                <td style="padding: 16px;">Safari 17</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 16px;">
+                    <div style="font-weight: 600;">Nov 11, 2025</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">9:15 AM</div>
+                </td>
+                <td style="padding: 16px;">
+                    <span style="padding: 6px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                        ✓ SUCCESS
+                    </span>
+                </td>
+                <td style="padding: 16px; font-family: monospace; font-size: 13px;">112.199.45.78</td>
+                <td style="padding: 16px;">
+                    <div style="font-weight: 600;">Makati, Philippines</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">🌏 Philippines</div>
+                </td>
+                <td style="padding: 16px;">
+                    <div>💻 Desktop</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Windows 11</div>
+                </td>
+                <td style="padding: 16px;">Edge 119</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 16px;">
+                    <div style="font-weight: 600;">Nov 10, 2025</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">8:00 PM</div>
+                </td>
+                <td style="padding: 16px;">
+                    <span style="padding: 6px 12px; background: #fef3c7; color: #92400e; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                        ⚠️ BLOCKED
+                    </span>
+                </td>
+                <td style="padding: 16px; font-family: monospace; font-size: 13px;">45.88.12.201</td>
+                <td style="padding: 16px;">
+                    <div style="font-weight: 600;">Russia</div>
+                    <div style="font-size: 11px; color: #dc2626;">🚨 Geo-blocked</div>
+                </td>
+                <td style="padding: 16px;">
+                    <div>💻 Desktop</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Linux</div>
+                </td>
+                <td style="padding: 16px;">Chrome 118</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div style="display: flex; justify-content: between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-secondary);">
+            Showing 1-25 of 157 records
+        </div>
+        <div style="display: flex; gap: 8px; margin-left: auto;">
+            <button style="padding: 8px 12px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer;">← Prev</button>
+            <button style="padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">1</button>
+            <button style="padding: 8px 12px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer;">2</button>
+            <button style="padding: 8px 12px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer;">3</button>
+            <button style="padding: 8px 12px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer;">Next →</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    // UI Only - No backend logic
+}

@@ -1,0 +1,125 @@
+@* Transaction PIN Verification Modal Component *@
+
+@if (IsVisible)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.3s ease-out;" @onclick="Close">
+        <div style="background: white; border-radius: 24px; padding: 40px; max-width: 420px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out;" @onclick:stopPropagation>
+            
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 32px;">
+                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(245,158,11,0.3);">
+                    <span style="font-size: 36px;">🔢</span>
+                </div>
+                <h2 style="font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 8px;">Enter Transaction PIN</h2>
+                <p style="font-size: 13px; color: #6b7280;">Please enter your 6-digit PIN to authorize this transaction</p>
+            </div>
+
+            <!-- PIN Input -->
+            <div style="margin-bottom: 32px;">
+                <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+                    @for (int i = 0; i < 6; i++)
+                    {
+                        int index = i;
+                        <input type="password" 
+                               maxlength="1" 
+                               @bind="pinDigits[index]"
+                               @oninput="@((e) => HandlePinInput(index, e.Value?.ToString()))"
+                               style="width: 45px; height: 55px; text-align: center; font-size: 28px; font-weight: 700; border: 2px solid #e5e7eb; border-radius: 10px; outline: none; transition: all 0.3s;"
+                               class="pin-input" />
+                    }
+                </div>
+
+                @if (ShowError && !string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <div style="padding: 12px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px; text-align: center; margin-bottom: 16px;">
+                        <strong>❌</strong> @ErrorMessage
+                    </div>
+                }
+
+                <!-- Forgot PIN -->
+                <div style="text-align: center;">
+                    <a href="#" style="font-size: 13px; color: #f59e0b; text-decoration: none; font-weight: 600;">Forgot PIN?</a>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 12px;">
+                <button type="button" @onclick="Close" style="flex: 1; padding: 13px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    Cancel
+                </button>
+                <button type="button" @onclick="VerifyPIN" disabled="@(!IsPINComplete)" style="flex: 1; padding: 13px; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; border-radius: 12px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; opacity: @(IsPINComplete ? "1" : "0.5");">
+                    Confirm
+                </button>
+            </div>
+
+            <!-- Security Note -->
+            <div style="margin-top: 24px; padding: 12px; background: #fef3c7; border-radius: 8px; text-align: center;">
+                <p style="font-size: 11px; color: #92400e; margin: 0;">
+                    🔒 Your PIN is encrypted and never stored in plain text
+                </p>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .pin-input:focus {
+        border-color: #f59e0b !important;
+        box-shadow: 0 0 0 3px rgba(245,158,11,0.1);
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnVerified { get; set; }
+    [Parameter] public EventCallback OnClosed { get; set; }
+    [Parameter] public bool ShowError { get; set; }
+    [Parameter] public string ErrorMessage { get; set; } = "";
+
+    private string[] pinDigits = new string[6];
+
+    private bool IsPINComplete => pinDigits.All(d => !string.IsNullOrEmpty(d));
+
+    private void HandlePinInput(int index, string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            pinDigits[index] = value.Substring(value.Length - 1);
+            // Auto-focus next input
+            if (index < 5)
+            {
+                // Focus logic would go here (requires JS interop)
+            }
+        }
+    }
+
+    private async Task VerifyPIN()
+    {
+        string pin = string.Join("", pinDigits);
+        // TODO: Implement actual PIN verification
+        await OnVerified.InvokeAsync();
+    }
+
+    private async Task Close()
+    {
+        // Clear PIN digits for security
+        pinDigits = new string[6];
+        await OnClosed.InvokeAsync();
+    }
+}

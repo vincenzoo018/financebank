@@ -1,0 +1,250 @@
+@page "/admin/transactions/loan"
+@page "/employee/loan-application"
+@layout AdminLayout
+
+<div class="section-header">
+    <h2 class="section-title">🏦 Loan Application & Management</h2>
+    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">
+        Process loan applications - Personal, Business, Home, Auto
+    </p>
+</div>
+
+<div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid var(--border);">
+    <form>
+        <!-- Loan Information -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #fef3c7; padding: 12px; border-radius: 8px;">
+                📋 Loan Information
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label required-field">Loan ID</label>
+                    <input type="text" class="form-control" value="LOAN-20251112001" readonly style="background: #f3f4f6; font-family: monospace; font-weight: 700;" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Application Date</label>
+                    <input type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Loan Type</label>
+                    <select class="form-control">
+                        <option value="">Select loan type...</option>
+                        <option value="Personal">💼 Personal Loan</option>
+                        <option value="Business">🏢 Business Loan</option>
+                        <option value="Home">🏠 Home/Mortgage Loan</option>
+                        <option value="Auto">🚗 Auto/Vehicle Loan</option>
+                        <option value="Education">🎓 Educational Loan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Approval Status</label>
+                    <select class="form-control">
+                        <option>🟡 Pending Review</option>
+                        <option>🔵 Under Evaluation</option>
+                        <option>🟢 Approved</option>
+                        <option>🔴 Rejected</option>
+                        <option>⏸️ On Hold</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Borrower Information -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #fef3c7; padding: 12px; border-radius: 8px;">
+                👤 Borrower Information
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label required-field">Account Number</label>
+                    <input type="text" class="form-control" placeholder="BFAS-XXXXXXXXXXXX" style="font-family: monospace;" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Borrower Name</label>
+                    <input type="text" class="form-control" placeholder="Full legal name" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Contact Number</label>
+                    <input type="tel" class="form-control" placeholder="+63 XXX XXX XXXX" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Email Address</label>
+                    <input type="email" class="form-control" placeholder="borrower@email.com" />
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label class="form-label required-field">Complete Address</label>
+                    <textarea class="form-control" rows="2" placeholder="Street, Barangay, City, Province, ZIP"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loan Amount & Terms -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #fef3c7; padding: 12px; border-radius: 8px;">
+                💰 Loan Amount & Terms
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label required-field">Loan Amount (₱)</label>
+                    <input type="number" class="form-control" placeholder="0.00" step="1000" style="font-size: 18px; font-weight: 700; color: #f59e0b;" />
+                    <span class="form-help">Minimum: ₱10,000 | Maximum: ₱5,000,000</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Interest Rate (%)</label>
+                    <input type="number" class="form-control" placeholder="0.00" step="0.01" />
+                    <span class="form-help">Annual interest rate</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Loan Term</label>
+                    <input type="number" class="form-control" placeholder="12" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Term Unit</label>
+                    <select class="form-control">
+                        <option value="Months">Months</option>
+                        <option value="Years">Years</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Payment Schedule</label>
+                    <select class="form-control">
+                        <option>Monthly</option>
+                        <option>Quarterly</option>
+                        <option>Semi-Annual</option>
+                        <option>Annual</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">First Payment Date</label>
+                    <input type="date" class="form-control" />
+                </div>
+            </div>
+
+            <!-- Loan Summary Calculation -->
+            <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; padding: 20px; margin-top: 20px; color: white;">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; text-align: center;">
+                    <div>
+                        <div style="font-size: 11px; opacity: 0.9;">Principal Amount</div>
+                        <div style="font-size: 18px; font-weight: 700;">₱500,000.00</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; opacity: 0.9;">Total Interest</div>
+                        <div style="font-size: 18px; font-weight: 700;">₱75,000.00</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; opacity: 0.9;">Total Repayment</div>
+                        <div style="font-size: 18px; font-weight: 700;">₱575,000.00</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; opacity: 0.9;">Monthly Payment</div>
+                        <div style="font-size: 18px; font-weight: 700;">₱47,916.67</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Collateral Details -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #fef3c7; padding: 12px; border-radius: 8px;">
+                🏠 Collateral Details
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label required-field">Collateral Type</label>
+                    <select class="form-control">
+                        <option>Real Estate Property</option>
+                        <option>Vehicle</option>
+                        <option>Savings Account</option>
+                        <option>Investment Securities</option>
+                        <option>Business Assets</option>
+                        <option>None (Unsecured)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Collateral Value (₱)</label>
+                    <input type="number" class="form-control" placeholder="0.00" />
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label class="form-label">Collateral Description</label>
+                    <textarea class="form-control" rows="3" placeholder="Describe the collateral (property address, vehicle details, etc.)"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guarantor Information -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #fef3c7; padding: 12px; border-radius: 8px;">
+                🤝 Guarantor Information
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Guarantor Name</label>
+                    <input type="text" class="form-control" placeholder="Full name" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Relationship</label>
+                    <input type="text" class="form-control" placeholder="e.g., Spouse, Parent, Business Partner" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Guarantor Contact</label>
+                    <input type="tel" class="form-control" placeholder="+63 XXX XXX XXXX" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Guarantor Email</label>
+                    <input type="email" class="form-control" placeholder="guarantor@email.com" />
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label class="form-label">Guarantor Address</label>
+                    <textarea class="form-control" rows="2" placeholder="Complete address"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing Information -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #fef3c7; padding: 12px; border-radius: 8px;">
+                ⚙️ Processing Information
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Processed By</label>
+                    <input type="text" class="form-control" value="Loan Officer - Anna Cruz (EMP-3045)" readonly style="background: #f3f4f6;" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Branch</label>
+                    <select class="form-control">
+                        <option>Main Branch</option>
+                        <option>Makati Branch</option>
+                        <option>BGC Branch</option>
+                        <option>Quezon City Branch</option>
+                    </select>
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label class="form-label">Loan Purpose</label>
+                    <textarea class="form-control" rows="3" placeholder="Detailed purpose of the loan (business expansion, home renovation, medical expenses, etc.)"></textarea>
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label class="form-label">Additional Notes/Remarks</label>
+                    <textarea class="form-control" rows="2" placeholder="Any additional information or special conditions"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 20px; border-top: 2px solid var(--border);">
+            <button type="button" class="btn" style="background: #f3f4f6; color: #374151; padding: 12px 24px;">
+                ↺ Reset Form
+            </button>
+            <button type="button" class="btn" style="background: #6b7280; color: white; padding: 12px 24px;">
+                💾 Save as Draft
+            </button>
+            <button type="button" class="btn" style="background: #f59e0b; color: white; padding: 12px 32px;">
+                📋 Submit Application
+            </button>
+        </div>
+    </form>
+</div>
+
+@code {
+    // UI Only - No backend logic
+}

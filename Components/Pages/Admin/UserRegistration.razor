@@ -1,0 +1,530 @@
+@page "/admin/user-registration"
+@layout AdminLayout
+@inject NavigationManager Navigation
+
+<div class="section-header">
+    <h2 class="section-title">🔐 User Registration & Management</h2>
+    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">
+        Register new users and manage access permissions (SuperAdmin Only)
+    </p>
+</div>
+
+<!-- User Registration Form -->
+<div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid var(--border); max-width: 900px; margin: 0 auto;">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border);">
+        <span style="font-size: 24px;">➕</span>
+        <h3 style="margin: 0; font-size: 20px; font-weight: 700;">Register New User</h3>
+    </div>
+
+    <form @onsubmit="HandleRegistration" @onsubmit:preventDefault>
+        <!-- Personal Information Section -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <span>👤</span> Personal Information
+            </h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label required-field">Full Name</label>
+                    <input type="text" 
+                           class="form-control @(showError && string.IsNullOrEmpty(fullName) ? "error" : "")" 
+                           @bind="fullName" 
+                           placeholder="Enter full legal name" />
+                    @if (showError && string.IsNullOrEmpty(fullName))
+                    {
+                        <span class="form-error">! Full name is required</span>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required-field">Email Address</label>
+                    <input type="email" 
+                           class="form-control @(showError && string.IsNullOrEmpty(email) ? "error" : "")" 
+                           @bind="email" 
+                           placeholder="user@finsys.com" />
+                    @if (showError && string.IsNullOrEmpty(email))
+                    {
+                        <span class="form-error">! Valid email is required</span>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required-field">Contact Number</label>
+                    <input type="tel" 
+                           class="form-control @(showError && string.IsNullOrEmpty(contactNumber) ? "error" : "")" 
+                           @bind="contactNumber" 
+                           placeholder="+63 XXX XXX XXXX" />
+                    @if (showError && string.IsNullOrEmpty(contactNumber))
+                    {
+                        <span class="form-error">! Contact number is required</span>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required-field">Address</label>
+                    <input type="text" 
+                           class="form-control @(showError && string.IsNullOrEmpty(address) ? "error" : "")" 
+                           @bind="address" 
+                           placeholder="Complete address" />
+                    @if (showError && string.IsNullOrEmpty(address))
+                    {
+                        <span class="form-error">! Address is required</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Credentials Section -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <span>🔑</span> Account Credentials
+            </h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label required-field">Username</label>
+                    <input type="text" 
+                           class="form-control @(showError && string.IsNullOrEmpty(username) ? "error" : "")" 
+                           @bind="username" 
+                           placeholder="Create unique username" />
+                    @if (showError && string.IsNullOrEmpty(username))
+                    {
+                        <span class="form-error">! Username is required</span>
+                    }
+                    <span class="form-help">4-20 characters, letters and numbers only</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required-field">Initial Password</label>
+                    <input type="@(showPassword ? "text" : "password")" 
+                           class="form-control @(showError && string.IsNullOrEmpty(initialPassword) ? "error" : "")" 
+                           @bind="initialPassword" 
+                           placeholder="Create temporary password" />
+                    @if (showError && string.IsNullOrEmpty(initialPassword))
+                    {
+                        <span class="form-error">! Initial password is required</span>
+                    }
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer; margin-top: 8px;">
+                        <input type="checkbox" @onchange="() => showPassword = !showPassword" />
+                        Show password
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role & Department Section -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <span>🏢</span> Role & Department Assignment
+            </h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label required-field">Assign Role</label>
+                    <select class="form-control @(showError && string.IsNullOrEmpty(selectedRole) ? "error" : "")" 
+                            @bind="selectedRole"
+                            @bind:event="onchange">
+                        <option value="">Select a role...</option>
+                        <option value="Customer">Customer - Personal Banking</option>
+                        <option value="Cashier">Cashier/Teller - Transaction Processing</option>
+                        <option value="Accountant">Accountant - Financial Recording</option>
+                        <option value="FinanceManager">Finance Manager - Financial Operations</option>
+                        <option value="LoanOfficer">Loan Officer - Loan Management</option>
+                        <option value="CustomerService">Customer Service - Client Support</option>
+                        <option value="Manager">Manager - Operations Management</option>
+                        <option value="Auditor">Auditor - Compliance & Audit</option>
+                        <option value="Admin">Administrator - System Management</option>
+                        <option value="SuperAdmin">Super Administrator - Full Access</option>
+                    </select>
+                    @if (showError && string.IsNullOrEmpty(selectedRole))
+                    {
+                        <span class="form-error">! Please select a role</span>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label @(selectedRole != "Customer" ? "required-field" : "")">Department</label>
+                    <select class="form-control @(showError && selectedRole != "Customer" && string.IsNullOrEmpty(department) ? "error" : "")" 
+                            @bind="department"
+                            disabled="@(selectedRole == "Customer")">
+                        <option value="">Select department...</option>
+                        <option value="Finance">Finance Department</option>
+                        <option value="Accounting">Accounting Department</option>
+                        <option value="Loans">Loans Department</option>
+                        <option value="Operations">Operations Department</option>
+                        <option value="Customer Service">Customer Service Department</option>
+                        <option value="IT">IT Department</option>
+                        <option value="HR">Human Resources</option>
+                        <option value="Audit">Audit & Compliance</option>
+                        <option value="Management">Management</option>
+                    </select>
+                    @if (showError && selectedRole != "Customer" && string.IsNullOrEmpty(department))
+                    {
+                        <span class="form-error">! Department is required for staff</span>
+                    }
+                </div>
+
+                @if (selectedRole != "Customer")
+                {
+                    <div class="form-group">
+                        <label class="form-label required-field">Employee ID</label>
+                        <input type="text" 
+                               class="form-control @(showError && string.IsNullOrEmpty(employeeId) ? "error" : "")" 
+                               @bind="employeeId" 
+                               placeholder="EMP-XXXX" />
+                        @if (showError && string.IsNullOrEmpty(employeeId))
+                        {
+                            <span class="form-error">! Employee ID is required</span>
+                        }
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Branch/Location</label>
+                        <input type="text" 
+                               class="form-control" 
+                               @bind="branchLocation" 
+                               placeholder="Main Branch / Head Office" />
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Permissions Section -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <span>⚙️</span> Initial Permissions
+            </h4>
+            
+            <div style="background: #f9fafb; border-radius: 12px; padding: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                    @foreach (var permission in availablePermissions)
+                    {
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
+                            <input type="checkbox" 
+                                   checked="@selectedPermissions.Contains(permission)" 
+                                   @onchange="@(() => TogglePermission(permission))" />
+                            <span>@permission</span>
+                        </label>
+                    }
+                </div>
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb; font-size: 12px; color: var(--text-secondary);">
+                    💡 Permissions are auto-selected based on role. You can customize as needed.
+                </div>
+            </div>
+        </div>
+
+        <!-- Approval Status -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <span>✓</span> Account Status
+            </h4>
+            
+            <div style="display: flex; gap: 24px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="radio" name="approvalStatus" value="Pending" checked="@(approvalStatus == "Pending")" @onchange="@(() => approvalStatus = "Pending")" />
+                    <span style="font-size: 14px;">⏳ Pending Admin Approval</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="radio" name="approvalStatus" value="Active" checked="@(approvalStatus == "Active")" @onchange="@(() => approvalStatus = "Active")" />
+                    <span style="font-size: 14px;">✅ Activate Immediately</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Error/Success Messages -->
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div style="padding: 16px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 12px; color: #991b1b; font-size: 14px; margin-bottom: 20px;">
+                <strong>❌ Registration Failed:</strong> @errorMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div style="padding: 16px; background: #d1fae5; border: 1px solid #a7f3d0; border-radius: 12px; color: #065f46; font-size: 14px; margin-bottom: 20px;">
+                <strong>✅ Success:</strong> @successMessage
+            </div>
+        }
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 20px; border-top: 2px solid var(--border);">
+            <button type="button" 
+                    class="btn" 
+                    style="background: #f3f4f6; color: #374151; padding: 12px 24px; border-radius: 12px; font-weight: 600;"
+                    @onclick="ClearForm">
+                ↺ Reset Form
+            </button>
+            <button type="submit" 
+                    class="btn btn-primary" 
+                    style="padding: 12px 32px; border-radius: 12px; font-weight: 600;"
+                    disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span>⏳ Creating Account...</span>
+                }
+                else
+                {
+                    <span>➕ Create User Account</span>
+                }
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Pending Approvals Section -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-top: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; font-size: 18px; font-weight: 700;">⏳ Pending User Approvals (@pendingUsers.Count)</h3>
+        <button class="btn" style="background: #f3f4f6; color: #374151; padding: 8px 16px; border-radius: 8px; font-size: 13px;">
+            🔄 Refresh
+        </button>
+    </div>
+
+    @if (pendingUsers.Count > 0)
+    {
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border); background: #f9fafb;">
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary);">USER</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary);">ROLE</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary);">DEPARTMENT</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary);">REQUESTED</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary);">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in pendingUsers)
+                {
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 16px;">
+                            <div style="font-weight: 600;">@user.FullName</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">@user.Email</div>
+                        </td>
+                        <td style="padding: 16px;">
+                            <span style="padding: 4px 12px; background: #dbeafe; color: #1e40af; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                                @user.Role
+                            </span>
+                        </td>
+                        <td style="padding: 16px;">@user.Department</td>
+                        <td style="padding: 16px; font-size: 13px; color: var(--text-secondary);">@user.RequestDate.ToString("MMM dd, yyyy")</td>
+                        <td style="padding: 16px;">
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn" style="background: #d1fae5; color: #065f46; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                                    ✓ Approve
+                                </button>
+                                <button class="btn" style="background: #fee2e2; color: #991b1b; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                                    ✗ Reject
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+            <div style="font-size: 48px; margin-bottom: 12px;">📋</div>
+            <div style="font-size: 15px;">No pending user approvals at this time</div>
+        </div>
+    }
+</div>
+
+@code {
+    // Form fields - Personal Information
+    private string fullName = "";
+    private string email = "";
+    private string contactNumber = "";
+    private string address = "";
+
+    // Form fields - Account Credentials
+    private string username = "";
+    private string initialPassword = "";
+    private bool showPassword = false;
+
+    // Form fields - Role & Department
+    private string selectedRole = "";
+    private string department = "";
+    private string employeeId = "";
+    private string branchLocation = "";
+
+    // Permissions
+    private List<string> selectedPermissions = new();
+    private List<string> availablePermissions = new()
+    {
+        "Dashboard", "Transactions", "Accounts", "Users", "Reports", "Settings",
+        "Accounting", "HR/Payroll", "CRM", "Loans", "Cards", "Bills", "Security", "Audit"
+    };
+
+    // Status
+    private string approvalStatus = "Pending";
+    private bool showError = false;
+    private bool isLoading = false;
+    private string errorMessage = "";
+    private string successMessage = "";
+
+    // Pending users list
+    private List<PendingUser> pendingUsers = new();
+
+    protected override void OnInitialized()
+    {
+        // Load pending users (mock data)
+        pendingUsers = new List<PendingUser>
+        {
+            new PendingUser 
+            { 
+                FullName = "John Dela Cruz", 
+                Email = "john.delacruz@finsys.com", 
+                Role = "Accountant", 
+                Department = "Accounting",
+                RequestDate = DateTime.Now.AddDays(-2)
+            },
+            new PendingUser 
+            { 
+                FullName = "Maria Santos", 
+                Email = "maria.santos@finsys.com", 
+                Role = "Loan Officer", 
+                Department = "Loans",
+                RequestDate = DateTime.Now.AddDays(-1)
+            }
+        };
+    }
+
+    private void HandleRoleChange(ChangeEventArgs e)
+    {
+        selectedRole = e.Value?.ToString() ?? "";
+        
+        // Auto-populate permissions based on role
+        selectedPermissions.Clear();
+        if (!string.IsNullOrEmpty(selectedRole))
+        {
+            // Add role-specific permissions (simplified version)
+            selectedPermissions.Add("Dashboard");
+            selectedPermissions.Add("Transactions");
+            
+            if (selectedRole == "SuperAdmin" || selectedRole == "Admin")
+            {
+                selectedPermissions = new List<string>(availablePermissions);
+            }
+            else if (selectedRole == "FinanceManager" || selectedRole == "Accountant")
+            {
+                selectedPermissions.AddRange(new[] { "Accounting", "Reports" });
+            }
+            else if (selectedRole == "LoanOfficer")
+            {
+                selectedPermissions.AddRange(new[] { "Loans", "CRM", "Reports" });
+            }
+        }
+    }
+
+    private void TogglePermission(string permission)
+    {
+        if (selectedPermissions.Contains(permission))
+            selectedPermissions.Remove(permission);
+        else
+            selectedPermissions.Add(permission);
+    }
+
+    private async Task HandleRegistration()
+    {
+        showError = true;
+        errorMessage = "";
+        successMessage = "";
+
+        // Validation
+        if (string.IsNullOrEmpty(fullName))
+        {
+            errorMessage = "Full name is required";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(email) || !email.Contains("@"))
+        {
+            errorMessage = "Valid email address is required";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(contactNumber))
+        {
+            errorMessage = "Contact number is required";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(address))
+        {
+            errorMessage = "Address is required";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(username))
+        {
+            errorMessage = "Username is required";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(initialPassword) || initialPassword.Length < 8)
+        {
+            errorMessage = "Password must be at least 8 characters";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(selectedRole))
+        {
+            errorMessage = "Please select a role";
+            return;
+        }
+
+        if (selectedRole != "Customer" && string.IsNullOrEmpty(department))
+        {
+            errorMessage = "Department is required for staff members";
+            return;
+        }
+
+        if (selectedRole != "Customer" && string.IsNullOrEmpty(employeeId))
+        {
+            errorMessage = "Employee ID is required for staff members";
+            return;
+        }
+
+        // Simulate registration process
+        isLoading = true;
+        await Task.Delay(1500);
+        isLoading = false;
+
+        // Success
+        successMessage = $"User account for {fullName} has been created successfully! Status: {approvalStatus}";
+        
+        // Clear form after 3 seconds
+        await Task.Delay(3000);
+        ClearForm();
+        successMessage = "";
+    }
+
+    private void ClearForm()
+    {
+        fullName = "";
+        email = "";
+        contactNumber = "";
+        address = "";
+        username = "";
+        initialPassword = "";
+        selectedRole = "";
+        department = "";
+        employeeId = "";
+        branchLocation = "";
+        selectedPermissions.Clear();
+        approvalStatus = "Pending";
+        showError = false;
+        errorMessage = "";
+    }
+
+    private class PendingUser
+    {
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Role { get; set; } = "";
+        public string Department { get; set; } = "";
+        public DateTime RequestDate { get; set; }
+    }
+}

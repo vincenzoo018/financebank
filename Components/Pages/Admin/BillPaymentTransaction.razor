@@ -1,0 +1,80 @@
+@page "/admin/transactions/bills"
+@page "/customer/pay-bills"
+@layout AdminLayout
+
+<div class="section-header">
+    <h2 class="section-title">📄 Bill Payment Processing</h2>
+    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">
+        Process utility bills, credit cards, loans, and other billers
+    </p>
+</div>
+
+<div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid var(--border);">
+    <form>
+        <!-- Bill Information -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #dbeafe; padding: 12px; border-radius: 8px; color: #1e40af;">
+                💳 Bill Information
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label required-field">Biller Category</label>
+                    <select class="form-control">
+                        <option value="">Select category...</option>
+                        <option value="Utilities">⚡ Utilities (Electric, Water, Gas)</option>
+                        <option value="Telco">📱 Telecommunications</option>
+                        <option value="Internet">🌐 Internet/Cable TV</option>
+                        <option value="CreditCard">💳 Credit Card</option>
+                        <option value="Loan">🏦 Loan Payment</option>
+                        <option value="Insurance">🛡️ Insurance Premium</option>
+                        <option value="Government">🏛️ Government Fees</option>
+                        <option value="Education">🎓 Education/Tuition</option>
+                        <option value="Other">📝 Other Bills</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Biller Name</label>
+                    <input type="text" class="form-control" placeholder="Enter biller name" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Account/Reference Number</label>
+                    <input type="text" class="form-control" placeholder="Enter biller account number" style="font-family: monospace;" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Bill Amount (₱)</label>
+                    <input type="number" class="form-control" placeholder="0.00" step="0.01" style="font-size: 18px; font-weight: 700; color: #3b82f6;" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Due Date</label>
+                    <input type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Payment Date</label>
+                    <input type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Payment Method</label>
+                    <select class="form-control">
+                        <option>Online Banking</option>
+                        <option>Over-the-Counter</option>
+                        <option>Auto-Debit</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirmation Number</label>
+                    <input type="text" class="form-control" placeholder="Auto-generated" readonly style="background: #f3f4f6;" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" class="btn" style="background: #f3f4f6; color: #374151; padding: 12px 24px;">Clear</button>
+            <button type="button" class="btn btn-primary" style="padding: 12px 32px;">Pay Bill</button>
+        </div>
+    </form>
+</div>
+
+@code {
+    // UI Only - No backend logic
+}

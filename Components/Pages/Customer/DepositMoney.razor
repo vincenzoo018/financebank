@@ -1,0 +1,220 @@
+@page "/customer/deposit"
+@layout CustomerLayout
+
+<div class="section-header">
+    <h2 class="section-title">💰 Make a Deposit</h2>
+    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">
+        Deposit funds to your account - Cash, Check, or Online Transfer
+    </p>
+</div>
+
+<div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid var(--border);">
+    <form>
+        <!-- Transaction Information -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #d1fae5; padding: 12px; border-radius: 8px; color: #065f46;">
+                📋 Transaction Information
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Transaction ID</label>
+                    <input type="text" class="form-control" value="DEP-20251112001" readonly style="background: #f3f4f6; font-family: monospace; font-weight: 700;" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Date & Time</label>
+                    <input type="datetime-local" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Deposit Type</label>
+                    <select class="form-control">
+                        <option value="">Select type...</option>
+                        <option value="Cash">💵 Cash Deposit</option>
+                        <option value="Check">📝 Check Deposit</option>
+                        <option value="Online">🌐 Online/Bank Transfer</option>
+                        <option value="Wire">🏦 Wire Transfer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Reference Number</label>
+                    <input type="text" class="form-control" placeholder="Optional reference number" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Deposit Slip Number</label>
+                    <input type="text" class="form-control" placeholder="For check deposits" />
+                    <span class="form-help">Required for check deposits</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <input type="text" class="form-control" value="Pending Confirmation" readonly style="background: #fef3c7; color: #92400e; font-weight: 600;" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Information -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #d1fae5; padding: 12px; border-radius: 8px; color: #065f46;">
+                🏦 Account Information
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label required-field">Deposit To Account</label>
+                    <input type="text" class="form-control" placeholder="BFAS-XXXXXXXXXXXX" style="font-family: monospace;" />
+                    <span class="form-help">Your account number</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Account Holder Name</label>
+                    <input type="text" class="form-control" value="Juan Dela Cruz" readonly style="background: #f3f4f6;" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Current Balance</label>
+                    <input type="text" class="form-control" value="₱25,450.75" readonly style="background: #f3f4f6; font-weight: 700; color: #10b981;" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Account Type</label>
+                    <input type="text" class="form-control" value="Savings Account" readonly style="background: #f3f4f6;" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Depositor Information -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #d1fae5; padding: 12px; border-radius: 8px; color: #065f46;">
+                👤 Depositor Information
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label required-field">Depositor Name</label>
+                    <input type="text" class="form-control" placeholder="Full name of person making deposit" />
+                    <span class="form-help">Can be different from account holder</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contact Number</label>
+                    <input type="tel" class="form-control" placeholder="+63 XXX XXX XXXX" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Source of Funds</label>
+                    <select class="form-control">
+                        <option value="">Select source...</option>
+                        <option>💼 Salary/Employment Income</option>
+                        <option>🏢 Business Income</option>
+                        <option>📈 Investment Returns</option>
+                        <option>🎁 Gift</option>
+                        <option>💰 Savings</option>
+                        <option>🏠 Property Sale</option>
+                        <option>📝 Other (specify in notes)</option>
+                    </select>
+                    <span class="form-help">Required for compliance</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Relationship to Account Holder</label>
+                    <input type="text" class="form-control" placeholder="e.g., Self, Spouse, Parent, etc." />
+                </div>
+            </div>
+        </div>
+
+        <!-- Amount & Fees -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #d1fae5; padding: 12px; border-radius: 8px; color: #065f46;">
+                💵 Amount & Fees
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label required-field">Deposit Amount (₱)</label>
+                    <input type="number" class="form-control" placeholder="0.00" step="0.01" style="font-size: 20px; font-weight: 700; color: #10b981;" />
+                    <span class="form-help">Minimum: ₱100.00</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Processing Fee</label>
+                    <input type="text" class="form-control" value="₱0.00" readonly style="background: #f3f4f6;" />
+                    <span class="form-help">No fee for deposits</span>
+                </div>
+            </div>
+
+            <!-- New Balance Preview -->
+            <div style="background: linear-gradient(135deg, #10b981, #059669); border-radius: 12px; padding: 20px; margin-top: 20px; color: white;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 13px; opacity: 0.9;">New Balance After Deposit</div>
+                        <div style="font-size: 28px; font-weight: 700; margin-top: 4px;">₱25,450.75</div>
+                    </div>
+                    <div style="font-size: 48px; opacity: 0.2;">💰</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Branch & Processing -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #d1fae5; padding: 12px; border-radius: 8px; color: #065f46;">
+                🏢 Branch & Processing Details
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Branch/Location</label>
+                    <select class="form-control">
+                        <option>Main Branch</option>
+                        <option>Makati Branch</option>
+                        <option>BGC Branch</option>
+                        <option>Quezon City Branch</option>
+                        <option>Ortigas Branch</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Processed By</label>
+                    <input type="text" class="form-control" value="System - Online Deposit" readonly style="background: #f3f4f6;" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Notes -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #d1fae5; padding: 12px; border-radius: 8px; color: #065f46;">
+                📝 Additional Notes
+            </h4>
+            <div class="form-group">
+                <label class="form-label">Transaction Notes/Memo</label>
+                <textarea class="form-control" rows="3" placeholder="Optional notes about this deposit..."></textarea>
+                <span class="form-help">Any additional information or special instructions</span>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 20px; border-top: 2px solid var(--border);">
+            <button type="button" class="btn" style="background: #f3f4f6; color: #374151; padding: 12px 24px;">
+                ↺ Clear Form
+            </button>
+            <button type="button" class="btn" style="background: #6b7280; color: white; padding: 12px 24px;">
+                💾 Save as Draft
+            </button>
+            <button type="button" class="btn" style="background: #10b981; color: white; padding: 12px 32px;">
+                → Continue to Review
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Recent Deposits -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-top: 24px;">
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px;">📜 Recent Deposits</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 2px solid var(--border); background: #f9fafb;">
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">DATE</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">TYPE</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">AMOUNT</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">STATUS</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 16px;">Nov 10, 2025</td>
+                <td style="padding: 16px;">Cash Deposit</td>
+                <td style="padding: 16px; font-weight: 700; color: #10b981;">₱5,000.00</td>
+                <td style="padding: 16px;"><span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px;">Completed</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+@code {
+    // UI Only - No backend logic
+}

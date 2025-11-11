@@ -1,0 +1,255 @@
+@page "/customer/withdraw"
+@layout CustomerLayout
+
+<div class="section-header">
+    <h2 class="section-title">💸 Withdraw Money</h2>
+    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">
+        Withdraw funds from your account - ATM, Teller, or Online
+    </p>
+</div>
+
+<div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid var(--border);">
+    <form>
+        <!-- Transaction Information -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #fee2e2; padding: 12px; border-radius: 8px; color: #991b1b;">
+                📋 Transaction Information
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Transaction ID</label>
+                    <input type="text" class="form-control" value="WDR-20251112001" readonly style="background: #f3f4f6; font-family: monospace; font-weight: 700;" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Date & Time</label>
+                    <input type="datetime-local" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label required-field">Withdrawal Method</label>
+                    <select class="form-control">
+                        <option value="">Select method...</option>
+                        <option value="ATM">🏧 ATM Withdrawal</option>
+                        <option value="Teller">💰 Over-the-Counter (Teller)</option>
+                        <option value="Online">🌐 Online Transfer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Reference Number</label>
+                    <input type="text" class="form-control" placeholder="Optional reference number" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Withdrawal Slip Number</label>
+                    <input type="text" class="form-control" placeholder="For teller withdrawals" />
+                    <span class="form-help">Required for over-the-counter</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <input type="text" class="form-control" value="Pending Authorization" readonly style="background: #fef3c7; color: #92400e; font-weight: 600;" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Information -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #fee2e2; padding: 12px; border-radius: 8px; color: #991b1b;">
+                🏦 Account Information
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label required-field">Withdraw From Account</label>
+                    <input type="text" class="form-control" placeholder="BFAS-XXXXXXXXXXXX" style="font-family: monospace;" />
+                    <span class="form-help">Your account number</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Account Holder Name</label>
+                    <input type="text" class="form-control" value="Juan Dela Cruz" readonly style="background: #f3f4f6;" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Current Balance</label>
+                    <input type="text" class="form-control" value="₱25,450.75" readonly style="background: #f3f4f6; font-weight: 700; color: #10b981;" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Available Balance</label>
+                    <input type="text" class="form-control" value="₱25,450.75" readonly style="background: #d1fae5; font-weight: 700; color: #065f46;" />
+                    <span class="form-help">After pending transactions</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Withdrawal Amount & Limits -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #fee2e2; padding: 12px; border-radius: 8px; color: #991b1b;">
+                💵 Withdrawal Amount & Daily Limits
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label required-field">Withdrawal Amount (₱)</label>
+                    <input type="number" class="form-control" placeholder="0.00" step="0.01" style="font-size: 20px; font-weight: 700; color: #dc2626;" />
+                    <span class="form-help">Minimum: ₱100.00</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Transaction Fee</label>
+                    <input type="text" class="form-control" value="₱15.00" readonly style="background: #f3f4f6;" />
+                    <span class="form-help">Standard withdrawal fee</span>
+                </div>
+            </div>
+
+            <!-- Daily Limit Check -->
+            <div style="background: #fef3c7; border: 2px solid #fcd34d; border-radius: 12px; padding: 20px; margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <div style="font-size: 13px; color: #92400e; font-weight: 600;">Daily Withdrawal Limit</div>
+                        <div style="font-size: 11px; color: #92400e; margin-top: 2px;">Resets at midnight</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 24px; font-weight: 700; color: #92400e;">₱50,000.00</div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 8px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="font-size: 12px; color: #92400e;">Used Today: ₱5,000.00</span>
+                        <span style="font-size: 12px; color: #92400e; font-weight: 600;">Remaining: ₱45,000.00</span>
+                    </div>
+                    <div style="height: 8px; background: #fde68a; border-radius: 4px; overflow: hidden;">
+                        <div style="height: 100%; width: 10%; background: #f59e0b;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balance After Withdrawal -->
+            <div style="background: linear-gradient(135deg, #dc2626, #991b1b); border-radius: 12px; padding: 20px; margin-top: 20px; color: white;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 13px; opacity: 0.9;">Balance After Withdrawal</div>
+                        <div style="font-size: 28px; font-weight: 700; margin-top: 4px;">₱25,450.75</div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">After fee deduction</div>
+                    </div>
+                    <div style="font-size: 48px; opacity: 0.2;">💸</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Purpose & Reason -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #fee2e2; padding: 12px; border-radius: 8px; color: #991b1b;">
+                📝 Purpose & Reason
+            </h4>
+            <div class="form-group">
+                <label class="form-label required-field">Withdrawal Purpose/Reason</label>
+                <select class="form-control">
+                    <option value="">Select purpose...</option>
+                    <option>💳 Personal Use</option>
+                    <option>🛒 Shopping/Purchases</option>
+                    <option>🏥 Medical Expenses</option>
+                    <option>🎓 Education Expenses</option>
+                    <option>🏠 Household Expenses</option>
+                    <option>🚗 Transportation</option>
+                    <option>💼 Business Expenses</option>
+                    <option>🎁 Gift/Donation</option>
+                    <option>📝 Other (specify below)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Additional Notes</label>
+                <textarea class="form-control" rows="2" placeholder="Optional: Provide more details about the withdrawal..."></textarea>
+            </div>
+        </div>
+
+        <!-- ID Verification (For Teller Withdrawals) -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #fee2e2; padding: 12px; border-radius: 8px; color: #991b1b;">
+                🪪 ID Verification (Required for Over-the-Counter)
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label">ID Type</label>
+                    <select class="form-control">
+                        <option value="">Select ID type...</option>
+                        <option>🪪 Government ID</option>
+                        <option>📘 Passport</option>
+                        <option>🚗 Driver's License</option>
+                        <option>🏢 Company ID</option>
+                        <option>🎓 Student ID</option>
+                        <option>👤 Senior Citizen ID</option>
+                        <option>📇 Voter's ID</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ID Number</label>
+                    <input type="text" class="form-control" placeholder="Enter ID number" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ID Issued Date</label>
+                    <input type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ID Expiry Date</label>
+                    <input type="date" class="form-control" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Branch & Authorization -->
+        <div style="margin-bottom: 32px;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; background: #fee2e2; padding: 12px; border-radius: 8px; color: #991b1b;">
+                🏢 Branch & Authorization
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Branch/Location</label>
+                    <select class="form-control">
+                        <option>Main Branch</option>
+                        <option>Makati Branch</option>
+                        <option>BGC Branch</option>
+                        <option>Quezon City Branch</option>
+                        <option>Ortigas Branch</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Authorized By</label>
+                    <input type="text" class="form-control" value="Pending Authorization" readonly style="background: #f3f4f6;" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 20px; border-top: 2px solid var(--border);">
+            <button type="button" class="btn" style="background: #f3f4f6; color: #374151; padding: 12px 24px;">
+                ↺ Clear Form
+            </button>
+            <button type="button" class="btn" style="background: #6b7280; color: white; padding: 12px 24px;">
+                💾 Save as Draft
+            </button>
+            <button type="button" class="btn" style="background: #dc2626; color: white; padding: 12px 32px;">
+                → Continue to Authorization
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Recent Withdrawals -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-top: 24px;">
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px;">📜 Recent Withdrawals</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 2px solid var(--border); background: #f9fafb;">
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">DATE</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">METHOD</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">AMOUNT</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">STATUS</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 16px;">Nov 11, 2025</td>
+                <td style="padding: 16px;">ATM Withdrawal</td>
+                <td style="padding: 16px; font-weight: 700; color: #dc2626;">₱3,000.00</td>
+                <td style="padding: 16px;"><span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px;">Completed</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+@code {
+    // UI Only - No backend logic
+}

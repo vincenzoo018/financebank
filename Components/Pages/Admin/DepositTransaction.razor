@@ -1,0 +1,460 @@
+@page "/admin/transactions/deposit"
+@page "/employee/transactions/deposit"
+@layout AdminLayout
+
+<div class="section-header">
+    <h2 class="section-title">💰 Deposit Transaction</h2>
+    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">
+        Process customer deposits - Cash, Check, or Online Transfer
+    </p>
+</div>
+
+<!-- Multi-Step Progress -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; position: relative;">
+        @for (int i = 1; i <= 3; i++)
+        {
+            var isActive = currentStep == i;
+            var isCompleted = currentStep > i;
+            
+            <div style="flex: 1; text-align: center; position: relative; z-index: 1;">
+                <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: @(isActive ? "var(--accent)" : isCompleted ? "#10b981" : "#e5e7eb"); color: @(isActive || isCompleted ? "white" : "#6b7280"); font-weight: 700; font-size: 18px; margin-bottom: 8px;">
+                    @if (isCompleted)
+                    {
+                        <span>✓</span>
+                    }
+                    else
+                    {
+                        <span>@i</span>
+                    }
+                </div>
+                <div style="font-size: 13px; font-weight: 600; color: @(isActive ? "var(--accent)" : isCompleted ? "#10b981" : "#6b7280");">
+                    @(i == 1 ? "Transaction Details" : i == 2 ? "Verification" : "Confirmation")
+                </div>
+            </div>
+            
+            @if (i < 3)
+            {
+                <div style="flex: 1; height: 2px; background: @(currentStep > i ? "#10b981" : "#e5e7eb"); position: relative; top: -24px;"></div>
+            }
+        }
+    </div>
+</div>
+
+<!-- Step 1: Transaction Details -->
+@if (currentStep == 1)
+{
+    <div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid var(--border);">
+        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
+            <span>📝</span> Step 1: Enter Deposit Information
+        </h3>
+
+        <form>
+            <!-- Transaction Information -->
+            <div style="margin-bottom: 32px;">
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; background: #f9fafb; padding: 12px; border-radius: 8px;">
+                    📋 Transaction Information
+                </h4>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label class="form-label required-field">Transaction ID</label>
+                        <input type="text" class="form-control" @bind="transactionId" readonly 
+                               style="background: #f3f4f6; font-family: monospace; font-weight: 700;" />
+                        <span class="form-help">Auto-generated unique transaction identifier</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required-field">Transaction Date & Time</label>
+                        <input type="datetime-local" class="form-control" @bind="transactionDateTime" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required-field">Deposit Type</label>
+                        <select class="form-control" @bind="depositType">
+                            <option value="">Select deposit type...</option>
+                            <option value="Cash">💵 Cash Deposit</option>
+                            <option value="Check">🏦 Check Deposit</option>
+                            <option value="Online">🌐 Online Transfer</option>
+                            <option value="Wire">⚡ Wire Transfer</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required-field">Reference Number</label>
+                        <input type="text" class="form-control" @bind="referenceNumber" 
+                               placeholder="REF-XXXX or Check Number" />
+                        <span class="form-help">Transaction reference or check number</span>
+                    </div>
+
+                    @if (depositType == "Check")
+                    {
+                        <div class="form-group">
+                            <label class="form-label required-field">Deposit Slip Number</label>
+                            <input type="text" class="form-control" @bind="depositSlipNumber" 
+                                   placeholder="DS-XXXXXXXXXX" />
+                        </div>
+                    }
+
+                    <div class="form-group">
+                        <label class="form-label required-field">Status</label>
+                        <select class="form-control" @bind="status">
+                            <option value="Pending">⏳ Pending</option>
+                            <option value="Processing">🔄 Processing</option>
+                            <option value="Completed">✅ Completed</option>
+                            <option value="Failed">❌ Failed</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Information -->
+            <div style="margin-bottom: 32px;">
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; background: #f9fafb; padding: 12px; border-radius: 8px;">
+                    👤 Account & Depositor Information
+                </h4>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label class="form-label required-field">Account Number</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" class="form-control" @bind="accountNumber" 
+                                   placeholder="BFAS-XXXXXXXXXXXX" 
+                                   style="font-family: monospace;" />
+                            <button type="button" class="btn" style="background: var(--accent); color: white; padding: 0 16px;">
+                                🔍
+                            </button>
+                        </div>
+                        <span class="form-help">Enter account number to verify</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Account Holder Name</label>
+                        <input type="text" class="form-control" value="Juan Dela Cruz" readonly 
+                               style="background: #f3f4f6;" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required-field">Depositor Name</label>
+                        <input type="text" class="form-control" @bind="depositorName" 
+                               placeholder="Full name of depositor" />
+                        <span class="form-help">Person making the deposit</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Depositor Contact</label>
+                        <input type="tel" class="form-control" @bind="depositorContact" 
+                               placeholder="+63 XXX XXX XXXX" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required-field">Source of Funds</label>
+                        <select class="form-control" @bind="sourceOfFunds">
+                            <option value="">Select source...</option>
+                            <option value="Salary">💼 Salary/Income</option>
+                            <option value="Business">🏢 Business Revenue</option>
+                            <option value="Investment">📈 Investment Returns</option>
+                            <option value="Gift">🎁 Gift/Donation</option>
+                            <option value="Loan">💰 Loan Proceeds</option>
+                            <option value="Savings">🏦 Personal Savings</option>
+                            <option value="Other">📝 Other</option>
+                        </select>
+                    </div>
+
+                    @if (sourceOfFunds == "Other")
+                    {
+                        <div class="form-group">
+                            <label class="form-label">Specify Source</label>
+                            <input type="text" class="form-control" @bind="sourceOfFundsOther" 
+                                   placeholder="Please specify..." />
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Amount & Processing -->
+            <div style="margin-bottom: 32px;">
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; background: #f9fafb; padding: 12px; border-radius: 8px;">
+                    💵 Amount & Processing Details
+                </h4>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label class="form-label required-field">Deposit Amount (₱)</label>
+                        <input type="number" class="form-control" @bind="amount" 
+                               placeholder="0.00" step="0.01" min="0"
+                               style="font-size: 18px; font-weight: 700; color: #10b981;" />
+                        <span class="form-help">Amount to be deposited</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Processing Fee (₱)</label>
+                        <input type="number" class="form-control" @bind="processingFee" 
+                               placeholder="0.00" step="0.01" readonly
+                               style="background: #f3f4f6;" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Branch/Location</label>
+                        <select class="form-control" @bind="branchLocation">
+                            <option value="Main Branch">Main Branch</option>
+                            <option value="Makati Branch">Makati Branch</option>
+                            <option value="BGC Branch">BGC Branch</option>
+                            <option value="Quezon City Branch">Quezon City Branch</option>
+                            <option value="Cebu Branch">Cebu Branch</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Processed By (Employee)</label>
+                        <input type="text" class="form-control" value="Maria Santos (EMP-1024)" readonly 
+                               style="background: #f3f4f6;" />
+                    </div>
+                </div>
+
+                <!-- Amount Summary Box -->
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; padding: 20px; margin-top: 20px; color: white;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: center;">
+                        <div>
+                            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Deposit Amount</div>
+                            <div style="font-size: 24px; font-weight: 700;">₱@amount.ToString("N2")</div>
+                        </div>
+                        <div style="border-left: 1px solid rgba(255,255,255,0.3); border-right: 1px solid rgba(255,255,255,0.3);">
+                            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Processing Fee</div>
+                            <div style="font-size: 24px; font-weight: 700;">₱@processingFee.ToString("N2")</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Net Deposit</div>
+                            <div style="font-size: 24px; font-weight: 700;">₱@((amount - processingFee).ToString("N2"))</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes & Remarks -->
+            <div style="margin-bottom: 32px;">
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; background: #f9fafb; padding: 12px; border-radius: 8px;">
+                    📄 Additional Notes & Remarks
+                </h4>
+                
+                <div class="form-group">
+                    <label class="form-label">Transaction Notes</label>
+                    <textarea class="form-control" @bind="notes" rows="4" 
+                              placeholder="Enter any additional notes, special instructions, or remarks about this deposit..."></textarea>
+                    <span class="form-help">Optional: Add any relevant information about this transaction</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 20px; border-top: 2px solid var(--border);">
+                <button type="button" class="btn" style="background: #f3f4f6; color: #374151; padding: 12px 24px; border-radius: 12px; font-weight: 600;">
+                    ↺ Reset
+                </button>
+                <button type="button" class="btn btn-primary" style="padding: 12px 32px; border-radius: 12px; font-weight: 600;" @onclick="() => currentStep = 2">
+                    Next Step →
+                </button>
+            </div>
+        </form>
+    </div>
+}
+
+<!-- Step 2: Verification -->
+@if (currentStep == 2)
+{
+    <div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid var(--border);">
+        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
+            <span>🔍</span> Step 2: Verify Transaction Details
+        </h3>
+
+        <!-- Verification Checklist -->
+        <div style="background: #fef3c7; border: 2px solid #fbbf24; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+            <div style="font-weight: 700; margin-bottom: 12px; color: #92400e;">⚠️ Verification Required</div>
+            <div style="display: grid; gap: 12px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" @bind="verifyAccountValid" />
+                    <span style="font-size: 14px;">✓ Account number verified and valid</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" @bind="verifyAmountCorrect" />
+                    <span style="font-size: 14px;">✓ Deposit amount is correct</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" @bind="verifyIdentityConfirmed" />
+                    <span style="font-size: 14px;">✓ Depositor identity confirmed</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" @bind="verifySourceValid" />
+                    <span style="font-size: 14px;">✓ Source of funds documented</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Transaction Summary for Review -->
+        <div style="background: #f9fafb; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Transaction ID</div>
+                    <div style="font-weight: 700; font-family: monospace;">@transactionId</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Account Number</div>
+                    <div style="font-weight: 700; font-family: monospace;">@accountNumber</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Depositor</div>
+                    <div style="font-weight: 700;">@depositorName</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Amount</div>
+                    <div style="font-weight: 700; font-size: 20px; color: #10b981;">₱@amount.ToString("N2")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enter OTP -->
+        <div style="background: #eff6ff; border: 2px solid #3b82f6; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+            <div style="font-weight: 700; margin-bottom: 12px; color: #1e40af;">🔐 Enter Transaction PIN/OTP</div>
+            <div style="display: flex; gap: 12px; align-items: flex-end;">
+                <div class="form-group" style="flex: 1; margin: 0;">
+                    <input type="password" class="form-control" @bind="transactionOTP" 
+                           placeholder="Enter 6-digit OTP" maxlength="6"
+                           style="font-size: 18px; letter-spacing: 8px; text-align: center; font-weight: 700;" />
+                </div>
+                <button type="button" class="btn" style="background: #3b82f6; color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;">
+                    📱 Resend OTP
+                </button>
+            </div>
+            <div style="font-size: 12px; color: #1e40af; margin-top: 8px;">
+                OTP has been sent to your registered mobile number ending in ****7890
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: space-between; padding-top: 20px; border-top: 2px solid var(--border);">
+            <button type="button" class="btn" style="background: #f3f4f6; color: #374151; padding: 12px 24px; border-radius: 12px; font-weight: 600;" @onclick="() => currentStep = 1">
+                ← Back
+            </button>
+            <button type="button" class="btn btn-primary" style="padding: 12px 32px; border-radius: 12px; font-weight: 600;" 
+                    @onclick="() => currentStep = 3"
+                    disabled="@(!AllVerificationsPassed)">
+                Confirm & Process →
+            </button>
+        </div>
+    </div>
+}
+
+<!-- Step 3: Confirmation -->
+@if (currentStep == 3)
+{
+    <div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid var(--border); text-align: center;">
+        <div style="font-size: 80px; margin-bottom: 20px;">✅</div>
+        <h3 style="font-size: 24px; font-weight: 700; margin-bottom: 12px; color: #10b981;">
+            Deposit Transaction Successful!
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 15px; margin-bottom: 32px;">
+            The deposit has been processed and credited to the account.
+        </p>
+
+        <!-- Transaction Receipt -->
+        <div style="background: #f9fafb; border-radius: 12px; padding: 24px; max-width: 500px; margin: 0 auto 32px; text-align: left;">
+            <div style="text-align: center; font-weight: 700; font-size: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px dashed #d1d5db;">
+                TRANSACTION RECEIPT
+            </div>
+            
+            <div style="display: grid; gap: 12px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Transaction ID:</span>
+                    <span style="font-weight: 700; font-family: monospace;">@transactionId</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Date & Time:</span>
+                    <span style="font-weight: 600;">@transactionDateTime.ToString("MMM dd, yyyy hh:mm tt")</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Account:</span>
+                    <span style="font-weight: 700; font-family: monospace;">@accountNumber</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Depositor:</span>
+                    <span style="font-weight: 600;">@depositorName</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Type:</span>
+                    <span style="font-weight: 600;">@depositType Deposit</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-top: 12px; margin-top: 12px; border-top: 2px dashed #d1d5db;">
+                    <span style="color: var(--text-secondary);">Amount Deposited:</span>
+                    <span style="font-weight: 700; font-size: 20px; color: #10b981;">₱@amount.ToString("N2")</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button type="button" class="btn" style="background: #f3f4f6; color: #374151; padding: 12px 24px; border-radius: 12px; font-weight: 600;">
+                🖨️ Print Receipt
+            </button>
+            <button type="button" class="btn" style="background: #dbeafe; color: #1e40af; padding: 12px 24px; border-radius: 12px; font-weight: 600;">
+                📧 Email Receipt
+            </button>
+            <button type="button" class="btn btn-primary" style="padding: 12px 32px; border-radius: 12px; font-weight: 600;" @onclick="ResetTransaction">
+                ➕ New Transaction
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    private int currentStep = 1;
+
+    // Transaction Details
+    private string transactionId = $"TXN-DEP-{DateTime.Now:yyyyMMddHHmmss}";
+    private DateTime transactionDateTime = DateTime.Now;
+    private string depositType = "";
+    private string referenceNumber = "";
+    private string depositSlipNumber = "";
+    private string status = "Pending";
+
+    // Account Information
+    private string accountNumber = "";
+    private string depositorName = "";
+    private string depositorContact = "";
+    private string sourceOfFunds = "";
+    private string sourceOfFundsOther = "";
+
+    // Amount Details
+    private decimal amount = 0;
+    private decimal processingFee = 0;
+    private string branchLocation = "Main Branch";
+
+    // Notes
+    private string notes = "";
+
+    // Verification
+    private bool verifyAccountValid = false;
+    private bool verifyAmountCorrect = false;
+    private bool verifyIdentityConfirmed = false;
+    private bool verifySourceValid = false;
+    private string transactionOTP = "";
+
+    private bool AllVerificationsPassed => 
+        verifyAccountValid && verifyAmountCorrect && verifyIdentityConfirmed && verifySourceValid && !string.IsNullOrEmpty(transactionOTP);
+
+    private void ResetTransaction()
+    {
+        currentStep = 1;
+        transactionId = $"TXN-DEP-{DateTime.Now:yyyyMMddHHmmss}";
+        transactionDateTime = DateTime.Now;
+        depositType = "";
+        referenceNumber = "";
+        accountNumber = "";
+        depositorName = "";
+        amount = 0;
+        notes = "";
+        verifyAccountValid = false;
+        verifyAmountCorrect = false;
+        verifyIdentityConfirmed = false;
+        verifySourceValid = false;
+        transactionOTP = "";
+    }
+}

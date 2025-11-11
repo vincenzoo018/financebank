@@ -1,0 +1,184 @@
+@page "/admin/finance/payables"
+@layout AdminLayout
+
+<div class="section-header">
+    <h2 class="section-title">💰 Accounts Payable</h2>
+    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">
+        Manage vendor bills, payments, and outstanding payables
+    </p>
+</div>
+
+<!-- Action Bar -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div style="display: flex; gap: 12px;">
+        <button class="btn" style="background: #10b981; color: white; padding: 12px 24px; font-weight: 600;">
+            ➕ New Bill
+        </button>
+        <button class="btn" style="background: #3b82f6; color: white; padding: 12px 24px;">
+            💳 Record Payment
+        </button>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <button class="btn" style="background: white; border: 2px solid var(--border); color: #374151; padding: 12px 24px;">
+            📊 Aging Report
+        </button>
+        <button class="btn" style="background: white; border: 2px solid var(--border); color: #374151; padding: 12px 24px;">
+            📥 Export
+        </button>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 24px;">
+    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 16px; padding: 24px; border: 2px solid #fca5a5;">
+        <div style="font-size: 13px; color: #991b1b; font-weight: 600; margin-bottom: 8px;">💸 TOTAL PAYABLES</div>
+        <div style="font-size: 32px; font-weight: 700; color: #991b1b;">₱2.4M</div>
+        <div style="font-size: 12px; color: #991b1b; margin-top: 4px;">Outstanding balance</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 16px; padding: 24px; border: 2px solid #fcd34d;">
+        <div style="font-size: 13px; color: #92400e; font-weight: 600; margin-bottom: 8px;">⏰ DUE THIS WEEK</div>
+        <div style="font-size: 32px; font-weight: 700; color: #92400e;">₱450K</div>
+        <div style="font-size: 12px; color: #92400e; margin-top: 4px;">12 bills due</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 16px; padding: 24px; border: 2px solid #f87171;">
+        <div style="font-size: 13px; color: #991b1b; font-weight: 600; margin-bottom: 8px;">🚨 OVERDUE</div>
+        <div style="font-size: 32px; font-weight: 700; color: #991b1b;">₱125K</div>
+        <div style="font-size: 12px; color: #991b1b; margin-top: 4px;">8 overdue bills</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 16px; padding: 24px; border: 2px solid #6ee7b7;">
+        <div style="font-size: 13px; color: #065f46; font-weight: 600; margin-bottom: 8px;">✅ PAID THIS MONTH</div>
+        <div style="font-size: 32px; font-weight: 700; color: #065f46;">₱1.8M</div>
+        <div style="font-size: 12px; color: #065f46; margin-top: 4px;">35 bills paid</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border); margin-bottom: 24px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-control">
+                <option>All Statuses</option>
+                <option>Unpaid</option>
+                <option>Partially Paid</option>
+                <option>Paid</option>
+                <option>Overdue</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Vendor</label>
+            <select class="form-control">
+                <option>All Vendors</option>
+                <option>ABC Supplies Co.</option>
+                <option>Tech Solutions Inc.</option>
+                <option>Office Equipment Ltd.</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Due Date</label>
+            <select class="form-control">
+                <option>All Dates</option>
+                <option>Due This Week</option>
+                <option>Due This Month</option>
+                <option>Overdue</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Amount Range</label>
+            <select class="form-control">
+                <option>All Amounts</option>
+                <option>Under ₱10,000</option>
+                <option>₱10,000 - ₱50,000</option>
+                <option>Over ₱50,000</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Payables Table -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px;">Outstanding Payables</h3>
+
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 2px solid var(--border); background: #f9fafb;">
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">BILL NO.</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">VENDOR</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">BILL DATE</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">DUE DATE</th>
+                <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 700;">BILL AMOUNT</th>
+                <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 700;">AMOUNT PAID</th>
+                <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 700;">BALANCE DUE</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">STATUS</th>
+                <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 700;">ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 1; i <= 12; i++)
+            {
+                var vendors = new[] { "ABC Supplies Co.", "Tech Solutions Inc.", "Office Equipment Ltd.", "Utility Services" };
+                var isOverdue = i % 4 == 0;
+                var isPaid = i % 5 == 0;
+                var status = isPaid ? "Paid" : isOverdue ? "Overdue" : "Unpaid";
+                var statusColor = isPaid ? "#d1fae5" : isOverdue ? "#fee2e2" : "#fef3c7";
+                var statusText = isPaid ? "#065f46" : isOverdue ? "#991b1b" : "#92400e";
+                var billAmount = i * 25000;
+                var amountPaid = isPaid ? billAmount : (i % 3 == 0 ? billAmount / 2 : 0);
+                var balanceDue = billAmount - amountPaid;
+                
+                <tr style="border-bottom: 1px solid var(--border); transition: background 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+                    <td style="padding: 16px; font-family: monospace; font-weight: 600; color: #3b82f6;">BILL-@(i.ToString("00000"))</td>
+                    <td style="padding: 16px;">
+                        <div style="font-weight: 600; margin-bottom: 2px;">@vendors[i % vendors.Length]</div>
+                        <div style="font-size: 12px; color: #6b7280;">Contact: +63 2 1234 567@i</div>
+                    </td>
+                    <td style="padding: 16px; font-size: 14px;">@DateTime.Now.AddDays(-i * 5).ToString("MMM dd, yyyy")</td>
+                    <td style="padding: 16px; font-size: 14px; font-weight: @(isOverdue ? "700" : "400"); color: @(isOverdue ? "#dc2626" : "#111827");">
+                        @DateTime.Now.AddDays(30 - i * 3).ToString("MMM dd, yyyy")
+                        @if (isOverdue)
+                        {
+                            <div style="font-size: 11px; color: #dc2626;">⚠️ @Math.Abs((30 - i * 3)) days overdue</div>
+                        }
+                    </td>
+                    <td style="padding: 16px; text-align: right; font-size: 15px; font-weight: 700;">₱@billAmount.ToString("N2")</td>
+                    <td style="padding: 16px; text-align: right; font-size: 14px; color: #10b981;">₱@amountPaid.ToString("N2")</td>
+                    <td style="padding: 16px; text-align: right; font-size: 16px; font-weight: 700; color: @(balanceDue > 0 ? "#dc2626" : "#10b981");">₱@balanceDue.ToString("N2")</td>
+                    <td style="padding: 16px;">
+                        <span style="padding: 4px 10px; background: @statusColor; color: @statusText; border-radius: 6px; font-size: 12px; font-weight: 600;">@status</span>
+                    </td>
+                    <td style="padding: 16px; text-align: center;">
+                        <div style="display: flex; gap: 8px; justify-content: center;">
+                            @if (!isPaid)
+                            {
+                                <button class="btn" style="background: #10b981; color: white; padding: 6px 12px; font-size: 13px; font-weight: 600;">
+                                    💳 Pay
+                                </button>
+                            }
+                            <button class="btn" style="background: white; border: 2px solid #e5e7eb; color: #374151; padding: 6px 12px; font-size: 13px;">
+                                👁️ View
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+        <div style="font-size: 14px; color: #6b7280;">
+            Showing <strong>1-12</strong> of <strong>85</strong> bills
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn" style="background: #f3f4f6; color: #9ca3af; padding: 8px 16px;">← Previous</button>
+            <button class="btn" style="background: #10b981; color: white; padding: 8px 16px;">1</button>
+            <button class="btn" style="background: #f3f4f6; color: #374151; padding: 8px 16px;">2</button>
+            <button class="btn" style="background: #f3f4f6; color: #374151; padding: 8px 16px;">3</button>
+            <button class="btn" style="background: #f3f4f6; color: #374151; padding: 8px 16px;">Next →</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    // UI Only - No backend logic
+}

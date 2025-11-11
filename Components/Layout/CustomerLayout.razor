@@ -2,53 +2,108 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<div class="gcash-container">
-    <!-- GCash-Style Horizontal Navbar -->
-    <nav class="gcash-navbar">
-        <div class="gcash-navbar-content">
-            <div class="gcash-brand">FINEbank.io</div>
-            
-            <!-- Horizontal Navigation - ALL ITEMS VISIBLE -->
-            <div class="gcash-nav-horizontal">
-                <a href="/customer/dashboard" class="gcash-nav-item @(IsActive("/customer/dashboard"))">
+<div class="sidebar-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div style="text-align: center;">
+                <img src="images/finsys-logo.png" alt="FINSYS Logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
+                <div class="sidebar-logo">FINSYS Customer</div>
+                <div class="sidebar-subtitle">Banking Portal</div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <!-- Main Section -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">MAIN</div>
+                <a href="/customer/dashboard" class="sidebar-item @(IsActive("/customer/dashboard"))">
+                    <span>■</span>
                     <span>Dashboard</span>
                 </a>
-                <a href="/customer/accounts" class="gcash-nav-item @(IsActive("/customer/accounts"))">
-                    <span>Accounts</span>
+            </div>
+
+            <!-- Banking Section -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">BANKING</div>
+                <a href="/customer/accounts" class="sidebar-item @(IsActive("/customer/accounts"))">
+                    <span>💼</span>
+                    <span>My Accounts</span>
                 </a>
-                <a href="/customer/cards" class="gcash-nav-item @(IsActive("/customer/cards"))">
+                <a href="/customer/deposit" class="sidebar-item @(IsActive("/customer/deposit"))">
+                    <span>💰</span>
+                    <span>Deposit Money</span>
+                </a>
+                <a href="/customer/withdraw" class="sidebar-item @(IsActive("/customer/withdraw"))">
+                    <span>💸</span>
+                    <span>Withdraw Money</span>
+                </a>
+                <a href="/customer/transfer-money" class="sidebar-item @(IsActive("/customer/transfer-money"))">
+                    <span>🔄</span>
+                    <span>Transfer Money</span>
+                </a>
+                <a href="/customer/transactions" class="sidebar-item @(IsActive("/customer/transactions"))">
+                    <span>📊</span>
+                    <span>Transactions</span>
+                </a>
+                <a href="/customer/bills" class="sidebar-item @(IsActive("/customer/bills"))">
+                    <span>📄</span>
+                    <span>Pay Bills</span>
+                </a>
+            </div>
+
+            <!-- Services Section -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">SERVICES</div>
+                <a href="/customer/cards" class="sidebar-item @(IsActive("/customer/cards"))">
+                    <span>▪</span>
                     <span>Cards</span>
                 </a>
-                <a href="/customer/loans" class="gcash-nav-item @(IsActive("/customer/loans"))">
+                <a href="/customer/loans" class="sidebar-item @(IsActive("/customer/loans"))">
+                    <span>◆</span>
                     <span>Loans</span>
                 </a>
-                <a href="/customer/savings" class="gcash-nav-item @(IsActive("/customer/savings"))">
+                <a href="/customer/savings" class="sidebar-item @(IsActive("/customer/savings"))">
+                    <span>●</span>
                     <span>Savings</span>
                 </a>
-                <a href="/customer/transfer" class="gcash-nav-item @(IsActive("/customer/transfer"))">
-                    <span>Transfer</span>
-                </a>
-                <a href="/customer/bills" class="gcash-nav-item @(IsActive("/customer/bills"))">
-                    <span>Bills</span>
-                </a>
-                <a href="/customer/rewards" class="gcash-nav-item @(IsActive("/customer/rewards"))">
+                <a href="/customer/rewards" class="sidebar-item @(IsActive("/customer/rewards"))">
+                    <span>★</span>
                     <span>Rewards</span>
                 </a>
             </div>
 
-            <!-- Right Side -->
-            <div class="gcash-navbar-right">
-                <button class="gcash-user-btn" @onclick="HandleLogout">
-                    <div class="gcash-avatar">CU</div>
-                    <span>Customer</span>
-                </button>
+            <!-- Account Section -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">ACCOUNT</div>
+                <a href="/customer/profile" class="sidebar-item @(IsActive("/customer/profile"))">
+                    <span>●</span>
+                    <span>Profile</span>
+                </a>
+                <a href="/customer/settings" class="sidebar-item @(IsActive("/customer/settings"))">
+                    <span>◈</span>
+                    <span>Settings</span>
+                </a>
             </div>
         </div>
-    </nav>
 
-    <!-- Main Content -->
-    <div class="gcash-content">
-        <div class="gcash-content-inner">
+        <div class="sidebar-footer">
+            <div class="sidebar-user" @onclick="HandleLogout">
+                <div class="sidebar-user-avatar">CU</div>
+                <div class="sidebar-user-info">
+                    <h4>Customer User</h4>
+                    <p>Logout</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="sidebar-main">
+        <div class="sidebar-topbar">
+            <div class="topbar-title">@GetPageTitle()</div>
+        </div>
+        <div class="sidebar-content">
             @Body
         </div>
     </div>
@@ -58,6 +113,25 @@
     private string IsActive(string path)
     {
         return Navigation.Uri.Contains(path) ? "active" : "";
+    }
+
+    private string GetPageTitle()
+    {
+        var path = Navigation.Uri;
+        if (path.Contains("/dashboard")) return "Dashboard";
+        if (path.Contains("/accounts")) return "My Accounts";
+        if (path.Contains("/deposit")) return "Deposit Money";
+        if (path.Contains("/withdraw")) return "Withdraw Money";
+        if (path.Contains("/transfer")) return "Transfer Money";
+        if (path.Contains("/transactions")) return "Transactions";
+        if (path.Contains("/bills")) return "Pay Bills";
+        if (path.Contains("/cards")) return "Cards";
+        if (path.Contains("/loans")) return "Loans";
+        if (path.Contains("/savings")) return "Savings";
+        if (path.Contains("/rewards")) return "Rewards";
+        if (path.Contains("/profile")) return "Profile";
+        if (path.Contains("/settings")) return "Settings";
+        return "Customer Portal";
     }
 
     private void HandleLogout()

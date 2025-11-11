@@ -1,0 +1,270 @@
+@page "/admin/security"
+@page "/customer/security"
+@layout AdminLayout
+
+<div class="section-header">
+    <h2 class="section-title">🔒 Security Center</h2>
+    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">
+        Manage account security, authentication, and monitoring
+    </p>
+</div>
+
+<!-- Security Status Overview -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 32px;">🔐</span>
+            <div>
+                <div style="font-size: 13px; color: var(--text-secondary);">2FA Status</div>
+                <div style="font-size: 18px; font-weight: 700; color: #10b981;">Enabled</div>
+            </div>
+        </div>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 32px;">🔑</span>
+            <div>
+                <div style="font-size: 13px; color: var(--text-secondary);">Password Strength</div>
+                <div style="font-size: 18px; font-weight: 700; color: #10b981;">Strong</div>
+            </div>
+        </div>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 32px;">📱</span>
+            <div>
+                <div style="font-size: 13px; color: var(--text-secondary);">Active Devices</div>
+                <div style="font-size: 18px; font-weight: 700; color: #3b82f6;">3 Devices</div>
+            </div>
+        </div>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 32px;">⚠️</span>
+            <div>
+                <div style="font-size: 13px; color: var(--text-secondary);">Alerts</div>
+                <div style="font-size: 18px; font-weight: 700; color: #f59e0b;">2 New</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Two-Factor Authentication -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">🔐 Two-Factor Authentication (2FA)</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Add an extra layer of security to your account</p>
+        </div>
+        <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
+            <input type="checkbox" checked style="opacity: 0; width: 0; height: 0;">
+            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #10b981; border-radius: 34px; transition: .4s;">
+                <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; border-radius: 50%; transition: .4s; transform: translateX(26px);"></span>
+            </span>
+        </label>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+        <div style="padding: 16px; background: #f9fafb; border-radius: 12px; border: 2px solid #10b981;">
+            <div style="font-size: 24px; margin-bottom: 8px;">📱</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">SMS Authentication</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">+63 ****7890</div>
+            <span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 11px; font-weight: 600;">ACTIVE</span>
+        </div>
+        <div style="padding: 16px; background: #f9fafb; border-radius: 12px; border: 2px solid #e5e7eb;">
+            <div style="font-size: 24px; margin-bottom: 8px;">📧</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">Email Authentication</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">us****@@email.com</div>
+            <button style="padding: 4px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">ENABLE</button>
+        </div>
+        <div style="padding: 16px; background: #f9fafb; border-radius: 12px; border: 2px solid #e5e7eb;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🔑</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">Authenticator App</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">Google/Microsoft</div>
+            <button style="padding: 4px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">SETUP</button>
+        </div>
+    </div>
+</div>
+
+<!-- Security Questions -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 24px;">
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">❓ Security Questions</h3>
+    <div style="display: grid; gap: 20px;">
+        <div class="form-group">
+            <label class="form-label">Security Question 1</label>
+            <select class="form-control">
+                <option>What is your mother's maiden name?</option>
+                <option>What was the name of your first pet?</option>
+                <option>What city were you born in?</option>
+                <option>What is your favorite book?</option>
+            </select>
+            <input type="text" class="form-control" placeholder="Your answer" style="margin-top: 8px;" />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Security Question 2</label>
+            <select class="form-control">
+                <option>What was your childhood nickname?</option>
+                <option>What is your favorite movie?</option>
+                <option>What was the make of your first car?</option>
+            </select>
+            <input type="text" class="form-control" placeholder="Your answer" style="margin-top: 8px;" />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Security Question 3</label>
+            <select class="form-control">
+                <option>What is your favorite food?</option>
+                <option>What was your dream job as a child?</option>
+                <option>What is your favorite color?</option>
+            </select>
+            <input type="text" class="form-control" placeholder="Your answer" style="margin-top: 8px;" />
+        </div>
+    </div>
+    <button class="btn btn-primary" style="margin-top: 16px;">💾 Save Security Questions</button>
+</div>
+
+<!-- Password Management -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 24px;">
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">🔑 Password & PIN Management</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+            <div class="form-group">
+                <label class="form-label">Current Password</label>
+                <input type="password" class="form-control" placeholder="Enter current password" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input type="password" class="form-control" placeholder="Enter new password" />
+                <!-- Password Strength Indicator -->
+                <div style="margin-top: 8px;">
+                    <div style="display: flex; gap: 4px; margin-bottom: 4px;">
+                        <div style="flex: 1; height: 4px; background: #10b981; border-radius: 2px;"></div>
+                        <div style="flex: 1; height: 4px; background: #10b981; border-radius: 2px;"></div>
+                        <div style="flex: 1; height: 4px; background: #10b981; border-radius: 2px;"></div>
+                        <div style="flex: 1; height: 4px; background: #e5e7eb; border-radius: 2px;"></div>
+                    </div>
+                    <div style="font-size: 11px; color: #10b981; font-weight: 600;">Strong Password</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" class="form-control" placeholder="Re-enter new password" />
+            </div>
+            <button class="btn btn-primary">🔒 Change Password</button>
+        </div>
+        <div>
+            <div class="form-group">
+                <label class="form-label">Transaction PIN</label>
+                <input type="password" class="form-control" placeholder="Enter 6-digit PIN" maxlength="6" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm PIN</label>
+                <input type="password" class="form-control" placeholder="Re-enter PIN" maxlength="6" />
+            </div>
+            <button class="btn" style="background: #f59e0b; color: white; margin-top: 32px;">🔢 Update PIN</button>
+        </div>
+    </div>
+</div>
+
+<!-- Transaction Limits -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 24px;">
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">💰 Daily Transaction Limits</h3>
+    <div style="display: grid; gap: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f9fafb; border-radius: 8px;">
+            <div>
+                <div style="font-weight: 600;">Withdrawal Limit</div>
+                <div style="font-size: 12px; color: var(--text-secondary);">Daily ATM and counter withdrawals</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 20px; font-weight: 700; color: #3b82f6;">₱50,000</div>
+                <button style="padding: 4px 12px; background: #dbeafe; color: #1e40af; border: none; border-radius: 6px; font-size: 11px; cursor: pointer; margin-top: 4px;">MODIFY</button>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f9fafb; border-radius: 8px;">
+            <div>
+                <div style="font-weight: 600;">Transfer Limit</div>
+                <div style="font-size: 12px; color: var(--text-secondary);">Daily transfer transactions</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 20px; font-weight: 700; color: #3b82f6;">₱100,000</div>
+                <button style="padding: 4px 12px; background: #dbeafe; color: #1e40af; border: none; border-radius: 6px; font-size: 11px; cursor: pointer; margin-top: 4px;">MODIFY</button>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f9fafb; border-radius: 8px;">
+            <div>
+                <div style="font-weight: 600;">Online Purchase Limit</div>
+                <div style="font-size: 12px; color: var(--text-secondary);">Daily online/card purchases</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 20px; font-weight: 700; color: #3b82f6;">₱75,000</div>
+                <button style="padding: 4px 12px; background: #dbeafe; color: #1e40af; border: none; border-radius: 6px; font-size: 11px; cursor: pointer; margin-top: 4px;">MODIFY</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Suspicious Activity Alerts -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 24px;">
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">⚠️ Suspicious Activity Alerts</h3>
+    <div style="display: grid; gap: 12px;">
+        <div style="padding: 16px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <div style="font-weight: 700; color: #92400e; margin-bottom: 4px;">⚠️ Unusual Login Location</div>
+                    <div style="font-size: 13px; color: #92400e;">Login attempt from new location detected</div>
+                    <div style="font-size: 11px; color: #92400e; margin-top: 4px;">Nov 11, 2025 - 11:45 PM | IP: 203.177.89.45</div>
+                </div>
+                <button style="padding: 6px 12px; background: #f59e0b; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">Review</button>
+            </div>
+        </div>
+        <div style="padding: 16px; background: #fee2e2; border-left: 4px solid #dc2626; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <div style="font-weight: 700; color: #991b1b; margin-bottom: 4px;">🚨 Large Transaction Alert</div>
+                    <div style="font-size: 13px; color: #991b1b;">Transaction exceeding normal pattern</div>
+                    <div style="font-size: 11px; color: #991b1b; margin-top: 4px;">Nov 10, 2025 - 3:20 PM | Amount: ₱85,000</div>
+                </div>
+                <button style="padding: 6px 12px; background: #dc2626; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">Review</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Account Freeze/Lock -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 24px;">
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">🔒 Account Freeze/Lock</h3>
+    <div style="background: #fee2e2; border: 2px solid #fecaca; border-radius: 12px; padding: 20px;">
+        <div style="font-weight: 700; color: #991b1b; margin-bottom: 8px;">⚠️ Emergency Account Lock</div>
+        <div style="font-size: 13px; color: #991b1b; margin-bottom: 16px;">
+            Temporarily freeze your account if you suspect unauthorized access. All transactions will be blocked until you unlock it.
+        </div>
+        <button style="padding: 10px 20px; background: #dc2626; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            🔒 Freeze Account Now
+        </button>
+    </div>
+</div>
+
+<!-- Encryption Status -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">🔐 Encryption & Security Status</h3>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 40px; margin-bottom: 8px;">🔒</div>
+            <div style="font-weight: 700; margin-bottom: 4px;">SSL/TLS Encryption</div>
+            <div style="font-size: 12px; color: #10b981;">✓ Active</div>
+        </div>
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 40px; margin-bottom: 8px;">🛡️</div>
+            <div style="font-weight: 700; margin-bottom: 4px;">256-bit Encryption</div>
+            <div style="font-size: 12px; color: #10b981;">✓ Active</div>
+        </div>
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 40px; margin-bottom: 8px;">🔐</div>
+            <div style="font-weight: 700; margin-bottom: 4px;">End-to-End Security</div>
+            <div style="font-size: 12px; color: #10b981;">✓ Active</div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // UI Only - No backend logic
+}

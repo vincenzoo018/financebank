@@ -1,0 +1,131 @@
+@* Transaction Preview Modal Component *@
+
+@if (IsVisible)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.3s ease-out; overflow-y: auto; padding: 20px;" @onclick="Close">
+        <div style="background: white; border-radius: 20px; padding: 32px; max-width: 600px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out; margin: auto;" @onclick:stopPropagation>
+            
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 28px;">
+                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(16,185,129,0.3);">
+                    <span style="font-size: 36px;">@Icon</span>
+                </div>
+                <h2 style="font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 4px;">@Title</h2>
+                <p style="font-size: 13px; color: #6b7280;">Please review the details before confirming</p>
+            </div>
+
+            <!-- Transaction Details -->
+            <div style="background: #f9fafb; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+                <h3 style="font-size: 14px; font-weight: 700; color: #374151; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">Transaction Details</h3>
+                
+                @ChildContent
+
+                @if (!string.IsNullOrEmpty(TransactionId))
+                {
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-top: 1px solid #e5e7eb;">
+                        <span style="font-size: 13px; color: #6b7280;">Transaction ID:</span>
+                        <span style="font-size: 13px; font-weight: 600; color: #111827; font-family: monospace;">@TransactionId</span>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(DateTime))
+                {
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-top: 1px solid #e5e7eb;">
+                        <span style="font-size: 13px; color: #6b7280;">Date & Time:</span>
+                        <span style="font-size: 13px; font-weight: 600; color: #111827;">@DateTime</span>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Amount))
+                {
+                    <div style="display: flex; justify-content: space-between; padding: 16px 0; border-top: 2px solid #e5e7eb; margin-top: 8px;">
+                        <span style="font-size: 15px; color: #374151; font-weight: 600;">Total Amount:</span>
+                        <span style="font-size: 22px; font-weight: 700; color: #10b981;">@Amount</span>
+                    </div>
+                }
+            </div>
+
+            <!-- Confirmation Checkbox -->
+            <div style="background: #fef3c7; border: 2px solid #fcd34d; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                <label style="display: flex; align-items: start; gap: 12px; cursor: pointer;">
+                    <input type="checkbox" @bind="isConfirmed" style="width: 20px; height: 20px; accent-color: #f59e0b; cursor: pointer; margin-top: 2px;" />
+                    <span style="font-size: 13px; color: #92400e; line-height: 1.5;">
+                        I have reviewed and confirmed that all the transaction details above are correct. I understand that this action cannot be undone once processed.
+                    </span>
+                </label>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 12px;">
+                <button type="button" @onclick="Close" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    ← Go Back
+                </button>
+                <button type="button" @onclick="Confirm" disabled="@(!isConfirmed)" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 12px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; opacity: @(isConfirmed ? "1" : "0.5");">
+                    Proceed →
+                </button>
+            </div>
+
+            <!-- Security Note -->
+            <div style="text-align: center; margin-top: 20px;">
+                <p style="font-size: 11px; color: #9ca3af;">
+                    🔒 All transactions are encrypted and monitored for security
+                </p>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    button:active:not(:disabled) {
+        transform: translateY(0);
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string Title { get; set; } = "Review Transaction";
+    [Parameter] public string Icon { get; set; } = "📋";
+    [Parameter] public string TransactionId { get; set; } = "";
+    [Parameter] public string DateTime { get; set; } = "";
+    [Parameter] public string Amount { get; set; } = "";
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public EventCallback OnConfirmed { get; set; }
+    [Parameter] public EventCallback OnClosed { get; set; }
+
+    private bool isConfirmed = false;
+
+    private async Task Confirm()
+    {
+        if (isConfirmed)
+        {
+            await OnConfirmed.InvokeAsync();
+        }
+    }
+
+    private async Task Close()
+    {
+        isConfirmed = false;
+        await OnClosed.InvokeAsync();
+    }
+}
