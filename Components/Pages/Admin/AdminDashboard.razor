@@ -1,0 +1,273 @@
+@page "/admin/dashboard"
+@layout AdminLayout
+
+<div class="section-header">
+    <h2 class="section-title">Admin Dashboard</h2>
+</div>
+
+<!-- Stats Grid with Enhanced Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value">1,247</div>
+        <div class="stat-change positive">
+            <span>↑</span>
+            <span>12% from last month</span>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-label">Bank Accounts</div>
+        <div class="stat-value">856</div>
+        <div class="stat-change positive">
+            <span>↑</span>
+            <span>8% from last month</span>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-label">Total Balance</div>
+        <div class="stat-value">₱2.4M</div>
+        <div class="stat-change positive">
+            <span>↑</span>
+            <span>23% from last month</span>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-label">Transactions Today</div>
+        <div class="stat-value">342</div>
+        <div class="stat-change positive">
+            <span>↑</span>
+            <span>5% from yesterday</span>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+    <!-- Transaction Volume Chart -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <div>
+                <div class="chart-title">Transaction Volume</div>
+                <div class="chart-subtitle">Last 7 days</div>
+            </div>
+        </div>
+        <div class="bar-chart">
+            @foreach (var day in transactionVolume)
+            {
+                <div class="bar-chart-item">
+                    <div class="bar" style="height: @(day.Value / 500.0 * 100)%;">
+                        <span class="bar-value">@day.Value</span>
+                    </div>
+                    <span class="bar-label">@day.Day</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Revenue Trend Chart -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <div>
+                <div class="chart-title">Revenue Trend</div>
+                <div class="chart-subtitle">Last 7 days (₱'000)</div>
+            </div>
+        </div>
+        <div class="line-chart">
+            @foreach (var day in revenueTrend)
+            {
+                <div class="line-point" style="height: @(day.Amount / 180.0 * 100)%;">
+                    <div class="point-dot" title="₱@day.Amount.ToString("N0")"></div>
+                    <span class="point-label">@day.Day</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Account Growth & User Activity -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+    <!-- Account Growth -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <div>
+                <div class="chart-title">Account Growth</div>
+                <div class="chart-subtitle">New accounts per month</div>
+            </div>
+        </div>
+        <div class="bar-chart">
+            @foreach (var month in accountGrowth)
+            {
+                <div class="bar-chart-item">
+                    <div class="bar" style="height: @(month.Count / 150.0 * 100)%; background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);">
+                        <span class="bar-value">@month.Count</span>
+                    </div>
+                    <span class="bar-label">@month.Month</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Top Services -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <div>
+                <div class="chart-title">Top Services Usage</div>
+                <div class="chart-subtitle">This month</div>
+            </div>
+        </div>
+        <div style="padding: 12px 0;">
+            @foreach (var service in topServices)
+            {
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="font-size: 13px; font-weight: 600;">@service.Name</span>
+                        <span style="font-size: 13px; font-weight: 700; color: var(--accent);">@service.Usage.ToString("N0")</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: @(service.Usage / 5000.0 * 100)%;"></div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="section-header">
+    <h2 class="section-title">Quick Actions</h2>
+</div>
+
+<div class="quick-actions">
+    <a href="/admin/users" class="action-card">
+        <div class="action-icon">👥</div>
+        <div class="action-label">Manage Users</div>
+    </a>
+    <a href="/admin/accounts" class="action-card">
+        <div class="action-icon">💳</div>
+        <div class="action-label">Bank Accounts</div>
+    </a>
+    <a href="/admin/transactions" class="action-card">
+        <div class="action-icon">📊</div>
+        <div class="action-label">Transactions</div>
+    </a>
+    <a href="/admin/reports" class="action-card">
+        <div class="action-icon">📈</div>
+        <div class="action-label">Reports</div>
+    </a>
+</div>
+
+<!-- Recent Activity -->
+<div class="section-header">
+    <h2 class="section-title">Recent Activity</h2>
+</div>
+
+<div class="transaction-list">
+    @foreach (var activity in recentActivity)
+    {
+        <div class="transaction-item">
+            <div class="transaction-icon">@activity.Icon</div>
+            <div class="transaction-details">
+                <div class="transaction-title">@activity.Title</div>
+                <div class="transaction-date">@activity.Date.ToString("MMM dd, yyyy - hh:mm tt")</div>
+            </div>
+            <div style="padding: 6px 12px; background: var(--primary-bg); border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--accent);">
+                @activity.Status
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Activity> recentActivity = new();
+    private List<DayData> transactionVolume = new();
+    private List<DayData> revenueTrend = new();
+    private List<MonthData> accountGrowth = new();
+    private List<ServiceData> topServices = new();
+
+    protected override void OnInitialized()
+    {
+        recentActivity = new List<Activity>
+        {
+            new Activity { Icon = "👤", Title = "New user registered: John Doe", Date = DateTime.Now, Status = "New" },
+            new Activity { Icon = "💳", Title = "New bank account created: BFAS-100000000856", Date = DateTime.Now.AddMinutes(-15), Status = "Active" },
+            new Activity { Icon = "💰", Title = "Large transaction detected: ₱50,000", Date = DateTime.Now.AddMinutes(-30), Status = "Review" },
+            new Activity { Icon = "🔄", Title = "Batch transfer completed: 45 transactions", Date = DateTime.Now.AddHours(-1), Status = "Success" },
+            new Activity { Icon = "⚠️", Title = "Failed login attempt from unknown IP", Date = DateTime.Now.AddHours(-2), Status = "Alert" },
+        };
+
+        // Transaction Volume Data (Last 7 days)
+        transactionVolume = new List<DayData>
+        {
+            new DayData { Day = "Mon", Value = 320 },
+            new DayData { Day = "Tue", Value = 385 },
+            new DayData { Day = "Wed", Value = 420 },
+            new DayData { Day = "Thu", Value = 295 },
+            new DayData { Day = "Fri", Value = 460 },
+            new DayData { Day = "Sat", Value = 280 },
+            new DayData { Day = "Sun", Value = 185 },
+        };
+
+        // Revenue Trend Data (Last 7 days in thousands)
+        revenueTrend = new List<DayData>
+        {
+            new DayData { Day = "Mon", Amount = 125 },
+            new DayData { Day = "Tue", Amount = 142 },
+            new DayData { Day = "Wed", Amount = 158 },
+            new DayData { Day = "Thu", Amount = 138 },
+            new DayData { Day = "Fri", Amount = 175 },
+            new DayData { Day = "Sat", Amount = 148 },
+            new DayData { Day = "Sun", Amount = 98 },
+        };
+
+        // Account Growth (Last 6 months)
+        accountGrowth = new List<MonthData>
+        {
+            new MonthData { Month = "Jun", Count = 95 },
+            new MonthData { Month = "Jul", Count = 112 },
+            new MonthData { Month = "Aug", Count = 128 },
+            new MonthData { Month = "Sep", Count = 105 },
+            new MonthData { Month = "Oct", Count = 142 },
+            new MonthData { Month = "Nov", Count = 135 },
+        };
+
+        // Top Services
+        topServices = new List<ServiceData>
+        {
+            new ServiceData { Name = "Fund Transfers", Usage = 4850 },
+            new ServiceData { Name = "Bill Payments", Usage = 3920 },
+            new ServiceData { Name = "Account Inquiries", Usage = 2680 },
+            new ServiceData { Name = "Loan Applications", Usage = 1450 },
+            new ServiceData { Name = "Card Services", Usage = 980 },
+        };
+    }
+
+    private class Activity
+    {
+        public string Icon { get; set; } = "";
+        public string Title { get; set; } = "";
+        public DateTime Date { get; set; }
+        public string Status { get; set; } = "";
+    }
+
+    private class DayData
+    {
+        public string Day { get; set; } = "";
+        public int Value { get; set; }
+        public int Amount { get; set; }
+    }
+
+    private class MonthData
+    {
+        public string Month { get; set; } = "";
+        public int Count { get; set; }
+    }
+
+    private class ServiceData
+    {
+        public string Name { get; set; } = "";
+        public int Usage { get; set; }
+    }
+}

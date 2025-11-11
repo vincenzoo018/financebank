@@ -1,0 +1,103 @@
+@inherits LayoutComponentBase
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="sidebar-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">BFAS Employee</div>
+            <div class="sidebar-subtitle">Finance Portal</div>
+        </div>
+
+        <div class="sidebar-nav">
+            <!-- Main Section -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">MAIN</div>
+                <a href="/employee/dashboard" class="sidebar-item @(IsActive("/employee/dashboard"))">
+                    <span>📊</span>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <!-- Finance -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">FINANCE</div>
+                <a href="/employee/payables" class="sidebar-item @(IsActive("/employee/payables"))">
+                    <span>📤</span>
+                    <span>Accounts Payable</span>
+                </a>
+                <a href="/employee/receivables" class="sidebar-item @(IsActive("/employee/receivables"))">
+                    <span>📥</span>
+                    <span>Accounts Receivable</span>
+                </a>
+                <a href="/employee/expenses" class="sidebar-item @(IsActive("/employee/expenses"))">
+                    <span>💰</span>
+                    <span>Expenses</span>
+                </a>
+            </div>
+
+            <!-- Accounting -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">ACCOUNTING</div>
+                <a href="/employee/journal" class="sidebar-item @(IsActive("/employee/journal"))">
+                    <span>📝</span>
+                    <span>Journal Entries</span>
+                </a>
+                <a href="/employee/ledger" class="sidebar-item @(IsActive("/employee/ledger"))">
+                    <span>📚</span>
+                    <span>General Ledger</span>
+                </a>
+                <a href="/employee/reports" class="sidebar-item @(IsActive("/employee/reports"))">
+                    <span>📈</span>
+                    <span>Reports</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user" @onclick="HandleLogout">
+                <div class="sidebar-user-avatar">EM</div>
+                <div class="sidebar-user-info">
+                    <h4>Employee</h4>
+                    <p>Logout</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="sidebar-main">
+        <div class="sidebar-topbar">
+            <div class="topbar-title">@GetPageTitle()</div>
+        </div>
+        <div class="sidebar-content">
+            @Body
+        </div>
+    </div>
+</div>
+
+@code {
+    private string IsActive(string path)
+    {
+        return Navigation.Uri.Contains(path) ? "active" : "";
+    }
+
+    private string GetPageTitle()
+    {
+        var path = Navigation.Uri;
+        if (path.Contains("/dashboard")) return "Dashboard";
+        if (path.Contains("/payables")) return "Accounts Payable";
+        if (path.Contains("/receivables")) return "Accounts Receivable";
+        if (path.Contains("/journal")) return "Journal Entries";
+        if (path.Contains("/reports")) return "Reports";
+        return "Employee Portal";
+    }
+
+    private void HandleLogout()
+    {
+        AuthService.Logout();
+        Navigation.NavigateTo("/login");
+    }
+}
+

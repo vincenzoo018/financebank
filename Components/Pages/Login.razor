@@ -1,0 +1,76 @@
+@page "/login"
+@inject NavigationManager Navigation
+@inject AuthService AuthService
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-logo">FINEbank.io</div>
+        <h1 class="auth-title">Welcome Back</h1>
+        <p class="auth-subtitle">Sign in to continue to your account</p>
+
+        <form @onsubmit="HandleLogin">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" @bind="email" placeholder="Enter your email" required />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" @bind="password" placeholder="Enter your password" required />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Role</label>
+                <select class="form-control" @bind="selectedRole" required>
+                    <option value="Admin">Admin</option>
+                    <option value="Customer">Customer</option>
+                    <option value="Employee">Employee</option>
+                </select>
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="validation-message">@errorMessage</div>
+            }
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+                Sign In
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Don't have an account? <a href="/register" class="auth-link">Create Account</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string email = "";
+    private string password = "";
+    private string selectedRole = "Customer";
+    private string errorMessage = "";
+
+    private void HandleLogin()
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            errorMessage = "Please enter both email and password";
+            return;
+        }
+
+        AuthService.Login(email, selectedRole);
+
+        switch (selectedRole)
+        {
+            case "Admin":
+                Navigation.NavigateTo("/admin/dashboard");
+                break;
+            case "Customer":
+                Navigation.NavigateTo("/customer/dashboard");
+                break;
+            case "Employee":
+                Navigation.NavigateTo("/employee/dashboard");
+                break;
+        }
+    }
+}

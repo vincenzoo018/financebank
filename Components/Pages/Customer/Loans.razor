@@ -1,0 +1,120 @@
+@page "/customer/loans"
+@layout CustomerLayout
+
+<div class="section-header">
+    <h2 class="section-title">Loans</h2>
+    <button class="btn btn-primary">Apply for Loan</button>
+</div>
+
+<!-- Loan Options -->
+<div class="section-header" style="margin-top: 0;">
+    <h3 style="font-size: 16px; font-weight: 600;">Available Loan Products</h3>
+</div>
+
+<div class="quick-actions" style="margin-bottom: 32px;">
+    <div class="action-card">
+        <div class="action-icon">🏠</div>
+        <div class="action-label">Home Loan</div>
+        <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Up to ₱5M</div>
+        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">3.5% APR</div>
+    </div>
+    <div class="action-card">
+        <div class="action-icon">🚗</div>
+        <div class="action-label">Auto Loan</div>
+        <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Up to ₱2M</div>
+        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">4.2% APR</div>
+    </div>
+    <div class="action-card">
+        <div class="action-icon">💼</div>
+        <div class="action-label">Personal Loan</div>
+        <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Up to ₱500K</div>
+        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">5.8% APR</div>
+    </div>
+    <div class="action-card">
+        <div class="action-icon">🎓</div>
+        <div class="action-label">Education Loan</div>
+        <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Up to ₱300K</div>
+        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">3.9% APR</div>
+    </div>
+</div>
+
+<!-- Active Loans -->
+<div class="section-header">
+    <h3 style="font-size: 16px; font-weight: 600;">My Active Loans</h3>
+</div>
+
+<div style="display: grid; gap: 16px;">
+    @foreach (var loan in activeLoans)
+    {
+        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                <div>
+                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">@loan.Type</div>
+                    <div style="font-size: 12px; color: var(--text-light);">Loan ID: @loan.Id</div>
+                </div>
+                <div style="padding: 6px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                    Active
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Principal Amount</div>
+                    <div style="font-size: 14px; font-weight: 600;">₱@loan.Principal.ToString("N2")</div>
+                </div>
+                <div>
+                    <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Outstanding</div>
+                    <div style="font-size: 14px; font-weight: 600;">₱@loan.Outstanding.ToString("N2")</div>
+                </div>
+                <div>
+                    <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Monthly Payment</div>
+                    <div style="font-size: 14px; font-weight: 600;">₱@loan.MonthlyPayment.ToString("N2")</div>
+                </div>
+                <div>
+                    <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Next Due</div>
+                    <div style="font-size: 14px; font-weight: 600;">@loan.NextDue.ToString("MMM dd")</div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="margin-bottom: 8px;">
+                <div style="height: 8px; background: var(--primary-bg); border-radius: 4px; overflow: hidden;">
+                    <div style="height: 100%; background: var(--accent); width: @(((loan.Principal - loan.Outstanding) / loan.Principal * 100).ToString("F0"))%;"></div>
+                </div>
+            </div>
+            <div style="font-size: 12px; color: var(--text-light);">
+                @(((loan.Principal - loan.Outstanding) / loan.Principal * 100).ToString("F0"))% paid
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Loan> activeLoans = new();
+
+    protected override void OnInitialized()
+    {
+        activeLoans = new List<Loan>
+        {
+            new Loan 
+            { 
+                Id = "LN001", 
+                Type = "Personal Loan", 
+                Principal = 100000, 
+                Outstanding = 65000, 
+                MonthlyPayment = 5500,
+                NextDue = DateTime.Now.AddDays(15)
+            },
+        };
+    }
+
+    private class Loan
+    {
+        public string Id { get; set; } = "";
+        public string Type { get; set; } = "";
+        public decimal Principal { get; set; }
+        public decimal Outstanding { get; set; }
+        public decimal MonthlyPayment { get; set; }
+        public DateTime NextDue { get; set; }
+    }
+}

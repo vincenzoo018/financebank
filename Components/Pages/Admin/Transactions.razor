@@ -1,0 +1,84 @@
+@page "/admin/transactions"
+@layout AdminLayout
+
+<div class="section-header">
+    <h2 class="section-title">All Transactions</h2>
+</div>
+
+<!-- Stats -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-light);">Today</div>
+        <div style="font-size: 28px; font-weight: 700; color: var(--text-dark);">342</div>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-light);">Total Volume</div>
+        <div style="font-size: 28px; font-weight: 700; color: var(--text-dark);">₱1.2M</div>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-light);">Success Rate</div>
+        <div style="font-size: 28px; font-weight: 700; color: var(--success);">98.5%</div>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-light);">Failed</div>
+        <div style="font-size: 28px; font-weight: 700; color: var(--danger);">5</div>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 1px solid var(--border);">
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">ID</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">ACCOUNT</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">TYPE</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">AMOUNT</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">DATE</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">STATUS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var txn in transactions)
+            {
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 16px; font-family: monospace; font-size: 13px;">@txn.Id</td>
+                    <td style="padding: 16px; font-family: monospace;">@txn.Account</td>
+                    <td style="padding: 16px;">@txn.Type</td>
+                    <td style="padding: 16px; font-weight: 700;">₱@txn.Amount.ToString("N2")</td>
+                    <td style="padding: 16px; font-size: 13px;">@txn.Date.ToString("MMM dd, hh:mm tt")</td>
+                    <td style="padding: 16px;">
+                        <span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                            Success
+                        </span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<Transaction> transactions = new();
+
+    protected override void OnInitialized()
+    {
+        transactions = new List<Transaction>
+        {
+            new Transaction { Id = "TXN001", Account = "BFAS-100000000001", Type = "Withdraw", Amount = 1000, Date = DateTime.Now },
+            new Transaction { Id = "TXN002", Account = "BFAS-100000000002", Type = "Transfer", Amount = 500, Date = DateTime.Now.AddMinutes(-15) },
+            new Transaction { Id = "TXN003", Account = "BFAS-100000000003", Type = "Deposit", Amount = 2300, Date = DateTime.Now.AddMinutes(-30) },
+            new Transaction { Id = "TXN004", Account = "BFAS-100000000004", Type = "Bill Payment", Amount = 100, Date = DateTime.Now.AddHours(-1) },
+            new Transaction { Id = "TXN005", Account = "BFAS-100000000005", Type = "Transfer", Amount = 4575, Date = DateTime.Now.AddHours(-2) },
+        };
+    }
+
+    private class Transaction
+    {
+        public string Id { get; set; } = "";
+        public string Account { get; set; } = "";
+        public string Type { get; set; } = "";
+        public decimal Amount { get; set; }
+        public DateTime Date { get; set; }
+    }
+}

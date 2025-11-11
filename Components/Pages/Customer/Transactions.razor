@@ -1,0 +1,49 @@
+@page "/customer/transactions"
+@layout CustomerLayout
+
+<div class="section-header">
+    <h2 class="section-title">All Transactions</h2>
+</div>
+
+<div class="transaction-list">
+    @foreach (var transaction in transactions)
+    {
+        <div class="transaction-item">
+            <div class="transaction-icon">@transaction.Icon</div>
+            <div class="transaction-details">
+                <div class="transaction-title">@transaction.Title</div>
+                <div class="transaction-date">@transaction.Date.ToString("MMM dd, yyyy - hh:mm tt")</div>
+            </div>
+            <div class="transaction-amount @(transaction.Amount >= 0 ? "positive" : "negative")">
+                @(transaction.Amount >= 0 ? "+" : "")₱@Math.Abs(transaction.Amount).ToString("N2")
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Transaction> transactions = new();
+
+    protected override void OnInitialized()
+    {
+        transactions = new List<Transaction>
+        {
+            new Transaction { Icon = "💰", Title = "Salary Deposit", Date = DateTime.Now, Amount = 15000 },
+            new Transaction { Icon = "🛒", Title = "Shopping - Grocery Store", Date = DateTime.Now.AddHours(-2), Amount = -1250.50m },
+            new Transaction { Icon = "💡", Title = "Electric Bill Payment", Date = DateTime.Now.AddDays(-1), Amount = -850 },
+            new Transaction { Icon = "📱", Title = "Mobile Load", Date = DateTime.Now.AddDays(-1), Amount = -100 },
+            new Transaction { Icon = "🍕", Title = "Food Delivery", Date = DateTime.Now.AddDays(-2), Amount = -450 },
+            new Transaction { Icon = "💳", Title = "Online Shopping", Date = DateTime.Now.AddDays(-3), Amount = -2300 },
+            new Transaction { Icon = "🚕", Title = "Ride Fare", Date = DateTime.Now.AddDays(-3), Amount = -150 },
+            new Transaction { Icon = "💰", Title = "Freelance Income", Date = DateTime.Now.AddDays(-4), Amount = 8500 },
+        };
+    }
+
+    private class Transaction
+    {
+        public string Icon { get; set; } = "";
+        public string Title { get; set; } = "";
+        public DateTime Date { get; set; }
+        public decimal Amount { get; set; }
+    }
+}

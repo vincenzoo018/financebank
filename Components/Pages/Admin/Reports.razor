@@ -1,0 +1,88 @@
+@page "/admin/reports"
+@layout AdminLayout
+
+<div class="section-header">
+    <h2 class="section-title">Reports & Analytics</h2>
+    <button class="btn btn-primary">Generate Report</button>
+</div>
+
+<!-- Report Cards -->
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;">
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Financial Summary</h3>
+        <div style="margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-gray);">Total Deposits</span>
+                <span style="font-size: 14px; font-weight: 600;">₱1,850,000</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-gray);">Total Withdrawals</span>
+                <span style="font-size: 14px; font-weight: 600;">₱1,120,000</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-gray);">Net Flow</span>
+                <span style="font-size: 14px; font-weight: 600; color: var(--success);">+₱730,000</span>
+            </div>
+        </div>
+        <button class="btn btn-secondary" style="width: 100%;">View Details</button>
+    </div>
+
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">User Statistics</h3>
+        <div style="margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-gray);">New Users (This Month)</span>
+                <span style="font-size: 14px; font-weight: 600;">127</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-gray);">Active Users</span>
+                <span style="font-size: 14px; font-weight: 600;">1,158</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-gray);">Growth Rate</span>
+                <span style="font-size: 14px; font-weight: 600; color: var(--success);">+12%</span>
+            </div>
+        </div>
+        <button class="btn btn-secondary" style="width: 100%;">View Details</button>
+    </div>
+</div>
+
+<!-- Available Reports -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px;">Available Reports</h3>
+    
+    <div style="display: grid; gap: 12px;">
+        @foreach (var report in reports)
+        {
+            <div style="padding: 16px; border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">@report.Name</div>
+                    <div style="font-size: 12px; color: var(--text-light);">@report.Description</div>
+                </div>
+                <button class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;">Generate</button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<Report> reports = new();
+
+    protected override void OnInitialized()
+    {
+        reports = new List<Report>
+        {
+            new Report { Name = "Monthly Financial Statement", Description = "Complete financial overview for the month" },
+            new Report { Name = "User Activity Report", Description = "Detailed user activity and engagement metrics" },
+            new Report { Name = "Transaction Summary", Description = "Summary of all transactions by type and status" },
+            new Report { Name = "Account Growth Report", Description = "Analysis of account growth and trends" },
+            new Report { Name = "Audit Trail Report", Description = "Complete audit log of system activities" },
+        };
+    }
+
+    private class Report
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+    }
+}

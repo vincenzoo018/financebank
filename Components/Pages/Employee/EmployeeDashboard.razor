@@ -1,0 +1,112 @@
+@page "/employee/dashboard"
+@layout EmployeeLayout
+
+<div class="section-header">
+    <h2 class="section-title">Employee Dashboard</h2>
+</div>
+
+<!-- Stats Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+        <div style="font-size: 14px; color: var(--text-light); margin-bottom: 8px;">Accounts Payable</div>
+        <div style="font-size: 32px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">₱45,280</div>
+        <div style="font-size: 12px; color: var(--danger);">8 overdue</div>
+    </div>
+    
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+        <div style="font-size: 14px; color: var(--text-light); margin-bottom: 8px;">Accounts Receivable</div>
+        <div style="font-size: 32px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">₱68,500</div>
+        <div style="font-size: 12px; color: var(--warning);">12 pending</div>
+    </div>
+    
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+        <div style="font-size: 14px; color: var(--text-light); margin-bottom: 8px;">Journal Entries</div>
+        <div style="font-size: 32px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">127</div>
+        <div style="font-size: 12px; color: var(--success);">This month</div>
+    </div>
+    
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+        <div style="font-size: 14px; color: var(--text-light); margin-bottom: 8px;">Balance Sheet</div>
+        <div style="font-size: 32px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">₱523K</div>
+        <div style="font-size: 12px; color: var(--success);">Total assets</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="section-header">
+    <h2 class="section-title">Quick Actions</h2>
+</div>
+
+<div class="quick-actions">
+    <a href="/employee/payables" class="action-card">
+        <div class="action-icon">📤</div>
+        <div class="action-label">Accounts Payable</div>
+    </a>
+    <a href="/employee/receivables" class="action-card">
+        <div class="action-icon">📥</div>
+        <div class="action-label">Accounts Receivable</div>
+    </a>
+    <a href="/employee/journal" class="action-card">
+        <div class="action-icon">📝</div>
+        <div class="action-label">Journal Entries</div>
+    </a>
+    <a href="/employee/reports" class="action-card">
+        <div class="action-icon">📊</div>
+        <div class="action-label">Financial Reports</div>
+    </a>
+</div>
+
+<!-- Pending Tasks -->
+<div class="section-header">
+    <h2 class="section-title">Pending Tasks</h2>
+</div>
+
+<div class="transaction-list">
+    @foreach (var task in pendingTasks)
+    {
+        <div class="transaction-item">
+            <div class="transaction-icon">@task.Icon</div>
+            <div class="transaction-details">
+                <div class="transaction-title">@task.Title</div>
+                <div class="transaction-date">Due: @task.DueDate.ToString("MMM dd, yyyy")</div>
+            </div>
+            <div style="padding: 6px 12px; background: @GetStatusColor(task.Priority); border-radius: 8px; font-size: 12px; font-weight: 600; color: white;">
+                @task.Priority
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Task> pendingTasks = new();
+
+    protected override void OnInitialized()
+    {
+        pendingTasks = new List<Task>
+        {
+            new Task { Icon = "📤", Title = "Process payment to Supplier A Corp", DueDate = DateTime.Now.AddDays(2), Priority = "High" },
+            new Task { Icon = "📥", Title = "Follow up on Invoice INV001 - ABC Corporation", DueDate = DateTime.Now.AddDays(3), Priority = "Medium" },
+            new Task { Icon = "📝", Title = "Create journal entry for monthly expenses", DueDate = DateTime.Now.AddDays(5), Priority = "Low" },
+            new Task { Icon = "📊", Title = "Generate monthly financial report", DueDate = DateTime.Now.AddDays(7), Priority = "Medium" },
+        };
+    }
+
+    private string GetStatusColor(string priority)
+    {
+        return priority switch
+        {
+            "High" => "#ef4444",
+            "Medium" => "#f59e0b",
+            "Low" => "#5C715E",
+            _ => "#6b7280"
+        };
+    }
+
+    private class Task
+    {
+        public string Icon { get; set; } = "";
+        public string Title { get; set; } = "";
+        public DateTime DueDate { get; set; }
+        public string Priority { get; set; } = "";
+    }
+}

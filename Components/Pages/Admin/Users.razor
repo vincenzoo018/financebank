@@ -1,0 +1,88 @@
+@page "/admin/users"
+@layout AdminLayout
+
+<div class="section-header">
+    <h2 class="section-title">User Management</h2>
+    <button class="btn btn-primary">+ Add User</button>
+</div>
+
+<!-- Stats -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-light);">Total Users</div>
+        <div style="font-size: 28px; font-weight: 700; color: var(--text-dark);">1,247</div>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-light);">Customers</div>
+        <div style="font-size: 28px; font-weight: 700; color: var(--text-dark);">1,230</div>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-light);">Employees</div>
+        <div style="font-size: 28px; font-weight: 700; color: var(--text-dark);">15</div>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-light);">Admins</div>
+        <div style="font-size: 28px; font-weight: 700; color: var(--text-dark);">2</div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 1px solid var(--border);">
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">USER</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">EMAIL</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">ROLE</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">STATUS</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 16px; font-weight: 600;">@user.Name</td>
+                    <td style="padding: 16px;">@user.Email</td>
+                    <td style="padding: 16px;">
+                        <span style="padding: 4px 12px; background: var(--primary-bg); border-radius: 8px; font-size: 12px; font-weight: 600;">
+                            @user.Role
+                        </span>
+                    </td>
+                    <td style="padding: 16px;">
+                        <span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                            @user.Status
+                        </span>
+                    </td>
+                    <td style="padding: 16px;">
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Edit</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<User> users = new();
+
+    protected override void OnInitialized()
+    {
+        users = new List<User>
+        {
+            new User { Name = "Admin User", Email = "admin@bfas.com", Role = "Admin", Status = "Active" },
+            new User { Name = "John Doe", Email = "john@example.com", Role = "Customer", Status = "Active" },
+            new User { Name = "Jane Smith", Email = "jane@example.com", Role = "Customer", Status = "Active" },
+            new User { Name = "Finance Officer", Email = "finance@bfas.com", Role = "Employee", Status = "Active" },
+            new User { Name = "Bob Wilson", Email = "bob@example.com", Role = "Customer", Status = "Active" },
+        };
+    }
+
+    private class User
+    {
+        public string Name { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Role { get; set; } = "";
+        public string Status { get; set; } = "";
+    }
+}

@@ -1,0 +1,93 @@
+@page "/customer/dashboard"
+@layout CustomerLayout
+
+<!-- Balance Card (GCash-like) -->
+<div class="balance-card">
+    <div class="balance-label">Total Balance</div>
+    <div class="balance-amount">₱25,450.00</div>
+    <div class="balance-actions">
+        <button class="balance-btn" @onclick="GoToTransfer">
+            <span>💸</span>
+            <span>Send Money</span>
+        </button>
+        <button class="balance-btn" @onclick="GoToBills">
+            <span>📄</span>
+            <span>Pay Bills</span>
+        </button>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="section-header">
+    <h2 class="section-title">Quick Actions</h2>
+</div>
+
+<div class="quick-actions">
+    <a href="/customer/transfer" class="action-card">
+        <div class="action-icon">💳</div>
+        <div class="action-label">Transfer</div>
+    </a>
+    <a href="/customer/bills" class="action-card">
+        <div class="action-icon">📋</div>
+        <div class="action-label">Pay Bills</div>
+    </a>
+    <a href="/customer/transactions" class="action-card">
+        <div class="action-icon">📊</div>
+        <div class="action-label">Transactions</div>
+    </a>
+    <a href="/customer/accounts" class="action-card">
+        <div class="action-icon">💰</div>
+        <div class="action-label">My Accounts</div>
+    </a>
+</div>
+
+<!-- Recent Transactions -->
+<div class="section-header">
+    <h2 class="section-title">Recent Transactions</h2>
+    <a href="/customer/transactions" class="section-link">View All</a>
+</div>
+
+<div class="transaction-list">
+    @foreach (var transaction in recentTransactions)
+    {
+        <div class="transaction-item">
+            <div class="transaction-icon">@transaction.Icon</div>
+            <div class="transaction-details">
+                <div class="transaction-title">@transaction.Title</div>
+                <div class="transaction-date">@transaction.Date.ToString("MMM dd, yyyy")</div>
+            </div>
+            <div class="transaction-amount @(transaction.Amount >= 0 ? "positive" : "negative")">
+                @(transaction.Amount >= 0 ? "+" : "")₱@Math.Abs(transaction.Amount).ToString("N2")
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Inject] public NavigationManager Navigation { get; set; } = default!;
+
+    private void GoToTransfer() => Navigation.NavigateTo("/customer/transfer");
+    private void GoToBills() => Navigation.NavigateTo("/customer/bills");
+
+    private List<Transaction> recentTransactions = new();
+
+    protected override void OnInitialized()
+    {
+        recentTransactions = new List<Transaction>
+        {
+            new Transaction { Icon = "💰", Title = "Received from John Doe", Date = DateTime.Now, Amount = 5000 },
+            new Transaction { Icon = "🛒", Title = "Shopping - Grocery Store", Date = DateTime.Now.AddDays(-1), Amount = -1250.50m },
+            new Transaction { Icon = "💡", Title = "Electric Bill Payment", Date = DateTime.Now.AddDays(-2), Amount = -850 },
+            new Transaction { Icon = "📱", Title = "Mobile Load", Date = DateTime.Now.AddDays(-3), Amount = -100 },
+            new Transaction { Icon = "🍕", Title = "Food Delivery", Date = DateTime.Now.AddDays(-4), Amount = -450 },
+        };
+    }
+
+    private class Transaction
+    {
+        public string Icon { get; set; } = "";
+        public string Title { get; set; } = "";
+        public DateTime Date { get; set; }
+        public decimal Amount { get; set; }
+    }
+}

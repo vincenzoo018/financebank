@@ -1,0 +1,86 @@
+@page "/admin/accounts"
+@layout AdminLayout
+
+<div class="section-header">
+    <h2 class="section-title">Bank Accounts</h2>
+    <button class="btn btn-primary">+ Create Account</button>
+</div>
+
+<!-- Stats -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-light);">Total Accounts</div>
+        <div style="font-size: 28px; font-weight: 700; color: var(--text-dark);">856</div>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-light);">Active</div>
+        <div style="font-size: 28px; font-weight: 700; color: var(--text-dark);">832</div>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-light);">Total Balance</div>
+        <div style="font-size: 28px; font-weight: 700; color: var(--text-dark);">₱2.4M</div>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-light);">This Month</div>
+        <div style="font-size: 28px; font-weight: 700; color: var(--text-dark);">+45</div>
+    </div>
+</div>
+
+<!-- Accounts Table -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 1px solid var(--border);">
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">ACCOUNT NUMBER</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">OWNER</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">TYPE</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">BALANCE</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">STATUS</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-light);">ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var account in accounts)
+            {
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 16px; font-weight: 600; font-family: monospace;">@account.AccountNumber</td>
+                    <td style="padding: 16px;">@account.Owner</td>
+                    <td style="padding: 16px;">@account.Type</td>
+                    <td style="padding: 16px; font-weight: 700;">₱@account.Balance.ToString("N2")</td>
+                    <td style="padding: 16px;">
+                        <span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                            Active
+                        </span>
+                    </td>
+                    <td style="padding: 16px;">
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">View</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<Account> accounts = new();
+
+    protected override void OnInitialized()
+    {
+        accounts = new List<Account>
+        {
+            new Account { AccountNumber = "BFAS-100000000001", Owner = "John Doe", Type = "Savings", Balance = 18450 },
+            new Account { AccountNumber = "BFAS-100000000002", Owner = "John Doe", Type = "Checking", Balance = 7000 },
+            new Account { AccountNumber = "BFAS-100000000003", Owner = "Jane Smith", Type = "Savings", Balance = 25300 },
+            new Account { AccountNumber = "BFAS-100000000004", Owner = "Bob Johnson", Type = "Business", Balance = 45200 },
+            new Account { AccountNumber = "BFAS-100000000005", Owner = "Alice Brown", Type = "Savings", Balance = 12800 },
+        };
+    }
+
+    private class Account
+    {
+        public string AccountNumber { get; set; } = "";
+        public string Owner { get; set; } = "";
+        public string Type { get; set; } = "";
+        public decimal Balance { get; set; }
+    }
+}

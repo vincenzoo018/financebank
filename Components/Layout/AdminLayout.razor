@@ -1,0 +1,169 @@
+@inherits LayoutComponentBase
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="sidebar-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">BFAS Admin</div>
+            <div class="sidebar-subtitle">Finance System</div>
+        </div>
+
+        <div class="sidebar-nav">
+            <!-- Main Section -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">MAIN</div>
+                <a href="/admin/dashboard" class="sidebar-item @(IsActive("/admin/dashboard"))">
+                    <span>📊</span>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <!-- User Management Dropdown -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">USER MANAGEMENT</div>
+                <div class="sidebar-dropdown @(userMgmtOpen ? "open" : "")">
+                    <button class="sidebar-dropdown-toggle" @onclick="() => userMgmtOpen = !userMgmtOpen">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span>👥</span>
+                            <span>User Management</span>
+                        </div>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="sidebar-dropdown-menu">
+                        <a href="/admin/users" class="sidebar-dropdown-item @(IsActive("/admin/users"))">All Users</a>
+                        <a href="/admin/roles" class="sidebar-dropdown-item @(IsActive("/admin/roles"))">Roles & Permissions</a>
+                        <a href="/admin/customers" class="sidebar-dropdown-item @(IsActive("/admin/customers"))">Customer Profiles</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banking Dropdown -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">BANKING</div>
+                <div class="sidebar-dropdown @(bankingOpen ? "open" : "")">
+                    <button class="sidebar-dropdown-toggle" @onclick="() => bankingOpen = !bankingOpen">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span>💳</span>
+                            <span>Banking</span>
+                        </div>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="sidebar-dropdown-menu">
+                        <a href="/admin/accounts" class="sidebar-dropdown-item @(IsActive("/admin/accounts"))">Bank Accounts</a>
+                        <a href="/admin/transactions" class="sidebar-dropdown-item @(IsActive("/admin/transactions"))">Transactions</a>
+                        <a href="/admin/transfers" class="sidebar-dropdown-item @(IsActive("/admin/transfers"))">Fund Transfers</a>
+                        <a href="/admin/billers" class="sidebar-dropdown-item @(IsActive("/admin/billers"))">Billers</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Finance Dropdown -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">FINANCE</div>
+                <div class="sidebar-dropdown @(financeOpen ? "open" : "")">
+                    <button class="sidebar-dropdown-toggle" @onclick="() => financeOpen = !financeOpen">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span>💰</span>
+                            <span>Finance</span>
+                        </div>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="sidebar-dropdown-menu">
+                        <a href="/admin/payables" class="sidebar-dropdown-item @(IsActive("/admin/payables"))">Accounts Payable</a>
+                        <a href="/admin/receivables" class="sidebar-dropdown-item @(IsActive("/admin/receivables"))">Accounts Receivable</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accounting Dropdown -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">ACCOUNTING</div>
+                <div class="sidebar-dropdown @(accountingOpen ? "open" : "")">
+                    <button class="sidebar-dropdown-toggle" @onclick="() => accountingOpen = !accountingOpen">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span>📚</span>
+                            <span>Accounting</span>
+                        </div>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="sidebar-dropdown-menu">
+                        <a href="/admin/journal" class="sidebar-dropdown-item @(IsActive("/admin/journal"))">Journal Entries</a>
+                        <a href="/admin/ledger" class="sidebar-dropdown-item @(IsActive("/admin/ledger"))">General Ledger</a>
+                        <a href="/admin/trial-balance" class="sidebar-dropdown-item @(IsActive("/admin/trial-balance"))">Trial Balance</a>
+                        <a href="/admin/statements" class="sidebar-dropdown-item @(IsActive("/admin/statements"))">Financial Statements</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">SYSTEM</div>
+                <a href="/admin/reports" class="sidebar-item @(IsActive("/admin/reports"))">
+                    <span>📊</span>
+                    <span>Reports</span>
+                </a>
+                <a href="/admin/audit" class="sidebar-item @(IsActive("/admin/audit"))">
+                    <span>🔍</span>
+                    <span>Audit Logs</span>
+                </a>
+                <a href="/admin/settings" class="sidebar-item @(IsActive("/admin/settings"))">
+                    <span>⚙️</span>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user" @onclick="HandleLogout">
+                <div class="sidebar-user-avatar">AD</div>
+                <div class="sidebar-user-info">
+                    <h4>Admin User</h4>
+                    <p>Logout</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="sidebar-main">
+        <div class="sidebar-topbar">
+            <div class="topbar-title">@GetPageTitle()</div>
+        </div>
+        <div class="sidebar-content">
+            @Body
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool userMgmtOpen = true;
+    private bool bankingOpen = false;
+    private bool financeOpen = false;
+    private bool accountingOpen = false;
+
+    private string IsActive(string path)
+    {
+        return Navigation.Uri.Contains(path) ? "active" : "";
+    }
+
+    private string GetPageTitle()
+    {
+        var path = Navigation.Uri;
+        if (path.Contains("/dashboard")) return "Dashboard";
+        if (path.Contains("/users")) return "User Management";
+        if (path.Contains("/accounts")) return "Bank Accounts";
+        if (path.Contains("/transactions")) return "Transactions";
+        if (path.Contains("/reports")) return "Reports";
+        if (path.Contains("/settings")) return "Settings";
+        return "Admin Panel";
+    }
+
+    private void HandleLogout()
+    {
+        AuthService.Logout();
+        Navigation.NavigateTo("/login");
+    }
+}
+

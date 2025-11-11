@@ -1,0 +1,105 @@
+@page "/customer/rewards"
+@layout CustomerLayout
+
+<div class="section-header">
+    <h2 class="section-title">Rewards & Cashback</h2>
+</div>
+
+<!-- Points Summary -->
+<div class="balance-card" style="margin-bottom: 24px;">
+    <div class="balance-label">Total Points</div>
+    <div class="balance-amount">12,450</div>
+    <div class="balance-actions" style="margin-top: 16px;">
+        <button class="balance-btn">
+            <span>🎁</span>
+            <span>Redeem Points</span>
+        </button>
+        <button class="balance-btn">
+            <span>📊</span>
+            <span>View History</span>
+        </button>
+    </div>
+</div>
+
+<!-- Cashback This Month -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 24px;">
+    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Cashback This Month</h3>
+    <div style="font-size: 36px; font-weight: 700; color: var(--accent); margin-bottom: 8px;">₱345.50</div>
+    <div style="font-size: 13px; color: var(--text-light);">From 23 eligible transactions</div>
+</div>
+
+<!-- Rewards Categories -->
+<div class="section-header">
+    <h3 style="font-size: 16px; font-weight: 600;">Earn More Points</h3>
+</div>
+
+<div class="quick-actions" style="margin-bottom: 32px;">
+    <div class="action-card">
+        <div class="action-icon">🛒</div>
+        <div class="action-label">Shopping</div>
+        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">5x Points</div>
+    </div>
+    <div class="action-card">
+        <div class="action-icon">🍽️</div>
+        <div class="action-label">Dining</div>
+        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">3x Points</div>
+    </div>
+    <div class="action-card">
+        <div class="action-icon">⛽</div>
+        <div class="action-label">Fuel</div>
+        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">2x Points</div>
+    </div>
+    <div class="action-card">
+        <div class="action-icon">✈️</div>
+        <div class="action-label">Travel</div>
+        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">10x Points</div>
+    </div>
+</div>
+
+<!-- Available Rewards -->
+<div class="section-header">
+    <h3 style="font-size: 16px; font-weight: 600;">Available Rewards</h3>
+</div>
+
+<div style="display: grid; gap: 16px;">
+    @foreach (var reward in availableRewards)
+    {
+        <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <div style="font-size: 40px;">@reward.Icon</div>
+                <div>
+                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">@reward.Name</div>
+                    <div style="font-size: 13px; color: var(--text-light);">@reward.Description</div>
+                    <div style="font-size: 14px; color: var(--accent); font-weight: 600; margin-top: 4px;">@reward.Points points</div>
+                </div>
+            </div>
+            <button class="btn @(reward.Points <= 12450 ? "btn-primary" : "btn-secondary")" @disabled="@(reward.Points > 12450)">
+                @(reward.Points <= 12450 ? "Redeem" : "Locked")
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Reward> availableRewards = new();
+
+    protected override void OnInitialized()
+    {
+        availableRewards = new List<Reward>
+        {
+            new Reward { Icon = "☕", Name = "Starbucks ₱500 GC", Description = "Valid for 6 months", Points = 5000 },
+            new Reward { Icon = "🎬", Name = "Cinema Ticket", Description = "Valid at all SM Cinemas", Points = 2500 },
+            new Reward { Icon = "📱", Name = "Mobile Load ₱100", Description = "Any network", Points = 1000 },
+            new Reward { Icon = "✈️", Name = "Flight Discount 10%", Description = "For international flights", Points = 15000 },
+            new Reward { Icon = "🏨", Name = "Hotel Stay ₱2000", Description = "Participating hotels", Points = 20000 },
+        };
+    }
+
+    private class Reward
+    {
+        public string Icon { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public int Points { get; set; }
+    }
+}

@@ -1,0 +1,51 @@
+@page "/customer/transfer"
+@layout CustomerLayout
+
+<div class="section-header">
+    <h2 class="section-title">Transfer Money</h2>
+</div>
+
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+    <form @onsubmit="HandleTransfer">
+        <div class="form-group">
+            <label class="form-label">Recipient Account Number</label>
+            <input type="text" class="form-control" @bind="recipientAccount" placeholder="Enter account number" required />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Amount</label>
+            <input type="number" class="form-control" @bind="amount" placeholder="0.00" step="0.01" min="1" required />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Message (Optional)</label>
+            <input type="text" class="form-control" @bind="message" placeholder="Add a message" />
+        </div>
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div style="padding: 12px; background: #d1fae5; color: #065f46; border-radius: 12px; margin-bottom: 16px;">
+                @successMessage
+            </div>
+        }
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Send Money
+        </button>
+    </form>
+</div>
+
+@code {
+    private string recipientAccount = "";
+    private decimal amount = 0;
+    private string message = "";
+    private string successMessage = "";
+
+    private void HandleTransfer()
+    {
+        successMessage = $"Successfully sent ₱{amount:N2} to {recipientAccount}!";
+        recipientAccount = "";
+        amount = 0;
+        message = "";
+    }
+}

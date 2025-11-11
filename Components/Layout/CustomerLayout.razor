@@ -1,0 +1,68 @@
+@inherits LayoutComponentBase
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="gcash-container">
+    <!-- GCash-Style Horizontal Navbar -->
+    <nav class="gcash-navbar">
+        <div class="gcash-navbar-content">
+            <div class="gcash-brand">FINEbank.io</div>
+            
+            <!-- Horizontal Navigation - ALL ITEMS VISIBLE -->
+            <div class="gcash-nav-horizontal">
+                <a href="/customer/dashboard" class="gcash-nav-item @(IsActive("/customer/dashboard"))">
+                    <span>Dashboard</span>
+                </a>
+                <a href="/customer/accounts" class="gcash-nav-item @(IsActive("/customer/accounts"))">
+                    <span>Accounts</span>
+                </a>
+                <a href="/customer/cards" class="gcash-nav-item @(IsActive("/customer/cards"))">
+                    <span>Cards</span>
+                </a>
+                <a href="/customer/loans" class="gcash-nav-item @(IsActive("/customer/loans"))">
+                    <span>Loans</span>
+                </a>
+                <a href="/customer/savings" class="gcash-nav-item @(IsActive("/customer/savings"))">
+                    <span>Savings</span>
+                </a>
+                <a href="/customer/transfer" class="gcash-nav-item @(IsActive("/customer/transfer"))">
+                    <span>Transfer</span>
+                </a>
+                <a href="/customer/bills" class="gcash-nav-item @(IsActive("/customer/bills"))">
+                    <span>Bills</span>
+                </a>
+                <a href="/customer/rewards" class="gcash-nav-item @(IsActive("/customer/rewards"))">
+                    <span>Rewards</span>
+                </a>
+            </div>
+
+            <!-- Right Side -->
+            <div class="gcash-navbar-right">
+                <button class="gcash-user-btn" @onclick="HandleLogout">
+                    <div class="gcash-avatar">CU</div>
+                    <span>Customer</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="gcash-content">
+        <div class="gcash-content-inner">
+            @Body
+        </div>
+    </div>
+</div>
+
+@code {
+    private string IsActive(string path)
+    {
+        return Navigation.Uri.Contains(path) ? "active" : "";
+    }
+
+    private void HandleLogout()
+    {
+        AuthService.Logout();
+        Navigation.NavigateTo("/login");
+    }
+}

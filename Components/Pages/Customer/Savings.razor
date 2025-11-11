@@ -1,0 +1,103 @@
+@page "/customer/savings"
+@layout CustomerLayout
+
+<div class="section-header">
+    <h2 class="section-title">Savings Goals</h2>
+    <button class="btn btn-primary">Create New Goal</button>
+</div>
+
+<!-- Savings Summary -->
+<div class="balance-card" style="margin-bottom: 24px;">
+    <div class="balance-label">Total Savings</div>
+    <div class="balance-amount">₱42,350.00</div>
+    <div style="font-size: 14px; opacity: 0.9; margin-top: 8px;">Across 3 active goals</div>
+</div>
+
+<!-- Savings Goals -->
+<div style="display: grid; gap: 16px;">
+    @foreach (var goal in savingsGoals)
+    {
+        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="font-size: 32px;">@goal.Icon</div>
+                    <div>
+                        <div style="font-size: 18px; font-weight: 700;">@goal.Name</div>
+                        <div style="font-size: 13px; color: var(--text-light);">Target: @goal.TargetDate.ToString("MMM dd, yyyy")</div>
+                    </div>
+                </div>
+                <div style="padding: 6px 12px; background: var(--primary-bg); border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--accent);">
+                    @(((decimal)goal.Current / goal.Target * 100).ToString("F0"))%
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Current</div>
+                    <div style="font-size: 16px; font-weight: 700;">₱@goal.Current.ToString("N2")</div>
+                </div>
+                <div>
+                    <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Target</div>
+                    <div style="font-size: 16px; font-weight: 700;">₱@goal.Target.ToString("N2")</div>
+                </div>
+                <div>
+                    <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Remaining</div>
+                    <div style="font-size: 16px; font-weight: 700;">₱@((goal.Target - goal.Current).ToString("N2"))</div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="margin-bottom: 12px;">
+                <div style="height: 12px; background: var(--primary-bg); border-radius: 6px; overflow: hidden;">
+                    <div style="height: 100%; background: linear-gradient(90deg, var(--accent) 0%, var(--accent-hover) 100%); width: @(((decimal)goal.Current / goal.Target * 100).ToString("F0"))%;"></div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%;">Add Money</button>
+        </div>
+    }
+</div>
+
+@code {
+    private List<SavingsGoal> savingsGoals = new();
+
+    protected override void OnInitialized()
+    {
+        savingsGoals = new List<SavingsGoal>
+        {
+            new SavingsGoal 
+            { 
+                Icon = "🏖️",
+                Name = "Vacation Fund", 
+                Current = 18500, 
+                Target = 50000, 
+                TargetDate = DateTime.Now.AddMonths(6) 
+            },
+            new SavingsGoal 
+            { 
+                Icon = "🚗",
+                Name = "Car Down Payment", 
+                Current = 15200, 
+                Target = 100000, 
+                TargetDate = DateTime.Now.AddMonths(12) 
+            },
+            new SavingsGoal 
+            { 
+                Icon = "⚡",
+                Name = "Emergency Fund", 
+                Current = 8650, 
+                Target = 30000, 
+                TargetDate = DateTime.Now.AddMonths(8) 
+            },
+        };
+    }
+
+    private class SavingsGoal
+    {
+        public string Icon { get; set; } = "";
+        public string Name { get; set; } = "";
+        public decimal Current { get; set; }
+        public decimal Target { get; set; }
+        public DateTime TargetDate { get; set; }
+    }
+}
