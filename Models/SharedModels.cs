@@ -21,22 +21,67 @@ namespace FinanceBank.Models
     }
 
     // Deposit Transaction
-    public class DepositTransaction : TransactionBase
+    public class DepositTransaction
     {
+        // Inherited properties explicitly defined
+        public string Id { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public decimal Amount { get; set; }
+        public DateTime Date { get; set; }
+        public string Status { get; set; } = "Pending";
+        public string CustomerName { get; set; } = "";
+        public string CustomerAccount { get; set; } = "";
+        public string ApprovedBy { get; set; } = "";
+        public DateTime? ApprovedDate { get; set; }
+        public string RejectionReason { get; set; } = "";
+        public string Department { get; set; } = "";
+        
+        // Deposit-specific properties
         public string DepositType { get; set; } = ""; // Cash, Check, Online Transfer
         public string ReferenceNumber { get; set; } = "";
     }
 
     // Withdrawal Transaction
-    public class WithdrawalTransaction : TransactionBase
+    public class WithdrawalTransaction
     {
+        // Inherited properties explicitly defined
+        public string Id { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public decimal Amount { get; set; }
+        public DateTime Date { get; set; }
+        public string Status { get; set; } = "Pending";
+        public string CustomerName { get; set; } = "";
+        public string CustomerAccount { get; set; } = "";
+        public string ApprovedBy { get; set; } = "";
+        public DateTime? ApprovedDate { get; set; }
+        public string RejectionReason { get; set; } = "";
+        public string Department { get; set; } = "";
+        
+        // Withdrawal-specific properties
         public string WithdrawalMethod { get; set; } = ""; // ATM, Teller, Online
         public string Purpose { get; set; } = "";
     }
 
     // Transfer Transaction
-    public class TransferTransaction : TransactionBase
+    public class TransferTransaction
     {
+        // Inherited properties explicitly defined
+        public string Id { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public decimal Amount { get; set; }
+        public DateTime Date { get; set; }
+        public string Status { get; set; } = "Pending";
+        public string CustomerName { get; set; } = "";
+        public string CustomerAccount { get; set; } = "";
+        public string ApprovedBy { get; set; } = "";
+        public DateTime? ApprovedDate { get; set; }
+        public string RejectionReason { get; set; } = "";
+        public string Department { get; set; } = "";
+        
+        // Transfer-specific properties
         public string FromAccount { get; set; } = "";
         public string ToAccount { get; set; } = "";
         public string RecipientName { get; set; } = "";

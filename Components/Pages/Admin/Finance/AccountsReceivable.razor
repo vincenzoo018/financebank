@@ -126,7 +126,7 @@
                 var amountReceived = isPaid ? invoiceAmount : (i % 3 == 0 ? invoiceAmount / 3 : 0);
                 var balanceDue = invoiceAmount - amountReceived;
                 
-                <tr style="border-bottom: 1px solid var(--border); transition: background 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+                <tr style="border-bottom: 1px solid var(--border); transition: background 0.2s;">
                     <td style="padding: 16px; font-family: monospace; font-weight: 600; color: #10b981;">INV-@(i.ToString("00000"))</td>
                     <td style="padding: 16px;">
                         <div style="font-weight: 600; margin-bottom: 2px;">@customers[i % customers.Length]</div>

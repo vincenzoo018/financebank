@@ -126,7 +126,7 @@
                 var amountPaid = isPaid ? billAmount : (i % 3 == 0 ? billAmount / 2 : 0);
                 var balanceDue = billAmount - amountPaid;
                 
-                <tr style="border-bottom: 1px solid var(--border); transition: background 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+                <tr style="border-bottom: 1px solid var(--border); transition: background 0.2s;">
                     <td style="padding: 16px; font-family: monospace; font-weight: 600; color: #3b82f6;">BILL-@(i.ToString("00000"))</td>
                     <td style="padding: 16px;">
                         <div style="font-weight: 600; margin-bottom: 2px;">@vendors[i % vendors.Length]</div>
