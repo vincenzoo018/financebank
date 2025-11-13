@@ -1,99 +1,383 @@
 @page "/customer/bills"
 @layout CustomerLayout
 
-<div class="section-header">
-    <h2 class="section-title">Pay Bills</h2>
-</div>
-
-<!-- Quick Bill Payment -->
-<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 24px;">
-    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Pay a Bill</h3>
-    <form @onsubmit="HandlePayment">
-        <div class="form-group">
-            <label class="form-label">Select Biller</label>
-            <select class="form-control" @bind="selectedBiller" required>
-                <option value="">Choose biller...</option>
-                <option value="Electric Company">Electric Company</option>
-                <option value="Water Company">Water Company</option>
-                <option value="Internet Provider">Internet Provider</option>
-                <option value="Mobile Provider">Mobile Provider</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Account Number</label>
-            <input type="text" class="form-control" @bind="accountNumber" placeholder="Enter your account number" required />
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Amount</label>
-            <input type="number" class="form-control" @bind="amount" placeholder="0.00" step="0.01" min="1" required />
-        </div>
-
-        @if (!string.IsNullOrEmpty(successMessage))
-        {
-            <div style="padding: 12px; background: #d1fae5; color: #065f46; border-radius: 12px; margin-bottom: 16px;">
-                @successMessage
+<div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 32px;">📄</span>
             </div>
-        }
-
-        <button type="submit" class="btn btn-primary" style="width: 100%;">
-            Pay Bill
-        </button>
-    </form>
-</div>
-
-<!-- Payment History -->
-<div class="section-header">
-    <h2 class="section-title">Recent Bill Payments</h2>
-</div>
-
-<div class="transaction-list">
-    @foreach (var payment in recentPayments)
-    {
-        <div class="transaction-item">
-            <div class="transaction-icon">□</div>
-            <div class="transaction-details">
-                <div class="transaction-title">@payment.Biller</div>
-                <div class="transaction-date">@payment.Date.ToString("MMM dd, yyyy")</div>
+            <div>
+                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Pay Bills</h1>
+                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Manage and pay your bills easily</p>
             </div>
-            <div class="transaction-amount negative">
-                -₱@payment.Amount.ToString("N2")
+            <div style="margin-left: auto; text-align: right;">
+                <button type="button" @onclick="ShowHistory" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px 20px; border-radius: 8px; cursor: pointer;">
+                    📊 History
+                </button>
             </div>
         </div>
+    </div>
+
+    <!-- Main Content -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+        <!-- Payment Form -->
+        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <!-- Biller Categories -->
+            <div style="margin-bottom: 32px;">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Select Biller Category</h3>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                    @foreach (var category in billerCategories)
+                    {
+                        <button type="button" @onclick="() => SelectCategory(category)" style="padding: 16px; background: @(selectedCategory == category ? "linear-gradient(135deg, #f59e0b, #d97706)" : "#f9fafb"); color: @(selectedCategory == category ? "white" : "#1f2937"); border: 2px solid @(selectedCategory == category ? "#f59e0b" : "#e5e7eb"); border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 14px;">
+                            @category
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(selectedCategory))
+            {
+                <!-- Biller Selection -->
+                <div style="margin-bottom: 24px;">
+                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Choose Biller</h3>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        @foreach (var biller in GetBillersByCategory(selectedCategory))
+                        {
+                            <div @onclick="() => SelectBiller(biller)" style="padding: 16px; background: @(selectedBiller == biller ? "#fef3c7" : "white"); border: 2px solid @(selectedBiller == biller ? "#f59e0b" : "#e5e7eb"); border-radius: 12px; cursor: pointer; transition: all 0.3s;" class="biller-card">
+                                <div style="font-weight: 600; color: #1f2937; font-size: 14px;">@biller</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(selectedBiller))
+                {
+                    <!-- Payment Details -->
+                    <div style="margin-bottom: 24px;">
+                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Payment Details</h3>
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label class="form-label">Account Number</label>
+                            <input type="text" class="form-control" @bind="accountNumber" placeholder="Enter account number" style="font-size: 16px; padding: 12px;" />
+                        </div>
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label class="form-label">Amount to Pay</label>
+                            <input type="number" class="form-control" @bind="amount" placeholder="0.00" style="font-size: 24px; font-weight: 600; padding: 16px; text-align: center; color: #f59e0b;" />
+                            <div style="text-align: center; margin-top: 8px; font-size: 14px; color: #6b7280;">Convenience Fee: ₱10.00</div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 12px;">
+                        <button type="button" @onclick="ClearForm" style="flex: 1; padding: 16px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 16px; font-weight: 600; cursor: pointer;">
+                            Clear
+                        </button>
+                        <button type="button" @onclick="ShowPaymentConfirmation" style="flex: 2; padding: 16px; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
+                            Pay Now →
+                        </button>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+            <!-- Saved Billers -->
+            <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Saved Billers</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    @foreach (var saved in savedBillers)
+                    {
+                        <div @onclick="() => QuickPayBiller(saved)" style="padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="saved-biller">
+                            <div style="font-weight: 600; font-size: 14px; color: #1f2937;">@saved.Name</div>
+                            <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">****@saved.AccountNumber.Substring(saved.AccountNumber.Length - 4)</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Recent Payments -->
+            <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 18px; font-weight: 600; color: #1f2937;">Recent Payments</h3>
+                    <button type="button" @onclick="ShowHistory" style="font-size: 14px; color: #f59e0b; background: none; border: none; cursor: pointer; font-weight: 500;">View All</button>
+                </div>
+                
+                @foreach (var payment in recentPayments.Take(3))
+                {
+                    <div style="padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;" class="payment-item">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px; color: #1f2937;">@payment.Biller</div>
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">@payment.Date.ToString("MMM dd, yyyy")</div>
+                            </div>
+                            <div style="font-weight: 600; color: #dc2626;">-₱@payment.Amount.ToString("N2")</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Confirmation Modal -->
+@if (showConfirmationModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseConfirmation">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 40px;">📄</span>
+                </div>
+                <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">Confirm Payment</h2>
+                <p style="color: #6b7280;">Please review the details below</p>
+            </div>
+            
+            <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                    <span style="color: #6b7280;">Biller:</span>
+                    <span style="font-weight: 600; color: #1f2937;">@selectedBiller</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                    <span style="color: #6b7280;">Account Number:</span>
+                    <span style="font-weight: 600; color: #1f2937; font-family: monospace;">@accountNumber</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                    <span style="color: #6b7280;">Amount:</span>
+                    <span style="font-weight: 700; color: #f59e0b; font-size: 18px;">₱@amount.ToString("N2")</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px 0;">
+                    <span style="color: #6b7280;">Convenience Fee:</span>
+                    <span style="font-weight: 600; color: #1f2937;">₱10.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 16px 0; border-top: 2px solid #e5e7eb; margin-top: 8px;">
+                    <span style="font-weight: 600; color: #1f2937;">Total Amount:</span>
+                    <span style="font-weight: 700; color: #dc2626; font-size: 20px;">₱@((amount + 10).ToString("N2"))</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button @onclick="CloseConfirmation" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 15px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button @onclick="ProcessPayment" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; border-radius: 12px; color: white; font-size: 15px; font-weight: 600; cursor: pointer;">
+                    Confirm Payment
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Payment History Modal -->
+@if (showHistoryModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseHistory">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-size: 24px; font-weight: 700; color: #1f2937;">Payment History</h2>
+                <button @onclick="CloseHistory" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+            </div>
+            
+            <div>
+                @foreach (var payment in recentPayments)
+                {
+                    <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <span style="font-size: 20px;">📄</span>
+                                    <div>
+                                        <div style="font-weight: 600; color: #1f2937;">@payment.Biller</div>
+                                        <div style="font-size: 12px; color: #6b7280;">@payment.Reference</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">@payment.Date.ToString("MMM dd, yyyy hh:mm tt")</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 700; font-size: 18px; color: #dc2626;">-₱@payment.Amount.ToString("N2")</div>
+                                <div style="font-size: 12px; margin-top: 4px;">
+                                    <span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 4px; font-weight: 500;">Paid</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Success Modal -->
+@if (showSuccessModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001;" @onclick="CloseSuccess">
+        <div style="background: white; border-radius: 16px; padding: 40px; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+            <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 50%; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 50px;">✅</span>
+            </div>
+            <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 12px;">Payment Successful!</h2>
+            <p style="color: #6b7280; margin-bottom: 24px;">Your bill payment has been processed successfully.</p>
+            <button @onclick="CloseSuccess" style="padding: 16px 32px; background: linear-gradient(135deg, #059669, #047857); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
+                Done
+            </button>
+        </div>
+    </div>
+}
+
+<style>
+    .biller-card:hover {
+        background: #fef3c7 !important;
+        border-color: #f59e0b !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245,158,11,0.2);
     }
-</div>
+    
+    .saved-biller:hover {
+        background: #f9fafb;
+        border-color: #f59e0b;
+    }
+    
+    .payment-item:hover {
+        background: #fef3c7;
+        border-color: #f59e0b;
+    }
+</style>
 
 @code {
+    private string selectedCategory = "";
     private string selectedBiller = "";
     private string accountNumber = "";
     private decimal amount = 0;
-    private string successMessage = "";
+    private bool showConfirmationModal = false;
+    private bool showHistoryModal = false;
+    private bool showSuccessModal = false;
 
+    private List<string> billerCategories = new() { "Utilities", "Telecommunications", "Government", "Credit Cards", "Insurance", "Others" };
     private List<Payment> recentPayments = new();
+    private List<SavedBiller> savedBillers = new();
 
     protected override void OnInitialized()
     {
         recentPayments = new List<Payment>
         {
-            new Payment { Biller = "Electric Company", Date = DateTime.Now.AddDays(-5), Amount = 850 },
-            new Payment { Biller = "Internet Provider", Date = DateTime.Now.AddDays(-10), Amount = 1299 },
-            new Payment { Biller = "Water Company", Date = DateTime.Now.AddDays(-15), Amount = 450 },
+            new() { Biller = "Meralco", Reference = "BILL-001", Date = DateTime.Now.AddDays(-2), Amount = 2450 },
+            new() { Biller = "PLDT Fibr", Reference = "BILL-002", Date = DateTime.Now.AddDays(-5), Amount = 1699 },
+            new() { Biller = "Maynilad", Reference = "BILL-003", Date = DateTime.Now.AddDays(-7), Amount = 850 },
+            new() { Biller = "Globe Postpaid", Reference = "BILL-004", Date = DateTime.Now.AddDays(-10), Amount = 1299 },
+            new() { Biller = "SSS Contribution", Reference = "BILL-005", Date = DateTime.Now.AddDays(-15), Amount = 1800 },
+        };
+
+        savedBillers = new List<SavedBiller>
+        {
+            new() { Name = "Meralco", AccountNumber = "12345678901" },
+            new() { Name = "PLDT Fibr", AccountNumber = "0987654321" },
+            new() { Name = "Maynilad", AccountNumber = "11223344556" },
         };
     }
 
-    private void HandlePayment()
+    private List<string> GetBillersByCategory(string category)
     {
-        successMessage = $"Successfully paid ₱{amount:N2} to {selectedBiller}!";
+        return category switch
+        {
+            "Utilities" => new List<string> { "Meralco", "Manila Electric Company", "Maynilad", "Manila Water", "Benguet Electric" },
+            "Telecommunications" => new List<string> { "PLDT Home", "PLDT Fibr", "Globe Postpaid", "Smart Postpaid", "Converge ICT" },
+            "Government" => new List<string> { "SSS Contribution", "PhilHealth", "Pag-IBIG", "BIR Tax Payment", "LTO Renewal" },
+            "Credit Cards" => new List<string> { "BPI Credit Card", "BDO Credit Card", "Metrobank Card", "Security Bank Card", "RCBC Card" },
+            "Insurance" => new List<string> { "Sun Life", "Prudential", "AXA Philippines", "Manulife", "BPI-Philam" },
+            "Others" => new List<string> { "Sky Cable", "Netflix", "Spotify", "Amazon Prime", "YouTube Premium" },
+            _ => new List<string>()
+        };
+    }
+
+    private void SelectCategory(string category)
+    {
+        selectedCategory = category;
+        selectedBiller = "";
+    }
+
+    private void SelectBiller(string biller)
+    {
+        selectedBiller = biller;
+    }
+
+    private void QuickPayBiller(SavedBiller saved)
+    {
+        selectedBiller = saved.Name;
+        accountNumber = saved.AccountNumber;
+        // Auto-select category based on saved biller
+        foreach (var category in billerCategories)
+        {
+            if (GetBillersByCategory(category).Contains(saved.Name))
+            {
+                selectedCategory = category;
+                break;
+            }
+        }
+    }
+
+    private void ShowPaymentConfirmation()
+    {
+        if (!string.IsNullOrEmpty(selectedBiller) && !string.IsNullOrEmpty(accountNumber) && amount > 0)
+        {
+            showConfirmationModal = true;
+        }
+    }
+
+    private void CloseConfirmation()
+    {
+        showConfirmationModal = false;
+    }
+
+    private void ProcessPayment()
+    {
+        showConfirmationModal = false;
+        showSuccessModal = true;
+        // Add to recent payments
+        recentPayments.Insert(0, new Payment 
+        { 
+            Biller = selectedBiller, 
+            Reference = $"BILL-{DateTime.Now:yyyyMMddHHmmss}",
+            Date = DateTime.Now, 
+            Amount = amount + 10 // Include convenience fee
+        });
+        ClearForm();
+    }
+
+    private void ShowHistory()
+    {
+        showHistoryModal = true;
+    }
+
+    private void CloseHistory()
+    {
+        showHistoryModal = false;
+    }
+
+    private void CloseSuccess()
+    {
+        showSuccessModal = false;
+    }
+
+    private void ClearForm()
+    {
+        selectedCategory = "";
         selectedBiller = "";
         accountNumber = "";
         amount = 0;
     }
 
-    private class Payment
+    public class Payment
     {
         public string Biller { get; set; } = "";
+        public string Reference { get; set; } = "";
         public DateTime Date { get; set; }
         public decimal Amount { get; set; }
+    }
+
+    public class SavedBiller
+    {
+        public string Name { get; set; } = "";
+        public string AccountNumber { get; set; } = "";
     }
 }

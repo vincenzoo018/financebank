@@ -1,120 +1,373 @@
 @page "/customer/cards"
 @layout CustomerLayout
 
-<div class="section-header">
-    <h2 class="section-title">My Cards</h2>
-    <button class="btn btn-primary">Apply for Card</button>
+<div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #7c3aed, #5b21b6); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 32px;">💳</span>
+            </div>
+            <div style="flex: 1;">
+                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">My Cards</h1>
+                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Manage your credit and debit cards</p>
+            </div>
+            <button @onclick="ShowCardApplication" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                + Apply for New Card
+            </button>
+        </div>
+    </div>
+
+    <!-- Cards Display -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px; margin-bottom: 32px;">
+        @foreach (var card in cards)
+        {
+            <div @onclick="() => ShowCardDetails(card)" style="background: @card.CardGradient; border-radius: 20px; padding: 32px; color: white; box-shadow: 0 12px 32px rgba(0,0,0,0.15); cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;" class="card-item">
+                <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+                <div style="position: relative; z-index: 1;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 40px;">
+                        <div>
+                            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">@card.Type</div>
+                            <div style="font-size: 11px; opacity: 0.7;">@card.Bank</div>
+                        </div>
+                        <div style="font-size: 32px;">@card.Icon</div>
+                    </div>
+                    <div style="font-size: 22px; font-weight: 600; letter-spacing: 3px; font-family: 'Courier New', monospace; margin-bottom: 24px;">@card.CardNumber</div>
+                    <div style="display: flex; justify-content: space-between; align-items: end;">
+                        <div>
+                            <div style="font-size: 10px; opacity: 0.8; margin-bottom: 4px;">CARDHOLDER</div>
+                            <div style="font-size: 14px; font-weight: 600; text-transform: uppercase;">@card.Holder</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 10px; opacity: 0.8; margin-bottom: 4px;">VALID THRU</div>
+                            <div style="font-size: 14px; font-weight: 600;">@card.Expiry</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Card Stats -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px;">
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 20px;">💳</span>
+                </div>
+                <div style="font-size: 14px; color: #6b7280;">Total Limit</div>
+            </div>
+            <div style="font-size: 28px; font-weight: 700; color: #1f2937;">₱100,000</div>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 20px;">✅</span>
+                </div>
+                <div style="font-size: 14px; color: #6b7280;">Available</div>
+            </div>
+            <div style="font-size: 28px; font-weight: 700; color: #059669;">₱85,450</div>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #fef2f2, #fee2e2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 20px;">📄</span>
+                </div>
+                <div style="font-size: 14px; color: #6b7280;">Balance Due</div>
+            </div>
+            <div style="font-size: 28px; font-weight: 700; color: #dc2626;">₱14,550</div>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 20px;">📅</span>
+                </div>
+                <div style="font-size: 14px; color: #6b7280;">Due Date</div>
+            </div>
+            <div style="font-size: 18px; font-weight: 600; color: #1f2937;">Nov 25, 2025</div>
+        </div>
+    </div>
+
+    <!-- Recent Card Transactions -->
+    <div style="background: white; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 600; color: #1f2937;">Recent Transactions</h2>
+            <button @onclick="ShowAllTransactions" style="font-size: 14px; color: #7c3aed; background: none; border: none; cursor: pointer; font-weight: 500;">View All →</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            @foreach (var txn in cardTransactions.Take(5))
+            {
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #f9fafb; border-radius: 12px; transition: all 0.2s; cursor: pointer;" class="transaction-row">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                            @txn.Icon
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: #1f2937; font-size: 15px;">@txn.Merchant</div>
+                            <div style="font-size: 13px; color: #6b7280; margin-top: 2px;">@txn.Date.ToString("MMM dd, yyyy - hh:mm tt")</div>
+                        </div>
+                    </div>
+                    <div style="font-weight: 700; font-size: 16px; color: #dc2626;">-₱@txn.Amount.ToString("N2")</div>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
-<!-- Cards -->
-<div style="display: grid; gap: 20px; margin-bottom: 32px;">
-    @foreach (var card in cards)
-    {
-        <div style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); border-radius: 20px; padding: 28px; color: white; box-shadow: 0 8px 24px rgba(92, 113, 94, 0.15);">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 32px;">
-                <div>
-                    <div style="font-size: 12px; opacity: 0.8; margin-bottom: 4px;">@card.Type</div>
-                    <div style="font-size: 20px; font-weight: 700; letter-spacing: 2px; font-family: monospace;">@card.CardNumber</div>
+<!-- Card Details Modal -->
+@if (showCardDetailsModal && selectedCard != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseCardDetails">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <h2 style="font-size: 24px; font-weight: 700; color: #1f2937;">Card Details</h2>
+            </div>
+            
+            <div style="background: @selectedCard.CardGradient; border-radius: 16px; padding: 28px; color: white; margin-bottom: 24px;">
+                <div style="font-size: 14px; margin-bottom: 8px;">@selectedCard.Type</div>
+                <div style="font-size: 20px; font-weight: 600; letter-spacing: 2px; font-family: 'Courier New', monospace; margin-bottom: 20px;">@selectedCard.CardNumber</div>
+                <div style="display: flex; justify-content: space-between;">
+                    <div>
+                        <div style="font-size: 10px; opacity: 0.8;">CARDHOLDER</div>
+                        <div style="font-size: 14px; font-weight: 600;">@selectedCard.Holder</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 10px; opacity: 0.8;">EXPIRES</div>
+                        <div style="font-size: 14px; font-weight: 600;">@selectedCard.Expiry</div>
+                    </div>
                 </div>
-                <div style="font-size: 24px;">💳</div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: end;">
-                <div>
-                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 4px;">CARDHOLDER</div>
-                    <div style="font-size: 14px; font-weight: 600;">@card.Holder</div>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+                <button style="padding: 14px; background: #f3f4f6; border: none; border-radius: 10px; text-align: left; cursor: pointer; font-weight: 500; color: #1f2937;">
+                    🔒 Lock/Unlock Card
+                </button>
+                <button style="padding: 14px; background: #f3f4f6; border: none; border-radius: 10px; text-align: left; cursor: pointer; font-weight: 500; color: #1f2937;">
+                    💳 Change PIN
+                </button>
+                <button style="padding: 14px; background: #f3f4f6; border: none; border-radius: 10px; text-align: left; cursor: pointer; font-weight: 500; color: #1f2937;">
+                    📊 View Statement
+                </button>
+            </div>
+
+            <button @onclick="CloseCardDetails" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #7c3aed, #5b21b6); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
+                Close
+            </button>
+        </div>
+    </div>
+}
+
+<!-- Card Application Modal -->
+@if (showApplicationModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseCardApplication">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+            <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 24px;">Apply for New Card</h2>
+            
+            <div style="margin-bottom: 24px;">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Select Card Type</h3>
+                <div style="display: grid; gap: 12px;">
+                    @foreach (var cardType in availableCardTypes)
+                    {
+                        <div @onclick="() => selectedCardType = cardType" style="padding: 20px; border: 2px solid @(selectedCardType == cardType ? "#7c3aed" : "#e5e7eb"); border-radius: 12px; cursor: pointer; transition: all 0.3s; background: @(selectedCardType == cardType ? "#f5f3ff" : "white");">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">@cardType.Name</div>
+                                    <div style="font-size: 13px; color: #6b7280;">@cardType.Description</div>
+                                </div>
+                                <div style="font-size: 24px;">@cardType.Icon</div>
+                            </div>
+                        </div>
+                    }
                 </div>
-                <div>
-                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 4px;">EXPIRES</div>
-                    <div style="font-size: 14px; font-weight: 600;">@card.Expiry</div>
-                </div>
-                <div>
-                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 4px;">CVV</div>
-                    <div style="font-size: 14px; font-weight: 600;">@card.CVV</div>
-                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button @onclick="CloseCardApplication" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 16px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button @onclick="SubmitCardApplication" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #7c3aed, #5b21b6); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
+                    Apply Now
+                </button>
             </div>
         </div>
-    }
-</div>
-
-<!-- Card Stats -->
-<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
-    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
-        <div style="font-size: 13px; color: var(--text-light); margin-bottom: 4px;">Credit Limit</div>
-        <div style="font-size: 24px; font-weight: 700;">₱50,000</div>
     </div>
-    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
-        <div style="font-size: 13px; color: var(--text-light); margin-bottom: 4px;">Available Credit</div>
-        <div style="font-size: 24px; font-weight: 700;">₱42,350</div>
-    </div>
-    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
-        <div style="font-size: 13px; color: var(--text-light); margin-bottom: 4px;">Current Balance</div>
-        <div style="font-size: 24px; font-weight: 700;">₱7,650</div>
-    </div>
-</div>
+}
 
-<!-- Recent Card Transactions -->
-<div class="section-header">
-    <h3 style="font-size: 16px; font-weight: 600;">Recent Card Transactions</h3>
-</div>
-
-<div class="transaction-list">
-    @foreach (var txn in cardTransactions)
-    {
-        <div class="transaction-item">
-            <div class="transaction-icon">@txn.Icon</div>
-            <div class="transaction-details">
-                <div class="transaction-title">@txn.Merchant</div>
-                <div class="transaction-date">@txn.Date.ToString("MMM dd, yyyy")</div>
+<!-- All Transactions Modal -->
+@if (showAllTransactionsModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseAllTransactions">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-size: 24px; font-weight: 700; color: #1f2937;">All Card Transactions</h2>
+                <button @onclick="CloseAllTransactions" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
             </div>
-            <div class="transaction-amount negative">
-                -₱@txn.Amount.ToString("N2")
+            
+            <div>
+                @foreach (var txn in cardTransactions)
+                {
+                    <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <span style="font-size: 20px;">@txn.Icon</span>
+                                    <div>
+                                        <div style="font-weight: 600; color: #1f2937;">@txn.Merchant</div>
+                                        <div style="font-size: 12px; color: #6b7280;">@txn.Category</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; color: #9ca3af;">@txn.Date.ToString("MMM dd, yyyy hh:mm tt")</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 700; font-size: 18px; color: #dc2626;">-₱@txn.Amount.ToString("N2")</div>
+                                <div style="font-size: 12px; margin-top: 4px;">
+                                    <span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 4px; font-weight: 500;">Posted</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
+    </div>
+}
+
+<style>
+    .card-item:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.25);
     }
-</div>
+    
+    .transaction-row:hover {
+        background: #f3f4f6;
+        transform: translateX(4px);
+    }
+</style>
 
 @code {
     private List<Card> cards = new();
     private List<CardTransaction> cardTransactions = new();
+    private List<CardType> availableCardTypes = new();
+    private bool showCardDetailsModal = false;
+    private bool showApplicationModal = false;
+    private bool showAllTransactionsModal = false;
+    private Card? selectedCard;
+    private CardType? selectedCardType;
 
     protected override void OnInitialized()
     {
         cards = new List<Card>
         {
-            new Card 
+            new() 
             { 
-                Type = "VISA Credit Card", 
+                Type = "VISA Platinum Credit Card", 
                 CardNumber = "**** **** **** 4325", 
-                Holder = "CUSTOMER USER",
+                Holder = "JUAN DELA CRUZ",
                 Expiry = "12/26",
-                CVV = "***"
+                CVV = "***",
+                Bank = "FINSYS Bank",
+                Icon = "💳",
+                CardGradient = "linear-gradient(135deg, #667eea, #764ba2)"
+            },
+            new() 
+            { 
+                Type = "Mastercard Gold", 
+                CardNumber = "**** **** **** 8921", 
+                Holder = "JUAN DELA CRUZ",
+                Expiry = "08/27",
+                CVV = "***",
+                Bank = "FINSYS Bank",
+                Icon = "💳",
+                CardGradient = "linear-gradient(135deg, #f093fb, #f5576c)"
             },
         };
 
         cardTransactions = new List<CardTransaction>
         {
-            new CardTransaction { Icon = "🛒", Merchant = "Online Shopping - Lazada", Amount = 2300, Date = DateTime.Now },
-            new CardTransaction { Icon = "🍕", Merchant = "Pizza Hut - BGC", Amount = 850, Date = DateTime.Now.AddDays(-1) },
-            new CardTransaction { Icon = "⛽", Merchant = "Shell Gas Station", Amount = 1200, Date = DateTime.Now.AddDays(-2) },
-            new CardTransaction { Icon = "🎬", Merchant = "Netflix Subscription", Amount = 549, Date = DateTime.Now.AddDays(-5) },
+            new() { Icon = "🛍️", Merchant = "Lazada Online Shopping", Category = "Shopping", Amount = 3450, Date = DateTime.Now.AddHours(-2) },
+            new() { Icon = "🍕", Merchant = "Pizza Hut - BGC", Category = "Food & Dining", Amount = 1250, Date = DateTime.Now.AddHours(-5) },
+            new() { Icon = "⛽", Merchant = "Shell Gas Station", Category = "Transportation", Amount = 1800, Date = DateTime.Now.AddDays(-1) },
+            new() { Icon = "🎬", Merchant = "Netflix Subscription", Category = "Entertainment", Amount = 549, Date = DateTime.Now.AddDays(-2) },
+            new() { Icon = "🛒", Merchant = "Shopee", Category = "Shopping", Amount = 2100, Date = DateTime.Now.AddDays(-3) },
+            new() { Icon = "☕", Merchant = "Starbucks", Category = "Food & Dining", Amount = 385, Date = DateTime.Now.AddDays(-3) },
+            new() { Icon = "🏪", Merchant = "SM Department Store", Category = "Shopping", Amount = 4200, Date = DateTime.Now.AddDays(-4) },
+            new() { Icon = "📱", Merchant = "Globe Postpaid", Category = "Bills", Amount = 1299, Date = DateTime.Now.AddDays(-5) },
+        };
+
+        availableCardTypes = new List<CardType>
+        {
+            new() { Name = "Classic Credit Card", Description = "For everyday purchases - ₱50,000 limit", Icon = "💳" },
+            new() { Name = "Gold Credit Card", Description = "Premium benefits - ₱100,000 limit", Icon = "🏆" },
+            new() { Name = "Platinum Credit Card", Description = "Exclusive perks - ₱200,000 limit", Icon = "💎" },
+            new() { Name = "Debit Card", Description = "Direct access to your account", Icon = "💳" },
         };
     }
 
-    private class Card
+    private void ShowCardDetails(Card card)
+    {
+        selectedCard = card;
+        showCardDetailsModal = true;
+    }
+
+    private void CloseCardDetails()
+    {
+        showCardDetailsModal = false;
+        selectedCard = null;
+    }
+
+    private void ShowCardApplication()
+    {
+        showApplicationModal = true;
+    }
+
+    private void CloseCardApplication()
+    {
+        showApplicationModal = false;
+        selectedCardType = null;
+    }
+
+    private void SubmitCardApplication()
+    {
+        showApplicationModal = false;
+        selectedCardType = null;
+    }
+
+    private void ShowAllTransactions()
+    {
+        showAllTransactionsModal = true;
+    }
+
+    private void CloseAllTransactions()
+    {
+        showAllTransactionsModal = false;
+    }
+
+    public class Card
     {
         public string Type { get; set; } = "";
         public string CardNumber { get; set; } = "";
         public string Holder { get; set; } = "";
         public string Expiry { get; set; } = "";
         public string CVV { get; set; } = "";
+        public string Bank { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string CardGradient { get; set; } = "";
     }
 
-    private class CardTransaction
+    public class CardTransaction
     {
         public string Icon { get; set; } = "";
         public string Merchant { get; set; } = "";
+        public string Category { get; set; } = "";
         public decimal Amount { get; set; }
         public DateTime Date { get; set; }
+    }
+
+    public class CardType
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Icon { get; set; } = "";
     }
 }

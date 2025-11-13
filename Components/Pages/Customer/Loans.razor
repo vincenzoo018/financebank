@@ -1,102 +1,214 @@
 @page "/customer/loans"
 @layout CustomerLayout
 
-<div class="section-header">
-    <h2 class="section-title">Loans</h2>
-    <button class="btn btn-primary">Apply for Loan</button>
-</div>
-
-<!-- Loan Options -->
-<div class="section-header" style="margin-top: 0;">
-    <h3 style="font-size: 16px; font-weight: 600;">Available Loan Products</h3>
-</div>
-
-<div class="quick-actions" style="margin-bottom: 32px;">
-    <div class="action-card">
-        <div class="action-icon">■</div>
-        <div class="action-label">Home Loan</div>
-        <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Up to ₱5M</div>
-        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">3.5% APR</div>
+<div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #0891b2, #0e7490); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 32px;">🏦</span>
+            </div>
+            <div style="flex: 1;">
+                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Loans</h1>
+                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Your loan applications and active loans</p>
+            </div>
+            <button @onclick="ShowLoanApplication" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                + Apply for Loan
+            </button>
+        </div>
     </div>
-    <div class="action-card">
-        <div class="action-icon">▲</div>
-        <div class="action-label">Auto Loan</div>
-        <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Up to ₱2M</div>
-        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">4.2% APR</div>
-    </div>
-    <div class="action-card">
-        <div class="action-icon">●</div>
-        <div class="action-label">Personal Loan</div>
-        <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Up to ₱500K</div>
-        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">5.8% APR</div>
-    </div>
-    <div class="action-card">
-        <div class="action-icon">◆</div>
-        <div class="action-label">Education Loan</div>
-        <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Up to ₱300K</div>
-        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">3.9% APR</div>
-    </div>
-</div>
 
-<!-- Active Loans -->
-<div class="section-header">
-    <h3 style="font-size: 16px; font-weight: 600;">My Active Loans</h3>
-</div>
+    <!-- Loan Products -->
+    <div style="background: white; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Available Loan Products</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            @foreach (var product in loanProducts)
+            {
+                <div @onclick="() => SelectLoanProduct(product)" style="padding: 24px; background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #0891b2; border-radius: 16px; cursor: pointer; transition: all 0.3s;" class="loan-card">
+                    <div style="font-size: 32px; margin-bottom: 12px;">@product.Icon</div>
+                    <div style="font-weight: 600; color: #1f2937; font-size: 18px; margin-bottom: 8px;">@product.Name</div>
+                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">@product.Description</div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid #bae6fd;">
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280;">Up to</div>
+                            <div style="font-size: 16px; font-weight: 700; color: #0891b2;">@product.MaxAmount</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 11px; color: #6b7280;">Interest Rate</div>
+                            <div style="font-size: 16px; font-weight: 700; color: #0891b2;">@product.InterestRate%</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
 
-<div style="display: grid; gap: 16px;">
-    @foreach (var loan in activeLoans)
+    <!-- Active Loans -->
+    @if (activeLoans.Any())
     {
-        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
-                <div>
-                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">@loan.Type</div>
-                    <div style="font-size: 12px; color: var(--text-light);">Loan ID: @loan.Id</div>
-                </div>
-                <div style="padding: 6px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">
-                    Active
-                </div>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px;">
-                <div>
-                    <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Principal Amount</div>
-                    <div style="font-size: 14px; font-weight: 600;">₱@loan.Principal.ToString("N2")</div>
-                </div>
-                <div>
-                    <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Outstanding</div>
-                    <div style="font-size: 14px; font-weight: 600;">₱@loan.Outstanding.ToString("N2")</div>
-                </div>
-                <div>
-                    <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Monthly Payment</div>
-                    <div style="font-size: 14px; font-weight: 600;">₱@loan.MonthlyPayment.ToString("N2")</div>
-                </div>
-                <div>
-                    <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Next Due</div>
-                    <div style="font-size: 14px; font-weight: 600;">@loan.NextDue.ToString("MMM dd")</div>
-                </div>
-            </div>
+        <div style="background: white; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">My Active Loans</h2>
+            <div style="display: grid; gap: 20px;">
+                @foreach (var loan in activeLoans)
+                {
+                    <div style="background: #f9fafb; border-radius: 16px; padding: 24px; border: 2px solid #e5e7eb;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                            <div>
+                                <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">@loan.Type</div>
+                                <div style="font-size: 12px; color: var(--text-light);">Loan ID: @loan.Id</div>
+                            </div>
+                            <div style="padding: 6px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                                Active
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px;">
+                            <div>
+                                <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Principal Amount</div>
+                                <div style="font-size: 14px; font-weight: 600;">₱@loan.Principal.ToString("N2")</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Outstanding</div>
+                                <div style="font-size: 14px; font-weight: 600;">₱@loan.Outstanding.ToString("N2")</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Monthly Payment</div>
+                                <div style="font-size: 14px; font-weight: 600;">₱@loan.MonthlyPayment.ToString("N2")</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Next Due</div>
+                                <div style="font-size: 14px; font-weight: 600;">@loan.NextDue.ToString("MMM dd")</div>
+                            </div>
+                        </div>
 
-            <!-- Progress Bar -->
-            <div style="margin-bottom: 8px;">
-                <div style="height: 8px; background: var(--primary-bg); border-radius: 4px; overflow: hidden;">
-                    <div style="height: 100%; background: var(--accent); width: @(((loan.Principal - loan.Outstanding) / loan.Principal * 100).ToString("F0"))%;"></div>
-                </div>
-            </div>
-            <div style="font-size: 12px; color: var(--text-light);">
-                @(((loan.Principal - loan.Outstanding) / loan.Principal * 100).ToString("F0"))% paid
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="font-size: 13px; color: #6b7280;">Paid: ₱@((loan.Principal - loan.Outstanding).ToString("N2"))</span>
+                                <span style="font-size: 13px; font-weight: 600; color: #0891b2;">@(((loan.Principal - loan.Outstanding) / loan.Principal * 100).ToString("F0"))%</span>
+                            </div>
+                            <div style="height: 10px; background: #e0f2fe; border-radius: 5px; overflow: hidden;">
+                                <div style="height: 100%; background: linear-gradient(135deg, #0891b2, #0e7490); width: @(((loan.Principal - loan.Outstanding) / loan.Principal * 100).ToString("F0"))%;"></div>
+                            </div>
+                        </div>
+                        <button style="width: 100%; padding: 12px; background: #0891b2; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Make Payment</button>
+                    </div>
+                }
             </div>
         </div>
     }
+
+    <!-- Loan Calculator -->
+    <div style="background: white; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Loan Calculator</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label">Loan Amount</label>
+                    <input type="number" class="form-control" @bind="calcAmount" placeholder="100000" style="font-size: 18px; padding: 12px;" />
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label">Interest Rate (%)</label>
+                    <input type="number" class="form-control" @bind="calcInterestRate" placeholder="5.5" step="0.1" style="font-size: 18px; padding: 12px;" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Loan Term (months)</label>
+                    <input type="number" class="form-control" @bind="calcTerm" placeholder="24" style="font-size: 18px; padding: 12px;" />
+                </div>
+            </div>
+            <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-radius: 12px; padding: 24px;">
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Monthly Payment</div>
+                    <div style="font-size: 32px; font-weight: 700; color: #0891b2;">₱@CalculateMonthlyPayment().ToString("N2")</div>
+                </div>
+                <div style="border-top: 1px solid #bae6fd; padding-top: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 13px; color: #6b7280;">Total Interest:</span>
+                        <span style="font-size: 13px; font-weight: 600; color: #1f2937;">₱@CalculateTotalInterest().ToString("N2")</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-size: 13px; color: #6b7280;">Total Payment:</span>
+                        <span style="font-size: 13px; font-weight: 600; color: #1f2937;">₱@CalculateTotalPayment().ToString("N2")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Loan Application Modal -->
+@if (showApplicationModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseApplication">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+            <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 24px;">Apply for @(selectedProduct?.Name ?? "Loan")</h2>
+            
+            @if (selectedProduct != null)
+            {
+                <div style="background: #f0f9ff; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                    <div style="font-size: 32px; margin-bottom: 8px;">@selectedProduct.Icon</div>
+                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">@selectedProduct.Name</div>
+                    <div style="font-size: 14px; color: #6b7280;">@selectedProduct.Description</div>
+                </div>
+            }
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label">Loan Amount</label>
+                <input type="number" class="form-control" @bind="applicationAmount" placeholder="Enter amount" style="font-size: 16px; padding: 12px;" />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label">Loan Term (months)</label>
+                <select class="form-control" @bind="applicationTerm" style="font-size: 16px; padding: 12px;">
+                    <option value="12">12 months</option>
+                    <option value="24">24 months</option>
+                    <option value="36">36 months</option>
+                    <option value="48">48 months</option>
+                    <option value="60">60 months</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label class="form-label">Purpose</label>
+                <textarea class="form-control" @bind="applicationPurpose" rows="3" placeholder="State the purpose of the loan"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button @onclick="CloseApplication" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 16px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button @onclick="SubmitApplication" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #0891b2, #0e7490); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
+                    Submit Application
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .loan-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(8,145,178,0.2);
+    }
+</style>
 
 @code {
     private List<Loan> activeLoans = new();
+    private List<LoanProduct> loanProducts = new();
+    private bool showApplicationModal = false;
+    private LoanProduct? selectedProduct;
+    private decimal applicationAmount = 0;
+    private int applicationTerm = 24;
+    private string applicationPurpose = "";
+    
+    private decimal calcAmount = 100000;
+    private decimal calcInterestRate = 5.5m;
+    private int calcTerm = 24;
 
     protected override void OnInitialized()
     {
         activeLoans = new List<Loan>
         {
-            new Loan 
+            new() 
             { 
                 Id = "LN001", 
                 Type = "Personal Loan", 
@@ -106,9 +218,62 @@
                 NextDue = DateTime.Now.AddDays(15)
             },
         };
+
+        loanProducts = new List<LoanProduct>
+        {
+            new() { Name = "Personal Loan", Description = "For any personal needs", Icon = "👤", MaxAmount = "₱500,000", InterestRate = 5.8m },
+            new() { Name = "Home Loan", Description = "Finance your dream home", Icon = "🏠", MaxAmount = "₱5,000,000", InterestRate = 3.5m },
+            new() { Name = "Auto Loan", Description = "Buy your dream car", Icon = "🚗", MaxAmount = "₱2,000,000", InterestRate = 4.2m },
+            new() { Name = "Education Loan", Description = "Invest in your future", Icon = "🎓", MaxAmount = "₱300,000", InterestRate = 3.9m },
+        };
     }
 
-    private class Loan
+    private void SelectLoanProduct(LoanProduct product)
+    {
+        selectedProduct = product;
+        showApplicationModal = true;
+    }
+
+    private void ShowLoanApplication()
+    {
+        showApplicationModal = true;
+    }
+
+    private void CloseApplication()
+    {
+        showApplicationModal = false;
+        selectedProduct = null;
+        applicationAmount = 0;
+        applicationTerm = 24;
+        applicationPurpose = "";
+    }
+
+    private void SubmitApplication()
+    {
+        showApplicationModal = false;
+    }
+
+    private decimal CalculateMonthlyPayment()
+    {
+        if (calcAmount <= 0 || calcTerm <= 0 || calcInterestRate <= 0) return 0;
+        
+        var monthlyRate = calcInterestRate / 100 / 12;
+        var payment = calcAmount * (monthlyRate * (decimal)Math.Pow((double)(1 + monthlyRate), calcTerm)) / 
+                      ((decimal)Math.Pow((double)(1 + monthlyRate), calcTerm) - 1);
+        return payment;
+    }
+
+    private decimal CalculateTotalInterest()
+    {
+        return (CalculateMonthlyPayment() * calcTerm) - calcAmount;
+    }
+
+    private decimal CalculateTotalPayment()
+    {
+        return CalculateMonthlyPayment() * calcTerm;
+    }
+
+    public class Loan
     {
         public string Id { get; set; } = "";
         public string Type { get; set; } = "";
@@ -116,5 +281,14 @@
         public decimal Outstanding { get; set; }
         public decimal MonthlyPayment { get; set; }
         public DateTime NextDue { get; set; }
+    }
+
+    public class LoanProduct
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string MaxAmount { get; set; } = "";
+        public decimal InterestRate { get; set; }
     }
 }

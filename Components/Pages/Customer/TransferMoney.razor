@@ -1,137 +1,246 @@
 @page "/customer/transfer-money"
-@page "/admin/transactions/transfer"
 @layout CustomerLayout
+@using FinanceBank.Components.Shared
 
-<div class="section-header">
-    <h2 class="section-title">💸 Send Money / Transfer Funds</h2>
-    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">
-        Transfer funds internally, externally, or internationally
-    </p>
+<div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #0891b2, #0e7490); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </div>
+            <div>
+                <h1 style="font-size: 24px; font-weight: 700; margin: 0;">Send Money</h1>
+                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 14px;">Transfer funds to another account</p>
+            </div>
+            <div style="margin-left: auto; text-align: right;">
+                <button type="button" @onclick="ShowHistory" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 3h18v18H3z"/>
+                        <path d="M3 9h18"/>
+                    </svg>
+                    History
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+        <!-- Transfer Form -->
+        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <form>
+                <!-- From Account -->
+                <div style="margin-bottom: 24px;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">From Account</h3>
+                    <div style="border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; background: #f9fafb;">
+                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">FINSYS Savings Account</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">****1234</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #059669;">₱85,250.50</div>
+                    </div>
+                </div>
+
+                <!-- To Account -->
+                <div style="margin-bottom: 24px;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">To Account</h3>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 12px;">Account Number</label>
+                        <input type="text" class="form-control" @bind="recipientAccount" placeholder="Enter account number" style="font-size: 14px; padding: 12px;" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px;">Recipient Name</label>
+                        <input type="text" class="form-control" @bind="recipientName" placeholder="Enter recipient name" style="font-size: 14px; padding: 12px;" />
+                    </div>
+                </div>
+
+                <!-- Amount -->
+                <div style="margin-bottom: 24px;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Amount</h3>
+                    <div class="form-group">
+                        <input type="number" class="form-control" @bind="amount" placeholder="0.00" style="font-size: 20px; font-weight: 600; padding: 14px; text-align: center; color: #0891b2;" />
+                        <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #6b7280;">Transfer Fee: ₱15.00</div>
+                    </div>
+                </div>
+
+                <!-- Purpose -->
+                <div style="margin-bottom: 32px;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Purpose</h3>
+                    <textarea class="form-control" @bind="purpose" placeholder="Optional message or purpose" rows="3" style="resize: vertical; font-size: 14px;"></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 12px;">
+                    <button type="button" @onclick="ClearForm" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        Clear
+                    </button>
+                    <button type="button" @onclick="ProcessTransfer" style="flex: 2; padding: 14px; background: linear-gradient(135deg, #0891b2, #0e7490); border: none; border-radius: 12px; color: white; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        Send Money →
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+            <!-- Quick Actions -->
+            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Quick Actions</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button type="button" style="padding: 10px 12px; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; color: #0369a1; font-weight: 500; cursor: pointer; text-align: left; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12l7 7 7-7"/>
+                        </svg>
+                        Deposit Money
+                    </button>
+                    <button type="button" style="padding: 10px 12px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; color: #92400e; font-weight: 500; cursor: pointer; text-align: left; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 19V5M5 12l7-7 7 7"/>
+                        </svg>
+                        Withdraw Money
+                    </button>
+                    <button type="button" style="padding: 10px 12px; background: #f0fdf4; border: 1px solid #10b981; border-radius: 8px; color: #065f46; font-weight: 500; cursor: pointer; text-align: left; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <path d="M3 9h18"/>
+                        </svg>
+                        Pay Bills
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Transfers -->
+            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 16px; font-weight: 600; color: #1f2937;">Recent Transfers</h3>
+                    <button type="button" @onclick="ShowHistory" style="font-size: 14px; color: #3b82f6; background: none; border: none; cursor: pointer; font-weight: 500;">View All</button>
+                </div>
+                
+                @foreach (var transfer in recentTransfers.Take(3))
+                {
+                    <div class="transfer-item" style="padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" style="flex-shrink: 0;">
+                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 13px; color: #1f2937;">@transfer.RecipientName</div>
+                                <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">@transfer.Date.ToString("MMM dd, yyyy")</div>
+                            </div>
+                            <div style="font-weight: 600; font-size: 13px; color: #dc2626;">-₱@transfer.Amount.ToString("N2")</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Transfer Form UI - Complete with all fields requested -->
-<div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid var(--border);">
-    <form>
-        <!-- Transaction Info -->
-        <div style="margin-bottom: 24px;">
-            <h4 style="font-weight: 700; margin-bottom: 16px;">📋 Transaction Information</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div class="form-group">
-                    <label class="form-label">Transaction ID</label>
-                    <input type="text" class="form-control" value="TXN-TRF-20251112001" readonly style="background: #f3f4f6; font-family: monospace;" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Date & Time</label>
-                    <input type="datetime-local" class="form-control" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label required-field">Transfer Type</label>
-                    <select class="form-control">
-                        <option>Internal Transfer</option>
-                        <option>External Transfer</option>
-                        <option>International Transfer</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Reference Number</label>
-                    <input type="text" class="form-control" placeholder="REF-XXXX" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Transfer Priority</label>
-                    <select class="form-control">
-                        <option>⚡ Instant (same day)</option>
-                        <option>📅 Standard (1-2 days)</option>
-                        <option>💰 Economy (3-5 days)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Status</label>
-                    <select class="form-control">
-                        <option>Pending</option>
-                        <option>Processing</option>
-                        <option>Completed</option>
-                        <option>Failed</option>
-                    </select>
-                </div>
+<style>
+    .transfer-item:hover {
+        background: #f9fafb;
+        border-color: #3b82f6;
+    }
+</style>
+
+<!-- Transaction History Modal -->
+@if (showHistoryModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseHistory">
+        <div style="background: white; border-radius: 16px; padding: 28px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-size: 20px; font-weight: 700; color: #1f2937;">Transfer History</h2>
+                <button @onclick="CloseHistory" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280;">&times;</button>
+            </div>
+            
+            <div style="space-y: 12px;">
+                @foreach (var transfer in recentTransfers)
+                {
+                    <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2">
+                                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 14px; color: #1f2937;">@transfer.RecipientName</div>
+                                        <div style="font-size: 12px; color: #6b7280;">@transfer.AccountNumber</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 13px; color: #6b7280;">@transfer.Purpose</div>
+                                <div style="font-size: 11px; color: #9ca3af; margin-top: 4px;">@transfer.Date.ToString("MMM dd, yyyy hh:mm tt")</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 700; font-size: 16px; color: #dc2626;">-₱@transfer.Amount.ToString("N2")</div>
+                                <div style="font-size: 11px; margin-top: 4px;">
+                                    <span style="padding: 4px 8px; background: @(transfer.Status == "Completed" ? "#d1fae5" : "#fef3c7"); color: @(transfer.Status == "Completed" ? "#065f46" : "#92400e"); border-radius: 4px; font-weight: 500; font-size: 11px;">@transfer.Status</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
-
-        <!-- Source Account -->
-        <div style="margin-bottom: 24px;">
-            <h4 style="font-weight: 700; margin-bottom: 16px;">📤 From (Source Account)</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div class="form-group">
-                    <label class="form-label required-field">Source Account</label>
-                    <input type="text" class="form-control" placeholder="BFAS-XXXXXXXXXXXX" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Available Balance</label>
-                    <input type="text" class="form-control" value="₱85,250.50" readonly style="background: #d1fae5; font-weight: 700; color: #065f46;" />
-                </div>
-            </div>
-        </div>
-
-        <!-- Destination Account -->
-        <div style="margin-bottom: 24px;">
-            <h4 style="font-weight: 700; margin-bottom: 16px;">📥 To (Destination Account)</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div class="form-group">
-                    <label class="form-label required-field">Destination Account</label>
-                    <input type="text" class="form-control" placeholder="Account number" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label required-field">Recipient Name</label>
-                    <input type="text" class="form-control" placeholder="Full name" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Bank Name</label>
-                    <input type="text" class="form-control" placeholder="For external transfers" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Bank Branch</label>
-                    <input type="text" class="form-control" placeholder="Branch location" />
-                </div>
-            </div>
-        </div>
-
-        <!-- Amount & Schedule -->
-        <div style="margin-bottom: 24px;">
-            <h4 style="font-weight: 700; margin-bottom: 16px;">💵 Amount & Schedule</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div class="form-group">
-                    <label class="form-label required-field">Transfer Amount (₱)</label>
-                    <input type="number" class="form-control" placeholder="0.00" style="font-size: 18px; font-weight: 700; color: #3b82f6;" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Transfer Fee</label>
-                    <input type="text" class="form-control" value="₱25.00" readonly style="background: #f3f4f6;" />
-                </div>
-                <div class="form-group" style="grid-column: span 2;">
-                    <label class="form-label">Purpose/Memo</label>
-                    <textarea class="form-control" rows="2" placeholder="Payment purpose..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Transfer Schedule</label>
-                    <select class="form-control">
-                        <option>Transfer Now</option>
-                        <option>Schedule for Later</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Scheduled Date/Time</label>
-                    <input type="datetime-local" class="form-control" />
-                </div>
-            </div>
-        </div>
-
-        <!-- Buttons -->
-        <div style="display: flex; gap: 12px; justify-content: flex-end;">
-            <button type="button" class="btn" style="background: #f3f4f6; color: #374151;">Reset</button>
-            <button type="button" class="btn btn-primary">Process Transfer →</button>
-        </div>
-    </form>
-</div>
+    </div>
+}
 
 @code {
-    // UI Only - No backend logic
+    private string recipientAccount = "";
+    private string recipientName = "";
+    private decimal amount = 0;
+    private string purpose = "";
+    private bool showHistoryModal = false;
+
+    private List<TransferHistory> recentTransfers = new();
+
+    protected override void OnInitialized()
+    {
+        recentTransfers = new List<TransferHistory>
+        {
+            new() { RecipientName = "Juan Dela Cruz", AccountNumber = "****5678", Amount = 5000, Purpose = "Allowance", Date = DateTime.Now.AddHours(-2), Status = "Completed" },
+            new() { RecipientName = "Maria Santos", AccountNumber = "****9012", Amount = 2500, Purpose = "Payment", Date = DateTime.Now.AddDays(-1), Status = "Completed" },
+            new() { RecipientName = "Jose Rizal", AccountNumber = "****3456", Amount = 1000, Purpose = "Gift", Date = DateTime.Now.AddDays(-2), Status = "Pending" },
+            new() { RecipientName = "Anna Cruz", AccountNumber = "****7890", Amount = 3000, Purpose = "Rent", Date = DateTime.Now.AddDays(-3), Status = "Completed" },
+            new() { RecipientName = "Pedro Garcia", AccountNumber = "****1234", Amount = 1500, Purpose = "Food", Date = DateTime.Now.AddDays(-4), Status = "Completed" }
+        };
+    }
+
+    private void ShowHistory()
+    {
+        showHistoryModal = true;
+    }
+
+    private void CloseHistory()
+    {
+        showHistoryModal = false;
+    }
+
+
+    private void ClearForm()
+    {
+        recipientAccount = "";
+        recipientName = "";
+        amount = 0;
+        purpose = "";
+    }
+
+    private void ProcessTransfer()
+    {
+        // Implement logic to process the transfer
+        // Add validation and actual transfer logic here
+    }
+
+    public class TransferHistory
+    {
+        public string RecipientName { get; set; } = "";
+        public string AccountNumber { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string Purpose { get; set; } = "";
+        public DateTime Date { get; set; }
+        public string Status { get; set; } = "";
+    }
 }

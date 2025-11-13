@@ -23,7 +23,7 @@
                         <input type="password" 
                                maxlength="1" 
                                @bind="pinDigits[index]"
-                               @oninput="@((e) => HandlePinInput(index, e.Value?.ToString()))"
+                               @oninput="@((e) => HandlePinInput(index, e.Value?.ToString() ?? string.Empty))"
                                style="width: 45px; height: 55px; text-align: center; font-size: 28px; font-weight: 700; border: 2px solid #e5e7eb; border-radius: 10px; outline: none; transition: all 0.3s;"
                                class="pin-input" />
                     }

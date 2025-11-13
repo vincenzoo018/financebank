@@ -25,26 +25,22 @@
 
             <!-- Banking Section -->
             <div class="sidebar-section">
-                <div class="sidebar-section-title">BANKING</div>
-                <a href="/customer/accounts" class="sidebar-item @(IsActive("/customer/accounts"))">
-                    <span>💼</span>
-                    <span>My Accounts</span>
-                </a>
+                <div class="sidebar-section-title">BANKING SERVICES</div>
                 <a href="/customer/deposit" class="sidebar-item @(IsActive("/customer/deposit"))">
                     <span>💰</span>
-                    <span>Deposit Money</span>
+                    <span>Deposit</span>
                 </a>
                 <a href="/customer/withdraw" class="sidebar-item @(IsActive("/customer/withdraw"))">
                     <span>💸</span>
-                    <span>Withdraw Money</span>
+                    <span>Withdraw</span>
                 </a>
                 <a href="/customer/transfer-money" class="sidebar-item @(IsActive("/customer/transfer-money"))">
                     <span>🔄</span>
-                    <span>Transfer Money</span>
+                    <span>Transfer</span>
                 </a>
                 <a href="/customer/transactions" class="sidebar-item @(IsActive("/customer/transactions"))">
                     <span>📊</span>
-                    <span>Transactions</span>
+                    <span>Transaction History</span>
                 </a>
                 <a href="/customer/bills" class="sidebar-item @(IsActive("/customer/bills"))">
                     <span>📄</span>
@@ -119,7 +115,7 @@
     {
         var path = Navigation.Uri;
         if (path.Contains("/dashboard")) return "Dashboard";
-        if (path.Contains("/accounts")) return "My Accounts";
+        // Removed My Accounts
         if (path.Contains("/deposit")) return "Deposit Money";
         if (path.Contains("/withdraw")) return "Withdraw Money";
         if (path.Contains("/transfer")) return "Transfer Money";

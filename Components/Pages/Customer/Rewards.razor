@@ -1,83 +1,108 @@
 @page "/customer/rewards"
 @layout CustomerLayout
 
-<div class="section-header">
-    <h2 class="section-title">Rewards & Cashback</h2>
-</div>
-
-<!-- Points Summary -->
-<div class="balance-card" style="margin-bottom: 24px;">
-    <div class="balance-label">Total Points</div>
-    <div class="balance-amount">12,450</div>
-    <div class="balance-actions" style="margin-top: 16px;">
-        <button class="balance-btn">
-            <span>🎁</span>
-            <span>Redeem Points</span>
-        </button>
-        <button class="balance-btn">
-            <span>📊</span>
-            <span>View History</span>
-        </button>
-    </div>
-</div>
-
-<!-- Cashback This Month -->
-<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 24px;">
-    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Cashback This Month</h3>
-    <div style="font-size: 36px; font-weight: 700; color: var(--accent); margin-bottom: 8px;">₱345.50</div>
-    <div style="font-size: 13px; color: var(--text-light);">From 23 eligible transactions</div>
-</div>
-
-<!-- Rewards Categories -->
-<div class="section-header">
-    <h3 style="font-size: 16px; font-weight: 600;">Earn More Points</h3>
-</div>
-
-<div class="quick-actions" style="margin-bottom: 32px;">
-    <div class="action-card">
-        <div class="action-icon">■</div>
-        <div class="action-label">Shopping</div>
-        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">5x Points</div>
-    </div>
-    <div class="action-card">
-        <div class="action-icon">●</div>
-        <div class="action-label">Dining</div>
-        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">3x Points</div>
-    </div>
-    <div class="action-card">
-        <div class="action-icon">▲</div>
-        <div class="action-label">Fuel</div>
-        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">2x Points</div>
-    </div>
-    <div class="action-card">
-        <div class="action-icon">◆</div>
-        <div class="action-label">Travel</div>
-        <div style="font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 4px;">10x Points</div>
-    </div>
-</div>
-
-<!-- Available Rewards -->
-<div class="section-header">
-    <h3 style="font-size: 16px; font-weight: 600;">Available Rewards</h3>
-</div>
-
-<div style="display: grid; gap: 16px;">
-    @foreach (var reward in availableRewards)
-    {
-        <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; gap: 16px; align-items: center;">
-                <div style="font-size: 40px;">@reward.Icon</div>
-                <div>
-                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">@reward.Name</div>
-                    <div style="font-size: 13px; color: var(--text-light);">@reward.Description</div>
-                    <div style="font-size: 14px; color: var(--accent); font-weight: 600; margin-top: 4px;">@reward.Points points</div>
-                </div>
+<div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #7c3aed, #6d28d9); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="8" r="7"/>
+                    <path d="M12 15l-5 7h10l-5-7z"/>
+                </svg>
             </div>
-            <button class="btn @(reward.Points <= 12450 ? "btn-primary" : "btn-secondary")" @disabled="@(reward.Points > 12450)">
-                @(reward.Points <= 12450 ? "Redeem" : "Locked")
-            </button>
+            <div style="flex: 1;">
+                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Rewards & Cashback</h1>
+                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Earn and redeem rewards from your transactions</p>
+            </div>
         </div>
-    }
+    </div>
+
+    <!-- Points & Cashback Summary -->
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 24px;">
+        <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Total Reward Points</div>
+            <div style="font-size: 48px; font-weight: 700; color: #7c3aed; margin-bottom: 16px;">12,450</div>
+            <div style="display: flex; gap: 12px;">
+                <button style="flex: 1; padding: 12px; background: linear-gradient(135deg, #7c3aed, #6d28d9); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                    Redeem Points
+                </button>
+                <button style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; color: #374151; font-weight: 600; cursor: pointer;">
+                    View History
+                </button>
+            </div>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Cashback This Month</div>
+            <div style="font-size: 48px; font-weight: 700; color: #059669; margin-bottom: 16px;">₱345.50</div>
+            <div style="font-size: 14px; color: #6b7280;">From 23 eligible transactions</div>
+        </div>
+    </div>
+
+    <!-- Earn More Points -->
+    <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 20px;">Earn More Points</h2>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+            <div style="text-align: center; padding: 20px; background: #faf5ff; border-radius: 12px;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" style="margin: 0 auto 12px;">
+                    <circle cx="9" cy="21" r="1"/>
+                    <circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+                <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">Shopping</div>
+                <div style="font-size: 18px; font-weight: 700; color: #7c3aed;">5x Points</div>
+            </div>
+            <div style="text-align: center; padding: 20px; background: #faf5ff; border-radius: 12px;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" style="margin: 0 auto 12px;">
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+                </svg>
+                <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">Dining</div>
+                <div style="font-size: 18px; font-weight: 700; color: #7c3aed;">3x Points</div>
+            </div>
+            <div style="text-align: center; padding: 20px; background: #faf5ff; border-radius: 12px;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" style="margin: 0 auto 12px;">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                </svg>
+                <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">Fuel</div>
+                <div style="font-size: 18px; font-weight: 700; color: #7c3aed;">2x Points</div>
+            </div>
+            <div style="text-align: center; padding: 20px; background: #faf5ff; border-radius: 12px;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" style="margin: 0 auto 12px;">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                </svg>
+                <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">Travel</div>
+                <div style="font-size: 18px; font-weight: 700; color: #7c3aed;">10x Points</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Rewards -->
+    <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 20px;">Available Rewards</h2>
+        <div style="display: grid; gap: 16px;">
+            @foreach (var reward in availableRewards)
+            {
+                <div style="background: #f9fafb; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: 16px; align-items: center;">
+                        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #faf5ff, #f3e8ff); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
+                                <circle cx="12" cy="8" r="7"/>
+                                <path d="M12 15l-5 7h10l-5-7z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">@reward.Name</div>
+                            <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">@reward.Description</div>
+                            <div style="font-size: 14px; color: #7c3aed; font-weight: 600;">@reward.Points points required</div>
+                        </div>
+                    </div>
+                    <button style="padding: 12px 24px; background: @(reward.Points <= 12450 ? "linear-gradient(135deg, #7c3aed, #6d28d9)" : "#e5e7eb"); border: none; border-radius: 8px; color: @(reward.Points <= 12450 ? "white" : "#9ca3af"); font-weight: 600; cursor: @(reward.Points <= 12450 ? "pointer" : "not-allowed");" disabled="@(reward.Points > 12450)">
+                        @(reward.Points <= 12450 ? "Redeem" : "Locked")
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
 @code {

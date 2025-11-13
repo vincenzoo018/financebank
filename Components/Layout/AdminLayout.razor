@@ -217,7 +217,7 @@
 
     protected override void OnInitialized()
     {
-        currentRole = AuthService.CurrentRole;
+        currentRole = AuthService.CurrentRole ?? string.Empty;
     }
 
     private string IsActive(string path)

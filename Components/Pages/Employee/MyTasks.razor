@@ -1,0 +1,241 @@
+@page "/employee/tasks"
+@layout EmployeeLayout
+@using FinanceBank.Models
+
+<div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #059669, #047857); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                    <rect x="9" y="3" width="6" height="4" rx="1"/>
+                    <path d="M9 12h6M9 16h6"/>
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">My Tasks</h1>
+                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Track and manage your assigned work items</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 8px;">
+                    <div style="font-size: 12px; opacity: 0.9;">In Progress</div>
+                    <div style="font-size: 24px; font-weight: 700;">@inProgressCount</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 8px;">
+                    <div style="font-size: 12px; opacity: 0.9;">Completed Today</div>
+                    <div style="font-size: 24px; font-weight: 700;">@completedTodayCount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Cards Grid -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 24px;">
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+                <div style="padding: 4px 12px; background: #fef3c7; color: #92400e; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                    Pending
+                </div>
+            </div>
+            <div style="font-size: 32px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">@tasks.Count(t => t.Status == "Pending")</div>
+            <div style="font-size: 14px; color: #6b7280;">Waiting to start</div>
+        </div>
+
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <path d="M22 4L12 14.01l-3-3"/>
+                    </svg>
+                </div>
+                <div style="padding: 4px 12px; background: #dbeafe; color: #1e40af; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                    Active
+                </div>
+            </div>
+            <div style="font-size: 32px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">@inProgressCount</div>
+            <div style="font-size: 14px; color: #6b7280;">Currently working on</div>
+        </div>
+
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                        <path d="M9 11l3 3L22 4"/>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                </div>
+                <div style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                    Done
+                </div>
+            </div>
+            <div style="font-size: 32px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">@tasks.Count(t => t.Status == "Completed")</div>
+            <div style="font-size: 14px; color: #6b7280;">Tasks completed</div>
+        </div>
+    </div>
+
+    <!-- Tasks List -->
+    <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 600; color: #1f2937;">All Tasks</h2>
+            <div style="display: flex; gap: 12px;">
+                <select @bind="filterStatus" style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                    <option value="All">All Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="InProgress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            @foreach (var task in GetFilteredTasks())
+            {
+                <div style="background: #f9fafb; border-radius: 12px; padding: 20px; border-left: 4px solid @GetStatusColor(task.Status);" class="task-item">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <div style="padding: 4px 12px; background: @GetStatusBadgeColor(task.Status); border-radius: 6px; font-size: 12px; font-weight: 600;">
+                                    @task.Status
+                                </div>
+                                <div style="padding: 4px 12px; background: @GetPriorityBadgeColor(task.Priority); border-radius: 6px; font-size: 12px; font-weight: 600;">
+                                    @task.Priority Priority
+                                </div>
+                                <div style="font-size: 13px; color: #6b7280;">
+                                    Due: @task.DueDate.ToString("MMM dd, yyyy")
+                                </div>
+                            </div>
+                            <div style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">
+                                @task.Title
+                            </div>
+                            <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">
+                                @task.Description
+                            </div>
+                            <div style="display: flex; gap: 16px; font-size: 13px; color: #6b7280;">
+                                <span><strong>Task ID:</strong> @task.Id</span>
+                                <span><strong>Category:</strong> @task.Category</span>
+                                <span><strong>Assigned:</strong> @task.AssignedDate.ToString("MMM dd")</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            @if (task.Status == "Pending")
+                            {
+                                <button @onclick="() => StartTask(task)" style="padding: 10px 20px; background: linear-gradient(135deg, #059669, #047857); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                                    Start
+                                </button>
+                            }
+                            else if (task.Status == "InProgress")
+                            {
+                                <button @onclick="() => CompleteTask(task)" style="padding: 10px 20px; background: linear-gradient(135deg, #2563eb, #1e40af); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                                    Complete
+                                </button>
+                            }
+                            <button style="padding: 10px 20px; background: #f3f4f6; border: none; border-radius: 8px; color: #374151; font-weight: 600; cursor: pointer;">
+                                Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .task-item:hover {
+        background: #e0f2fe !important;
+        transform: translateX(4px);
+        transition: all 0.2s;
+    }
+</style>
+
+@code {
+    private List<EmployeeTask> tasks = new();
+    private string filterStatus = "All";
+    
+    private int inProgressCount => tasks.Count(t => t.Status == "InProgress");
+    private int completedTodayCount => tasks.Count(t => t.Status == "Completed" && t.CompletedDate?.Date == DateTime.Now.Date);
+
+    protected override void OnInitialized()
+    {
+        tasks = new List<EmployeeTask>
+        {
+            new() { Id = "TSK001", Title = "Process withdrawal request", Description = "Customer withdrawal of ₱50,000", Category = "Transaction", Status = "InProgress", Priority = "High", AssignedDate = DateTime.Now.AddHours(-2), DueDate = DateTime.Now.AddHours(2) },
+            new() { Id = "TSK002", Title = "Review loan application", Description = "Personal loan for ₱200,000", Category = "Loan", Status = "Pending", Priority = "Normal", AssignedDate = DateTime.Now.AddHours(-1), DueDate = DateTime.Now.AddDays(1) },
+            new() { Id = "TSK003", Title = "Verify card application documents", Description = "Platinum card application", Category = "Card", Status = "InProgress", Priority = "Normal", AssignedDate = DateTime.Now.AddDays(-1), DueDate = DateTime.Now.AddDays(2) },
+            new() { Id = "TSK004", Title = "Account opening verification", Description = "New savings account setup", Category = "Account", Status = "Pending", Priority = "High", AssignedDate = DateTime.Now.AddMinutes(-30), DueDate = DateTime.Now.AddHours(4) },
+            new() { Id = "TSK005", Title = "Process transfer request", Description = "International transfer verification", Category = "Transaction", Status = "Completed", Priority = "Urgent", AssignedDate = DateTime.Now.AddDays(-2), DueDate = DateTime.Now.AddDays(-1), CompletedDate = DateTime.Now.AddHours(-3) },
+        };
+    }
+
+    private List<EmployeeTask> GetFilteredTasks()
+    {
+        if (filterStatus == "All") return tasks.OrderBy(t => t.DueDate).ToList();
+        return tasks.Where(t => t.Status == filterStatus).OrderBy(t => t.DueDate).ToList();
+    }
+
+    private void StartTask(EmployeeTask task)
+    {
+        task.Status = "InProgress";
+    }
+
+    private void CompleteTask(EmployeeTask task)
+    {
+        task.Status = "Completed";
+        task.CompletedDate = DateTime.Now;
+    }
+
+    private string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Pending" => "#f59e0b",
+            "InProgress" => "#2563eb",
+            "Completed" => "#059669",
+            _ => "#6b7280"
+        };
+    }
+
+    private string GetStatusBadgeColor(string status)
+    {
+        return status switch
+        {
+            "Pending" => "#fef3c7",
+            "InProgress" => "#dbeafe",
+            "Completed" => "#d1fae5",
+            _ => "#f3f4f6"
+        };
+    }
+
+    private string GetPriorityBadgeColor(string priority)
+    {
+        return priority switch
+        {
+            "Urgent" => "#fee2e2",
+            "High" => "#fed7aa",
+            "Normal" => "#e0e7ff",
+            "Low" => "#f3f4f6",
+            _ => "#f3f4f6"
+        };
+    }
+
+    public class EmployeeTask
+    {
+        public string Id { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string Status { get; set; } = "Pending";
+        public string Priority { get; set; } = "Normal";
+        public DateTime AssignedDate { get; set; }
+        public DateTime DueDate { get; set; }
+        public DateTime? CompletedDate { get; set; }
+    }
+}

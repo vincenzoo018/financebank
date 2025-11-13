@@ -1,38 +1,92 @@
 @page "/customer/profile"
 @layout CustomerLayout
 
-<div class="section-header">
-    <h2 class="section-title">My Profile</h2>
-</div>
-
-<div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid var(--border); text-align: center; margin-bottom: 24px;">
-    <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; margin: 0 auto 16px;">
-        CU
+<div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #1f2937, #111827); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">My Profile</h1>
+                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Manage your personal information and preferences</p>
+            </div>
+        </div>
     </div>
-    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 4px;">Customer User</h2>
-    <p style="color: var(--text-light); margin-bottom: 20px;">customer@bfas.com</p>
-    <button class="btn btn-secondary">Edit Profile</button>
-</div>
 
-<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 16px;">
-    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px;">Personal Information</h3>
-    
-    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-        <div>
-            <div style="font-size: 12px; color: var(--text-light); margin-bottom: 4px;">Full Name</div>
-            <div style="font-size: 14px; font-weight: 600;">Customer User</div>
+    <!-- Profile Card -->
+    <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; margin-bottom: 24px;">
+        <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #1f2937, #111827); color: white; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 700; margin: 0 auto 20px; box-shadow: 0 8px 24px rgba(31,41,55,0.3);">
+            JD
         </div>
-        <div>
-            <div style="font-size: 12px; color: var(--text-light); margin-bottom: 4px;">Email</div>
-            <div style="font-size: 14px; font-weight: 600;">customer@bfas.com</div>
+        <h2 style="font-size: 28px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">Juan Dela Cruz</h2>
+        <p style="color: #6b7280; font-size: 16px; margin-bottom: 4px;">juan.delacruz@finsys.com</p>
+        <div style="display: inline-block; padding: 6px 16px; background: #d1fae5; color: #065f46; border-radius: 20px; font-size: 14px; font-weight: 600; margin-bottom: 24px;">
+            Verified Account
         </div>
-        <div>
-            <div style="font-size: 12px; color: var(--text-light); margin-bottom: 4px;">Phone</div>
-            <div style="font-size: 14px; font-weight: 600;">+63 912 345 6789</div>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button style="padding: 12px 24px; background: linear-gradient(135deg, #1f2937, #111827); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                Edit Profile
+            </button>
+            <button style="padding: 12px 24px; background: #f3f4f6; border: none; border-radius: 8px; color: #374151; font-weight: 600; cursor: pointer;">
+                Change Password
+            </button>
         </div>
-        <div>
-            <div style="font-size: 12px; color: var(--text-light); margin-bottom: 4px;">Member Since</div>
-            <div style="font-size: 14px; font-weight: 600;">January 2024</div>
+    </div>
+
+    <!-- Personal Information -->
+    <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
+        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Personal Information</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
+            <div>
+                <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Full Name</div>
+                <div style="font-size: 16px; font-weight: 600; color: #1f2937;">Juan Dela Cruz</div>
+            </div>
+            <div>
+                <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Email Address</div>
+                <div style="font-size: 16px; font-weight: 600; color: #1f2937;">juan.delacruz@finsys.com</div>
+            </div>
+            <div>
+                <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Phone Number</div>
+                <div style="font-size: 16px; font-weight: 600; color: #1f2937;">+63 912 345 6789</div>
+            </div>
+            <div>
+                <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Date of Birth</div>
+                <div style="font-size: 16px; font-weight: 600; color: #1f2937;">January 15, 1990</div>
+            </div>
+            <div>
+                <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Address</div>
+                <div style="font-size: 16px; font-weight: 600; color: #1f2937;">123 Main St, Makati City</div>
+            </div>
+            <div>
+                <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Member Since</div>
+                <div style="font-size: 16px; font-weight: 600; color: #1f2937;">January 2024</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Overview -->
+    <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Account Overview</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+            <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 12px; padding: 20px;">
+                <div style="font-size: 14px; color: #1e40af; margin-bottom: 8px;">Account Number</div>
+                <div style="font-size: 20px; font-weight: 700; color: #1e3a8a;">**** **** 1234</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 20px;">
+                <div style="font-size: 14px; color: #15803d; margin-bottom: 8px;">Account Status</div>
+                <div style="font-size: 20px; font-weight: 700; color: #166534;">Active</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border-radius: 12px; padding: 20px;">
+                <div style="font-size: 14px; color: #b91c1c; margin-bottom: 8px;">Account Type</div>
+                <div style="font-size: 20px; font-weight: 700; color: #991b1b;">Savings</div>
+            </div>
         </div>
     </div>
 </div>

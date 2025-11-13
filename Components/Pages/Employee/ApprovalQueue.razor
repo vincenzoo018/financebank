@@ -1,0 +1,298 @@
+@page "/employee/approvals"
+@layout EmployeeLayout
+@using FinanceBank.Models
+
+<div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #2563eb, #1e40af); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 11l3 3L22 4"/>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Approval Queue</h1>
+                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Review and process pending customer requests</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 8px;">
+                    <div style="font-size: 12px; opacity: 0.9;">Pending</div>
+                    <div style="font-size: 24px; font-weight: 700;">@pendingCount</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 8px;">
+                    <div style="font-size: 12px; opacity: 0.9;">Today</div>
+                    <div style="font-size: 24px; font-weight: 700;">@todayCount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 250px 1fr; gap: 24px;">
+        <!-- Sidebar Filters -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            <!-- Filter by Department -->
+            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <h3 style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 16px;">Department</h3>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    @foreach (var dept in departments)
+                    {
+                        <button @onclick="() => selectedDepartment = dept" style="padding: 10px 12px; background: @(selectedDepartment == dept ? "#dbeafe" : "transparent"); border: none; border-radius: 8px; text-align: left; cursor: pointer; font-weight: @(selectedDepartment == dept ? "600" : "400"); color: @(selectedDepartment == dept ? "#2563eb" : "#1f2937"); transition: all 0.2s;">
+                            @dept
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Filter by Type -->
+            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <h3 style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 16px;">Request Type</h3>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    @foreach (var type in requestTypes)
+                    {
+                        <button @onclick="() => selectedType = type" style="padding: 10px 12px; background: @(selectedType == type ? "#dbeafe" : "transparent"); border: none; border-radius: 8px; text-align: left; cursor: pointer; font-weight: @(selectedType == type ? "600" : "400"); color: @(selectedType == type ? "#2563eb" : "#1f2937"); transition: all 0.2s;">
+                            @type
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Priority Filter -->
+            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <h3 style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 16px;">Priority</h3>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    @foreach (var priority in priorities)
+                    {
+                        <button @onclick="() => selectedPriority = priority" style="padding: 10px 12px; background: @(selectedPriority == priority ? "#dbeafe" : "transparent"); border: none; border-radius: 8px; text-align: left; cursor: pointer; font-weight: @(selectedPriority == priority ? "600" : "400"); color: @(selectedPriority == priority ? "#2563eb" : "#1f2937"); transition: all 0.2s;">
+                            @priority
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Approval Queue List -->
+        <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-size: 20px; font-weight: 600; color: #1f2937;">Pending Approvals (@GetFilteredQueue().Count)</h2>
+                <div style="display: flex; gap: 12px;">
+                    <select style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        <option>Sort by Date</option>
+                        <option>Sort by Priority</option>
+                        <option>Sort by Amount</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                @foreach (var item in GetFilteredQueue())
+                {
+                    <div style="background: #f9fafb; border-radius: 12px; padding: 20px; border-left: 4px solid @GetPriorityColor(item.Priority); transition: all 0.2s;" class="approval-item">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                    <div style="padding: 4px 12px; background: @GetTypeColor(item.Type); border-radius: 6px; font-size: 12px; font-weight: 600;">
+                                        @item.Type
+                                    </div>
+                                    <div style="padding: 4px 12px; background: @GetPriorityBadgeColor(item.Priority); border-radius: 6px; font-size: 12px; font-weight: 600;">
+                                        @item.Priority
+                                    </div>
+                                    <div style="font-size: 13px; color: #6b7280;">
+                                        @item.SubmittedDate.ToString("MMM dd, yyyy hh:mm tt")
+                                    </div>
+                                </div>
+                                <div style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">
+                                    @item.CustomerName
+                                </div>
+                                <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">
+                                    @item.Description
+                                </div>
+                                <div style="display: flex; gap: 16px; font-size: 13px; color: #6b7280;">
+                                    <span><strong>ID:</strong> @item.Id</span>
+                                    <span><strong>Amount:</strong> ₱@item.Amount.ToString("N2")</span>
+                                    <span><strong>Department:</strong> @item.Department</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button @onclick="() => ShowApprovalModal(item)" style="padding: 10px 20px; background: linear-gradient(135deg, #2563eb, #1e40af); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                                    Review
+                                </button>
+                                <button style="padding: 10px 20px; background: #f3f4f6; border: none; border-radius: 8px; color: #374151; font-weight: 600; cursor: pointer;">
+                                    Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approval Modal -->
+@if (selectedItem != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseApprovalModal">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+            <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 24px;">Review Request</h2>
+            
+            <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Request ID</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedItem.Id</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Type</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedItem.Type</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Customer</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedItem.CustomerName</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Amount</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #1f2937;">₱@selectedItem.Amount.ToString("N2")</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Submitted</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedItem.SubmittedDate.ToString("MMM dd, yyyy")</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Priority</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedItem.Priority</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label class="form-label">Comments (Optional)</label>
+                <textarea @bind="approvalComments" class="form-control" rows="3" placeholder="Add notes or comments about this approval..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button @onclick="RejectRequest" style="flex: 1; padding: 14px; background: #fee2e2; border: none; border-radius: 12px; color: #dc2626; font-size: 16px; font-weight: 600; cursor: pointer;">
+                    Reject
+                </button>
+                <button @onclick="ApproveRequest" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #2563eb, #1e40af); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
+                    Approve
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .approval-item:hover {
+        background: #e0f2fe !important;
+        transform: translateX(4px);
+    }
+</style>
+
+@code {
+    private List<ApprovalQueueItem> approvalQueue = new();
+    private List<string> departments = new() { "All", "Transactions", "Loans", "Cards", "Accounts" };
+    private List<string> requestTypes = new() { "All", "Transaction", "Loan", "Card", "Account" };
+    private List<string> priorities = new() { "All", "Urgent", "High", "Normal", "Low" };
+    
+    private string selectedDepartment = "All";
+    private string selectedType = "All";
+    private string selectedPriority = "All";
+    private ApprovalQueueItem? selectedItem;
+    private string approvalComments = "";
+    
+    private int pendingCount => approvalQueue.Count(a => a.Status == "Pending");
+    private int todayCount => approvalQueue.Count(a => a.SubmittedDate.Date == DateTime.Now.Date);
+
+    protected override void OnInitialized()
+    {
+        // Mock data - replace with actual database calls
+        approvalQueue = new List<ApprovalQueueItem>
+        {
+            new() { Id = "TXN001", Type = "Transaction", CustomerName = "Juan Dela Cruz", Description = "Transfer to external account", Amount = 50000, SubmittedDate = DateTime.Now.AddHours(-2), Status = "Pending", Priority = "High", Department = "Transactions" },
+            new() { Id = "LN002", Type = "Loan", CustomerName = "Maria Santos", Description = "Personal loan application", Amount = 200000, SubmittedDate = DateTime.Now.AddHours(-5), Status = "Pending", Priority = "Normal", Department = "Loans" },
+            new() { Id = "CARD003", Type = "Card", CustomerName = "Pedro Garcia", Description = "Credit card application - Platinum", Amount = 0, SubmittedDate = DateTime.Now.AddDays(-1), Status = "Pending", Priority = "Normal", Department = "Cards" },
+            new() { Id = "ACC004", Type = "Account", CustomerName = "Anna Reyes", Description = "New savings account opening", Amount = 10000, SubmittedDate = DateTime.Now.AddHours(-1), Status = "Pending", Priority = "Urgent", Department = "Accounts" },
+            new() { Id = "TXN005", Type = "Transaction", CustomerName = "Carlos Mendoza", Description = "Large withdrawal request", Amount = 100000, SubmittedDate = DateTime.Now.AddMinutes(-30), Status = "Pending", Priority = "Urgent", Department = "Transactions" },
+        };
+    }
+
+    private List<ApprovalQueueItem> GetFilteredQueue()
+    {
+        return approvalQueue
+            .Where(a => selectedDepartment == "All" || a.Department == selectedDepartment)
+            .Where(a => selectedType == "All" || a.Type == selectedType)
+            .Where(a => selectedPriority == "All" || a.Priority == selectedPriority)
+            .OrderByDescending(a => a.SubmittedDate)
+            .ToList();
+    }
+
+    private void ShowApprovalModal(ApprovalQueueItem item)
+    {
+        selectedItem = item;
+        approvalComments = "";
+    }
+
+    private void CloseApprovalModal()
+    {
+        selectedItem = null;
+        approvalComments = "";
+    }
+
+    private void ApproveRequest()
+    {
+        if (selectedItem != null)
+        {
+            selectedItem.Status = "Approved";
+            approvalQueue.Remove(selectedItem);
+            CloseApprovalModal();
+        }
+    }
+
+    private void RejectRequest()
+    {
+        if (selectedItem != null)
+        {
+            selectedItem.Status = "Rejected";
+            approvalQueue.Remove(selectedItem);
+            CloseApprovalModal();
+        }
+    }
+
+    private string GetPriorityColor(string priority)
+    {
+        return priority switch
+        {
+            "Urgent" => "#dc2626",
+            "High" => "#f59e0b",
+            "Normal" => "#2563eb",
+            "Low" => "#6b7280",
+            _ => "#2563eb"
+        };
+    }
+
+    private string GetPriorityBadgeColor(string priority)
+    {
+        return priority switch
+        {
+            "Urgent" => "#fee2e2",
+            "High" => "#fef3c7",
+            "Normal" => "#dbeafe",
+            "Low" => "#f3f4f6",
+            _ => "#dbeafe"
+        };
+    }
+
+    private string GetTypeColor(string type)
+    {
+        return type switch
+        {
+            "Transaction" => "#dbeafe",
+            "Loan" => "#d1fae5",
+            "Card" => "#fae8ff",
+            "Account" => "#fef3c7",
+            _ => "#f3f4f6"
+        };
+    }
+}
