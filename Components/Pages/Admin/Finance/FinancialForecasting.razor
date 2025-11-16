@@ -1,0 +1,29 @@
+@page "/admin/finance/financial-forecasting"
+@layout AdminLayout
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Financial Forecasting</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Project future financial performance</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool showCreateForecastModal = false;
+    private bool showForecastDetailsModal = false;
+    private int selectedForecastId = 0;
+
+    private void ShowCreateForecastModal() => showCreateForecastModal = true;
+    private void CloseCreateForecastModal() => showCreateForecastModal = false;
+    private void ShowForecastDetailsModal(int id) { selectedForecastId = id; showForecastDetailsModal = true; }
+    private void CloseForecastDetailsModal() => showForecastDetailsModal = false;
+}
+

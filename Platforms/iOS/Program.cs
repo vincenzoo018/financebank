@@ -1,4 +1,4 @@
-﻿using ObjCRuntime;
+using ObjCRuntime;
 using UIKit;
 
 namespace FinanceBank
@@ -14,3 +14,4 @@ namespace FinanceBank
         }
     }
 }
+

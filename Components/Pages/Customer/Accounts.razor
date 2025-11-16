@@ -1,45 +1,37 @@
 @page "/customer/accounts"
 @layout CustomerLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@inject CustomerAccountService Service
+@inject AuthService Auth
 
 <div class="section-header">
     <h2 class="section-title">My Accounts</h2>
 </div>
 
-<div style="display: grid; gap: 16px;">
-    @foreach (var account in accounts)
+<div style="display:grid; gap:16px;">
+    @foreach (var a in accounts)
     {
-        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="background:white; border-radius:16px; padding:24px; border:1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
-                    <div style="font-size: 14px; color: var(--text-light); margin-bottom: 4px;">@account.Type</div>
-                    <div style="font-size: 24px; font-weight: 700; color: var(--text-dark);">₱@account.Balance.ToString("N2")</div>
-                    <div style="font-size: 12px; color: var(--text-light); margin-top: 8px;">@account.AccountNumber</div>
+                    <div style="font-size:14px; color:var(--text-light);">@a.AccountType</div>
+                    <div style="font-size:24px; font-weight:700;">₱@a.Balance.ToString("N2")</div>
+                    <div style="font-size:12px; color:var(--text-light);">@a.AccountNumber</div>
                 </div>
-                <div style="padding: 12px; background: var(--primary-bg); border-radius: 12px; font-size: 24px;">
-                    @account.Icon
-                </div>
+                <a class="btn" style="background:#3b82f6; color:white; padding:8px 16px;" href="/customer/transactions?accountId=@a.AccountId">View Transactions</a>
             </div>
         </div>
     }
 </div>
 
 @code {
-    private List<Account> accounts = new();
+    private List<CustomerAccount> accounts = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        accounts = new List<Account>
-        {
-            new Account { Type = "Savings Account", Balance = 18450, AccountNumber = "BFAS-100000000001", Icon = "💰" },
-            new Account { Type = "Checking Account", Balance = 7000, AccountNumber = "BFAS-100000000002", Icon = "💳" },
-        };
-    }
-
-    private class Account
-    {
-        public string Type { get; set; } = "";
-        public decimal Balance { get; set; }
-        public string AccountNumber { get; set; } = "";
-        public string Icon { get; set; } = "";
+        var userId = Auth.CurrentUserId ?? 0;
+        accounts = await Service.GetByCustomerIdAsync(userId);
     }
 }
+

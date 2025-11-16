@@ -1,4 +1,4 @@
-﻿using Foundation;
+using Foundation;
 
 namespace FinanceBank
 {
@@ -8,3 +8,4 @@ namespace FinanceBank
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
     }
 }
+

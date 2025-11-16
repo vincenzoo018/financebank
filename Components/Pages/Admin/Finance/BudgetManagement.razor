@@ -1,0 +1,180 @@
+@page "/admin/finance/budget-management"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@inject BudgetManagementService Service
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <h2 style="font-weight:700;">Budget Management</h2>
+    <button class="btn" style="background:#10b981; color:white;" @onclick="ShowCreate">New Budget</button>
+</div>
+
+@if (showCreate)
+{
+    <div style="position:fixed; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center;" @onclick="HideCreate">
+        <div style="background:white; border-radius:12px; padding:16px; width:720px;" @onclick:stopPropagation="true">
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">
+                <input class="form-control" placeholder="Budget Name" @bind="draft.BudgetName" />
+                <input class="form-control" placeholder="Department" @bind="draft.Department" />
+                <input class="form-control" placeholder="Category" @bind="draft.Category" />
+                <input class="form-control" type="number" placeholder="Allocated" @bind-value="allocated" />
+                <input class="form-control" type="number" placeholder="Spent" @bind-value="spent" />
+                <InputDate @bind-Value="startDate" />
+                <InputDate @bind-Value="endDate" />
+                <input class="form-control" placeholder="Status" @bind="draft.Status" />
+                <input class="form-control" placeholder="Description" @bind="draft.Description" />
+            </div>
+            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+                <button class="btn" style="background:#10b981; color:white;" @onclick="Create">Save</button>
+                <button class="btn" style="background:#f3f4f6;" @onclick="HideCreate">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+<div style="background:white; border:1px solid var(--border); border-radius:12px;">
+    <table style="width:100%; border-collapse:collapse;">
+        <thead>
+            <tr style="border-bottom:1px solid var(--border); background:#f9fafb;">
+                <th style="padding:12px; text-align:left;">Name</th>
+                <th style="padding:12px; text-align:left;">Department</th>
+                <th style="padding:12px; text-align:left;">Category</th>
+                <th style="padding:12px; text-align:right;">Allocated</th>
+                <th style="padding:12px; text-align:right;">Spent</th>
+                <th style="padding:12px; text-align:right;">Remaining</th>
+                <th style="padding:12px; text-align:left;">Status</th>
+                <th style="padding:12px; text-align:center;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var b in items)
+            {
+                <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:12px;">@b.BudgetName</td>
+                    <td style="padding:12px;">@b.Department</td>
+                    <td style="padding:12px;">@b.Category</td>
+                    <td style="padding:12px; text-align:right;">@b.AllocatedAmount.ToString("N2")</td>
+                    <td style="padding:12px; text-align:right;">@b.SpentAmount.ToString("N2")</td>
+                    <td style="padding:12px; text-align:right;">@b.RemainingAmount.ToString("N2")</td>
+                    <td style="padding:12px;">@b.Status</td>
+                    <td style="padding:12px; text-align:center;">
+                        <button class="btn" style="background:#3b82f6; color:white; padding:6px 12px;" @onclick="() => Edit(b)">Edit</button>
+                        <button class="btn" style="background:#ef4444; color:white; padding:6px 12px;" @onclick="() => Delete(b.BudgetId)">Delete</button>
+                    </td>
+                </tr>
+                @if (editId == b.BudgetId)
+                {
+                    <tr>
+                        <td colspan="8" style="padding:12px; background:#f9fafb;">
+                            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">
+                                <input class="form-control" @bind="edit.BudgetName" />
+                                <input class="form-control" @bind="edit.Department" />
+                                <input class="form-control" @bind="edit.Category" />
+                                <input class="form-control" type="number" @bind-value="editAllocated" />
+                                <input class="form-control" type="number" @bind-value="editSpent" />
+                                <InputDate @bind-Value="editStartDate" />
+                                <InputDate @bind-Value="editEndDate" />
+                                <input class="form-control" @bind="edit.Status" />
+                                <input class="form-control" @bind="edit.Description" />
+                            </div>
+                            <div style="display:flex; gap:8px; margin-top:12px;">
+                                <button class="btn" style="background:#10b981; color:white;" @onclick="SaveEdit">Save</button>
+                                <button class="btn" style="background:#f3f4f6;" @onclick="CancelEdit">Cancel</button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<Budget> items = new();
+    private bool showCreate;
+    private Budget draft = new();
+    private decimal allocated;
+    private decimal spent;
+    private DateTime startDate = DateTime.Today;
+    private DateTime endDate = DateTime.Today.AddMonths(1);
+    private int editId = 0;
+    private Budget edit = new();
+    private decimal editAllocated;
+    private decimal editSpent;
+    private DateTime editStartDate = DateTime.Today;
+    private DateTime editEndDate = DateTime.Today.AddMonths(1);
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await Service.GetAllAsync();
+    }
+
+    private void ShowCreate()
+    {
+        draft = new Budget { Status = "Active" };
+        allocated = 0; spent = 0; showCreate = true;
+    }
+
+    private void HideCreate()
+    {
+        showCreate = false;
+    }
+
+    private async Task Create()
+    {
+        draft.StartDate = startDate;
+        draft.EndDate = endDate;
+        draft.AllocatedAmount = allocated; draft.SpentAmount = spent;
+        var created = await Service.CreateAsync(draft);
+        items.Insert(0, created);
+        showCreate = false;
+    }
+
+    private void Edit(Budget b)
+    {
+        edit = new Budget
+        {
+            BudgetId = b.BudgetId,
+            BudgetName = b.BudgetName,
+            Department = b.Department,
+            Category = b.Category,
+            AllocatedAmount = b.AllocatedAmount,
+            SpentAmount = b.SpentAmount,
+            StartDate = b.StartDate,
+            EndDate = b.EndDate,
+            Status = b.Status,
+            Description = b.Description
+        };
+        editAllocated = b.AllocatedAmount; editSpent = b.SpentAmount;
+        editStartDate = b.StartDate;
+        editEndDate = b.EndDate;
+        editId = b.BudgetId;
+    }
+
+    private async Task SaveEdit()
+    {
+        edit.StartDate = editStartDate;
+        edit.EndDate = editEndDate;
+        edit.AllocatedAmount = editAllocated; edit.SpentAmount = editSpent;
+        var updated = await Service.UpdateAsync(edit);
+        var idx = items.FindIndex(x => x.BudgetId == updated.BudgetId);
+        if (idx >= 0) items[idx] = updated;
+        editId = 0;
+    }
+
+    private void CancelEdit()
+    {
+        editId = 0;
+    }
+
+    private async Task Delete(int id)
+    {
+        var ok = await Service.DeleteAsync(id);
+        if (ok)
+        {
+            var idx = items.FindIndex(x => x.BudgetId == id);
+            if (idx >= 0) items.RemoveAt(idx);
+        }
+    }
+}
+

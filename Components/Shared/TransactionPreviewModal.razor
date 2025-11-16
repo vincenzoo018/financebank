@@ -109,7 +109,7 @@
     [Parameter] public string TransactionId { get; set; } = "";
     [Parameter] public string DateTime { get; set; } = "";
     [Parameter] public string Amount { get; set; } = "";
-    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public EventCallback OnConfirmed { get; set; }
     [Parameter] public EventCallback OnClosed { get; set; }
 
@@ -129,3 +129,4 @@
         await OnClosed.InvokeAsync();
     }
 }
+

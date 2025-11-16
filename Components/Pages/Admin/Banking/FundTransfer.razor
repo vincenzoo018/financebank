@@ -1,0 +1,105 @@
+@page "/admin/banking/fund-transfer"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using FTModel = FinanceBank.Models.FundTransfer
+@inject FundTransferService Service
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <h2 style="font-weight:700;">Fund Transfers</h2>
+    <button class="btn" style="background:#10b981; color:white;" @onclick="ShowCreate">New Transfer</button>
+    @if (showCreate)
+    {
+        <div style="position:fixed; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center;" @onclick="HideCreate">
+            <div style="background:white; border-radius:12px; padding:16px; width:560px;" @onclick:stopPropagation="true">
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:12px;">
+                    <input class="form-control" type="number" placeholder="From Account Id" @bind-value="draft.FromAccountId" />
+                    <input class="form-control" type="number" placeholder="To Account Id" @bind-value="draft.ToAccountId" />
+                    <input class="form-control" type="number" placeholder="Amount" @bind-value="draftAmount" />
+                    <input class="form-control" type="number" placeholder="Fee" @bind-value="draftFee" />
+                    <input class="form-control" placeholder="Description" @bind="draft.Description" />
+                </div>
+                <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+                    <button class="btn" style="background:#10b981; color:white;" @onclick="Create">Save</button>
+                    <button class="btn" style="background:#f3f4f6;" @onclick="HideCreate">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div style="background:white; border:1px solid var(--border); border-radius:12px;">
+    <table style="width:100%; border-collapse:collapse;">
+        <thead>
+            <tr style="border-bottom:1px solid var(--border); background:#f9fafb;">
+                <th style="padding:12px; text-align:left;">Number</th>
+                <th style="padding:12px; text-align:right;">Amount</th>
+                <th style="padding:12px; text-align:right;">Fee</th>
+                <th style="padding:12px; text-align:left;">From</th>
+                <th style="padding:12px; text-align:left;">To</th>
+                <th style="padding:12px; text-align:left;">Status</th>
+                <th style="padding:12px; text-align:center;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in items)
+            {
+                <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:12px;">@t.TransferNumber</td>
+                    <td style="padding:12px; text-align:right;">@t.Amount.ToString("N2")</td>
+                    <td style="padding:12px; text-align:right;">@t.Fee.ToString("N2")</td>
+                    <td style="padding:12px;">@t.FromAccountId</td>
+                    <td style="padding:12px;">@t.ToAccountId</td>
+                    <td style="padding:12px;">@t.Status</td>
+                    <td style="padding:12px; text-align:center;">
+                        <button class="btn" style="background:#3b82f6; color:white; padding:6px 12px;" disabled="@(t.Status=="Approved")" @onclick="() => Approve(t.TransferId)">Approve</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<FTModel> items = new();
+    private bool showCreate;
+    private FTModel draft = new();
+    private decimal draftAmount;
+    private decimal draftFee;
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await Service.GetAllAsync();
+    }
+
+    private void ShowCreate()
+    {
+        draft = new FTModel { Amount = 0, Fee = 0 };
+        draftAmount = 0; draftFee = 0; showCreate = true;
+    }
+
+    private void HideCreate()
+    {
+        showCreate = false;
+    }
+
+    private async Task Create()
+    {
+        draft.Amount = draftAmount; draft.Fee = draftFee;
+        var created = await Service.CreateAsync(draft);
+        items.Insert(0, created);
+        showCreate = false;
+    }
+
+    private async Task Approve(int id)
+    {
+        var ok = await Service.ApproveAsync(id, "admin");
+        if (ok)
+        {
+            var idx = items.FindIndex(x => x.TransferId == id);
+            if (idx >= 0) items[idx].Status = "Approved";
+            StateHasChanged();
+        }
+    }
+}
+

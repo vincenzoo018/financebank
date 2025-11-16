@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @inject AuthService AuthService
 @inject NavigationManager Navigation
+@inject RoleBasedNavigationService RoleService
 
 <div class="sidebar-container">
     <!-- Sidebar -->
@@ -8,7 +9,7 @@
         <div class="sidebar-header">
             <div style="text-align: center;">
                 <img src="images/finsys-logo.png" alt="FINSYS Logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
-                <div class="sidebar-logo">FINSYS Admin</div>
+                <div class="sidebar-logo">FINSYS @headerRoleTitle</div>
                 <div class="sidebar-subtitle">Finance System</div>
             </div>
         </div>
@@ -23,10 +24,8 @@
                 </a>
             </div>
 
-            @* SuperAdmin Only - User Management *@
-            @if (currentRole == AuthService.Roles.SuperAdmin)
-            {
-                <div class="sidebar-section">
+            @* User Management *@
+                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
                     <div class="sidebar-section-title">USER MANAGEMENT</div>
                     <div class="sidebar-dropdown @(userMgmtOpen ? "open" : "")">
                         <button class="sidebar-dropdown-toggle" @onclick="() => userMgmtOpen = !userMgmtOpen">
@@ -37,19 +36,16 @@
                             <span class="dropdown-arrow">▼</span>
                         </button>
                         <div class="sidebar-dropdown-menu">
-                            <a href="/admin/user-registration" class="sidebar-dropdown-item @(IsActive("/admin/user-registration"))">➕ Register New User</a>
-                            <a href="/admin/users" class="sidebar-dropdown-item @(IsActive("/admin/users"))">📋 All Users</a>
-                            <a href="/admin/roles" class="sidebar-dropdown-item @(IsActive("/admin/roles"))">🔐 Roles & Permissions</a>
-                            <a href="/admin/customers" class="sidebar-dropdown-item @(IsActive("/admin/customers"))">👤 Customer Profiles</a>
+                            <a href="/admin/system/user-registration" class="sidebar-dropdown-item @(IsActive("/admin/system/user-registration"))">➕ Register New User</a>
+                            <a href="/admin/system/users" class="sidebar-dropdown-item @(IsActive("/admin/system/users"))">📋 All Users</a>
+                            <a href="/admin/system/roles" class="sidebar-dropdown-item @(IsActive("/admin/system/roles"))">🔐 Roles & Permissions</a>
+                            <a href="/admin/system/customers" class="sidebar-dropdown-item @(IsActive("/admin/system/customers"))">👤 Customer Profiles</a>
                         </div>
                     </div>
                 </div>
-            }
 
-            @* SuperAdmin Only - Transaction Approvals (List/Confirmation pages) *@
-            @if (currentRole == AuthService.Roles.SuperAdmin)
-            {
-                <div class="sidebar-section">
+            @* Transaction Approvals *@
+                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">
                     <div class="sidebar-section-title">TRANSACTION APPROVALS</div>
                     <div class="sidebar-dropdown @(transactionsOpen ? "open" : "")">
                         <button class="sidebar-dropdown-toggle" @onclick="() => transactionsOpen = !transactionsOpen">
@@ -60,111 +56,148 @@
                             <span class="dropdown-arrow">▼</span>
                         </button>
                         <div class="sidebar-dropdown-menu">
-                            <a href="/admin/approvals/deposits" class="sidebar-dropdown-item @(IsActive("/admin/approvals/deposits"))">💰 Deposit Approvals</a>
-                            <a href="/admin/approvals/withdrawals" class="sidebar-dropdown-item @(IsActive("/admin/approvals/withdrawals"))">💸 Withdrawal Approvals</a>
-                            <a href="/admin/approvals/transfers" class="sidebar-dropdown-item @(IsActive("/admin/approvals/transfers"))">🔄 Transfer Approvals</a>
-                            <a href="/admin/transactions/loan" class="sidebar-dropdown-item @(IsActive("/admin/transactions/loan"))">🏦 Loan Applications</a>
-                            <a href="/admin/transactions/bills" class="sidebar-dropdown-item @(IsActive("/admin/transactions/bills"))">📄 Bill Payments</a>
-                            <a href="/admin/transactions/cards" class="sidebar-dropdown-item @(IsActive("/admin/transactions/cards"))">💳 Card Transactions</a>
-                            <a href="/admin/transactions" class="sidebar-dropdown-item @(IsActive("/admin/transactions"))">📊 All Transactions</a>
+                            <a href="/admin/approvals/deposit-approvals" class="sidebar-dropdown-item @(IsActive("/admin/approvals/deposit-approvals"))">💰 Deposit Approvals</a>
+                            <a href="/admin/approvals/withdrawal-approvals" class="sidebar-dropdown-item @(IsActive("/admin/approvals/withdrawal-approvals"))">💸 Withdrawal Approvals</a>
+                            <a href="/admin/approvals/transfer-approvals" class="sidebar-dropdown-item @(IsActive("/admin/approvals/transfer-approvals"))">🔄 Transfer Approvals</a>
+                            <a href="/admin/approvals/loan-applications" class="sidebar-dropdown-item @(IsActive("/admin/approvals/loan-applications"))">🏦 Loan Applications</a>
+                            <a href="/admin/approvals/card-applications" class="sidebar-dropdown-item @(IsActive("/admin/approvals/card-applications"))">💳 Card Applications</a>
+                            <a href="/admin/approvals/bill-approvals" class="sidebar-dropdown-item @(IsActive("/admin/approvals/bill-approvals"))">📄 Bill Payment Approvals</a>
+                            <a href="/admin/approvals/all-transactions" class="sidebar-dropdown-item @(IsActive("/admin/approvals/all-transactions"))">📊 All Transactions</a>
                         </div>
                     </div>
                 </div>
-            }
 
-            @* Banking - Accountant & SuperAdmin *@
-            @if (currentRole == AuthService.Roles.SuperAdmin || currentRole == AuthService.Roles.Accountant)
-            {
-                <div class="sidebar-section">
+            @* Banking *@
+                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">
                     <div class="sidebar-section-title">BANKING</div>
                     <div class="sidebar-dropdown @(bankingOpen ? "open" : "")">
                         <button class="sidebar-dropdown-toggle" @onclick="() => bankingOpen = !bankingOpen">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <span>🏦</span>
-                                <span>Banking</span>
+                                <span>Banking Operations</span>
                             </div>
                             <span class="dropdown-arrow">▼</span>
                         </button>
                         <div class="sidebar-dropdown-menu">
                             <a href="/admin/banking/accounts" class="sidebar-dropdown-item @(IsActive("/admin/banking/accounts"))">💼 Bank Accounts</a>
-                            <a href="/admin/banking/transfers" class="sidebar-dropdown-item @(IsActive("/admin/banking/transfers"))">🔄 Fund Transfers</a>
-                            <a href="/admin/banking/billers" class="sidebar-dropdown-item @(IsActive("/admin/banking/billers"))">📝 Billers Management</a>
-                            <a href="/admin/banking/loans" class="sidebar-dropdown-item @(IsActive("/admin/banking/loans"))">🏦 Loans Management</a>
+                            <a href="/admin/banking/fund-transfer" class="sidebar-dropdown-item @(IsActive("/admin/banking/fund-transfer"))">🔄 Fund Transfers</a>
+                            <a href="/admin/banking/billers-management" class="sidebar-dropdown-item @(IsActive("/admin/banking/billers-management"))">📝 Billers Management</a>
+                            <a href="/admin/banking/loan-management" class="sidebar-dropdown-item @(IsActive("/admin/banking/loan-management"))">🏦 Loan Management</a>
+                            <a href="/admin/banking/card-management" class="sidebar-dropdown-item @(IsActive("/admin/banking/card-management"))">💳 Card Management</a>
+                            <a href="/admin/banking/reports" class="sidebar-dropdown-item @(IsActive("/admin/banking/reports"))">📊 Banking Reports</a>
                         </div>
                     </div>
                 </div>
-            }
 
-            @* Accounting - Accountant & SuperAdmin *@
-            @if (currentRole == AuthService.Roles.SuperAdmin || currentRole == AuthService.Roles.Accountant)
-            {
-                <div class="sidebar-section">
+            @* Accounting *@
+                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">
                     <div class="sidebar-section-title">ACCOUNTING</div>
                     <div class="sidebar-dropdown @(accountingOpen ? "open" : "")">
                         <button class="sidebar-dropdown-toggle" @onclick="() => accountingOpen = !accountingOpen">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <span>📊</span>
-                                <span>Accounting</span>
+                                <span>Accounting Operations</span>
                             </div>
                             <span class="dropdown-arrow">▼</span>
                         </button>
                         <div class="sidebar-dropdown-menu">
-                            <a href="/admin/accounting/journal" class="sidebar-dropdown-item @(IsActive("/admin/accounting/journal"))">📖 Journal Entries</a>
-                            <a href="/admin/accounting/ledger" class="sidebar-dropdown-item @(IsActive("/admin/accounting/ledger"))">📗 General Ledger</a>
+                            <a href="/admin/accounting/journal-entries" class="sidebar-dropdown-item @(IsActive("/admin/accounting/journal-entries"))">📖 Journal Entries</a>
+                            <a href="/admin/accounting/general-ledger" class="sidebar-dropdown-item @(IsActive("/admin/accounting/general-ledger"))">📗 General Ledger</a>
                             <a href="/admin/accounting/trial-balance" class="sidebar-dropdown-item @(IsActive("/admin/accounting/trial-balance"))">⚖️ Trial Balance</a>
-                            <a href="/admin/accounting/statements" class="sidebar-dropdown-item @(IsActive("/admin/accounting/statements"))">📄 Financial Statements</a>
+                            <a href="/admin/accounting/financial-statements" class="sidebar-dropdown-item @(IsActive("/admin/accounting/financial-statements"))">📄 Financial Statements</a>
                             <a href="/admin/accounting/chart-of-accounts" class="sidebar-dropdown-item @(IsActive("/admin/accounting/chart-of-accounts"))">📑 Chart of Accounts</a>
+                            <a href="/admin/accounting/reports" class="sidebar-dropdown-item @(IsActive("/admin/accounting/reports"))">📊 Accounting Reports</a>
                         </div>
                     </div>
                 </div>
-            }
 
-            @* Finance - Finance Manager & SuperAdmin *@
-            @if (currentRole == AuthService.Roles.SuperAdmin || currentRole == AuthService.Roles.FinanceManager)
-            {
-                <div class="sidebar-section">
+            @* Finance *@
+                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">
                     <div class="sidebar-section-title">FINANCE</div>
                     <div class="sidebar-dropdown @(financeOpen ? "open" : "")">
                         <button class="sidebar-dropdown-toggle" @onclick="() => financeOpen = !financeOpen">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <span>💵</span>
-                                <span>Finance</span>
+                                <span>Finance Operations</span>
                             </div>
                             <span class="dropdown-arrow">▼</span>
                         </button>
                         <div class="sidebar-dropdown-menu">
-                            <a href="/admin/finance/payables" class="sidebar-dropdown-item @(IsActive("/admin/finance/payables"))">💰 Accounts Payable</a>
-                            <a href="/admin/finance/receivables" class="sidebar-dropdown-item @(IsActive("/admin/finance/receivables"))">💳 Accounts Receivable</a>
-                            <a href="/admin/finance/budgets" class="sidebar-dropdown-item @(IsActive("/admin/finance/budgets"))">📊 Budget Management</a>
-                            <a href="/admin/finance/forecasting" class="sidebar-dropdown-item @(IsActive("/admin/finance/forecasting"))">📈 Financial Forecasting</a>
-                            <a href="/admin/finance/cash-flow" class="sidebar-dropdown-item @(IsActive("/admin/finance/cash-flow"))">💸 Cash Flow Analysis</a>
+                            <a href="/admin/finance/accounts-payable" class="sidebar-dropdown-item @(IsActive("/admin/finance/accounts-payable"))">💰 Accounts Payable</a>
+                            <a href="/admin/finance/accounts-receivable" class="sidebar-dropdown-item @(IsActive("/admin/finance/accounts-receivable"))">💳 Accounts Receivable</a>
+                            <a href="/admin/finance/budget-management" class="sidebar-dropdown-item @(IsActive("/admin/finance/budget-management"))">📊 Budget Management</a>
+                            <a href="/admin/finance/financial-forecasting" class="sidebar-dropdown-item @(IsActive("/admin/finance/financial-forecasting"))">📈 Financial Forecasting</a>
+                            <a href="/admin/finance/cashflow-analysis" class="sidebar-dropdown-item @(IsActive("/admin/finance/cashflow-analysis"))">💸 Cash Flow Analysis</a>
+                            <a href="/admin/finance/reports" class="sidebar-dropdown-item @(IsActive("/admin/finance/reports"))">📊 Finance Reports</a>
                         </div>
                     </div>
                 </div>
-            }
 
-            @* Security - SuperAdmin Only *@
-            @if (currentRole == AuthService.Roles.SuperAdmin)
-            {
-                <div class="sidebar-section">
+            @* Security *@
+                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
                     <div class="sidebar-section-title">SECURITY</div>
                     <div class="sidebar-dropdown @(securityOpen ? "open" : "")">
                         <button class="sidebar-dropdown-toggle" @onclick="() => securityOpen = !securityOpen">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <span>🔒</span>
-                                <span>Security</span>
+                                <span>Security & Audit</span>
                             </div>
                             <span class="dropdown-arrow">▼</span>
                         </button>
                         <div class="sidebar-dropdown-menu">
-                            <a href="/admin/security" class="sidebar-dropdown-item @(IsActive("/admin/security"))">🔐 Security Center</a>
-                            <a href="/admin/login-history" class="sidebar-dropdown-item @(IsActive("/admin/login-history"))">📜 Login History</a>
-                            <a href="/admin/sessions" class="sidebar-dropdown-item @(IsActive("/admin/sessions"))">📱 Session Management</a>
-                            <a href="/admin/audit-trail" class="sidebar-dropdown-item @(IsActive("/admin/audit-trail"))">📋 Audit Trail</a>
+                            <a href="/admin/system/security-center" class="sidebar-dropdown-item @(IsActive("/admin/system/security-center"))">🔐 Security Center</a>
+                            <a href="/admin/system/login-history" class="sidebar-dropdown-item @(IsActive("/admin/system/login-history"))">📜 Login History</a>
+                            <a href="/admin/system/session-management" class="sidebar-dropdown-item @(IsActive("/admin/system/session-management"))">📱 Session Management</a>
+                            <a href="/admin/system/audit-logs" class="sidebar-dropdown-item @(IsActive("/admin/system/audit-logs"))">📋 Audit Trail</a>
+                            <a href="/admin/system/monitoring" class="sidebar-dropdown-item @(IsActive("/admin/system/monitoring"))">🔍 System Monitoring</a>
                         </div>
                     </div>
                 </div>
-            }
+
+            @* Reports *@
+                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">
+                    <div class="sidebar-section-title">REPORTS</div>
+                    <div class="sidebar-dropdown @(reportsOpen ? "open" : "")">
+                        <button class="sidebar-dropdown-toggle" @onclick="() => reportsOpen = !reportsOpen">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span>📊</span>
+                                <span>System Reports</span>
+                            </div>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="sidebar-dropdown-menu">
+                            <a href="/admin/system/accountant-reports" class="sidebar-dropdown-item @(IsActive("/admin/system/accountant-reports"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">📈 Accountant Reports</a>
+                            <a href="/admin/system/finance-manager-reports" class="sidebar-dropdown-item @(IsActive("/admin/system/finance-manager-reports"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">💰 Finance Manager Reports</a>
+                            <a href="/admin/reports/banking" class="sidebar-dropdown-item @(IsActive("/admin/reports/banking"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">🏦 Banking Reports</a>
+                            <a href="/admin/reports/financial" class="sidebar-dropdown-item @(IsActive("/admin/reports/financial"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">📊 Financial Reports</a>
+                            <a href="/admin/reports/user-activity" class="sidebar-dropdown-item @(IsActive("/admin/reports/user-activity"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">👥 User Activity Reports</a>
+                            <a href="/admin/reports/transactions" class="sidebar-dropdown-item @(IsActive("/admin/reports/transactions"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">💰 Transaction Reports</a>
+                            <a href="/admin/reports/budget" class="sidebar-dropdown-item @(IsActive("/admin/reports/budget"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">📊 Budget Reports</a>
+                            <a href="/admin/reports/cashflow" class="sidebar-dropdown-item @(IsActive("/admin/reports/cashflow"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">💸 Cash Flow Reports</a>
+                        </div>
+                    </div>
+                </div>
+
+            @* System Settings *@
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">SYSTEM SETTINGS</div>
+                    <div class="sidebar-dropdown @(settingsOpen ? "open" : "")">
+                        <button class="sidebar-dropdown-toggle" @onclick="() => settingsOpen = !settingsOpen">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span>⚙️</span>
+                                <span>System Configuration</span>
+                            </div>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="sidebar-dropdown-menu">
+                            <a href="/admin/system/settings" class="sidebar-dropdown-item @(IsActive("/admin/system/settings"))">🔧 System Settings</a>
+                            <a href="/admin/system/configuration" class="sidebar-dropdown-item @(IsActive("/admin/system/configuration"))">🌐 Global Configuration</a>
+                            <a href="/admin/system/email-settings" class="sidebar-dropdown-item @(IsActive("/admin/system/email-settings"))">📧 Email Settings</a>
+                            <a href="/admin/system/notifications" class="sidebar-dropdown-item @(IsActive("/admin/system/notifications"))">🔔 Notification Settings</a>
+                            <a href="/admin/system/database" class="sidebar-dropdown-item @(IsActive("/admin/system/database"))">💾 Database Management</a>
+                        </div>
+                    </div>
+                </div>
 
             @* System - All Roles *@
             <div class="sidebar-section">
@@ -173,21 +206,18 @@
                     <span>📈</span>
                     <span>Reports</span>
                 </a>
-                @if (currentRole == AuthService.Roles.SuperAdmin)
-                {
-                    <a href="/admin/settings" class="sidebar-item @(IsActive("/admin/settings"))">
-                        <span>⚙️</span>
-                        <span>Settings</span>
-                    </a>
-                }
+                <a href="/admin/settings" class="sidebar-item @(IsActive("/admin/settings"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
+                    <span>⚙️</span>
+                    <span>Settings</span>
+                </a>
             </div>
         </div>
 
         <div class="sidebar-footer">
             <div class="sidebar-user" @onclick="HandleLogout">
-                <div class="sidebar-user-avatar">AD</div>
+                <div class="sidebar-user-avatar">@userInitials</div>
                 <div class="sidebar-user-info">
-                    <h4>Admin User</h4>
+                    <h4>@displayName (@roleDisplay)</h4>
                     <p>Logout</p>
                 </div>
             </div>
@@ -207,17 +237,36 @@
 
 @code {
     private bool userMgmtOpen = false;
-    private bool transactionsOpen = true;
+    private bool transactionsOpen = false;
     private bool bankingOpen = false;
     private bool securityOpen = false;
     private bool financeOpen = false;
     private bool accountingOpen = false;
+    private bool reportsOpen = false;
+    private bool settingsOpen = false;
     
     private string currentRole = "";
+    private string displayName = "";
+    private string roleDisplay = "";
+    private string userInitials = "";
+    private string headerRoleTitle = "Admin";
 
     protected override void OnInitialized()
     {
         currentRole = AuthService.CurrentRole ?? string.Empty;
+        displayName = AuthService.FullName ?? AuthService.CurrentUser ?? "User";
+        roleDisplay = AuthService.GetRoleDisplayName(AuthService.CurrentRole);
+        userInitials = GetInitials(displayName);
+        headerRoleTitle = GetHeaderRoleTitle(AuthService.CurrentRole);
+    }
+
+    protected override void OnParametersSet()
+    {
+        currentRole = AuthService.CurrentRole ?? currentRole;
+        displayName = AuthService.FullName ?? AuthService.CurrentUser ?? displayName;
+        roleDisplay = AuthService.GetRoleDisplayName(AuthService.CurrentRole);
+        userInitials = GetInitials(displayName);
+        headerRoleTitle = GetHeaderRoleTitle(AuthService.CurrentRole);
     }
 
     private string IsActive(string path)
@@ -244,5 +293,25 @@
         AuthService.Logout();
         Navigation.NavigateTo("/login");
     }
+
+    private string GetInitials(string name)
+    {
+        var parts = (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return (AuthService.CurrentUser ?? "U").Substring(0, 1).ToUpperInvariant();
+        if (parts.Length == 1) return parts[0].Substring(0, 1).ToUpperInvariant();
+        return (parts[0].Substring(0, 1) + parts[^1].Substring(0, 1)).ToUpperInvariant();
+    }
+
+    private string GetHeaderRoleTitle(string? role)
+    {
+        return role switch
+        {
+            AuthService.Roles.SuperAdmin => "Admin",
+            AuthService.Roles.Accountant => "Accountant",
+            AuthService.Roles.FinanceManager => "Finance",
+            _ => "Admin"
+        };
+    }
 }
+
 

@@ -44,10 +44,10 @@
     <!-- Task Tabs -->
     <div style="background: white; border-radius: 16px; padding: 0; border: 1px solid #e5e7eb; overflow: hidden;">
         <div style="display: flex; border-bottom: 2px solid #e5e7eb;">
-            <button @onclick='() => selectedTab = "all"' style='flex: 1; padding: 16px; background: @(selectedTab == "all" ? "#0891b2" : "transparent"); color: @(selectedTab == "all" ? "white" : "#6b7280"); border: none; font-size: 14px; font-weight: 600; cursor: pointer;'>All Tasks (@tasks.Count)</button>
-            <button @onclick='() => selectedTab = "pending"' style='flex: 1; padding: 16px; background: @(selectedTab == "pending" ? "#0891b2" : "transparent"); color: @(selectedTab == "pending" ? "white" : "#6b7280"); border: none; font-size: 14px; font-weight: 600; cursor: pointer;'>Pending (@tasks.Count(t => t.Status == "Pending"))</button>
-            <button @onclick='() => selectedTab = "progress"' style='flex: 1; padding: 16px; background: @(selectedTab == "progress" ? "#0891b2" : "transparent"); color: @(selectedTab == "progress" ? "white" : "#6b7280"); border: none; font-size: 14px; font-weight: 600; cursor: pointer;'>In Progress (@tasks.Count(t => t.Status == "In Progress"))</button>
-            <button @onclick='() => selectedTab = "completed"' style='flex: 1; padding: 16px; background: @(selectedTab == "completed" ? "#0891b2" : "transparent"); color: @(selectedTab == "completed" ? "white" : "#6b7280"); border: none; font-size: 14px; font-weight: 600; cursor: pointer;'>Completed (@tasks.Count(t => t.Status == "Completed"))</button>
+            <button @onclick='() => selectedTab = "all"' style="flex: 1; padding: 16px; background: @(selectedTab == "all" ? "#0891b2" : "transparent"); color: @(selectedTab == "all" ? "white" : "#6b7280"); border: none; font-size: 14px; font-weight: 600; cursor: pointer;">All Tasks (@tasks.Count)</button>
+            <button @onclick='() => selectedTab = "pending"' style="flex: 1; padding: 16px; background: @(selectedTab == "pending" ? "#0891b2" : "transparent"); color: @(selectedTab == "pending" ? "white" : "#6b7280"); border: none; font-size: 14px; font-weight: 600; cursor: pointer;">Pending (@tasks.Count(t => t.Status == "Pending"))</button>
+            <button @onclick='() => selectedTab = "progress"' style="flex: 1; padding: 16px; background: @(selectedTab == "progress" ? "#0891b2" : "transparent"); color: @(selectedTab == "progress" ? "white" : "#6b7280"); border: none; font-size: 14px; font-weight: 600; cursor: pointer;">In Progress (@tasks.Count(t => t.Status == "In Progress"))</button>
+            <button @onclick='() => selectedTab = "completed"' style="flex: 1; padding: 16px; background: @(selectedTab == "completed" ? "#0891b2" : "transparent"); color: @(selectedTab == "completed" ? "white" : "#6b7280"); border: none; font-size: 14px; font-weight: 600; cursor: pointer;">Completed (@tasks.Count(t => t.Status == "Completed"))</button>
         </div>
 
         <div style="padding: 24px;">
@@ -63,7 +63,7 @@
                                     {
                                         <span style="padding: 4px 8px; background: #fee2e2; color: #dc2626; border-radius: 6px; font-size: 11px; font-weight: 600;">OVERDUE</span>
                                     }
-                                    <span style='padding: 4px 8px; background: @GetPriorityColor(task.Priority); border-radius: 6px; font-size: 11px; font-weight: 600;'>@task.Priority</span>
+                                    <span style="padding: 4px 8px; background: @GetPriorityColor(task.Priority); border-radius: 6px; font-size: 11px; font-weight: 600;">@task.Priority</span>
                                 </div>
                                 <p style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">@task.Description</p>
                                 <div style="display: flex; gap: 16px; font-size: 12px; color: #9ca3af;">
@@ -72,7 +72,7 @@
                                 </div>
                             </div>
                             <div style="text-align: right;">
-                                <span style='padding: 6px 12px; background: @GetStatusColor(task.Status); border-radius: 8px; font-size: 12px; font-weight: 600; display: inline-block; margin-bottom: 8px;'>@task.Status</span>
+                                <span style="padding: 6px 12px; background: @GetStatusColor(task.Status); border-radius: 8px; font-size: 12px; font-weight: 600; display: inline-block; margin-bottom: 8px;">@task.Status</span>
                                 @if (task.Status != "Completed")
                                 {
                                     <div style="display: flex; gap: 8px; margin-top: 8px;">
@@ -170,3 +170,4 @@
         public bool IsOverdue { get; set; }
     }
 }
+

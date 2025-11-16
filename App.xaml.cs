@@ -1,4 +1,4 @@
-﻿namespace FinanceBank
+namespace FinanceBank
 {
     public partial class App : Application
     {
@@ -13,3 +13,4 @@
         }
     }
 }
+

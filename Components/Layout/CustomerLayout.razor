@@ -8,7 +8,7 @@
         <div class="sidebar-header">
             <div style="text-align: center;">
                 <img src="images/finsys-logo.png" alt="FINSYS Logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
-                <div class="sidebar-logo">FINSYS Customer</div>
+                <div class="sidebar-logo">@customerName</div>
                 <div class="sidebar-subtitle">Banking Portal</div>
             </div>
         </div>
@@ -85,9 +85,9 @@
 
         <div class="sidebar-footer">
             <div class="sidebar-user" @onclick="HandleLogout">
-                <div class="sidebar-user-avatar">CU</div>
+                <div class="sidebar-user-avatar">@userInitials</div>
                 <div class="sidebar-user-info">
-                    <h4>Customer User</h4>
+                    <h4>@customerName</h4>
                     <p>Logout</p>
                 </div>
             </div>
@@ -106,6 +106,15 @@
 </div>
 
 @code {
+    private string customerName = "";
+    private string userInitials = "";
+
+    protected override void OnInitialized()
+    {
+        customerName = AuthService.FullName ?? AuthService.CurrentUser ?? "Customer";
+        userInitials = GetInitials(customerName);
+    }
+
     private string IsActive(string path)
     {
         return Navigation.Uri.Contains(path) ? "active" : "";
@@ -135,4 +144,13 @@
         AuthService.Logout();
         Navigation.NavigateTo("/login");
     }
+
+    private string GetInitials(string name)
+    {
+        var parts = (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return (AuthService.CurrentUser ?? "U").Substring(0, 1).ToUpperInvariant();
+        if (parts.Length == 1) return parts[0].Substring(0, 1).ToUpperInvariant();
+        return (parts[0].Substring(0, 1) + parts[^1].Substring(0, 1)).ToUpperInvariant();
+    }
 }
+

@@ -22,7 +22,7 @@
 
             <div style="text-align: center; margin-bottom: 32px;">
                 <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 8px;">Welcome Back!</h2>
-                <p style="font-size: 14px; color: #6b7280;">Enter your credentials to access your account</p>
+                <p style="font-size: 14px; color: #6b7280;">Enter your credentials and we'll take you to your dashboard automatically</p>
             </div>
 
         <form @onsubmit="HandleLogin">
@@ -66,21 +66,6 @@
                 </div>
             </div>
 
-            <!-- Role Selection -->
-            <div class="form-group">
-                <label class="form-label required-field">Select Role</label>
-                <select class="form-control @(showError && string.IsNullOrEmpty(role) ? "error" : "")" @bind="role" style="padding: 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px;">
-                    <option value="">Choose your role</option>
-                    <option value="@AuthService.Roles.Customer">👤 Customer - Personal Banking</option>
-                    <option value="@AuthService.Roles.Accountant">📊 Accountant - Banking & Accounting</option>
-                    <option value="@AuthService.Roles.FinanceManager">💵 Finance Manager - Financial Management</option>
-                    <option value="@AuthService.Roles.SuperAdmin">🔐 Super Administrator - Full Access</option>
-                </select>
-                @if (showError && string.IsNullOrEmpty(role))
-                {
-                    <span class="form-error" style="color: #dc2626; font-size: 13px; margin-top: 4px; display: block;">! Please select your role</span>
-                }
-            </div>
 
             <!-- Remember Me -->
             <div style="margin-bottom: 24px;">
@@ -188,7 +173,6 @@
 @code {
     private string username = "";
     private string password = "";
-    private string role = "";
     private string errorMessage = "";
     private bool showError = false;
     private bool showPassword = false;
@@ -213,40 +197,46 @@
             return;
         }
 
-        if (string.IsNullOrEmpty(role))
-        {
-            errorMessage = "Please select your role";
-            return;
-        }
 
-        // Simulate loading state (UI feedback)
+        // Set loading state
         isLoading = true;
-        await Task.Delay(1000); // Simulate API call
 
-        // Simulate login validation
-        if (password.Length < 6)
+        try
         {
-            errorMessage = "Invalid credentials. Please check your username and password.";
+            // Authenticate user (works with or without database)
+            var (success, message) = await AuthService.AuthenticateAsync(username, password);
+            
+            if (!success)
+            {
+                errorMessage = message;
+                isLoading = false;
+                return;
+            }
+
+            // Successful login - navigate based on user's actual role from database
             isLoading = false;
-            return;
+            
+            if (AuthService.CurrentRole == AuthService.Roles.Customer)
+            {
+                Navigation.NavigateTo("/customer/dashboard", true);
+            }
+            else if (AuthService.CurrentRole == AuthService.Roles.SuperAdmin || 
+                     AuthService.CurrentRole == AuthService.Roles.Accountant || 
+                     AuthService.CurrentRole == AuthService.Roles.FinanceManager)
+            {
+                Navigation.NavigateTo("/admin/dashboard", true);
+            }
+            else
+            {
+                // Default fallback
+                Navigation.NavigateTo("/admin/dashboard", true);
+            }
         }
-
-        // Successful login
-        AuthService.Login(username, role);
-        isLoading = false;
-
-        // Log the login attempt
-        // TODO: Implement actual IP tracking and login history
-        
-        // Navigate based on role with clear feedback
-        if (role == AuthService.Roles.Customer)
+        catch (Exception ex)
         {
-            Navigation.NavigateTo("/customer/dashboard");
-        }
-        else
-        {
-            // SuperAdmin, Accountant, Finance Manager go to admin dashboard
-            Navigation.NavigateTo("/admin/dashboard");
+            errorMessage = $"Login error: {ex.Message}";
+            isLoading = false;
         }
     }
 }
+

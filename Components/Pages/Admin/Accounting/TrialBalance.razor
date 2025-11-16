@@ -1,0 +1,24 @@
+@page "/admin/accounting/trial-balance"
+@layout AdminLayout
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Trial Balance</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Verify debits and credits balance</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool showGenerateReportModal = false;
+    private void ShowGenerateReportModal() => showGenerateReportModal = true;
+    private void CloseGenerateReportModal() => showGenerateReportModal = false;
+}
+

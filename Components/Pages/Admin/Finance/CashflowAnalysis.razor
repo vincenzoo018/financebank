@@ -1,0 +1,26 @@
+@page "/admin/finance/cashflow-analysis"
+@layout AdminLayout
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Cashflow Analysis</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Monitor cash inflows and outflows</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool showAnalysisDetailsModal = false;
+    private string selectedPeriod = "";
+
+    private void ShowAnalysisDetailsModal(string period) { selectedPeriod = period; showAnalysisDetailsModal = true; }
+    private void CloseAnalysisDetailsModal() => showAnalysisDetailsModal = false;
+}
+

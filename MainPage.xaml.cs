@@ -1,4 +1,4 @@
-﻿namespace FinanceBank
+namespace FinanceBank
 {
     public partial class MainPage : ContentPage
     {
@@ -8,3 +8,4 @@
         }
     }
 }
+

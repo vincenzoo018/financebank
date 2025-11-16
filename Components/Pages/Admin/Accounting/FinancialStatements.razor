@@ -1,0 +1,26 @@
+@page "/admin/accounting/financial-statements"
+@layout AdminLayout
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Financial Statements</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Income statement, balance sheet, cash flow</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool showStatementModal = false;
+    private string selectedStatement = "";
+    
+    private void ShowStatementModal(string type) { selectedStatement = type; showStatementModal = true; }
+    private void CloseStatementModal() => showStatementModal = false;
+}
+

@@ -10,10 +10,10 @@
                 <p style="margin: 8px 0 0; font-size: 14px; opacity: 0.9;">System overview and analytics</p>
             </div>
             <div style="display: flex; gap: 8px;">
-                <button @onclick='() => selectedPeriod = "hour"' style='padding: 8px 16px; background: @(selectedPeriod == "hour" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "hour" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;'>Hour</button>
-                <button @onclick='() => selectedPeriod = "day"' style='padding: 8px 16px; background: @(selectedPeriod == "day" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "day" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;'>Day</button>
-                <button @onclick='() => selectedPeriod = "month"' style='padding: 8px 16px; background: @(selectedPeriod == "month" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "month" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;'>Month</button>
-                <button @onclick='() => selectedPeriod = "year"' style='padding: 8px 16px; background: @(selectedPeriod == "year" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "year" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;'>Year</button>
+                <button @onclick='() => selectedPeriod = "hour"' style="padding: 8px 16px; background: @(selectedPeriod == "hour" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "hour" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Hour</button>
+                <button @onclick='() => selectedPeriod = "day"' style="padding: 8px 16px; background: @(selectedPeriod == "day" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "day" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Day</button>
+                <button @onclick='() => selectedPeriod = "month"' style="padding: 8px 16px; background: @(selectedPeriod == "month" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "month" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Month</button>
+                <button @onclick='() => selectedPeriod = "year"' style="padding: 8px 16px; background: @(selectedPeriod == "year" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "year" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Year</button>
             </div>
         </div>
     </div>
@@ -90,7 +90,7 @@
                 @foreach (var data in chartData)
                 {
                     <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                        <div style='width: 100%; background: linear-gradient(180deg, #059669, #047857); border-radius: 8px 8px 0 0; height: @(data.Value / 20)%; min-height: 20px; transition: all 0.3s;'></div>
+                        <div style="width: 100%; background: linear-gradient(180deg, #059669, #047857); border-radius: 8px 8px 0 0; height: @(data.Value / 20)%; min-height: 20px; transition: all 0.3s;"></div>
                         <div style="font-size: 11px; color: #6b7280; font-weight: 600;">@data.Label</div>
                     </div>
                 }
@@ -129,7 +129,7 @@
             @foreach (var activity in recentActivities)
             {
                 <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f9fafb; border-radius: 8px;">
-                    <div style='width: 32px; height: 32px; background: @activity.Color; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;'>
+                    <div style="width: 32px; height: 32px; background: @activity.Color; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                         <svg width="16" height="16" fill="none" stroke="white" stroke-width="2">
                             <path d="@activity.Icon"/>
                         </svg>
@@ -182,3 +182,4 @@
         public string Icon { get; set; } = "";
     }
 }
+

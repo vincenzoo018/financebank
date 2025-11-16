@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
 using FinanceBank.Services;
+using FinanceBank.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinanceBank
 {
@@ -16,7 +18,28 @@ namespace FinanceBank
                 });
 
             builder.Services.AddMauiBlazorWebView();
-            builder.Services.AddSingleton<AuthService>();
+
+            // Add Entity Framework DbContext
+            builder.Services.AddDbContext<BFASDbContext>(options =>
+            {
+                var connectionString = builder.Configuration["ConnectionStrings:BFASConnection"] 
+                    ?? "Server=localhost;Database=BFASdatabase;Trusted_Connection=True;TrustServerCertificate=True;";
+                options.UseSqlServer(connectionString);
+            });
+
+            // Register AuthService as Scoped (one instance per request/page navigation)
+            builder.Services.AddScoped<AuthService>();
+            
+            // Register Role-Based Navigation Service
+            builder.Services.AddScoped<RoleBasedNavigationService>();
+
+            // Register CRUD Services
+            builder.Services.AddScoped<BankAccountService>();
+            builder.Services.AddScoped<FundTransferService>();
+            builder.Services.AddScoped<JournalEntryService>();
+            builder.Services.AddScoped<BudgetManagementService>();
+            builder.Services.AddScoped<CustomerAccountService>();
+            builder.Services.AddScoped<CustomerTransactionService>();
 
 #if DEBUG
     		builder.Services.AddBlazorWebViewDeveloperTools();
@@ -27,3 +50,4 @@ namespace FinanceBank
         }
     }
 }
+
