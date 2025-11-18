@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 @inject RoleBasedNavigationService RoleService
@@ -36,7 +37,7 @@
                             <span class="dropdown-arrow">▼</span>
                         </button>
                         <div class="sidebar-dropdown-menu">
-                            <a href="/admin/system/user-registration" class="sidebar-dropdown-item @(IsActive("/admin/system/user-registration"))">➕ Register New User</a>
+                            <a href="/admin/user-registration" class="sidebar-dropdown-item @(IsActive("/admin/user-registration"))">➕ Register New User</a>
                             <a href="/admin/system/users" class="sidebar-dropdown-item @(IsActive("/admin/system/users"))">📋 All Users</a>
                             <a href="/admin/system/roles" class="sidebar-dropdown-item @(IsActive("/admin/system/roles"))">🔐 Roles & Permissions</a>
                             <a href="/admin/system/customers" class="sidebar-dropdown-item @(IsActive("/admin/system/customers"))">👤 Customer Profiles</a>
@@ -258,6 +259,23 @@
         roleDisplay = AuthService.GetRoleDisplayName(AuthService.CurrentRole);
         userInitials = GetInitials(displayName);
         headerRoleTitle = GetHeaderRoleTitle(AuthService.CurrentRole);
+        
+        // Subscribe to authentication state changes
+        AuthService.OnAuthStateChanged += OnAuthStateChanged;
+        
+        // Check if user is authenticated
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+        
+        // Check if user has proper role (not customer)
+        if (AuthService.CurrentRole == AuthService.Roles.Customer)
+        {
+            Navigation.NavigateTo("/customer/dashboard", forceLoad: true);
+            return;
+        }
     }
 
     protected override void OnParametersSet()
@@ -267,6 +285,16 @@
         roleDisplay = AuthService.GetRoleDisplayName(AuthService.CurrentRole);
         userInitials = GetInitials(displayName);
         headerRoleTitle = GetHeaderRoleTitle(AuthService.CurrentRole);
+    }
+    
+    private void OnAuthStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+    
+    public void Dispose()
+    {
+        AuthService.OnAuthStateChanged -= OnAuthStateChanged;
     }
 
     private string IsActive(string path)

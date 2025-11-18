@@ -32,7 +32,7 @@ BEGIN
         LastLoginAt DATETIME NULL,
         Department NVARCHAR(50) NULL,
         EmployeeId NVARCHAR(50) NULL,
-        CONSTRAINT CK_Users_Role CHECK (Role IN ('SuperAdmin', 'Accountant', 'FinanceManager', 'Customer'))
+        CONSTRAINT CK_Users_Role CHECK (Role IN ('SuperAdmin', 'Accountant', 'FinanceManager', 'Teller', 'Customer'))
     );
     
     CREATE INDEX IX_Users_Username ON Users(Username);

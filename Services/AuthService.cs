@@ -17,6 +17,9 @@ namespace FinanceBank.Services
         public string? EmployeeId { get; private set; }
         public string? Department { get; private set; }
         public List<string> Permissions { get; private set; } = new();
+        
+        // Event to notify when authentication state changes
+        public event Action? OnAuthStateChanged;
 
         // Constructor for dependency injection
         public AuthService(BFASDbContext? context = null)
@@ -24,12 +27,13 @@ namespace FinanceBank.Services
             _context = context;
         }
 
-        // Define all roles in the ERP system (4 roles only)
+        // Define all roles in the ERP system (5 roles)
         public static class Roles
         {
             public const string SuperAdmin = "SuperAdmin";
             public const string Accountant = "Accountant";
             public const string FinanceManager = "FinanceManager";
+            public const string Teller = "Teller";
             public const string Customer = "Customer";
         }
 
@@ -105,6 +109,8 @@ namespace FinanceBank.Services
                 ["admin"] = ("admin123", Roles.SuperAdmin, "System Administrator", "IT Department", "EMP-001"),
                 ["accountant"] = ("accountant123", Roles.Accountant, "Juan Dela Cruz", "Accounting Department", "EMP-002"),
                 ["fmanager"] = ("fmanager123", Roles.FinanceManager, "Maria Santos", "Finance Department", "EMP-003"),
+                ["teller1"] = ("teller123", Roles.Teller, "John Teller", "Banking Services", "TEL-001"),
+                ["teller2"] = ("teller123", Roles.Teller, "Maria Teller", "Banking Services", "TEL-002"),
                 ["customer"] = ("customer123", Roles.Customer, "Pedro Garcia", null, null)
             };
 
@@ -145,6 +151,9 @@ namespace FinanceBank.Services
             };
             _context.LoginHistories.Add(loginHistory);
             await _context.SaveChangesAsync();
+            
+            // Notify authentication state changed
+            OnAuthStateChanged?.Invoke();
         }
 
         // Simple login (without database)
@@ -157,6 +166,9 @@ namespace FinanceBank.Services
             Department = department;
             EmployeeId = employeeId;
             Permissions = GetPermissionsForRole(role);
+            
+            // Notify authentication state changed
+            OnAuthStateChanged?.Invoke();
         }
 
         // Log failed login attempt
@@ -196,6 +208,9 @@ namespace FinanceBank.Services
             EmployeeId = null;
             Department = null;
             Permissions.Clear();
+            
+            // Notify authentication state changed
+            OnAuthStateChanged?.Invoke();
         }
 
         // Check if user has permission to access a module

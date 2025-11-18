@@ -1,0 +1,169 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="sidebar-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div style="text-align: center;">
+                <img src="images/finsys-logo.png" alt="FINSYS Logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
+                <div class="sidebar-logo">FINSYS Teller</div>
+                <div class="sidebar-subtitle">Banking Services</div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav" style="overflow-y: auto; max-height: calc(100vh - 200px);">
+            <!-- Main Section -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">MAIN</div>
+                <a href="/teller/dashboard" class="sidebar-item @(IsActive("/teller/dashboard"))">
+                    <span>🏠</span>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <!-- Customer Services -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">CUSTOMER SERVICES</div>
+                <a href="/teller/deposits" class="sidebar-item @(IsActive("/teller/deposits"))">
+                    <span>💰</span>
+                    <span>Process Deposits</span>
+                </a>
+                <a href="/teller/withdrawals" class="sidebar-item @(IsActive("/teller/withdrawals"))">
+                    <span>💸</span>
+                    <span>Process Withdrawals</span>
+                </a>
+                <a href="/teller/transactions" class="sidebar-item @(IsActive("/teller/transactions"))">
+                    <span>📊</span>
+                    <span>Transaction History</span>
+                </a>
+            </div>
+
+            <!-- Account Management -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">ACCOUNT MANAGEMENT</div>
+                <a href="/teller/accounts" class="sidebar-item @(IsActive("/teller/accounts"))">
+                    <span>👤</span>
+                    <span>Customer Accounts</span>
+                </a>
+                <a href="/teller/verification" class="sidebar-item @(IsActive("/teller/verification"))">
+                    <span>✓</span>
+                    <span>Account Verification</span>
+                </a>
+            </div>
+
+            <!-- Reports -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">REPORTS</div>
+                <a href="/teller/daily-report" class="sidebar-item @(IsActive("/teller/daily-report"))">
+                    <span>📋</span>
+                    <span>Daily Report</span>
+                </a>
+                <a href="/teller/cash-summary" class="sidebar-item @(IsActive("/teller/cash-summary"))">
+                    <span>💵</span>
+                    <span>Cash Summary</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user" @onclick="HandleLogout">
+                <div class="sidebar-user-avatar">@userInitials</div>
+                <div class="sidebar-user-info">
+                    <h4>@displayName</h4>
+                    <p>Logout</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="sidebar-main">
+        <div class="sidebar-topbar">
+            <div class="topbar-title">@GetPageTitle()</div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <span style="font-size: 14px; color: #6b7280;">@displayName</span>
+                <span style="font-size: 12px; background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 20px; font-weight: 600;">Teller</span>
+            </div>
+        </div>
+        <div class="sidebar-content">
+            @Body
+        </div>
+    </div>
+</div>
+
+@code {
+    private string displayName = "Teller";
+    private string userInitials = "TL";
+
+    protected override void OnInitialized()
+    {
+        displayName = AuthService.FullName ?? AuthService.CurrentUser ?? "Teller";
+        userInitials = GetInitials(displayName);
+
+        // Subscribe to authentication state changes
+        AuthService.OnAuthStateChanged += OnAuthStateChanged;
+
+        // Check if user is authenticated
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        // Check if user has teller role
+        if (AuthService.CurrentRole != AuthService.Roles.Teller)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+    }
+
+    private void OnAuthStateChanged()
+    {
+        displayName = AuthService.FullName ?? AuthService.CurrentUser ?? "Teller";
+        userInitials = GetInitials(displayName);
+        StateHasChanged();
+    }
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return "TL";
+        var parts = name.Split(' ');
+        return parts.Length >= 2 
+            ? $"{parts[0][0]}{parts[1][0]}".ToUpper()
+            : $"{parts[0][0]}".ToUpper();
+    }
+
+    private string IsActive(string path)
+    {
+        return Navigation.Uri.Contains(path) ? "active" : "";
+    }
+
+    private string GetPageTitle()
+    {
+        var path = Navigation.Uri;
+        if (path.Contains("/dashboard")) return "Dashboard";
+        if (path.Contains("/deposits")) return "Process Deposits";
+        if (path.Contains("/withdrawals")) return "Process Withdrawals";
+        if (path.Contains("/transactions")) return "Transaction History";
+        if (path.Contains("/accounts")) return "Customer Accounts";
+        if (path.Contains("/verification")) return "Account Verification";
+        if (path.Contains("/daily-report")) return "Daily Report";
+        if (path.Contains("/cash-summary")) return "Cash Summary";
+        return "Teller Portal";
+    }
+
+    private void HandleLogout()
+    {
+        AuthService.Logout();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnAuthStateChanged -= OnAuthStateChanged;
+    }
+}

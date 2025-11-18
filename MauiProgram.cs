@@ -27,8 +27,8 @@ namespace FinanceBank
                 options.UseSqlServer(connectionString);
             });
 
-            // Register AuthService as Scoped (one instance per request/page navigation)
-            builder.Services.AddScoped<AuthService>();
+            // Register AuthService as Singleton (persists across page navigations)
+            builder.Services.AddSingleton<AuthService>();
             
             // Register Role-Based Navigation Service
             builder.Services.AddScoped<RoleBasedNavigationService>();

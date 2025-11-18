@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
@@ -14,33 +15,36 @@
         </div>
 
         <div class="sidebar-nav">
+            <!-- Quick Balance Display -->
+            <div style="margin: 0 16px 24px; padding: 16px; background: linear-gradient(135deg, #0891b2, #06b6d4); border-radius: 12px; color: white;">
+                <div style="font-size: 11px; opacity: 0.9; margin-bottom: 4px;">Total Balance</div>
+                <div style="font-size: 24px; font-weight: 700;">₱25,450.00</div>
+                <div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">Account: ****1234</div>
+            </div>
+            
             <!-- Main Section -->
             <div class="sidebar-section">
-                <div class="sidebar-section-title">MAIN</div>
+                <div class="sidebar-section-title">OVERVIEW</div>
                 <a href="/customer/dashboard" class="sidebar-item @(IsActive("/customer/dashboard"))">
-                    <span>■</span>
+                    <span>🏠</span>
                     <span>Dashboard</span>
                 </a>
             </div>
 
-            <!-- Banking Section -->
+            <!-- Quick Transactions Section - BPI/BDO Style -->
             <div class="sidebar-section">
-                <div class="sidebar-section-title">BANKING SERVICES</div>
+                <div class="sidebar-section-title">TRANSACTIONS</div>
+                <a href="/customer/transfer-money" class="sidebar-item @(IsActive("/customer/transfer-money"))">
+                    <span>💸</span>
+                    <span>Send Money</span>
+                </a>
                 <a href="/customer/deposit" class="sidebar-item @(IsActive("/customer/deposit"))">
                     <span>💰</span>
                     <span>Deposit</span>
                 </a>
                 <a href="/customer/withdraw" class="sidebar-item @(IsActive("/customer/withdraw"))">
-                    <span>💸</span>
+                    <span>🏧</span>
                     <span>Withdraw</span>
-                </a>
-                <a href="/customer/transfer-money" class="sidebar-item @(IsActive("/customer/transfer-money"))">
-                    <span>🔄</span>
-                    <span>Transfer</span>
-                </a>
-                <a href="/customer/transactions" class="sidebar-item @(IsActive("/customer/transactions"))">
-                    <span>📊</span>
-                    <span>Transaction History</span>
                 </a>
                 <a href="/customer/bills" class="sidebar-item @(IsActive("/customer/bills"))">
                     <span>📄</span>
@@ -48,36 +52,45 @@
                 </a>
             </div>
 
-            <!-- Services Section -->
+            <!-- Accounts & Cards Section -->
             <div class="sidebar-section">
-                <div class="sidebar-section-title">SERVICES</div>
-                <a href="/customer/cards" class="sidebar-item @(IsActive("/customer/cards"))">
-                    <span>▪</span>
-                    <span>Cards</span>
+                <div class="sidebar-section-title">ACCOUNTS & CARDS</div>
+                <a href="/customer/transactions" class="sidebar-item @(IsActive("/customer/transactions"))">
+                    <span>📊</span>
+                    <span>Transaction History</span>
                 </a>
-                <a href="/customer/loans" class="sidebar-item @(IsActive("/customer/loans"))">
-                    <span>◆</span>
-                    <span>Loans</span>
+                <a href="/customer/cards" class="sidebar-item @(IsActive("/customer/cards"))">
+                    <span>💳</span>
+                    <span>My Cards</span>
                 </a>
                 <a href="/customer/savings" class="sidebar-item @(IsActive("/customer/savings"))">
-                    <span>●</span>
-                    <span>Savings</span>
+                    <span>🏦</span>
+                    <span>Savings Account</span>
+                </a>
+            </div>
+
+            <!-- Loans & Services Section -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">SERVICES</div>
+                <a href="/customer/loans" class="sidebar-item @(IsActive("/customer/loans"))">
+                    <span>🏠</span>
+                    <span>Loans</span>
                 </a>
                 <a href="/customer/rewards" class="sidebar-item @(IsActive("/customer/rewards"))">
-                    <span>★</span>
+                    <span>⭐</span>
                     <span>Rewards</span>
                 </a>
             </div>
 
-            <!-- Account Section -->
+            <!-- Settings Section -->
             <div class="sidebar-section">
                 <div class="sidebar-section-title">ACCOUNT</div>
                 <a href="/customer/profile" class="sidebar-item @(IsActive("/customer/profile"))">
-                    <span>●</span>
-                    <span>Profile</span>
+                    <span>👤</span>
+                    <span>My Profile</span>
                 </a>
                 <a href="/customer/settings" class="sidebar-item @(IsActive("/customer/settings"))">
-                    <span>◈</span>
+                    <span>⚙️</span>
                     <span>Settings</span>
                 </a>
             </div>
@@ -113,6 +126,33 @@
     {
         customerName = AuthService.FullName ?? AuthService.CurrentUser ?? "Customer";
         userInitials = GetInitials(customerName);
+        
+        // Subscribe to authentication state changes
+        AuthService.OnAuthStateChanged += OnAuthStateChanged;
+        
+        // Check if user is authenticated
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+        
+        // Check if user has customer role
+        if (AuthService.CurrentRole != AuthService.Roles.Customer)
+        {
+            Navigation.NavigateTo("/admin/dashboard", forceLoad: true);
+            return;
+        }
+    }
+    
+    private void OnAuthStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+    
+    public void Dispose()
+    {
+        AuthService.OnAuthStateChanged -= OnAuthStateChanged;
     }
 
     private string IsActive(string path)

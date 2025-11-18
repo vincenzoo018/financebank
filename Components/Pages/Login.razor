@@ -1,6 +1,7 @@
 @page "/login"
 @inject AuthService AuthService
 @inject NavigationManager Navigation
+@using System.Diagnostics
 
 <div style="min-height: 100vh; display: flex; background: linear-gradient(135deg, #0f766e 0%, #059669 50%, #10b981 100%); position: relative; overflow: hidden;">
     <!-- Animated Background Elements -->
@@ -200,42 +201,61 @@
 
         // Set loading state
         isLoading = true;
+        StateHasChanged();
 
         try
         {
+            // Small delay to show loading state
+            await Task.Delay(500);
+            
             // Authenticate user (works with or without database)
             var (success, message) = await AuthService.AuthenticateAsync(username, password);
+            
+            Console.WriteLine($"Login attempt - Success: {success}, Message: {message}");
             
             if (!success)
             {
                 errorMessage = message;
                 isLoading = false;
+                StateHasChanged();
                 return;
             }
 
-            // Successful login - navigate based on user's actual role from database
-            isLoading = false;
+            // Successful login
+            Console.WriteLine($"Login successful - Role: {AuthService.CurrentRole}, User: {AuthService.CurrentUser}");
             
-            if (AuthService.CurrentRole == AuthService.Roles.Customer)
+            isLoading = false;
+            StateHasChanged();
+            
+            // Determine navigation path based on role
+            string navigateTo = AuthService.CurrentRole switch
             {
-                Navigation.NavigateTo("/customer/dashboard", true);
-            }
-            else if (AuthService.CurrentRole == AuthService.Roles.SuperAdmin || 
-                     AuthService.CurrentRole == AuthService.Roles.Accountant || 
-                     AuthService.CurrentRole == AuthService.Roles.FinanceManager)
-            {
-                Navigation.NavigateTo("/admin/dashboard", true);
-            }
-            else
-            {
-                // Default fallback
-                Navigation.NavigateTo("/admin/dashboard", true);
-            }
+                AuthService.Roles.Customer => "/customer/dashboard",
+                AuthService.Roles.Teller => "/teller/dashboard",
+                AuthService.Roles.SuperAdmin => "/admin/dashboard",
+                AuthService.Roles.Accountant => "/admin/dashboard",
+                AuthService.Roles.FinanceManager => "/admin/dashboard",
+                _ => "/login"
+            };
+            
+            Console.WriteLine($"User role: {AuthService.CurrentRole}");
+            Console.WriteLine($"About to navigate to: {navigateTo}");
+            
+            // Small delay to ensure state is fully updated
+            await Task.Delay(200);
+            
+            // Navigate to the appropriate dashboard
+            Navigation.NavigateTo(navigateTo, forceLoad: false);
+            
+            Console.WriteLine("Navigation command executed");
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Login error: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             errorMessage = $"Login error: {ex.Message}";
             isLoading = false;
+            StateHasChanged();
         }
     }
 }
