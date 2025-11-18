@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using FinanceBank.Services;
 using FinanceBank.Data;
 using Microsoft.EntityFrameworkCore;
+using FinanceBank.Models;
 
 namespace FinanceBank
 {
@@ -22,8 +23,7 @@ namespace FinanceBank
             // Add Entity Framework DbContext
             builder.Services.AddDbContext<BFASDbContext>(options =>
             {
-                var connectionString = builder.Configuration["ConnectionStrings:BFASConnection"] 
-                    ?? "Server=localhost;Database=BFASdatabase;Trusted_Connection=True;TrustServerCertificate=True;";
+                var connectionString = "Server=localhost\\SQLEXPRESS;Database=BFASdatabase;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;";
                 options.UseSqlServer(connectionString);
             });
 
@@ -32,6 +32,18 @@ namespace FinanceBank
             
             // Register Role-Based Navigation Service
             builder.Services.AddScoped<RoleBasedNavigationService>();
+
+            // Register User Registration Service
+            builder.Services.AddScoped<UserRegistrationService>();
+
+            // Register User CRUD Service
+            builder.Services.AddScoped<UserCrudService>();
+
+            // Register Customer Banking Service (customer-facing deposits, withdrawals, bills)
+            builder.Services.AddScoped<CustomerBankingService>();
+
+            // Register Teller Banking Service (teller/admin processing deposits and withdrawals)
+            builder.Services.AddScoped<TellerBankingService>();
 
             // Register CRUD Services
             builder.Services.AddScoped<BankAccountService>();

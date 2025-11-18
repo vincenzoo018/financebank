@@ -1,5 +1,11 @@
 @page "/customer/deposit"
 @layout CustomerLayout
+@using System.Linq
+@using FinanceBank.Services
+@using FinanceBank.Models
+@inject CustomerBankingService BankingService
+@inject CustomerTransactionService TransactionService
+@inject AuthService AuthService
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <!-- Header -->
@@ -22,54 +28,53 @@
 
     <!-- Main Content -->
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-        <!-- Deposit Form -->
+        <!-- Account Lookup -->
         <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            <form>
-                <!-- Deposit Type -->
-                <div style="margin-bottom: 24px;">
-                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Deposit Type</h3>
-                    <select class="form-control" @bind="depositType" style="font-size: 16px; padding: 12px;">
-                        <option value="cash">💵 Cash Deposit</option>
-                        <option value="check">📝 Check Deposit</option>
-                        <option value="online">🌐 Online Transfer</option>
-                    </select>
-                </div>
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Account Number *</h3>
+            
+            <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; margin-bottom: 12px;" 
+                   @bind="accountNumberInput" @oninput="OnAccountNumberChange" placeholder="Enter your account number..." />
+            
+            @if (!string.IsNullOrEmpty(accountError))
+            {
+                <div style="color: #dc2626; font-size: 12px; margin-bottom: 12px;">@accountError</div>
+            }
 
-                <!-- To Account -->
-                <div style="margin-bottom: 24px;">
-                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">To Account</h3>
-                    <div style="border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; background: #f9fafb;">
-                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">FINSYS Savings Account</div>
-                        <div style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">****1234</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #059669;">₱25,450.75</div>
+            <!-- Account Details (Auto-filled) -->
+            @if (selectedAccount != null)
+            {
+                <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Account Number</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedAccount.AccountNumber</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Account Type</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedAccount.AccountType</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Customer Name</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedAccount.Customer?.FullName</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Current Balance</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #059669;">₱@selectedAccount.Balance.ToString("N2")</div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Amount -->
-                <div style="margin-bottom: 24px;">
-                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Deposit Amount</h3>
-                    <div class="form-group">
-                        <input type="number" class="form-control" @bind="amount" placeholder="0.00" style="font-size: 24px; font-weight: 600; padding: 16px; text-align: center; color: #059669;" />
-                        <div style="text-align: center; margin-top: 8px; font-size: 14px; color: #6b7280;">No processing fee</div>
-                    </div>
+                <!-- New Deposit Button -->
+                <button type="button" @onclick="ShowDepositModal" style="width: 100%; padding: 16px; background: linear-gradient(135deg, #059669, #047857); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
+                    New Deposit Transaction →
+                </button>
+            }
+            else if (!string.IsNullOrEmpty(accountNumberInput))
+            {
+                <div style="padding: 16px; background: #fef3c7; border-radius: 8px; color: #92400e; font-size: 14px;">
+                    Enter your account number to load account details.
                 </div>
-
-                <!-- Purpose -->
-                <div style="margin-bottom: 32px;">
-                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Purpose</h3>
-                    <textarea class="form-control" @bind="purpose" placeholder="Optional notes about this deposit" rows="3" style="resize: vertical;"></textarea>
-                </div>
-
-                <!-- Action Buttons -->
-                <div style="display: flex; gap: 12px;">
-                    <button type="button" @onclick="ClearForm" style="flex: 1; padding: 16px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 16px; font-weight: 600; cursor: pointer;">
-                        Clear
-                    </button>
-                    <button type="button" @onclick="ProcessDeposit" style="flex: 2; padding: 16px; background: linear-gradient(135deg, #059669, #047857); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
-                        Deposit Now →
-                    </button>
-                </div>
-            </form>
+            }
         </div>
 
         <!-- Sidebar -->
@@ -96,19 +101,41 @@
                     <h3 style="font-size: 18px; font-weight: 600; color: #1f2937;">Recent Deposits</h3>
                     <button type="button" @onclick="ShowHistory" style="font-size: 14px; color: #059669; background: none; border: none; cursor: pointer; font-weight: 500;">View All</button>
                 </div>
-                
-                @foreach (var deposit in recentDeposits.Take(3))
-                {
-                    <div class="deposit-item" style="padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 14px; color: #1f2937;">@deposit.Type</div>
-                                <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">@deposit.Date.ToString("MMM dd, yyyy")</div>
-                            </div>
-                            <div style="font-weight: 600; color: #059669;">+₱@deposit.Amount.ToString("N2")</div>
-                        </div>
-                    </div>
-                }
+
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
+                            <th style="padding: 8px; text-align: left; color: #6b7280; font-size: 11px;">DATE</th>
+                            <th style="padding: 8px; text-align: left; color: #6b7280; font-size: 11px;">TYPE</th>
+                            <th style="padding: 8px; text-align: right; color: #6b7280; font-size: 11px;">AMOUNT</th>
+                            <th style="padding: 8px; text-align: left; color: #6b7280; font-size: 11px;">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (recentDeposits.Any())
+                        {
+                            @foreach (var deposit in recentDeposits.Take(5))
+                            {
+                                <tr style="border-bottom: 1px solid #f3f4f6;">
+                                    <td style="padding: 8px;">@deposit.Date.ToString("MMM dd, yyyy")</td>
+                                    <td style="padding: 8px;">@deposit.Type</td>
+                                    <td style="padding: 8px; text-align: right; color: #059669; font-weight: 600;">₱@deposit.Amount.ToString("N2")</td>
+                                    <td style="padding: 8px;">
+                                        <span style="padding: 2px 8px; border-radius: 9999px; font-size: 11px; background: @(deposit.Status == "Completed" ? "#d1fae5" : "#fef3c7"); color: @(deposit.Status == "Completed" ? "#065f46" : "#92400e");">
+                                            @deposit.Status
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" style="padding: 12px; text-align: center; color: #6b7280;">No deposit transactions yet</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -120,6 +147,86 @@
         border-color: #10b981;
     }
 </style>
+
+<!-- Deposit Modal -->
+@if (showDepositModal && selectedAccount != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseDepositModal">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-size: 24px; font-weight: 700; color: #1f2937;">New Deposit Transaction</h2>
+                <button @onclick="CloseDepositModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+            </div>
+
+            <form @onsubmit="ProcessDeposit" @onsubmit:preventDefault>
+                <!-- Deposit Type -->
+                <div style="margin-bottom: 20px;">
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Deposit Type *</label>
+                    <select style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" @bind="depositType">
+                        <option value="">Select type...</option>
+                        <option value="cash">Cash Deposit</option>
+                        <option value="check">Check Deposit</option>
+                        <option value="online">Online Transfer</option>
+                    </select>
+                </div>
+
+                <!-- Deposit Amount -->
+                <div style="margin-bottom: 20px;">
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Deposit Amount (₱) *</label>
+                    <input type="number" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
+                           @bind="depositAmount" placeholder="0.00" step="0.01" />
+                </div>
+
+                <!-- Reference (Auto-generated) -->
+                <div style="margin-bottom: 20px;">
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Reference Number</label>
+                    <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #f9fafb;" 
+                           @bind="depositReference" placeholder="Auto-generated" readonly />
+                </div>
+
+                <!-- Notes -->
+                <div style="margin-bottom: 20px;">
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Notes</label>
+                    <textarea style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 60px;" 
+                              @bind="depositNotes" placeholder="Additional notes..."></textarea>
+                </div>
+
+                <!-- Messages -->
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div style="padding: 12px; background: #fee2e2; border-radius: 8px; color: #991b1b; margin-bottom: 16px; font-size: 13px;">
+                        <strong>Error:</strong> @errorMessage
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div style="padding: 12px; background: #d1fae5; border-radius: 8px; color: #065f46; margin-bottom: 16px; font-size: 13px;">
+                        <strong>Success:</strong> @successMessage
+                        @if (!string.IsNullOrEmpty(lastInvoice))
+                        {
+                            <div style="margin-top: 12px;">
+                                <button type="button" @onclick="PrintInvoice" style="background: #059669; color: white; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">
+                                    Print Invoice
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Buttons -->
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" @onclick="CloseDepositModal" style="background: #f3f4f6; color: #374151; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">
+                        Cancel
+                    </button>
+                    <button type="submit" disabled="@isProcessing" style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; opacity: @(isProcessing ? "0.7" : "1");">
+                        @(isProcessing ? "Processing..." : "Deposit Now")
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
 
 <!-- Transaction History Modal -->
 @if (showHistoryModal)
@@ -163,23 +270,110 @@
 
 
 @code {
-    private string depositType = "cash";
-    private decimal amount = 0;
-    private string purpose = "";
+    private string accountNumberInput = "";
+    private string accountError = "";
+    private CustomerAccount? selectedAccount;
+    
+    private string depositType = "";
+    private decimal depositAmount = 0;
+    private string depositReference = "";
+    private string depositNotes = "";
+    
+    private bool showDepositModal = false;
     private bool showHistoryModal = false;
+    private bool isProcessing = false;
+    private string errorMessage = "";
+    private string successMessage = "";
+    private string lastInvoice = "";
 
     private List<DepositHistory> recentDeposits = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        recentDeposits = new List<DepositHistory>
+        await LoadRecentDepositsAsync();
+    }
+
+    private async Task LoadRecentDepositsAsync()
+    {
+        try
         {
-            new() { Type = "Cash Deposit", Reference = "DEP-001", Amount = 5000, Purpose = "Monthly savings", Date = DateTime.Now.AddHours(-2), Status = "Completed" },
-            new() { Type = "Check Deposit", Reference = "DEP-002", Amount = 8500, Purpose = "Salary deposit", Date = DateTime.Now.AddDays(-1), Status = "Completed" },
-            new() { Type = "Online Transfer", Reference = "DEP-003", Amount = 2000, Purpose = "Gift from family", Date = DateTime.Now.AddDays(-2), Status = "Pending" },
-            new() { Type = "Cash Deposit", Reference = "DEP-004", Amount = 1500, Purpose = "Side income", Date = DateTime.Now.AddDays(-3), Status = "Completed" },
-            new() { Type = "Wire Transfer", Reference = "DEP-005", Amount = 12000, Purpose = "Freelance payment", Date = DateTime.Now.AddDays(-4), Status = "Completed" }
-        };
+            var account = await BankingService.GetPrimaryAccountForCurrentCustomerAsync();
+            if (account != null)
+            {
+                var transactions = await TransactionService.GetByAccountIdAsync(account.AccountId);
+                recentDeposits = transactions
+                    .Where(t => t.TransactionType == "Deposit")
+                    .Select(t => new DepositHistory
+                    {
+                        Type = MapDepositTypeLabel(t.Description ?? ""),
+                        Reference = t.TransactionNumber,
+                        Amount = t.Amount,
+                        Purpose = t.Description ?? "",
+                        Date = t.CreatedAt,
+                        Status = t.Status
+                    })
+                    .ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading deposits: {ex.Message}");
+        }
+    }
+
+    private async Task OnAccountNumberChange(ChangeEventArgs e)
+    {
+        accountNumberInput = e.Value?.ToString() ?? "";
+        accountError = "";
+        selectedAccount = null;
+
+        if (string.IsNullOrWhiteSpace(accountNumberInput))
+            return;
+
+        try
+        {
+            var (success, account, message) = await BankingService.GetAccountByNumberForCurrentCustomerAsync(accountNumberInput);
+            
+            if (success && account != null)
+            {
+                selectedAccount = account;
+                depositReference = GenerateReference("DEP");
+            }
+            else
+            {
+                accountError = message;
+            }
+        }
+        catch (Exception ex)
+        {
+            accountError = $"Error: {ex.Message}";
+        }
+    }
+
+    private void ShowDepositModal()
+    {
+        if (selectedAccount == null)
+        {
+            errorMessage = "Please select an account first.";
+            return;
+        }
+        
+        depositType = "";
+        depositAmount = 0;
+        depositReference = GenerateReference("DEP");
+        depositNotes = "";
+        errorMessage = "";
+        successMessage = "";
+        lastInvoice = "";
+        showDepositModal = true;
+    }
+
+    private void CloseDepositModal()
+    {
+        showDepositModal = false;
+        errorMessage = "";
+        successMessage = "";
+        lastInvoice = "";
     }
 
     private void ShowHistory()
@@ -192,18 +386,106 @@
         showHistoryModal = false;
     }
 
-    private void ClearForm()
+    private async Task ProcessDeposit()
     {
-        depositType = "cash";
-        amount = 0;
-        purpose = "";
+        if (isProcessing || selectedAccount == null)
+            return;
+
+        errorMessage = "";
+        successMessage = "";
+
+        if (string.IsNullOrWhiteSpace(depositType))
+        {
+            errorMessage = "Please select a deposit type.";
+            return;
+        }
+
+        if (depositAmount <= 0)
+        {
+            errorMessage = "Please enter a deposit amount greater than zero.";
+            return;
+        }
+
+        isProcessing = true;
+        try
+        {
+            var (success, message, updatedAccount) = await BankingService.DepositAsync(
+                depositAmount,
+                depositType,
+                depositNotes,
+                selectedAccount.AccountId);
+
+            if (!success)
+            {
+                errorMessage = message;
+                isProcessing = false;
+                return;
+            }
+
+            if (updatedAccount != null)
+            {
+                selectedAccount = updatedAccount;
+                
+                // Generate invoice
+                lastInvoice = CustomerBankingService.GenerateDepositInvoice(
+                    depositReference,
+                    updatedAccount,
+                    depositAmount,
+                    depositType,
+                    depositReference,
+                    depositNotes);
+            }
+
+            // Add to recent deposits
+            recentDeposits.Insert(0, new DepositHistory
+            {
+                Type = MapDepositTypeLabel(depositType),
+                Reference = depositReference,
+                Amount = depositAmount,
+                Purpose = depositNotes,
+                Date = DateTime.Now,
+                Status = "Completed"
+            });
+
+            successMessage = $"✓ Deposit of ₱{depositAmount:N2} successful!";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error processing deposit: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
     }
 
-    private void ProcessDeposit()
+    private void PrintInvoice()
     {
-        // Implement logic to process the deposit
-        // Add validation and actual deposit logic here
+        if (string.IsNullOrEmpty(lastInvoice))
+            return;
+
+        // Create a new window for printing
+        var printWindow = new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = "notepad.exe",
+            Arguments = "-"
+        };
+
+        // For now, just log to console - in production use JS interop for printing
+        Console.WriteLine(lastInvoice);
     }
+
+    private static string MapDepositTypeLabel(string type) =>
+        type switch
+        {
+            "cash" => "Cash Deposit",
+            "check" => "Check Deposit",
+            "online" => "Online Transfer",
+            _ => "Deposit"
+        };
+
+    private static string GenerateReference(string prefix) =>
+        $"{prefix}-{DateTime.Now:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}";
 
     public class DepositHistory
     {

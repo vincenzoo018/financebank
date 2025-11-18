@@ -1,0 +1,84 @@
+@if (isVisible)
+{
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease-out forwards; transform: translateX(@(animationProgress)px); opacity: @animationOpacity;">
+        <div style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; min-width: 300px;">
+            <!-- Success Icon -->
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            
+            <!-- Message -->
+            <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">@title</div>
+                <div style="font-size: 13px; opacity: 0.95;">@message</div>
+            </div>
+            
+            <!-- Close Button -->
+            <button @onclick="Close" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 20px; line-height: 1;">
+                ×
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isVisible = false;
+    private string title = "";
+    private string message = "";
+    private Timer? dismissTimer;
+    private int animationProgress = 400;
+    private double animationOpacity = 0;
+
+    public async Task Show(string toastTitle, string toastMessage, int durationMs = 4000)
+    {
+        title = toastTitle;
+        message = toastMessage;
+        isVisible = true;
+        animationProgress = 400;
+        animationOpacity = 0;
+        StateHasChanged();
+
+        // Animate in
+        await AnimateIn();
+
+        // Auto-dismiss after duration
+        dismissTimer?.Dispose();
+        dismissTimer = new Timer(_ => DismissAsync(), null, durationMs, Timeout.Infinite);
+    }
+     
+    private async Task AnimateIn()
+    {
+        for (int i = 0; i <= 30; i++)
+        {
+            animationProgress = 400 - (i * 13); // 400 to 0 in 30 steps
+            animationOpacity = i / 30.0;
+            StateHasChanged();
+            await Task.Delay(10);
+        }
+        animationProgress = 0;
+        animationOpacity = 1;
+        StateHasChanged();
+    }
+
+    private void DismissAsync()
+    {
+        try
+        {
+            dismissTimer?.Dispose();
+            dismissTimer = null;
+            Close();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error dismissing toast: {ex.Message}");
+        }
+    }
+
+    public void Close()
+    {
+        isVisible = false;
+        dismissTimer?.Dispose();
+        dismissTimer = null;
+        StateHasChanged();
+    }
+}

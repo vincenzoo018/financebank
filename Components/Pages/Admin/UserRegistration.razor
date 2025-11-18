@@ -2,6 +2,10 @@
 @layout AdminLayout
 @inject NavigationManager Navigation
 @inject AuthService AuthService
+@inject BFASDbContext DbContext
+@inject UserRegistrationService RegistrationService
+
+<Toast @ref="toastComponent" />
 
 <!-- Header with Gradient -->
 <div style="background: linear-gradient(135deg, #1f2937, #111827); border-radius: 16px; padding: 32px; margin-bottom: 32px; color: white;">
@@ -148,11 +152,7 @@
                             <option value="SuperAdmin">Super Administrator</option>
                             <option value="Accountant">Accountant</option>
                             <option value="FinanceManager">Finance Manager</option>
-                            <option value="Cashier">Cashier/Teller</option>
-                            <option value="LoanOfficer">Loan Officer</option>
-                            <option value="CustomerService">Customer Service</option>
-                            <option value="Manager">Manager</option>
-                            <option value="Auditor">Auditor</option>
+                            <option value="Teller">Teller</option>
                         </select>
                         @if (showError && string.IsNullOrEmpty(selectedRole)) { <span style="color: #dc2626; font-size: 12px;">Required</span> }
                     </div>
@@ -173,9 +173,9 @@
                         @if (showError && string.IsNullOrEmpty(department)) { <span style="color: #dc2626; font-size: 12px;">Required</span> }
                     </div>
                     <div>
-                        <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Employee ID *</label>
-                        <input type="text" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px;" @bind="employeeId" placeholder="EMP-XXXX" />
-                        @if (showError && string.IsNullOrEmpty(employeeId)) { <span style="color: #dc2626; font-size: 12px;">Required</span> }
+                        <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Employee ID (Optional - Auto-generated)</label>
+                        <input type="text" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;" @bind="employeeId" placeholder="Leave blank for auto-generation" />
+                        <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">If left blank, will be auto-generated as EMP-YYYYMMDD-XXXXX</p>
                     </div>
                     <div>
                         <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Branch/Location</label>
@@ -184,21 +184,6 @@
                 </div>
             </div>
         }
-
-        <!-- Status -->
-        <div style="margin-bottom: 32px;">
-            <h4 style="font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 16px;">Account Status</h4>
-            <div style="display: flex; gap: 24px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="radio" name="approvalStatus" value="Pending" checked="@(approvalStatus == "Pending")" @onchange="@(() => approvalStatus = "Pending")" />
-                    <span style="font-size: 14px;">Pending Approval</span>
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="radio" name="approvalStatus" value="Active" checked="@(approvalStatus == "Active")" @onchange="@(() => approvalStatus = "Active")" />
-                    <span style="font-size: 14px;">Activate Immediately</span>
-                </label>
-            </div>
-        </div>
 
         <!-- Messages -->
         @if (!string.IsNullOrEmpty(errorMessage))
@@ -227,7 +212,13 @@
     </form>
 </div>
 
+@using FinanceBank.Data
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+
 @code {
+    private Toast? toastComponent;
+    
     private string userType = "Employee";
     private string fullName = "";
     private string email = "";
@@ -245,7 +236,6 @@
     private string branchLocation = "";
     private List<string> selectedPermissions = new();
     private List<string> availablePermissions = new() { "Dashboard", "Transactions", "Accounts", "Users", "Reports", "Settings", "Accounting", "HR/Payroll", "CRM", "Loans", "Cards", "Bills", "Security", "Audit" };
-    private string approvalStatus = "Pending";
     private bool showError = false;
     private bool isLoading = false;
     private string errorMessage = "";
@@ -278,26 +268,64 @@
         errorMessage = "";
         successMessage = "";
 
+        // Validate required fields
         if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(contactNumber) || string.IsNullOrEmpty(address) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(initialPassword))
         {
             errorMessage = "Please fill in all required fields";
             return;
         }
 
-        if (userType == "Employee" && (string.IsNullOrEmpty(selectedRole) || string.IsNullOrEmpty(department) || string.IsNullOrEmpty(employeeId)))
+        if (userType == "Employee" && (string.IsNullOrEmpty(selectedRole) || string.IsNullOrEmpty(department)))
         {
-            errorMessage = "Please fill in all employee fields";
+            errorMessage = "Please select a role and department for the employee";
             return;
         }
 
         isLoading = true;
-        await Task.Delay(1500);
-        isLoading = false;
 
-        successMessage = $"User account for {fullName} created successfully!";
-        await Task.Delay(3000);
-        ClearForm();
-        successMessage = "";
+        try
+        {
+            // Call backend service to create user
+            var (success, message, accountNumber) = await RegistrationService.CreateUserAsync(
+                username: username,
+                password: initialPassword,
+                fullName: fullName,
+                email: email,
+                phoneNumber: contactNumber,
+                role: userType == "Employee" ? selectedRole : AuthService.Roles.Customer,
+                department: userType == "Employee" ? department : null,
+                employeeId: userType == "Employee" ? employeeId : null,
+                isActive: true  // Always activate immediately since admin is creating it
+            );
+
+            if (!success)
+            {
+                errorMessage = message;
+                isLoading = false;
+                return;
+            }
+
+            // Show success message
+            successMessage = $"✓ Account created successfully!\n\nAccount Number: {accountNumber}\nUsername: {username}\nRole: {(userType == "Employee" ? selectedRole : "Customer")}\n{(userType == "Employee" ? $"Employee ID: Auto-generated (EMP-YYYYMMDD-XXXXX)\nDepartment: {department}" : "")}\n\nUser has been authenticated and can log in immediately.";
+            
+            // Clear form after brief delay
+            await Task.Delay(2000);
+            ClearForm();
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+            isLoading = false;
+        }
+    }
+
+    private string GenerateAccountNumber()
+    {
+        // Format: ACC-YYYY-XXXXX (e.g., ACC-2025-00001)
+        var year = DateTime.Now.Year;
+        var randomPart = new Random().Next(1, 99999).ToString("D5");
+        return $"ACC-{year}-{randomPart}";
     }
 
     private void ClearForm()
@@ -316,7 +344,6 @@
         employeeId = "";
         branchLocation = "";
         selectedPermissions.Clear();
-        approvalStatus = "Pending";
         showError = false;
         errorMessage = "";
     }
@@ -325,38 +352,71 @@
     {
         try
         {
-            var file = e.File;
-            if (file != null)
+            errorMessage = "";
+            
+            if (e.FileCount == 0)
             {
-                if (file.Size > 5 * 1024 * 1024)
-                {
-                    errorMessage = "File size must not exceed 5MB";
-                    StateHasChanged();
-                    return;
-                }
-
-                var allowedExtensions = new List<string> { ".jpg", ".jpeg", ".png", ".pdf" };
-                var fileName = file.Name;
-                var lastDotIndex = fileName.LastIndexOf('.');
-                var fileExtension = lastDotIndex >= 0 ? fileName.Substring(lastDotIndex).ToLower() : "";
-                
-                if (!allowedExtensions.Contains(fileExtension))
-                {
-                    errorMessage = "Only JPG, PNG, and PDF files are allowed";
-                    StateHasChanged();
-                    return;
-                }
-
-                uploadedIdFileName = file.Name;
-                errorMessage = "";
-                StateHasChanged();
+                return;
             }
+
+            var file = e.GetMultipleFiles(1).FirstOrDefault();
+            
+            if (file == null)
+            {
+                return;
+            }
+
+            // Validate file size (5MB max)
+            const long maxFileSize = 5 * 1024 * 1024;
+            if (file.Size > maxFileSize)
+            {
+                errorMessage = "File size must not exceed 5MB";
+                StateHasChanged();
+                return;
+            }
+
+            // Validate file extension
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
+            var fileName = file.Name.ToLower();
+            var hasValidExtension = allowedExtensions.Any(ext => fileName.EndsWith(ext));
+            
+            if (!hasValidExtension)
+            {
+                errorMessage = "Only JPG, PNG, and PDF files are allowed";
+                StateHasChanged();
+                return;
+            }
+
+            // File is valid - store the filename only (don't read the stream)
+            uploadedIdFileName = file.Name;
+            errorMessage = "";
+            
+            // Show success toast
+            if (toastComponent != null)
+            {
+                await toastComponent.Show("ID Upload Successful", $"File: {file.Name}\nSize: {FormatFileSize(file.Size)}", 3000);
+            }
+            
+            StateHasChanged();
         }
         catch (Exception ex)
         {
             errorMessage = $"Error uploading file: {ex.Message}";
             StateHasChanged();
         }
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
     }
 
     private class PendingUser

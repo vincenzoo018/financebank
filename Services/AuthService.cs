@@ -87,7 +87,7 @@ namespace FinanceBank.Services
                 }
 
                 // Successful login
-                await LoginAsync(user, ipAddress, userAgent);
+                await LoginAsyncInternal(user, ipAddress, userAgent);
                 return (true, "Login successful");
             }
             catch (Exception ex)
@@ -123,8 +123,60 @@ namespace FinanceBank.Services
             return (false, "Invalid username or password");
         }
 
-        // Login with database user
-        private async Task LoginAsync(AuthUser user, string? ipAddress, string? userAgent)
+        // Login with database user (public for service-to-service calls)
+        public async Task<bool> LoginAsync(string username, string password, string? ipAddress = null, string? userAgent = null)
+        {
+            if (_context == null)
+                return false;
+
+            try
+            {
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
+
+                if (user == null || user.PasswordHash != password)
+                    return false;
+
+                // Set authentication properties
+                IsAuthenticated = true;
+                CurrentUserId = user.UserId;
+                CurrentUser = user.Username;
+                CurrentRole = user.Role;
+                FullName = user.FullName;
+                Email = user.Email;
+                EmployeeId = user.EmployeeId;
+                Department = user.Department;
+                Permissions = GetPermissionsForRole(user.Role);
+
+                // Update last login time
+                user.LastLoginAt = DateTime.Now;
+                await _context.SaveChangesAsync();
+
+                // Log successful login
+                var loginHistory = new LoginHistory
+                {
+                    UserId = user.UserId,
+                    LoginTime = DateTime.Now,
+                    IpAddress = ipAddress,
+                    UserAgent = userAgent,
+                    LoginStatus = "Success"
+                };
+                _context.LoginHistories.Add(loginHistory);
+                await _context.SaveChangesAsync();
+                
+                // Notify authentication state changed
+                OnAuthStateChanged?.Invoke();
+                
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // Internal login with database user (private helper)
+        private async Task LoginAsyncInternal(AuthUser user, string? ipAddress, string? userAgent)
         {
             IsAuthenticated = true;
             CurrentUserId = user.UserId;
@@ -252,6 +304,10 @@ namespace FinanceBank.Services
                 {
                     Modules.Dashboard, Modules.Finance, Modules.Accounting, Modules.Reports
                 },
+                Roles.Teller => new List<string>
+                {
+                    Modules.Dashboard, Modules.Banking, Modules.Transactions, Modules.Accounts
+                },
                 Roles.Customer => new List<string>
                 {
                     Modules.Dashboard, Modules.Transactions, Modules.Accounts,
@@ -269,6 +325,7 @@ namespace FinanceBank.Services
                 Roles.SuperAdmin => "Super Administrator",
                 Roles.Accountant => "Accountant",
                 Roles.FinanceManager => "Finance Manager",
+                Roles.Teller => "Teller",
                 Roles.Customer => "Customer",
                 _ => role ?? "Unknown Role"
             };
@@ -282,6 +339,10 @@ namespace FinanceBank.Services
 
             // Route-based access control
             var routeLower = route.ToLower();
+
+            // Teller routes
+            if (routeLower.Contains("/teller/"))
+                return CurrentRole == Roles.Teller;
 
             // Customer routes
             if (routeLower.Contains("/customer/"))

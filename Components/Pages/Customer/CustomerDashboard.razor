@@ -1,6 +1,11 @@
 @page "/customer/dashboard"
 @layout CustomerLayout
+@using System.Linq
+@using FinanceBank.Services
+@using FinanceBank.Models
 @inject AuthService AuthService
+@inject CustomerBankingService BankingService
+@inject CustomerTransactionService TransactionService
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Welcome Section - BPI/BDO Style -->
@@ -17,8 +22,8 @@
             <div style="position: relative; z-index: 1;">
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 24px;">
                     <div>
-                        <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px; letter-spacing: 0.5px;">FINSYS SAVINGS ACCOUNT</div>
-                        <div style="font-size: 13px; font-family: 'Courier New', monospace; opacity: 0.85;">****  ****  ****  1234</div>
+                        <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px; letter-spacing: 0.5px;">@accountLabel</div>
+                        <div style="font-size: 13px; font-family: 'Courier New', monospace; opacity: 0.85;">@maskedAccountNumber</div>
                     </div>
                     <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                         <span style="font-size: 20px;">💳</span>
@@ -26,7 +31,7 @@
                 </div>
                 <div style="margin-bottom: 8px;">
                     <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Available Balance</div>
-                    <div style="font-size: 36px; font-weight: 800; letter-spacing: -1px;">₱25,450.00</div>
+                    <div style="font-size: 36px; font-weight: 800; letter-spacing: -1px;">@FormatAmount(currentBalance)</div>
                 </div>
                 <div style="display: flex; gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
                     <div style="flex: 1;">
@@ -50,15 +55,15 @@
             <div style="display: flex; flex-direction: column; gap: 20px;">
                 <div style="padding: 16px; background: #f0fdf4; border-radius: 12px; border-left: 4px solid #059669;">
                     <div style="font-size: 12px; color: #6b7280; margin-bottom: 6px;">💰 Total Income</div>
-                    <div style="font-size: 24px; font-weight: 700; color: #059669;">+₱15,000.00</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #059669;">+@FormatAmount(monthlyIncome)</div>
                 </div>
                 <div style="padding: 16px; background: #fef2f2; border-radius: 12px; border-left: 4px solid #dc2626;">
                     <div style="font-size: 12px; color: #6b7280; margin-bottom: 6px;">💸 Total Expenses</div>
-                    <div style="font-size: 24px; font-weight: 700; color: #dc2626;">-₱8,750.50</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #dc2626;">-@FormatAmount(monthlyExpenses)</div>
                 </div>
                 <div style="padding: 12px; background: #f9fafb; border-radius: 12px; text-align: center;">
                     <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">Net Savings</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #0891b2;">₱6,249.50</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #0891b2;">@FormatAmount(monthlyIncome - monthlyExpenses)</div>
                 </div>
             </div>
         </div>
@@ -191,19 +196,73 @@
 </style>
 
 @code {
+    private CustomerAccount? account;
+    private string accountLabel = "Savings Account";
+    private string maskedAccountNumber = "****";
+    private decimal currentBalance = 0;
+    private decimal monthlyIncome = 0;
+    private decimal monthlyExpenses = 0;
+
     private List<Transaction> recentTransactions = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        recentTransactions = new List<Transaction>
-        {
-            new Transaction { Title = "Salary Credit", Date = DateTime.Now, Amount = 15000 },
-            new Transaction { Title = "Shopping - SM Mall", Date = DateTime.Now.AddHours(-3), Amount = -1250.50m },
-            new Transaction { Title = "Electric Bill - Meralco", Date = DateTime.Now.AddDays(-1), Amount = -850 },
-            new Transaction { Title = "Fund Transfer to Juan", Date = DateTime.Now.AddDays(-1), Amount = -2000 },
-            new Transaction { Title = "ATM Withdrawal", Date = DateTime.Now.AddDays(-2), Amount = -3000 },
-        };
+        await LoadAccountAndTransactionsAsync();
     }
+
+    private async Task LoadAccountAndTransactionsAsync()
+    {
+        try
+        {
+            account = await BankingService.GetPrimaryAccountForCurrentCustomerAsync();
+            if (account != null)
+            {
+                accountLabel = $"{account.AccountType} Account".ToUpper();
+                maskedAccountNumber = MaskAccountNumber(account.AccountNumber);
+                currentBalance = account.AvailableBalance;
+
+                var transactions = await TransactionService.GetByAccountIdAsync(account.AccountId);
+                var thisMonth = transactions.Where(t => t.CreatedAt.Month == DateTime.Now.Month && t.CreatedAt.Year == DateTime.Now.Year).ToList();
+
+                monthlyIncome = thisMonth.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount);
+                monthlyExpenses = thisMonth.Where(t => t.TransactionType == "Withdrawal" || t.TransactionType == "Bills").Sum(t => t.Amount);
+
+                recentTransactions = transactions
+                    .Take(5)
+                    .Select(t => new Transaction
+                    {
+                        Title = BuildTransactionTitle(t),
+                        Date = t.CreatedAt,
+                        Amount = t.TransactionType == "Deposit" ? t.Amount : -t.Amount
+                    })
+                    .ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading dashboard: {ex.Message}");
+        }
+    }
+
+    private static string BuildTransactionTitle(CustomerTransaction t) =>
+        t.TransactionType switch
+        {
+            "Deposit" => "Deposit",
+            "Withdrawal" => "Withdrawal",
+            "Bills" => $"Bill Payment - {t.BillerName}",
+            "Transfer" => $"Transfer to {t.ToAccountName}",
+            _ => t.Description ?? "Transaction"
+        };
+
+    private static string MaskAccountNumber(string accountNumber)
+    {
+        if (string.IsNullOrWhiteSpace(accountNumber) || accountNumber.Length < 4)
+            return "****  ****  ****  ****";
+        var last4 = accountNumber[^4..];
+        return $"****  ****  ****  {last4}";
+    }
+
+    private static string FormatAmount(decimal amount) => $"₱{Math.Abs(amount):N2}";
 
     private class Transaction
     {

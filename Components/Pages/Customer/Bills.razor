@@ -1,5 +1,11 @@
 @page "/customer/bills"
 @layout CustomerLayout
+@using System.Linq
+@using FinanceBank.Services
+@using FinanceBank.Models
+@inject CustomerBankingService BankingService
+@inject CustomerTransactionService TransactionService
+@inject AuthService AuthService
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <!-- Header -->
@@ -252,21 +258,45 @@
     private bool showConfirmationModal = false;
     private bool showHistoryModal = false;
     private bool showSuccessModal = false;
+    private bool isProcessing = false;
+    private string errorMessage = "";
 
+    private CustomerAccount? account;
     private List<string> billerCategories = new() { "Utilities", "Telecommunications", "Government", "Credit Cards", "Insurance", "Others" };
     private List<Payment> recentPayments = new();
     private List<SavedBiller> savedBillers = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        recentPayments = new List<Payment>
+        await LoadAccountAndHistoryAsync();
+    }
+
+    private async Task LoadAccountAndHistoryAsync()
+    {
+        try
         {
-            new() { Biller = "Meralco", Reference = "BILL-001", Date = DateTime.Now.AddDays(-2), Amount = 2450 },
-            new() { Biller = "PLDT Fibr", Reference = "BILL-002", Date = DateTime.Now.AddDays(-5), Amount = 1699 },
-            new() { Biller = "Maynilad", Reference = "BILL-003", Date = DateTime.Now.AddDays(-7), Amount = 850 },
-            new() { Biller = "Globe Postpaid", Reference = "BILL-004", Date = DateTime.Now.AddDays(-10), Amount = 1299 },
-            new() { Biller = "SSS Contribution", Reference = "BILL-005", Date = DateTime.Now.AddDays(-15), Amount = 1800 },
-        };
+            errorMessage = "";
+
+            account = await BankingService.GetPrimaryAccountForCurrentCustomerAsync();
+            if (account != null)
+            {
+                var transactions = await TransactionService.GetByAccountIdAsync(account.AccountId);
+                recentPayments = transactions
+                    .Where(t => t.TransactionType == "Bills")
+                    .Select(t => new Payment
+                    {
+                        Biller = t.BillerName ?? "Unknown",
+                        Reference = t.TransactionNumber,
+                        Date = t.CreatedAt,
+                        Amount = t.Amount
+                    })
+                    .ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading account: {ex.Message}";
+        }
 
         savedBillers = new List<SavedBiller>
         {
@@ -329,19 +359,56 @@
         showConfirmationModal = false;
     }
 
-    private void ProcessPayment()
+    private async Task ProcessPayment()
     {
-        showConfirmationModal = false;
-        showSuccessModal = true;
-        // Add to recent payments
-        recentPayments.Insert(0, new Payment 
-        { 
-            Biller = selectedBiller, 
-            Reference = $"BILL-{DateTime.Now:yyyyMMddHHmmss}",
-            Date = DateTime.Now, 
-            Amount = amount + 10 // Include convenience fee
-        });
-        ClearForm();
+        if (isProcessing || account == null)
+            return;
+
+        isProcessing = true;
+        try
+        {
+            var (success, message, updatedAccount) = await BankingService.PayBillAsync(
+                amount,
+                selectedBiller,
+                accountNumber,
+                $"Bill payment to {selectedBiller}",
+                account.AccountId);
+
+            if (!success)
+            {
+                errorMessage = message;
+                showConfirmationModal = false;
+                isProcessing = false;
+                return;
+            }
+
+            if (updatedAccount != null)
+            {
+                account = updatedAccount;
+            }
+
+            showConfirmationModal = false;
+            showSuccessModal = true;
+
+            recentPayments.Insert(0, new Payment 
+            { 
+                Biller = selectedBiller, 
+                Reference = $"BILL-{DateTime.Now:yyyyMMddHHmmss}",
+                Date = DateTime.Now, 
+                Amount = amount
+            });
+
+            ClearForm();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error processing payment: {ex.Message}";
+            showConfirmationModal = false;
+        }
+        finally
+        {
+            isProcessing = false;
+        }
     }
 
     private void ShowHistory()

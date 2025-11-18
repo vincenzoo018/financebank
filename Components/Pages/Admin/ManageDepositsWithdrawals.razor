@@ -1,0 +1,521 @@
+@page "/admin/manage-deposits-withdrawals"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject TellerBankingService TellerBankingService
+
+<!-- Header with Gradient -->
+<div style="background: linear-gradient(135deg, #1f2937, #111827); border-radius: 16px; padding: 32px; margin-bottom: 32px; color: white;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <div>
+            <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Manage Deposits & Withdrawals</h1>
+            <p style="margin: 4px 0 0; opacity: 0.9; font-size: 14px;">Admin control panel for teller transactions</p>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 2px solid #e5e7eb;">
+    <button @onclick="@(() => activeTab = "deposits")" 
+            style="@GetTabStyle("deposits") padding: 12px 24px; border-radius: 8px 8px 0 0; border: none; font-weight: 600; cursor: pointer; font-size: 14px;">
+        📥 Process Deposits
+    </button>
+    <button @onclick="@(() => activeTab = "withdrawals")" 
+            style="@GetTabStyle("withdrawals") padding: 12px 24px; border-radius: 8px 8px 0 0; border: none; font-weight: 600; cursor: pointer; font-size: 14px;">
+        📤 Process Withdrawals
+    </button>
+    <button @onclick="@(() => activeTab = "history")" 
+            style="@GetTabStyle("history") padding: 12px 24px; border-radius: 8px 8px 0 0; border: none; font-weight: 600; cursor: pointer; font-size: 14px;">
+        📊 Transaction History
+    </button>
+</div>
+
+<!-- DEPOSITS TAB -->
+@if (activeTab == "deposits")
+{
+    <div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid #e5e7eb; margin-bottom: 32px;">
+        <h3 style="margin: 0 0 24px; font-size: 18px; font-weight: 700; color: #1f2937;">Process Deposit</h3>
+        
+        <form @onsubmit="HandleDeposit" @onsubmit:preventDefault>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                <!-- Customer Search -->
+                <div style="grid-column: 1 / -1;">
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Search Customer *</label>
+                    <div style="position: relative;">
+                        <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
+                               @bind="depositSearchTerm" @oninput="SearchCustomersDeposit" placeholder="Type customer name or account number..." />
+                        
+                        @if (showDepositSearchResults && depositSearchResults.Any())
+                        {
+                            <div style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; z-index: 10;">
+                                @foreach (var result in depositSearchResults)
+                                {
+                                    <div style="padding: 12px; border-bottom: 1px solid #f3f4f6; cursor: pointer;" 
+                                         @onclick="@(() => SelectDepositCustomer(result.AccountNumber, result.CustomerName))">
+                                        <div style="font-weight: 600; font-size: 14px;">@result.CustomerName</div>
+                                        <div style="font-size: 12px; color: #6b7280;">@result.AccountNumber - Balance: ₱@result.Balance.ToString("N2")</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Account Number -->
+                <div>
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Account Number *</label>
+                    <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
+                           @bind="depositAccountNumber" placeholder="ACC-2025-001" />
+                </div>
+
+                <!-- Customer Name -->
+                <div>
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Customer Name</label>
+                    <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #f9fafb;" 
+                           @bind="depositCustomerName" placeholder="Auto-filled" readonly />
+                </div>
+
+                <!-- Deposit Amount -->
+                <div>
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Amount (₱) *</label>
+                    <input type="number" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
+                           @bind="depositAmount" placeholder="0.00" step="0.01" />
+                </div>
+
+                <!-- Deposit Method -->
+                <div>
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Method *</label>
+                    <select style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" @bind="depositMethod">
+                        <option value="">Select...</option>
+                        <option value="OTC">Over-the-Counter</option>
+                        <option value="BankTransfer">Bank Transfer</option>
+                        <option value="CDM">Cash Deposit Machine</option>
+                    </select>
+                </div>
+
+                <!-- Notes -->
+                <div style="grid-column: 1 / -1;">
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Notes</label>
+                    <textarea style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 60px;" 
+                              @bind="depositNotes" placeholder="Additional notes..."></textarea>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(depositErrorMessage))
+            {
+                <div style="padding: 16px; background: #fee2e2; border-radius: 8px; color: #991b1b; margin-bottom: 20px; font-size: 14px;">
+                    <strong>Error:</strong> @depositErrorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(depositSuccessMessage))
+            {
+                <div style="padding: 16px; background: #d1fae5; border-radius: 8px; color: #065f46; margin-bottom: 20px; font-size: 14px;">
+                    <strong>Success:</strong> @depositSuccessMessage
+                </div>
+            }
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" style="background: #f3f4f6; color: #374151; padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;" @onclick="ResetDepositForm">
+                    Reset
+                </button>
+                <button type="submit" style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 12px 32px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;" disabled="@depositIsLoading">
+                    @if (depositIsLoading) { <span>Processing...</span> } else { <span>Process Deposit</span> }
+                </button>
+            </div>
+        </form>
+    </div>
+}
+
+<!-- WITHDRAWALS TAB -->
+@if (activeTab == "withdrawals")
+{
+    <div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid #e5e7eb; margin-bottom: 32px;">
+        <h3 style="margin: 0 0 24px; font-size: 18px; font-weight: 700; color: #1f2937;">Process Withdrawal</h3>
+        
+        <form @onsubmit="HandleWithdrawal" @onsubmit:preventDefault>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                <!-- Customer Search -->
+                <div style="grid-column: 1 / -1;">
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Search Customer *</label>
+                    <div style="position: relative;">
+                        <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
+                               @bind="withdrawalSearchTerm" @oninput="SearchCustomersWithdrawal" placeholder="Type customer name or account number..." />
+                        
+                        @if (showWithdrawalSearchResults && withdrawalSearchResults.Any())
+                        {
+                            <div style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; z-index: 10;">
+                                @foreach (var result in withdrawalSearchResults)
+                                {
+                                    <div style="padding: 12px; border-bottom: 1px solid #f3f4f6; cursor: pointer;" 
+                                         @onclick="@(() => SelectWithdrawalCustomer(result.AccountNumber, result.CustomerName))">
+                                        <div style="font-weight: 600; font-size: 14px;">@result.CustomerName</div>
+                                        <div style="font-size: 12px; color: #6b7280;">@result.AccountNumber - Balance: ₱@result.Balance.ToString("N2")</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Account Number -->
+                <div>
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Account Number *</label>
+                    <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
+                           @bind="withdrawalAccountNumber" placeholder="ACC-2025-001" />
+                </div>
+
+                <!-- Customer Name -->
+                <div>
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Customer Name</label>
+                    <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #f9fafb;" 
+                           @bind="withdrawalCustomerName" placeholder="Auto-filled" readonly />
+                </div>
+
+                <!-- Withdrawal Amount -->
+                <div>
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Amount (₱) *</label>
+                    <input type="number" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
+                           @bind="withdrawalAmount" placeholder="0.00" step="0.01" />
+                </div>
+
+                <!-- Withdrawal Method -->
+                <div>
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Method *</label>
+                    <select style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" @bind="withdrawalMethod">
+                        <option value="">Select...</option>
+                        <option value="OTC">Over-the-Counter</option>
+                        <option value="ATM">ATM Withdrawal</option>
+                        <option value="BankTransfer">Bank Transfer</option>
+                    </select>
+                </div>
+
+                <!-- Notes -->
+                <div style="grid-column: 1 / -1;">
+                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Notes</label>
+                    <textarea style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 60px;" 
+                              @bind="withdrawalNotes" placeholder="Additional notes..."></textarea>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(withdrawalErrorMessage))
+            {
+                <div style="padding: 16px; background: #fee2e2; border-radius: 8px; color: #991b1b; margin-bottom: 20px; font-size: 14px;">
+                    <strong>Error:</strong> @withdrawalErrorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(withdrawalSuccessMessage))
+            {
+                <div style="padding: 16px; background: #d1fae5; border-radius: 8px; color: #065f46; margin-bottom: 20px; font-size: 14px;">
+                    <strong>Success:</strong> @withdrawalSuccessMessage
+                </div>
+            }
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" style="background: #f3f4f6; color: #374151; padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;" @onclick="ResetWithdrawalForm">
+                    Reset
+                </button>
+                <button type="submit" style="background: linear-gradient(135deg, #dc2626, #991b1b); color: white; padding: 12px 32px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;" disabled="@withdrawalIsLoading">
+                    @if (withdrawalIsLoading) { <span>Processing...</span> } else { <span>Process Withdrawal</span> }
+                </button>
+            </div>
+        </form>
+    </div>
+}
+
+<!-- HISTORY TAB -->
+@if (activeTab == "history")
+{
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1f2937;">Today's Transactions</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid #e5e7eb; background: #f9fafb;">
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">ACCOUNT #</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">CUSTOMER</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">TYPE</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">AMOUNT</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">TIME</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (todayTransactions.Any())
+                {
+                    @foreach (var txn in todayTransactions)
+                    {
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 16px; font-weight: 600;">@txn.AccountNumber</td>
+                            <td style="padding: 16px;">@txn.CustomerName</td>
+                            <td style="padding: 16px; font-size: 12px;">
+                                <span style="@(txn.Type == "Deposit" ? "color: #059669;" : "color: #dc2626;")">@txn.Type</span>
+                            </td>
+                            <td style="padding: 16px; font-weight: 600;">₱@txn.Amount.ToString("N2")</td>
+                            <td style="padding: 16px; font-size: 12px; color: #6b7280;">@txn.Time.ToString("hh:mm tt")</td>
+                            <td style="padding: 16px;"><span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">Completed</span></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" style="padding: 32px; text-align: center; color: #6b7280;">No transactions today</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private string activeTab = "deposits";
+
+    // Deposit fields
+    private string depositSearchTerm = "";
+    private List<(int AccountId, string AccountNumber, string CustomerName, decimal Balance)> depositSearchResults = new();
+    private bool showDepositSearchResults = false;
+    private string depositAccountNumber = "";
+    private string depositCustomerName = "";
+    private decimal depositAmount = 0;
+    private string depositMethod = "";
+    private string depositNotes = "";
+    private bool depositIsLoading = false;
+    private string depositErrorMessage = "";
+    private string depositSuccessMessage = "";
+
+    // Withdrawal fields
+    private string withdrawalSearchTerm = "";
+    private List<(int AccountId, string AccountNumber, string CustomerName, decimal Balance)> withdrawalSearchResults = new();
+    private bool showWithdrawalSearchResults = false;
+    private string withdrawalAccountNumber = "";
+    private string withdrawalCustomerName = "";
+    private decimal withdrawalAmount = 0;
+    private string withdrawalMethod = "";
+    private string withdrawalNotes = "";
+    private bool withdrawalIsLoading = false;
+    private string withdrawalErrorMessage = "";
+    private string withdrawalSuccessMessage = "";
+
+    // History
+    private List<(string AccountNumber, string CustomerName, string Type, decimal Amount, DateTime Time)> todayTransactions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTodayTransactions();
+    }
+
+    private async Task LoadTodayTransactions()
+    {
+        todayTransactions = await TellerBankingService.GetTodayTransactionsAsync();
+    }
+
+    private string GetTabStyle(string tabName)
+    {
+        if (activeTab == tabName)
+        {
+            return tabName switch
+            {
+                "deposits" => "background: linear-gradient(135deg, #059669, #047857); color: white;",
+                "withdrawals" => "background: linear-gradient(135deg, #dc2626, #991b1b); color: white;",
+                "history" => "background: linear-gradient(135deg, #2563eb, #1e40af); color: white;",
+                _ => "background: #f3f4f6; color: #374151;"
+            };
+        }
+        return "background: #f3f4f6; color: #374151;";
+    }
+
+    // DEPOSIT METHODS
+    private async Task SearchCustomersDeposit(ChangeEventArgs e)
+    {
+        depositSearchTerm = e.Value?.ToString() ?? "";
+        
+        if (string.IsNullOrWhiteSpace(depositSearchTerm) || depositSearchTerm.Length < 2)
+        {
+            showDepositSearchResults = false;
+            depositSearchResults.Clear();
+            return;
+        }
+
+        depositSearchResults = await TellerBankingService.SearchCustomersByNameAsync(depositSearchTerm);
+        showDepositSearchResults = depositSearchResults.Any();
+    }
+
+    private void SelectDepositCustomer(string accNumber, string custName)
+    {
+        depositAccountNumber = accNumber;
+        depositCustomerName = custName;
+        depositSearchTerm = "";
+        showDepositSearchResults = false;
+        depositSearchResults.Clear();
+    }
+
+    private async Task HandleDeposit()
+    {
+        depositErrorMessage = "";
+        depositSuccessMessage = "";
+
+        if (string.IsNullOrEmpty(depositAccountNumber))
+        {
+            depositErrorMessage = "Account number is required";
+            return;
+        }
+
+        if (depositAmount <= 0)
+        {
+            depositErrorMessage = "Amount must be greater than 0";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(depositMethod))
+        {
+            depositErrorMessage = "Deposit method is required";
+            return;
+        }
+
+        depositIsLoading = true;
+
+        try
+        {
+            var (success, message, transaction, receiptNumber) = await TellerBankingService.ProcessDepositAsync(
+                depositAccountNumber,
+                depositAmount,
+                depositMethod,
+                null,
+                depositNotes
+            );
+
+            if (success)
+            {
+                depositSuccessMessage = message;
+                await Task.Delay(2000);
+                ResetDepositForm();
+                await LoadTodayTransactions();
+            }
+            else
+            {
+                depositErrorMessage = message;
+            }
+        }
+        catch (Exception ex)
+        {
+            depositErrorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            depositIsLoading = false;
+        }
+    }
+
+    private void ResetDepositForm()
+    {
+        depositAccountNumber = "";
+        depositCustomerName = "";
+        depositAmount = 0;
+        depositMethod = "";
+        depositNotes = "";
+        depositSearchTerm = "";
+        showDepositSearchResults = false;
+        depositSearchResults.Clear();
+        depositErrorMessage = "";
+        depositSuccessMessage = "";
+    }
+
+    // WITHDRAWAL METHODS
+    private async Task SearchCustomersWithdrawal(ChangeEventArgs e)
+    {
+        withdrawalSearchTerm = e.Value?.ToString() ?? "";
+        
+        if (string.IsNullOrWhiteSpace(withdrawalSearchTerm) || withdrawalSearchTerm.Length < 2)
+        {
+            showWithdrawalSearchResults = false;
+            withdrawalSearchResults.Clear();
+            return;
+        }
+
+        withdrawalSearchResults = await TellerBankingService.SearchCustomersByNameAsync(withdrawalSearchTerm);
+        showWithdrawalSearchResults = withdrawalSearchResults.Any();
+    }
+
+    private void SelectWithdrawalCustomer(string accNumber, string custName)
+    {
+        withdrawalAccountNumber = accNumber;
+        withdrawalCustomerName = custName;
+        withdrawalSearchTerm = "";
+        showWithdrawalSearchResults = false;
+        withdrawalSearchResults.Clear();
+    }
+
+    private async Task HandleWithdrawal()
+    {
+        withdrawalErrorMessage = "";
+        withdrawalSuccessMessage = "";
+
+        if (string.IsNullOrEmpty(withdrawalAccountNumber))
+        {
+            withdrawalErrorMessage = "Account number is required";
+            return;
+        }
+
+        if (withdrawalAmount <= 0)
+        {
+            withdrawalErrorMessage = "Amount must be greater than 0";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(withdrawalMethod))
+        {
+            withdrawalErrorMessage = "Withdrawal method is required";
+            return;
+        }
+
+        withdrawalIsLoading = true;
+
+        try
+        {
+            var (success, message, transaction, receiptNumber) = await TellerBankingService.ProcessWithdrawalAsync(
+                withdrawalAccountNumber,
+                withdrawalAmount,
+                withdrawalMethod,
+                null,
+                withdrawalNotes
+            );
+
+            if (success)
+            {
+                withdrawalSuccessMessage = message;
+                await Task.Delay(2000);
+                ResetWithdrawalForm();
+                await LoadTodayTransactions();
+            }
+            else
+            {
+                withdrawalErrorMessage = message;
+            }
+        }
+        catch (Exception ex)
+        {
+            withdrawalErrorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            withdrawalIsLoading = false;
+        }
+    }
+
+    private void ResetWithdrawalForm()
+    {
+        withdrawalAccountNumber = "";
+        withdrawalCustomerName = "";
+        withdrawalAmount = 0;
+        withdrawalMethod = "";
+        withdrawalNotes = "";
+        withdrawalSearchTerm = "";
+        showWithdrawalSearchResults = false;
+        withdrawalSearchResults.Clear();
+        withdrawalErrorMessage = "";
+        withdrawalSuccessMessage = "";
+    }
+}

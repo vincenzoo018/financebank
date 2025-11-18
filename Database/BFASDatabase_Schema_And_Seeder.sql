@@ -173,7 +173,21 @@ VALUES (
     'EMP-003'
 );
 
--- 4. Customer Account
+-- 4. Teller Account
+INSERT INTO Users (Username, PasswordHash, Role, FullName, Email, PhoneNumber, IsActive, Department, EmployeeId)
+VALUES (
+    'teller',
+    'teller123', -- In production: Use BCrypt.HashPassword("teller123")
+    'Teller',
+    'Anna Reyes',
+    'teller@bfas.com',
+    '+63-917-567-8901',
+    1,
+    'Teller Department',
+    'EMP-004'
+);
+
+-- 5. Customer Account
 INSERT INTO Users (Username, PasswordHash, Role, FullName, Email, PhoneNumber, IsActive, Department, EmployeeId)
 VALUES (
     'customer',
@@ -223,6 +237,16 @@ VALUES
     ('FinanceManager', 'Finance', 'Full', 1),
     ('FinanceManager', 'Reports', 'Full', 1),
     ('FinanceManager', 'Accounting', 'Read', 1);
+
+-- Teller - Process Deposits & Withdrawals
+INSERT INTO RolePermissions (RoleName, ModuleName, Permission, IsActive)
+VALUES 
+    ('Teller', 'Dashboard', 'Read', 1),
+    ('Teller', 'Transactions', 'Full', 1),
+    ('Teller', 'Deposits', 'Full', 1),
+    ('Teller', 'Withdrawals', 'Full', 1),
+    ('Teller', 'Accounts', 'Read', 1),
+    ('Teller', 'Reports', 'Read', 1);
 
 -- Customer - Personal Banking Access
 INSERT INTO RolePermissions (RoleName, ModuleName, Permission, IsActive)
@@ -345,7 +369,8 @@ PRINT 'Test Accounts Created:';
 PRINT '1. SuperAdmin    - Username: admin       Password: admin123';
 PRINT '2. Accountant    - Username: accountant  Password: accountant123';
 PRINT '3. Finance Mgr   - Username: fmanager    Password: fmanager123';
-PRINT '4. Customer      - Username: customer    Password: customer123';
+PRINT '4. Teller        - Username: teller      Password: teller123';
+PRINT '5. Customer      - Username: customer    Password: customer123';
 PRINT '';
 PRINT 'Database: BFASdatabase';
 PRINT 'Tables Created: Users, LoginHistory, UserSessions, RolePermissions';

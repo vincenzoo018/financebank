@@ -1,7 +1,10 @@
 @inherits LayoutComponentBase
 @implements IDisposable
+@using FinanceBank.Services
+@using FinanceBank.Models
 @inject AuthService AuthService
 @inject NavigationManager Navigation
+@inject CustomerBankingService BankingService
 
 <div class="sidebar-container">
     <!-- Sidebar -->
@@ -18,8 +21,8 @@
             <!-- Quick Balance Display -->
             <div style="margin: 0 16px 24px; padding: 16px; background: linear-gradient(135deg, #0891b2, #06b6d4); border-radius: 12px; color: white;">
                 <div style="font-size: 11px; opacity: 0.9; margin-bottom: 4px;">Total Balance</div>
-                <div style="font-size: 24px; font-weight: 700;">₱25,450.00</div>
-                <div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">Account: ****1234</div>
+                <div style="font-size: 24px; font-weight: 700;">@FormatAmount(sidebarBalance)</div>
+                <div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">Account: @maskedAccountNumber</div>
             </div>
             
             <!-- Main Section -->
@@ -121,8 +124,10 @@
 @code {
     private string customerName = "";
     private string userInitials = "";
+    private decimal sidebarBalance = 0;
+    private string maskedAccountNumber = "****";
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         customerName = AuthService.FullName ?? AuthService.CurrentUser ?? "Customer";
         userInitials = GetInitials(customerName);
@@ -142,6 +147,25 @@
         {
             Navigation.NavigateTo("/admin/dashboard", forceLoad: true);
             return;
+        }
+
+        await LoadAccountBalanceAsync();
+    }
+
+    private async Task LoadAccountBalanceAsync()
+    {
+        try
+        {
+            var account = await BankingService.GetPrimaryAccountForCurrentCustomerAsync();
+            if (account != null)
+            {
+                sidebarBalance = account.AvailableBalance;
+                maskedAccountNumber = MaskAccountNumber(account.AccountNumber);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading sidebar balance: {ex.Message}");
         }
     }
     
@@ -191,6 +215,15 @@
         if (parts.Length == 0) return (AuthService.CurrentUser ?? "U").Substring(0, 1).ToUpperInvariant();
         if (parts.Length == 1) return parts[0].Substring(0, 1).ToUpperInvariant();
         return (parts[0].Substring(0, 1) + parts[^1].Substring(0, 1)).ToUpperInvariant();
+    }
+
+    private static string FormatAmount(decimal amount) => $"₱{amount:N2}";
+
+    private static string MaskAccountNumber(string accountNumber)
+    {
+        if (string.IsNullOrWhiteSpace(accountNumber) || accountNumber.Length < 4)
+            return "****";
+        return $"****{accountNumber[^4..]}";
     }
 }
 

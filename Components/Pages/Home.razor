@@ -13,6 +13,10 @@
             {
                 Navigation.NavigateTo("/customer/dashboard", replace: true);
             }
+            else if (AuthService.CurrentRole == AuthService.Roles.Teller)
+            {
+                Navigation.NavigateTo("/teller/dashboard", replace: true);
+            }
             else if (AuthService.CurrentRole == AuthService.Roles.SuperAdmin || 
                      AuthService.CurrentRole == AuthService.Roles.Accountant || 
                      AuthService.CurrentRole == AuthService.Roles.FinanceManager)

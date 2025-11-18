@@ -1,5 +1,11 @@
 @page "/customer/withdraw"
 @layout CustomerLayout
+@using System.Linq
+@using FinanceBank.Services
+@using FinanceBank.Models
+@inject CustomerBankingService BankingService
+@inject CustomerTransactionService TransactionService
+@inject AuthService AuthService
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <!-- Header -->
@@ -40,9 +46,9 @@
                 <div style="margin-bottom: 24px;">
                     <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">From Account</h3>
                     <div style="border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; background: #f9fafb;">
-                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">FINSYS Savings Account</div>
-                        <div style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">****1234</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #059669;">₱25,450.75</div>
+                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">@accountLabel</div>
+                        <div style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">@maskedAccountNumber</div>
+                        <div style="font-size: 20px; font-weight: 700; color: #059669;">@FormatAmount(currentBalance)</div>
                         <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Available Balance</div>
                     </div>
                 </div>
@@ -83,13 +89,22 @@
 
                 <!-- Action Buttons -->
                 <div style="display: flex; gap: 12px;">
-                    <button type="button" @onclick="ClearForm" style="flex: 1; padding: 16px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 16px; font-weight: 600; cursor: pointer;">
+                    <button type="button" @onclick="ClearForm" disabled="@isProcessing" style="flex: 1; padding: 16px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 16px; font-weight: 600; cursor: pointer;">
                         Clear
                     </button>
-                    <button type="button" @onclick="ProcessWithdrawal" style="flex: 2; padding: 16px; background: linear-gradient(135deg, #dc2626, #991b1b); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
-                        Withdraw Now →
+                    <button type="button" @onclick="ProcessWithdrawal" disabled="@isProcessing" style="flex: 2; padding: 16px; background: linear-gradient(135deg, #dc2626, #991b1b); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; opacity: @(isProcessing ? "0.7" : "1");">
+                        @(isProcessing ? "Processing..." : "Withdraw Now →")
                     </button>
                 </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div style="margin-top: 12px; font-size: 13px; color: #b91c1c;">@errorMessage</div>
+                }
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div style="margin-top: 12px; font-size: 13px; color: #065f46;">@successMessage</div>
+                }
             </form>
         </div>
 
@@ -188,19 +203,54 @@
     private string purpose = "personal";
     private string otherPurpose = "";
     private bool showHistoryModal = false;
+    private bool isProcessing = false;
+    private string errorMessage = "";
+    private string successMessage = "";
+
+    private CustomerAccount? account;
+    private string accountLabel = "Checking Account";
+    private string maskedAccountNumber = "****";
+    private decimal currentBalance = 0;
 
     private List<WithdrawalHistory> recentWithdrawals = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        recentWithdrawals = new List<WithdrawalHistory>
+        await LoadAccountAndHistoryAsync();
+    }
+
+    private async Task LoadAccountAndHistoryAsync()
+    {
+        try
         {
-            new() { Method = "ATM Withdrawal", Reference = "WDR-001", Amount = 3000, Purpose = "Personal expenses", Date = DateTime.Now.AddHours(-1), Status = "Completed" },
-            new() { Method = "Over-the-Counter", Reference = "WDR-002", Amount = 5000, Purpose = "Shopping", Date = DateTime.Now.AddDays(-1), Status = "Completed" },
-            new() { Method = "ATM Withdrawal", Reference = "WDR-003", Amount = 2000, Purpose = "Emergency", Date = DateTime.Now.AddDays(-2), Status = "Completed" },
-            new() { Method = "Online Transfer", Reference = "WDR-004", Amount = 1000, Purpose = "Bills payment", Date = DateTime.Now.AddDays(-3), Status = "Pending" },
-            new() { Method = "ATM Withdrawal", Reference = "WDR-005", Amount = 4000, Purpose = "Medical expenses", Date = DateTime.Now.AddDays(-4), Status = "Completed" }
-        };
+            errorMessage = "";
+
+            account = await BankingService.GetPrimaryAccountForCurrentCustomerAsync();
+            if (account != null)
+            {
+                accountLabel = $"{account.AccountType} Account";
+                maskedAccountNumber = MaskAccountNumber(account.AccountNumber);
+                currentBalance = account.AvailableBalance;
+
+                var transactions = await TransactionService.GetByAccountIdAsync(account.AccountId);
+                recentWithdrawals = transactions
+                    .Where(t => t.TransactionType == "Withdrawal")
+                    .Select(t => new WithdrawalHistory
+                    {
+                        Method = MapWithdrawalMethodLabel(withdrawalMethod),
+                        Reference = t.TransactionNumber,
+                        Amount = t.Amount,
+                        Purpose = t.Description ?? "",
+                        Date = t.CreatedAt,
+                        Status = t.Status
+                    })
+                    .ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading account: {ex.Message}";
+        }
     }
 
     private void ShowHistory()
@@ -221,11 +271,94 @@
         otherPurpose = "";
     }
 
-    private void ProcessWithdrawal()
+    private async Task ProcessWithdrawal()
     {
-        // Implement logic to process the withdrawal
-        // Add validation and actual withdrawal logic here
+        if (isProcessing)
+            return;
+
+        errorMessage = "";
+        successMessage = "";
+
+        if (amount <= 0)
+        {
+            errorMessage = "Please enter a withdrawal amount greater than zero.";
+            return;
+        }
+
+        if (account == null)
+        {
+            errorMessage = "No active account found. Please contact support.";
+            return;
+        }
+
+        isProcessing = true;
+        try
+        {
+            var purposeText = purpose == "other" ? otherPurpose : purpose;
+
+            var (success, message, updatedAccount) = await BankingService.WithdrawAsync(
+                amount,
+                withdrawalMethod,
+                purposeText,
+                account.AccountId);
+
+            if (!success)
+            {
+                errorMessage = message;
+                return;
+            }
+
+            if (updatedAccount != null)
+            {
+                account = updatedAccount;
+                currentBalance = account.AvailableBalance;
+                accountLabel = $"{account.AccountType} Account";
+                maskedAccountNumber = MaskAccountNumber(account.AccountNumber);
+            }
+
+            recentWithdrawals.Insert(0, new WithdrawalHistory
+            {
+                Method = MapWithdrawalMethodLabel(withdrawalMethod),
+                Reference = GenerateLocalReference(),
+                Amount = amount,
+                Purpose = purposeText,
+                Date = DateTime.Now,
+                Status = "Completed"
+            });
+
+            successMessage = "Withdrawal successful.";
+            ClearForm();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error processing withdrawal: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
     }
+
+    private static string MapWithdrawalMethodLabel(string method) =>
+        method switch
+        {
+            "atm" => "ATM Withdrawal",
+            "teller" => "Over-the-Counter",
+            "online" => "Online Transfer",
+            _ => "Withdrawal"
+        };
+
+    private static string MaskAccountNumber(string accountNumber)
+    {
+        if (string.IsNullOrWhiteSpace(accountNumber) || accountNumber.Length < 4)
+            return "****";
+        return $"****{accountNumber[^4..]}";
+    }
+
+    private static string FormatAmount(decimal amount) => $"₱{amount:N2}";
+
+    private static string GenerateLocalReference() =>
+        $"WDR-{DateTime.Now:yyyyMMddHHmmss}-{Random.Shared.Next(100, 999)}";
 
     public class WithdrawalHistory
     {

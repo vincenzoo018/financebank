@@ -1,8 +1,11 @@
 @page "/customer/transactions"
 @layout CustomerLayout
+@using System.Linq
 @using FinanceBank.Services
 @using FinanceBank.Models
 @inject CustomerTransactionService Service
+@inject CustomerBankingService BankingService
+@inject AuthService AuthService
 @inject NavigationManager Navigation
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
@@ -164,6 +167,14 @@
         var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
         var aid = GetQueryParam(uri, "accountId");
         if (!string.IsNullOrEmpty(aid)) int.TryParse(aid, out accountId);
+        
+        if (accountId <= 0)
+        {
+            var account = await BankingService.GetPrimaryAccountForCurrentCustomerAsync();
+            if (account != null)
+                accountId = account.AccountId;
+        }
+
         if (accountId > 0)
         {
             transactions = await Service.GetByAccountIdAsync(accountId);
