@@ -14,6 +14,7 @@ namespace FinanceBank.Data
         public DbSet<LoginHistory> LoginHistories { get; set; }
         public DbSet<UserSession> UserSessions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<Employee> Employees { get; set; }
 
         // Banking Module Tables
         public DbSet<BankAccount> BankAccounts { get; set; }
@@ -29,6 +30,7 @@ namespace FinanceBank.Data
         // Customer Portal Tables
         public DbSet<CustomerAccount> CustomerAccounts { get; set; }
         public DbSet<CustomerTransaction> CustomerTransactions { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -92,6 +94,23 @@ namespace FinanceBank.Data
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
             });
 
+            // Configure Employee entity
+            modelBuilder.Entity<Employee>(entity =>
+            {
+                entity.HasKey(e => e.EmployeeId);
+                entity.HasIndex(e => e.UserId).IsUnique();
+                entity.HasIndex(e => e.Department);
+                entity.HasIndex(e => e.IsActive);
+                
+                entity.HasOne(e => e.User)
+                    .WithOne(u => u.Employee)
+                    .HasForeignKey<Employee>(e => e.UserId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+            });
+
             // Configure CustomerAccount <-> CustomerTransaction relationships
             modelBuilder.Entity<CustomerTransaction>(entity =>
             {
@@ -104,6 +123,28 @@ namespace FinanceBank.Data
                     .WithMany()
                     .HasForeignKey(ct => ct.ToAccountId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configure Invoice entity
+            modelBuilder.Entity<Invoice>(entity =>
+            {
+                entity.HasKey(e => e.InvoiceId);
+                entity.HasIndex(e => e.InvoiceNumber).IsUnique();
+                entity.HasIndex(e => e.AccountId);
+                entity.HasIndex(e => e.TransactionId);
+                entity.HasIndex(e => e.CreatedAt);
+                
+                entity.HasOne(e => e.Account)
+                    .WithMany()
+                    .HasForeignKey(e => e.AccountId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                
+                entity.HasOne(e => e.Transaction)
+                    .WithMany()
+                    .HasForeignKey(e => e.TransactionId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
             });
         }
     }

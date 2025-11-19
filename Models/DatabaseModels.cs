@@ -211,17 +211,14 @@ public class CustomerAccount
     [Required, MaxLength(50)]
     public string AccountNumber { get; set; } = "";
     
-    [Required, MaxLength(50)]
-    public string AccountType { get; set; } = ""; // Savings, Checking, Credit
-    
     [Required]
     public int CustomerId { get; set; }
     
     [Column(TypeName = "decimal(18,2)")]
-    public decimal Balance { get; set; }
+    public decimal Balance { get; set; } = 0;
     
     [Column(TypeName = "decimal(18,2)")]
-    public decimal AvailableBalance { get; set; }
+    public decimal AvailableBalance { get; set; } = 0;
     
     [MaxLength(3)]
     public string Currency { get; set; } = "PHP";
@@ -239,6 +236,15 @@ public class CustomerAccount
     public virtual ICollection<CustomerTransaction> Transactions { get; set; } = new List<CustomerTransaction>();
     public virtual ICollection<Card> Cards { get; set; } = new List<Card>();
     public virtual ICollection<Loan> Loans { get; set; } = new List<Loan>();
+    
+    // Helper method to generate unique 6-digit account number
+    public static string GenerateAccountNumber()
+    {
+        // Generate unique 6-digit account number: ACC-XXXXXX
+        var random = new Random();
+        var sixDigitNumber = random.Next(100000, 999999);
+        return $"ACC-{sixDigitNumber}";
+    }
 }
 
 [Table("CustomerTransactions")]

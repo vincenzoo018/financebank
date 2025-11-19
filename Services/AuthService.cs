@@ -68,8 +68,9 @@ namespace FinanceBank.Services
 
             try
             {
-                // Find user by username
+                // Find user by username (include Employee data)
                 var user = await _context.Users
+                    .Include(u => u.Employee)
                     .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
 
                 if (user == null)
@@ -132,6 +133,7 @@ namespace FinanceBank.Services
             try
             {
                 var user = await _context.Users
+                    .Include(u => u.Employee)
                     .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
 
                 if (user == null || user.PasswordHash != password)
@@ -144,8 +146,19 @@ namespace FinanceBank.Services
                 CurrentRole = user.Role;
                 FullName = user.FullName;
                 Email = user.Email;
-                EmployeeId = user.EmployeeId;
-                Department = user.Department;
+                
+                // Get employee info if user is an employee
+                if (user.Employee != null)
+                {
+                    EmployeeId = user.Employee.EmployeeId;
+                    Department = user.Employee.Department;
+                }
+                else
+                {
+                    EmployeeId = null;
+                    Department = null;
+                }
+                
                 Permissions = GetPermissionsForRole(user.Role);
 
                 // Update last login time
@@ -184,8 +197,19 @@ namespace FinanceBank.Services
             CurrentRole = user.Role;
             FullName = user.FullName;
             Email = user.Email;
-            EmployeeId = user.EmployeeId;
-            Department = user.Department;
+            
+            // Get employee info if user is an employee
+            if (user.Employee != null)
+            {
+                EmployeeId = user.Employee.EmployeeId;
+                Department = user.Employee.Department;
+            }
+            else
+            {
+                EmployeeId = null;
+                Department = null;
+            }
+            
             Permissions = GetPermissionsForRole(user.Role);
 
             // Update last login time

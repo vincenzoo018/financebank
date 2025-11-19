@@ -325,7 +325,7 @@ Invoice Number:    {invoiceNumber}
 Date & Time:       {DateTime.Now:yyyy-MM-dd HH:mm:ss}
 
 Account Number:    {account.AccountNumber}
-Account Type:      {account.AccountType}
+Account Type:      Savings Account
 Customer Name:     {account.Customer?.FullName ?? "N/A"}
 
 Previous Balance:  ₱{(account.Balance - amount):N2}
@@ -365,7 +365,7 @@ Invoice Number:    {invoiceNumber}
 Date & Time:       {DateTime.Now:yyyy-MM-dd HH:mm:ss}
 
 Account Number:    {account.AccountNumber}
-Account Type:      {account.AccountType}
+Account Type:      Savings Account
 Customer Name:     {account.Customer?.FullName ?? "N/A"}
 
 Previous Balance:  ₱{(account.Balance + amount):N2}

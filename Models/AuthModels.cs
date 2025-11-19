@@ -38,14 +38,15 @@ namespace FinanceBank.Models
         public DateTime? LastLoginAt { get; set; }
 
         [MaxLength(50)]
-        public string? Department { get; set; }
-
-        [MaxLength(50)]
-        public string? EmployeeId { get; set; }
+        public string? EmployeeId_FK { get; set; }
 
         // Navigation properties
         public virtual ICollection<LoginHistory> LoginHistories { get; set; } = new List<LoginHistory>();
         public virtual ICollection<UserSession> UserSessions { get; set; } = new List<UserSession>();
+        
+        // Employee relationship (optional - only for employee roles)
+        [ForeignKey("EmployeeId_FK")]
+        public virtual Employee? Employee { get; set; }
     }
 
     // Login history table
@@ -133,6 +134,45 @@ namespace FinanceBank.Models
         public string Permission { get; set; } = string.Empty; // Read, Write, Delete, Full
 
         public bool IsActive { get; set; } = true;
+    }
+
+    // Employee table
+    [Table("Employees")]
+    public class Employee
+    {
+        [Key]
+        [MaxLength(50)]
+        public string EmployeeId { get; set; } = string.Empty;
+
+        [Required]
+        public int UserId { get; set; }
+
+        [Required]
+        [MaxLength(100)]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(100)]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(100)]
+        public string Department { get; set; } = string.Empty;
+
+        [MaxLength(100)]
+        public string? Position { get; set; }
+
+        public DateTime HireDate { get; set; } = DateTime.Now;
+
+        public bool IsActive { get; set; } = true;
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public DateTime? UpdatedAt { get; set; }
+
+        // Navigation property
+        [ForeignKey("UserId")]
+        public virtual AuthUser? User { get; set; }
     }
 }
 

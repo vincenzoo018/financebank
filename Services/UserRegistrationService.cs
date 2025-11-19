@@ -50,7 +50,7 @@ namespace FinanceBank.Services
                     return (false, "Username already exists. Please choose a different username.", "");
 
                 // Generate account number and employee ID
-                var accountNumber = GenerateAccountNumber();
+                string accountNumber = "";
                 var generatedEmployeeId = employeeId ?? GenerateEmployeeId();
 
                 // Validate and trim role
@@ -72,8 +72,6 @@ namespace FinanceBank.Services
                     FullName = fullName,
                     Email = email,
                     PhoneNumber = phoneNumber,
-                    Department = department,
-                    EmployeeId = generatedEmployeeId,
                     IsActive = isActive,
                     CreatedAt = DateTime.Now
                 };
@@ -82,9 +80,51 @@ namespace FinanceBank.Services
                 _dbContext.Users.Add(newUser);
                 await _dbContext.SaveChangesAsync();
                 Console.WriteLine($"✓ User '{username}' saved to database successfully");
-                Console.WriteLine($"  - Employee ID: {generatedEmployeeId}");
                 Console.WriteLine($"  - Role: {mappedRole}");
-                Console.WriteLine($"  - Department: {department}");
+
+                // If employee role, create employee record
+                if (mappedRole != "Customer")
+                {
+                    var employee = new Employee
+                    {
+                        EmployeeId = generatedEmployeeId,
+                        UserId = newUser.UserId,
+                        FirstName = fullName.Split(' ')[0],
+                        LastName = fullName.Contains(' ') ? string.Join(" ", fullName.Split(' ').Skip(1)) : "",
+                        Department = department ?? "General",
+                        IsActive = isActive,
+                        CreatedAt = DateTime.Now
+                    };
+                    _dbContext.Employees.Add(employee);
+                    
+                    newUser.EmployeeId_FK = generatedEmployeeId;
+                    _dbContext.Users.Update(newUser);
+                    await _dbContext.SaveChangesAsync();
+                    
+                    Console.WriteLine($"  - Employee ID: {generatedEmployeeId}");
+                    Console.WriteLine($"  - Department: {department ?? "General"}");
+                }
+                
+                // If customer role, create customer account
+                if (mappedRole == "Customer")
+                {
+                    accountNumber = CustomerAccount.GenerateAccountNumber();
+                    var customerAccount = new CustomerAccount
+                    {
+                        AccountNumber = accountNumber,
+                        CustomerId = newUser.UserId,
+                        Balance = 0,
+                        AvailableBalance = 0,
+                        Currency = "PHP",
+                        IsActive = isActive,
+                        CreatedAt = DateTime.Now
+                    };
+                    _dbContext.CustomerAccounts.Add(customerAccount);
+                    await _dbContext.SaveChangesAsync();
+                    
+                    Console.WriteLine($"  - Account Number: {accountNumber}");
+                    Console.WriteLine($"  - Initial Balance: 0.00");
+                }
 
                 // Authenticate the user immediately
                 var authResult = await _authService.LoginAsync(username, password);

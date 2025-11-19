@@ -228,7 +228,7 @@
             account = await BankingService.GetPrimaryAccountForCurrentCustomerAsync();
             if (account != null)
             {
-                accountLabel = $"{account.AccountType} Account";
+                accountLabel = "Savings Account";
                 maskedAccountNumber = MaskAccountNumber(account.AccountNumber);
                 currentBalance = account.AvailableBalance;
 
@@ -312,7 +312,7 @@
             {
                 account = updatedAccount;
                 currentBalance = account.AvailableBalance;
-                accountLabel = $"{account.AccountType} Account";
+                accountLabel = "Savings Account";
                 maskedAccountNumber = MaskAccountNumber(account.AccountNumber);
             }
 

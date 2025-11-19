@@ -55,14 +55,50 @@ namespace FinanceBank.Services
                     FullName = fullName,
                     Email = email,
                     PhoneNumber = phoneNumber,
-                    Department = department,
-                    EmployeeId = employeeId,
                     IsActive = isActive,
                     CreatedAt = DateTime.Now
                 };
 
                 _dbContext.Users.Add(newUser);
                 await _dbContext.SaveChangesAsync();
+
+                // If employee role, create employee record
+                if (!string.IsNullOrEmpty(employeeId) && (role == "SuperAdmin" || role == "Accountant" || role == "FinanceManager" || role == "Teller"))
+                {
+                    var employee = new Employee
+                    {
+                        EmployeeId = employeeId,
+                        UserId = newUser.UserId,
+                        FirstName = fullName?.Split(' ')[0] ?? "Employee",
+                        LastName = fullName?.Contains(' ') == true ? string.Join(" ", fullName.Split(' ').Skip(1)) : "",
+                        Department = department ?? "General",
+                        IsActive = isActive,
+                        CreatedAt = DateTime.Now
+                    };
+                    _dbContext.Employees.Add(employee);
+                    
+                    newUser.EmployeeId_FK = employeeId;
+                    _dbContext.Users.Update(newUser);
+                    await _dbContext.SaveChangesAsync();
+                }
+                
+                // If customer role, create customer account
+                if (role == "Customer")
+                {
+                    var accountNumber = CustomerAccount.GenerateAccountNumber();
+                    var customerAccount = new CustomerAccount
+                    {
+                        AccountNumber = accountNumber,
+                        CustomerId = newUser.UserId,
+                        Balance = 0,
+                        AvailableBalance = 0,
+                        Currency = "PHP",
+                        IsActive = isActive,
+                        CreatedAt = DateTime.Now
+                    };
+                    _dbContext.CustomerAccounts.Add(customerAccount);
+                    await _dbContext.SaveChangesAsync();
+                }
 
                 return (true, "User created successfully", newUser.UserId);
             }
@@ -157,6 +193,7 @@ namespace FinanceBank.Services
             try
             {
                 var user = await _dbContext.Users
+                    .Include(u => u.Employee)
                     .FirstOrDefaultAsync(u => u.UserId == userId);
 
                 if (user == null)
@@ -171,11 +208,15 @@ namespace FinanceBank.Services
                 if (!string.IsNullOrWhiteSpace(phoneNumber))
                     user.PhoneNumber = phoneNumber;
 
-                if (!string.IsNullOrWhiteSpace(department))
-                    user.Department = department;
-
                 if (isActive.HasValue)
                     user.IsActive = isActive.Value;
+
+                // Update employee record if user is an employee
+                if (user.Employee != null && !string.IsNullOrWhiteSpace(department))
+                {
+                    user.Employee.Department = department;
+                    _dbContext.Employees.Update(user.Employee);
+                }
 
                 _dbContext.Users.Update(user);
                 await _dbContext.SaveChangesAsync();
