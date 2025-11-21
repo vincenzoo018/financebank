@@ -12,485 +12,316 @@
     <div style="background: linear-gradient(135deg, #059669, #10b981); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <span style="font-size: 32px;">💰</span>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5m0 0a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
             </div>
             <div>
-                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Deposit Money</h1>
-                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Add funds to your account</p>
-            </div>
-            <div style="margin-left: auto; text-align: right;">
-                <button type="button" @onclick="ShowHistory" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px 20px; border-radius: 8px; cursor: pointer;">
-                    📊 History
-                </button>
+                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Deposit History</h1>
+                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">View all deposits processed by tellers</p>
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-        <!-- Account Lookup -->
-        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Account Number *</h3>
-            
-            <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; margin-bottom: 12px;" 
-                   @bind="accountNumberInput" @oninput="OnAccountNumberChange" placeholder="Enter your account number..." />
-            
-            @if (!string.IsNullOrEmpty(accountError))
-            {
-                <div style="color: #dc2626; font-size: 12px; margin-bottom: 12px;">@accountError</div>
-            }
-
-            <!-- Account Details (Auto-filled) -->
-            @if (selectedAccount != null)
-            {
-                <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div>
-                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Account Number</div>
-                            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedAccount.AccountNumber</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Customer Name</div>
-                            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedAccount.Customer?.FullName</div>
-                        </div>
-                        <div colspan="2">
-                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Current Balance</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #059669;">₱@selectedAccount.Balance.ToString("N2")</div>
-                        </div>
-                    </div>
+    <!-- Account Info Card -->
+    @if (selectedAccount != null)
+    {
+        <div style="background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;">
+                <div>
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Account Number</div>
+                    <div style="font-size: 16px; font-weight: 600; color: #1f2937;">@selectedAccount.AccountNumber</div>
                 </div>
-
-                <!-- New Deposit Button -->
-                <button type="button" @onclick="ShowDepositModal" style="width: 100%; padding: 16px; background: linear-gradient(135deg, #059669, #047857); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
-                    New Deposit Transaction →
-                </button>
-            }
-            else if (!string.IsNullOrEmpty(accountNumberInput))
-            {
-                <div style="padding: 16px; background: #fef3c7; border-radius: 8px; color: #92400e; font-size: 14px;">
-                    Enter your account number to load account details.
+                <div>
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Account Holder</div>
+                    <div style="font-size: 16px; font-weight: 600; color: #1f2937;">@selectedAccount.Customer?.FullName</div>
                 </div>
-            }
-        </div>
-
-        <!-- Sidebar -->
-        <div>
-            <!-- Quick Actions -->
-            <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
-                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Quick Actions</h3>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <button type="button" style="padding: 12px 16px; background: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; color: #1e40af; font-weight: 500; cursor: pointer; text-align: left;">
-                        💸 Transfer Money
-                    </button>
-                    <button type="button" style="padding: 12px 16px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; color: #92400e; font-weight: 500; cursor: pointer; text-align: left;">
-                        💸 Withdraw Money
-                    </button>
-                    <button type="button" style="padding: 12px 16px; background: #f0fdf4; border: 1px solid #10b981; border-radius: 8px; color: #065f46; font-weight: 500; cursor: pointer; text-align: left;">
-                        📄 Pay Bills
-                    </button>
+                <div>
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Current Balance</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #059669;">₱@selectedAccount.Balance.ToString("N2")</div>
                 </div>
             </div>
+        </div>
+    }
 
-            <!-- Recent Deposits -->
-            <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="font-size: 18px; font-weight: 600; color: #1f2937;">Recent Deposits</h3>
-                    <button type="button" @onclick="ShowHistory" style="font-size: 14px; color: #059669; background: none; border: none; cursor: pointer; font-weight: 500;">View All</button>
-                </div>
+    <!-- Deposit History Table -->
+    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0;">All Deposits</h2>
+            <div style="font-size: 14px; color: #6b7280;">Total: @depositTransactions.Count transactions</div>
+        </div>
 
-                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        @if (depositTransactions.Any())
+        {
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
                     <thead>
-                        <tr style="border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
-                            <th style="padding: 8px; text-align: left; color: #6b7280; font-size: 11px;">DATE</th>
-                            <th style="padding: 8px; text-align: left; color: #6b7280; font-size: 11px;">TYPE</th>
-                            <th style="padding: 8px; text-align: right; color: #6b7280; font-size: 11px;">AMOUNT</th>
-                            <th style="padding: 8px; text-align: left; color: #6b7280; font-size: 11px;">STATUS</th>
+                        <tr style="border-bottom: 2px solid #e5e7eb; background: #f9fafb;">
+                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">DATE & TIME</th>
+                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">REFERENCE</th>
+                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">TYPE</th>
+                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">DESCRIPTION</th>
+                            <th style="padding: 12px; text-align: right; color: #6b7280; font-size: 12px; font-weight: 600;">AMOUNT</th>
+                            <th style="padding: 12px; text-align: center; color: #6b7280; font-size: 12px; font-weight: 600;">STATUS</th>
+                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">PROCESSED BY</th>
+                            <th style="padding: 12px; text-align: center; color: #6b7280; font-size: 12px; font-weight: 600;">ACTION</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if (recentDeposits.Any())
+                        @foreach (var deposit in depositTransactions)
                         {
-                            @foreach (var deposit in recentDeposits.Take(5))
-                            {
-                                <tr style="border-bottom: 1px solid #f3f4f6;">
-                                    <td style="padding: 8px;">@deposit.Date.ToString("MMM dd, yyyy")</td>
-                                    <td style="padding: 8px;">@deposit.Type</td>
-                                    <td style="padding: 8px; text-align: right; color: #059669; font-weight: 600;">₱@deposit.Amount.ToString("N2")</td>
-                                    <td style="padding: 8px;">
-                                        <span style="padding: 2px 8px; border-radius: 9999px; font-size: 11px; background: @(deposit.Status == "Completed" ? "#d1fae5" : "#fef3c7"); color: @(deposit.Status == "Completed" ? "#065f46" : "#92400e");">
-                                            @deposit.Status
-                                        </span>
-                                    </td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="4" style="padding: 12px; text-align: center; color: #6b7280;">No deposit transactions yet</td>
+                            <tr style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s; background: @(hoveredTransactionId == deposit.TransactionId ? "#f9fafb" : "white");" @onmouseover="@((MouseEventArgs e) => hoveredTransactionId = deposit.TransactionId)" @onmouseout="@((MouseEventArgs e) => hoveredTransactionId = null)">
+                                <td style="padding: 12px; color: #1f2937; font-size: 14px;">@deposit.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</td>
+                                <td style="padding: 12px; color: #059669; font-weight: 600; font-size: 13px;">@deposit.TransactionNumber</td>
+                                <td style="padding: 12px; color: #1f2937; font-size: 14px;">
+                                    <span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 12px; font-weight: 500;">Deposit</span>
+                                </td>
+                                <td style="padding: 12px; color: #6b7280; font-size: 14px;">@(deposit.Description ?? "-")</td>
+                                <td style="padding: 12px; text-align: right; color: #059669; font-weight: 700; font-size: 15px;">+₱@deposit.Amount.ToString("N2")</td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <span style="padding: 4px 8px; background: @(deposit.Status == "Completed" ? "#d1fae5" : "#fef3c7"); color: @(deposit.Status == "Completed" ? "#065f46" : "#92400e"); border-radius: 6px; font-size: 12px; font-weight: 500;">@deposit.Status</span>
+                                </td>
+                                <td style="padding: 12px; color: #6b7280; font-size: 13px;">@GetEmployeeName(deposit.ProcessedByEmployee)</td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <button @onclick="@(() => ShowInvoiceModal(deposit))" style="background: #059669; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                                        View Invoice
+                                    </button>
+                                </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    .deposit-item:hover {
-        background: #f0fdf4;
-        border-color: #10b981;
-    }
-</style>
-
-<!-- Deposit Modal -->
-@if (showDepositModal && selectedAccount != null)
-{
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseDepositModal">
-        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h2 style="font-size: 24px; font-weight: 700; color: #1f2937;">New Deposit Transaction</h2>
-                <button @onclick="CloseDepositModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+        }
+        else
+        {
+            <div style="text-align: center; padding: 48px 24px; color: #6b7280;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 16px; opacity: 0.5;">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5m0 0a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                <p style="font-size: 16px; margin: 0;">No deposit transactions yet</p>
+                <p style="font-size: 14px; margin: 8px 0 0; opacity: 0.7;">Deposits processed by tellers will appear here</p>
             </div>
-
-            <form @onsubmit="ProcessDeposit" @onsubmit:preventDefault>
-                <!-- Deposit Type -->
-                <div style="margin-bottom: 20px;">
-                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Deposit Type *</label>
-                    <select style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" @bind="depositType">
-                        <option value="">Select type...</option>
-                        <option value="cash">Cash Deposit</option>
-                        <option value="check">Check Deposit</option>
-                        <option value="online">Online Transfer</option>
-                    </select>
-                </div>
-
-                <!-- Deposit Amount -->
-                <div style="margin-bottom: 20px;">
-                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Deposit Amount (₱) *</label>
-                    <input type="number" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
-                           @bind="depositAmount" placeholder="0.00" step="0.01" />
-                </div>
-
-                <!-- Reference (Auto-generated) -->
-                <div style="margin-bottom: 20px;">
-                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Reference Number</label>
-                    <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #f9fafb;" 
-                           @bind="depositReference" placeholder="Auto-generated" readonly />
-                </div>
-
-                <!-- Notes -->
-                <div style="margin-bottom: 20px;">
-                    <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Notes</label>
-                    <textarea style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 60px;" 
-                              @bind="depositNotes" placeholder="Additional notes..."></textarea>
-                </div>
-
-                <!-- Messages -->
-                @if (!string.IsNullOrEmpty(errorMessage))
-                {
-                    <div style="padding: 12px; background: #fee2e2; border-radius: 8px; color: #991b1b; margin-bottom: 16px; font-size: 13px;">
-                        <strong>Error:</strong> @errorMessage
-                    </div>
-                }
-
-                @if (!string.IsNullOrEmpty(successMessage))
-                {
-                    <div style="padding: 12px; background: #d1fae5; border-radius: 8px; color: #065f46; margin-bottom: 16px; font-size: 13px;">
-                        <strong>Success:</strong> @successMessage
-                        @if (!string.IsNullOrEmpty(lastInvoice))
-                        {
-                            <div style="margin-top: 12px;">
-                                <button type="button" @onclick="PrintInvoice" style="background: #059669; color: white; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">
-                                    Print Invoice
-                                </button>
-                            </div>
-                        }
-                    </div>
-                }
-
-                <!-- Buttons -->
-                <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                    <button type="button" @onclick="CloseDepositModal" style="background: #f3f4f6; color: #374151; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">
-                        Cancel
-                    </button>
-                    <button type="submit" disabled="@isProcessing" style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; opacity: @(isProcessing ? "0.7" : "1");">
-                        @(isProcessing ? "Processing..." : "Deposit Now")
-                    </button>
-                </div>
-            </form>
-        </div>
+        }
     </div>
-}
 
-<!-- Transaction History Modal -->
-@if (showHistoryModal)
-{
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseHistory">
-        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h2 style="font-size: 24px; font-weight: 700; color: #1f2937;">Deposit History</h2>
-                <button @onclick="CloseHistory" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
-            </div>
-            
-            <div>
-                @foreach (var deposit in recentDeposits)
-                {
-                    <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div style="flex: 1;">
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                    <span style="font-size: 20px;">💰</span>
-                                    <div>
-                                        <div style="font-weight: 600; color: #1f2937;">@deposit.Type</div>
-                                        <div style="font-size: 12px; color: #6b7280;">@deposit.Reference</div>
-                                    </div>
-                                </div>
-                                <div style="font-size: 14px; color: #6b7280;">@deposit.Purpose</div>
-                                <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">@deposit.Date.ToString("MMM dd, yyyy hh:mm tt")</div>
+    <!-- Invoice Modal -->
+    @if (showInvoiceModal && selectedInvoice != null)
+    {
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="@(() => showInvoiceModal = false)">
+            <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 25px rgba(0,0,0,0.15);" @onclick:stopPropagation>
+                <!-- Modal Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 2px solid #e5e7eb; padding-bottom: 16px;">
+                    <h2 style="font-size: 20px; font-weight: 700; color: #1f2937; margin: 0;">Deposit Invoice</h2>
+                    <button @onclick="@(() => showInvoiceModal = false)" style="background: none; border: none; font-size: 24px; color: #6b7280; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">×</button>
+                </div>
+
+                <!-- Invoice Content -->
+                <div style="margin-bottom: 24px;">
+                    <!-- Invoice Number & Date -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                        <div>
+                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Invoice Number</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.InvoiceNumber</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Date & Time</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Information -->
+                    <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 12px;">CUSTOMER INFORMATION</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">Customer Name</div>
+                                <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.CustomerName</div>
                             </div>
-                            <div style="text-align: right;">
-                                <div style="font-weight: 700; font-size: 18px; color: #059669;">+₱@deposit.Amount.ToString("N2")</div>
-                                <div style="font-size: 12px; margin-top: 4px;">
-                                    <span style="padding: 4px 8px; background: @(deposit.Status == "Completed" ? "#d1fae5" : "#fef3c7"); color: @(deposit.Status == "Completed" ? "#065f46" : "#92400e"); border-radius: 4px; font-weight: 500;">@deposit.Status</span>
-                                </div>
+                            <div>
+                                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">Account Number</div>
+                                <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.AccountNumber</div>
                             </div>
                         </div>
                     </div>
-                }
+
+                    <!-- Transaction Details -->
+                    <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 12px;">TRANSACTION DETAILS</div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                            <span style="font-size: 14px; color: #6b7280;">Balance Before</span>
+                            <span style="font-size: 14px; font-weight: 600; color: #1f2937;">₱@selectedInvoice.BalanceBefore.ToString("N2")</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                            <span style="font-size: 14px; color: #6b7280;">Deposit Amount</span>
+                            <span style="font-size: 14px; font-weight: 600; color: #059669;">+₱@selectedInvoice.TransactionAmount.ToString("N2")</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                            <span style="font-size: 14px; color: #6b7280;">Transaction Method</span>
+                            <span style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.TransactionMethod</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(selectedInvoice.Reference))
+                        {
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                                <span style="font-size: 14px; color: #6b7280;">Reference</span>
+                                <span style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.Reference</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(selectedInvoice.Notes))
+                        {
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                                <span style="font-size: 14px; color: #6b7280;">Notes</span>
+                                <span style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.Notes</span>
+                            </div>
+                        }
+                        <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 2px solid #059669;">
+                            <span style="font-size: 14px; font-weight: 700; color: #1f2937;">Balance After</span>
+                            <span style="font-size: 16px; font-weight: 700; color: #059669;">₱@selectedInvoice.BalanceAfter.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    <!-- Processing Information -->
+                    <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 12px;">PROCESSING INFORMATION</div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                            <span style="font-size: 14px; color: #6b7280;">Processed By</span>
+                            <span style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.ProcessedBy</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="font-size: 14px; color: #6b7280;">Status</span>
+                            <span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 12px; font-weight: 600;">@selectedInvoice.Status</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div style="display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+                    <button @onclick="@(() => showInvoiceModal = false)" style="background: #f3f4f6; color: #1f2937; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                        Close
+                    </button>
+                    <button @onclick="@(() => PrintInvoice(selectedInvoice))" style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                        Print Invoice
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-}
-
+    }
+</div>
 
 @code {
-    private string accountNumberInput = "";
-    private string accountError = "";
     private CustomerAccount? selectedAccount;
-    
-    private string depositType = "";
-    private decimal depositAmount = 0;
-    private string depositReference = "";
-    private string depositNotes = "";
-    
-    private bool showDepositModal = false;
-    private bool showHistoryModal = false;
-    private bool isProcessing = false;
-    private string errorMessage = "";
-    private string successMessage = "";
-    private string lastInvoice = "";
-
-    private List<DepositHistory> recentDeposits = new();
+    private List<CustomerTransaction> depositTransactions = new();
+    private int? hoveredTransactionId;
+    private bool showInvoiceModal = false;
+    private Invoice? selectedInvoice;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadRecentDepositsAsync();
+        await LoadDepositHistoryAsync();
+        
+        // Auto-refresh every 5 seconds to show real-time teller deposits
+        _ = AutoRefreshAsync();
     }
 
-    private async Task LoadRecentDepositsAsync()
+    private async Task LoadDepositHistoryAsync()
     {
         try
         {
-            var account = await BankingService.GetPrimaryAccountForCurrentCustomerAsync();
-            if (account != null)
+            selectedAccount = await BankingService.GetPrimaryAccountForCurrentCustomerAsync();
+            if (selectedAccount != null)
             {
-                var transactions = await TransactionService.GetByAccountIdAsync(account.AccountId);
-                recentDeposits = transactions
+                var transactions = await TransactionService.GetByAccountIdAsync(selectedAccount.AccountId);
+                depositTransactions = transactions
                     .Where(t => t.TransactionType == "Deposit")
-                    .Select(t => new DepositHistory
-                    {
-                        Type = MapDepositTypeLabel(t.Description ?? ""),
-                        Reference = t.TransactionNumber,
-                        Amount = t.Amount,
-                        Purpose = t.Description ?? "",
-                        Date = t.CreatedAt,
-                        Status = t.Status
-                    })
+                    .OrderByDescending(t => t.CreatedAt)
                     .ToList();
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading deposits: {ex.Message}");
+            Console.WriteLine($"Error loading deposit history: {ex.Message}");
         }
     }
 
-    private async Task OnAccountNumberChange(ChangeEventArgs e)
+    private async Task AutoRefreshAsync()
     {
-        accountNumberInput = e.Value?.ToString() ?? "";
-        accountError = "";
-        selectedAccount = null;
+        while (true)
+        {
+            await Task.Delay(5000); // Refresh every 5 seconds
+            await LoadDepositHistoryAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 
-        if (string.IsNullOrWhiteSpace(accountNumberInput))
-            return;
-
+    private async Task ShowInvoiceModal(CustomerTransaction transaction)
+    {
         try
         {
-            var (success, account, message) = await BankingService.GetAccountByNumberForCurrentCustomerAsync(accountNumberInput);
+            // Fetch the invoice for this transaction from the database
+            var invoices = await BankingService.GetAccountInvoicesAsync(transaction.AccountId, 100);
+            selectedInvoice = invoices.FirstOrDefault(i => i.TransactionId == transaction.TransactionId);
             
-            if (success && account != null)
+            // If no invoice found, create a display invoice from transaction data
+            if (selectedInvoice == null && selectedAccount != null)
             {
-                selectedAccount = account;
-                depositReference = GenerateReference("DEP");
+                selectedInvoice = new Invoice
+                {
+                    InvoiceNumber = $"INV-{transaction.TransactionNumber}",
+                    InvoiceType = transaction.TransactionType,
+                    CustomerName = selectedAccount.Customer?.FullName ?? "Unknown",
+                    AccountNumber = selectedAccount.AccountNumber,
+                    BalanceBefore = selectedAccount.Balance - transaction.Amount,
+                    TransactionAmount = transaction.Amount,
+                    BalanceAfter = selectedAccount.Balance,
+                    TransactionMethod = transaction.Description ?? "Unknown",
+                    Reference = transaction.Reference,
+                    Notes = transaction.Description,
+                    ProcessedBy = "Admin",
+                    Status = transaction.Status,
+                    CreatedAt = transaction.CreatedAt
+                };
+            }
+            
+            if (selectedInvoice != null)
+            {
+                showInvoiceModal = true;
+                await InvokeAsync(StateHasChanged);
             }
             else
             {
-                accountError = message;
+                Console.WriteLine($"No invoice found for transaction {transaction.TransactionId}");
             }
         }
         catch (Exception ex)
         {
-            accountError = $"Error: {ex.Message}";
+            Console.WriteLine($"Error loading invoice: {ex.Message}");
         }
     }
 
-    private void ShowDepositModal()
+    private void PrintInvoice(Invoice invoice)
     {
-        if (selectedAccount == null)
-        {
-            errorMessage = "Please select an account first.";
-            return;
-        }
-        
-        depositType = "";
-        depositAmount = 0;
-        depositReference = GenerateReference("DEP");
-        depositNotes = "";
-        errorMessage = "";
-        successMessage = "";
-        lastInvoice = "";
-        showDepositModal = true;
-    }
-
-    private void CloseDepositModal()
-    {
-        showDepositModal = false;
-        errorMessage = "";
-        successMessage = "";
-        lastInvoice = "";
-    }
-
-    private void ShowHistory()
-    {
-        showHistoryModal = true;
-    }
-
-    private void CloseHistory()
-    {
-        showHistoryModal = false;
-    }
-
-    private async Task ProcessDeposit()
-    {
-        if (isProcessing || selectedAccount == null)
-            return;
-
-        errorMessage = "";
-        successMessage = "";
-
-        if (string.IsNullOrWhiteSpace(depositType))
-        {
-            errorMessage = "Please select a deposit type.";
-            return;
-        }
-
-        if (depositAmount <= 0)
-        {
-            errorMessage = "Please enter a deposit amount greater than zero.";
-            return;
-        }
-
-        isProcessing = true;
         try
         {
-            var (success, message, updatedAccount) = await BankingService.DepositAsync(
-                depositAmount,
-                depositType,
-                depositNotes,
-                selectedAccount.AccountId);
-
-            if (!success)
-            {
-                errorMessage = message;
-                isProcessing = false;
-                return;
-            }
-
-            if (updatedAccount != null)
-            {
-                selectedAccount = updatedAccount;
-                
-                // Generate invoice
-                lastInvoice = CustomerBankingService.GenerateDepositInvoice(
-                    depositReference,
-                    updatedAccount,
-                    depositAmount,
-                    depositType,
-                    depositReference,
-                    depositNotes);
-            }
-
-            // Add to recent deposits
-            recentDeposits.Insert(0, new DepositHistory
-            {
-                Type = MapDepositTypeLabel(depositType),
-                Reference = depositReference,
-                Amount = depositAmount,
-                Purpose = depositNotes,
-                Date = DateTime.Now,
-                Status = "Completed"
-            });
-
-            successMessage = $"✓ Deposit of ₱{depositAmount:N2} successful!";
+            // Log to console (in real app, would use JS interop to open print dialog)
+            Console.WriteLine($"Printing invoice: {invoice.InvoiceNumber}");
+            Console.WriteLine($"Amount: ₱{invoice.TransactionAmount:N2}");
+            Console.WriteLine($"Processed By: {invoice.ProcessedBy}");
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error processing deposit: {ex.Message}";
-        }
-        finally
-        {
-            isProcessing = false;
+            Console.WriteLine($"Error printing invoice: {ex.Message}");
         }
     }
 
-    private void PrintInvoice()
+    private string GetEmployeeName(Employee? employee)
     {
-        if (string.IsNullOrEmpty(lastInvoice))
-            return;
-
-        // Create a new window for printing
-        var printWindow = new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = "notepad.exe",
-            Arguments = "-"
-        };
-
-        // For now, just log to console - in production use JS interop for printing
-        Console.WriteLine(lastInvoice);
-    }
-
-    private static string MapDepositTypeLabel(string type) =>
-        type switch
-        {
-            "cash" => "Cash Deposit",
-            "check" => "Check Deposit",
-            "online" => "Online Transfer",
-            _ => "Deposit"
-        };
-
-    private static string GenerateReference(string prefix) =>
-        $"{prefix}-{DateTime.Now:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}";
-
-    public class DepositHistory
-    {
-        public string Type { get; set; } = "";
-        public string Reference { get; set; } = "";
-        public decimal Amount { get; set; }
-        public string Purpose { get; set; } = "";
-        public DateTime Date { get; set; }
-        public string Status { get; set; } = "";
+        if (employee == null)
+            return "Admin";
+        
+        var firstName = employee.FirstName ?? "";
+        var lastName = employee.LastName ?? "";
+        var fullName = $"{firstName} {lastName}".Trim();
+        return string.IsNullOrWhiteSpace(fullName) ? "Admin" : fullName;
     }
 }
 

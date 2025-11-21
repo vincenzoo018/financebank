@@ -45,6 +45,9 @@ namespace FinanceBank
             // Register Teller Banking Service (teller/admin processing deposits and withdrawals)
             builder.Services.AddScoped<TellerBankingService>();
 
+            // Register Invoice Service (creates and manages invoices for all transactions)
+            builder.Services.AddScoped<InvoiceService>();
+
             // Register CRUD Services
             builder.Services.AddScoped<BankAccountService>();
             builder.Services.AddScoped<FundTransferService>();

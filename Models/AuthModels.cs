@@ -37,8 +37,7 @@ namespace FinanceBank.Models
 
         public DateTime? LastLoginAt { get; set; }
 
-        [MaxLength(50)]
-        public string? EmployeeId_FK { get; set; }
+        public int? EmployeeId_FK { get; set; }
 
         // Navigation properties
         public virtual ICollection<LoginHistory> LoginHistories { get; set; } = new List<LoginHistory>();
@@ -141,8 +140,7 @@ namespace FinanceBank.Models
     public class Employee
     {
         [Key]
-        [MaxLength(50)]
-        public string EmployeeId { get; set; } = string.Empty;
+        public int EmployeeId { get; set; }
 
         [Required]
         public int UserId { get; set; }

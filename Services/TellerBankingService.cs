@@ -12,11 +12,13 @@ namespace FinanceBank.Services
     {
         private readonly BFASDbContext _context;
         private readonly AuthService _authService;
+        private readonly InvoiceService _invoiceService;
 
-        public TellerBankingService(BFASDbContext context, AuthService authService)
+        public TellerBankingService(BFASDbContext context, AuthService authService, InvoiceService invoiceService)
         {
             _context = context;
             _authService = authService;
+            _invoiceService = invoiceService;
         }
 
         /// <summary>
@@ -95,6 +97,9 @@ namespace FinanceBank.Services
 
             try
             {
+                // Store balance before for invoice
+                decimal balanceBefore = account.Balance;
+
                 // Update account balance
                 account.Balance += amount;
                 account.AvailableBalance += amount;
@@ -102,6 +107,9 @@ namespace FinanceBank.Services
 
                 // Generate receipt number
                 string receiptNumber = GenerateReceiptNumber("DEP");
+
+                // Get employee ID for the current user
+                int? employeeId = await GetEmployeeIdForCurrentUserAsync();
 
                 // Create transaction record
                 var customerTransaction = new CustomerTransaction
@@ -116,11 +124,22 @@ namespace FinanceBank.Services
                     Reference = reference ?? GenerateReference("DEPREF"),
                     CreatedAt = DateTime.Now,
                     ProcessedAt = DateTime.Now,
-                    ProcessedBy = _authService.CurrentUser ?? "Teller"
+                    ProcessedByEmployeeId = employeeId
                 };
 
                 _context.CustomerTransactions.Add(customerTransaction);
                 await _context.SaveChangesAsync();
+
+                // Create invoice record
+                await _invoiceService.CreateDepositInvoiceAsync(
+                    account.AccountId,
+                    customerTransaction.TransactionId,
+                    balanceBefore,
+                    amount,
+                    depositMethod,
+                    reference,
+                    notes);
+
                 await transaction.CommitAsync();
 
                 return (true, $"Deposit of ₱{amount:N2} processed successfully", customerTransaction, receiptNumber);
@@ -214,6 +233,9 @@ namespace FinanceBank.Services
 
             try
             {
+                // Store balance before for invoice
+                decimal balanceBefore = account.Balance;
+
                 // Update account balance
                 account.Balance -= amount;
                 account.AvailableBalance -= amount;
@@ -221,6 +243,9 @@ namespace FinanceBank.Services
 
                 // Generate receipt number
                 string receiptNumber = GenerateReceiptNumber("WDR");
+
+                // Get employee ID for the current user
+                int? employeeId = await GetEmployeeIdForCurrentUserAsync();
 
                 // Create transaction record
                 var customerTransaction = new CustomerTransaction
@@ -235,11 +260,22 @@ namespace FinanceBank.Services
                     Reference = reference ?? GenerateReference("WDRREF"),
                     CreatedAt = DateTime.Now,
                     ProcessedAt = DateTime.Now,
-                    ProcessedBy = _authService.CurrentUser ?? "Teller"
+                    ProcessedByEmployeeId = employeeId
                 };
 
                 _context.CustomerTransactions.Add(customerTransaction);
                 await _context.SaveChangesAsync();
+
+                // Create invoice record
+                await _invoiceService.CreateWithdrawalInvoiceAsync(
+                    account.AccountId,
+                    customerTransaction.TransactionId,
+                    balanceBefore,
+                    amount,
+                    withdrawalMethod,
+                    reference,
+                    notes);
+
                 await transaction.CommitAsync();
 
                 return (true, $"Withdrawal of ₱{amount:N2} processed successfully", customerTransaction, receiptNumber);
@@ -302,6 +338,35 @@ namespace FinanceBank.Services
         private string GenerateReference(string prefix)
         {
             return $"{prefix}-{DateTime.Now:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}";
+        }
+
+        /// <summary>
+        /// Get the Employee ID for the current authenticated user
+        /// Joins Users → Employees to get the EmployeeId
+        /// </summary>
+        private async Task<int?> GetEmployeeIdForCurrentUserAsync()
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated || !_authService.CurrentUserId.HasValue)
+                    return null;
+
+                var userId = _authService.CurrentUserId.Value;
+
+                var employee = await _context.Employees
+                    .Where(e => e.UserId == userId)
+                    .FirstOrDefaultAsync();
+
+                if (employee == null)
+                    return null;
+
+                return employee.EmployeeId;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting employee ID: {ex.Message}");
+                return null;
+            }
         }
 
         /// <summary>

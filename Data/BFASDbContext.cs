@@ -102,9 +102,18 @@ namespace FinanceBank.Data
                 entity.HasIndex(e => e.Department);
                 entity.HasIndex(e => e.IsActive);
                 
+                // Explicitly configure EmployeeId as int
+                entity.Property(e => e.EmployeeId)
+                    .HasColumnType("int")
+                    .ValueGeneratedNever()
+                    .HasConversion(
+                        v => v,
+                        v => v);
+                
                 entity.HasOne(e => e.User)
                     .WithOne(u => u.Employee)
-                    .HasForeignKey<Employee>(e => e.UserId)
+                    .HasForeignKey<AuthUser>(u => u.EmployeeId_FK)
+                    .HasPrincipalKey<Employee>(e => e.EmployeeId)
                     .OnDelete(DeleteBehavior.NoAction);
                 
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");

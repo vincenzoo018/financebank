@@ -442,18 +442,79 @@ public class CustomerTransactionService
 
         transaction.Status = "Completed";
         transaction.ProcessedAt = DateTime.Now;
-        transaction.ProcessedBy = processedBy;
+        // Note: ProcessedBy has been replaced with ProcessedByEmployeeId (FK to Employees)
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<List<CustomerTransaction>> GetDepositsByAccountIdAsync(int accountId)
+    {
+        if (_context == null) return GetMockData().Where(x => x.AccountId == accountId && x.TransactionType == "Deposit").ToList();
+        return await _context.CustomerTransactions
+            .Where(ct => ct.AccountId == accountId && ct.TransactionType == "Deposit")
+            .OrderByDescending(ct => ct.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<List<CustomerTransaction>> GetWithdrawalsByAccountIdAsync(int accountId)
+    {
+        if (_context == null) return GetMockData().Where(x => x.AccountId == accountId && x.TransactionType == "Withdrawal").ToList();
+        return await _context.CustomerTransactions
+            .Where(ct => ct.AccountId == accountId && ct.TransactionType == "Withdrawal")
+            .OrderByDescending(ct => ct.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<List<CustomerTransaction>> GetBillsByAccountIdAsync(int accountId)
+    {
+        if (_context == null) return GetMockData().Where(x => x.AccountId == accountId && x.TransactionType == "Bills").ToList();
+        return await _context.CustomerTransactions
+            .Where(ct => ct.AccountId == accountId && ct.TransactionType == "Bills")
+            .OrderByDescending(ct => ct.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<List<CustomerTransaction>> GetByTypeAsync(int accountId, string transactionType)
+    {
+        if (_context == null) return GetMockData().Where(x => x.AccountId == accountId && x.TransactionType == transactionType).ToList();
+        return await _context.CustomerTransactions
+            .Where(ct => ct.AccountId == accountId && ct.TransactionType == transactionType)
+            .OrderByDescending(ct => ct.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<CustomerTransaction?> GetByIdAsync(int transactionId)
+    {
+        if (_context == null) return GetMockData().FirstOrDefault(x => x.TransactionId == transactionId);
+        return await _context.CustomerTransactions.FirstOrDefaultAsync(ct => ct.TransactionId == transactionId);
+    }
+
+    public async Task<List<CustomerTransaction>> GetRecentAsync(int accountId, int limit = 10)
+    {
+        if (_context == null) return GetMockData().Where(x => x.AccountId == accountId).Take(limit).ToList();
+        return await _context.CustomerTransactions
+            .Where(ct => ct.AccountId == accountId)
+            .OrderByDescending(ct => ct.CreatedAt)
+            .Take(limit)
+            .ToListAsync();
+    }
+
+    public async Task<List<CustomerTransaction>> GetByDateRangeAsync(int accountId, DateTime startDate, DateTime endDate)
+    {
+        if (_context == null) return GetMockData().Where(x => x.AccountId == accountId && x.CreatedAt >= startDate && x.CreatedAt <= endDate).ToList();
+        return await _context.CustomerTransactions
+            .Where(ct => ct.AccountId == accountId && ct.CreatedAt >= startDate && ct.CreatedAt <= endDate)
+            .OrderByDescending(ct => ct.CreatedAt)
+            .ToListAsync();
     }
 
     private List<CustomerTransaction> GetMockData()
     {
         return new List<CustomerTransaction>
         {
-            new() { TransactionId = 1, TransactionNumber = "TXN-20241115-001", AccountId = 1, TransactionType = "Deposit", Amount = 10000.00m, Fee = 0.00m, Status = "Completed", Description = "Cash deposit", CreatedAt = DateTime.Now.AddHours(-2), ProcessedAt = DateTime.Now.AddHours(-2), ProcessedBy = "system" },
-            new() { TransactionId = 2, TransactionNumber = "TXN-20241115-002", AccountId = 1, TransactionType = "Transfer", Amount = 5000.00m, Fee = 25.00m, Status = "Completed", Description = "Fund transfer", ToAccountId = 2, ToAccountName = "Checking Account", CreatedAt = DateTime.Now.AddHours(-1), ProcessedAt = DateTime.Now.AddHours(-1), ProcessedBy = "system" },
-            new() { TransactionId = 3, TransactionNumber = "TXN-20241115-003", AccountId = 2, TransactionType = "Bills", Amount = 2500.00m, Fee = 15.00m, Status = "Pending", Description = "Electricity bill payment", BillerName = "Meralco", BillerAccountNumber = "1234567890", CreatedAt = DateTime.Now.AddMinutes(-30) }
+            new() { TransactionId = 1, TransactionNumber = "TXN-20241115-001", AccountId = 1, TransactionType = "Deposit", Amount = 10000.00m, Fee = 0.00m, Status = "Completed", Description = "Cash deposit", CreatedAt = DateTime.Now.AddHours(-2), ProcessedAt = DateTime.Now.AddHours(-2), ProcessedByEmployeeId = 1 },
+            new() { TransactionId = 2, TransactionNumber = "TXN-20241115-002", AccountId = 1, TransactionType = "Transfer", Amount = 5000.00m, Fee = 25.00m, Status = "Completed", Description = "Fund transfer", ToAccountId = 2, ToAccountName = "Checking Account", CreatedAt = DateTime.Now.AddHours(-1), ProcessedAt = DateTime.Now.AddHours(-1), ProcessedByEmployeeId = 1 },
+            new() { TransactionId = 3, TransactionNumber = "TXN-20241115-003", AccountId = 2, TransactionType = "Bills", Amount = 2500.00m, Fee = 15.00m, Status = "Pending", Description = "Electricity bill payment", BillerName = "Meralco", BillerAccountNumber = "1234567890", CreatedAt = DateTime.Now.AddMinutes(-30), ProcessedByEmployeeId = 1 }
         };
     }
 }

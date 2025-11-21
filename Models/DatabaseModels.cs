@@ -291,8 +291,7 @@ public class CustomerTransaction
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? ProcessedAt { get; set; }
     
-    [MaxLength(50)]
-    public string? ProcessedBy { get; set; }
+    public int? ProcessedByEmployeeId { get; set; } // FK to Employees table
     
     // Navigation
     [ForeignKey("AccountId")]
@@ -300,6 +299,9 @@ public class CustomerTransaction
     
     [ForeignKey("ToAccountId")]
     public virtual CustomerAccount? ToAccount { get; set; }
+    
+    [ForeignKey("ProcessedByEmployeeId")]
+    public virtual Employee? ProcessedByEmployee { get; set; }
 }
 
 [Table("Cards")]

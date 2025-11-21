@@ -14,7 +14,7 @@ namespace FinanceBank.Services
         public string? CurrentRole { get; private set; }
         public string? FullName { get; private set; }
         public string? Email { get; private set; }
-        public string? EmployeeId { get; private set; }
+        public int? EmployeeId { get; private set; }
         public string? Department { get; private set; }
         public List<string> Permissions { get; private set; } = new();
         
@@ -27,7 +27,7 @@ namespace FinanceBank.Services
             _context = context;
         }
 
-        // Define all roles in the ERP system (5 roles)
+        // 5 ROLES
         public static class Roles
         {
             public const string SuperAdmin = "SuperAdmin";
@@ -37,7 +37,7 @@ namespace FinanceBank.Services
             public const string Customer = "Customer";
         }
 
-        // Define permission modules
+        // role permission nilang 5 
         public static class Modules
         {
             public const string Dashboard = "Dashboard";
@@ -105,13 +105,12 @@ namespace FinanceBank.Services
         // Simple authentication (fallback when no database)
         private (bool success, string message) AuthenticateSimple(string username, string password)
         {
-            var validCredentials = new Dictionary<string, (string password, string role, string fullName, string? dept, string? empId)>
+            var validCredentials = new Dictionary<string, (string password, string role, string? fullName, string? dept, int? empId)>
             {
-                ["admin"] = ("admin123", Roles.SuperAdmin, "System Administrator", "IT Department", "EMP-001"),
-                ["accountant"] = ("accountant123", Roles.Accountant, "Juan Dela Cruz", "Accounting Department", "EMP-002"),
-                ["fmanager"] = ("fmanager123", Roles.FinanceManager, "Maria Santos", "Finance Department", "EMP-003"),
-                ["teller1"] = ("teller123", Roles.Teller, "John Teller", "Banking Services", "TEL-001"),
-                ["teller2"] = ("teller123", Roles.Teller, "Maria Teller", "Banking Services", "TEL-002"),
+                ["admin"] = ("admin123", Roles.SuperAdmin, "System Admin", "IT", 1),
+                ["accountant"] = ("accountant123", Roles.Accountant, "John Accountant", "Accounting", 2),
+                ["financemanager"] = ("financemanager123", Roles.FinanceManager, "Jane Finance", "Finance", 3),
+                ["teller"] = ("teller123", Roles.Teller, "Anna Teller", "Teller", 4),
                 ["customer"] = ("customer123", Roles.Customer, "Pedro Garcia", null, null)
             };
 
@@ -233,7 +232,7 @@ namespace FinanceBank.Services
         }
 
         // Simple login (without database)
-        public void Login(string username, string role, string? fullName = null, string? department = null, string? employeeId = null)
+        public void Login(string username, string role, string? fullName = null, string? department = null, int? employeeId = null)
         {
             IsAuthenticated = true;
             CurrentUser = username;

@@ -24,7 +24,7 @@ namespace FinanceBank.Services
             string phoneNumber,
             string role,
             string? department = null,
-            string? employeeId = null,
+            int? employeeId = null,
             bool isActive = true)
         {
             try
@@ -63,11 +63,11 @@ namespace FinanceBank.Services
                 await _dbContext.SaveChangesAsync();
 
                 // If employee role, create employee record
-                if (!string.IsNullOrEmpty(employeeId) && (role == "SuperAdmin" || role == "Accountant" || role == "FinanceManager" || role == "Teller"))
+                if (employeeId.HasValue && (role == "SuperAdmin" || role == "Accountant" || role == "FinanceManager" || role == "Teller"))
                 {
                     var employee = new Employee
                     {
-                        EmployeeId = employeeId,
+                        EmployeeId = employeeId.Value,
                         UserId = newUser.UserId,
                         FirstName = fullName?.Split(' ')[0] ?? "Employee",
                         LastName = fullName?.Contains(' ') == true ? string.Join(" ", fullName.Split(' ').Skip(1)) : "",

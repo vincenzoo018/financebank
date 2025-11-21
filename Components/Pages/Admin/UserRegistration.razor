@@ -174,8 +174,8 @@
                     </div>
                     <div>
                         <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Employee ID (Optional - Auto-generated)</label>
-                        <input type="text" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;" @bind="employeeId" placeholder="Leave blank for auto-generation" />
-                        <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">If left blank, will be auto-generated as EMP-YYYYMMDD-XXXXX</p>
+                        <input type="number" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;" @bind="employeeId" placeholder="Leave blank for auto-generation" />
+                        <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">If left blank, will be auto-generated with next available ID</p>
                     </div>
                     <div>
                         <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Branch/Location</label>
@@ -232,7 +232,7 @@
     private bool showPassword = false;
     private string selectedRole = "";
     private string department = "";
-    private string employeeId = "";
+    private int? employeeId = null;
     private string branchLocation = "";
     private List<string> selectedPermissions = new();
     private List<string> availablePermissions = new() { "Dashboard", "Transactions", "Accounts", "Users", "Reports", "Settings", "Accounting", "HR/Payroll", "CRM", "Loans", "Cards", "Bills", "Security", "Audit" };
@@ -247,7 +247,7 @@
         userType = type;
         selectedRole = "";
         department = "";
-        employeeId = "";
+        employeeId = null;
         branchLocation = "";
         selectedPermissions.Clear();
         errorMessage = "";
@@ -306,7 +306,7 @@
             }
 
             // Show success message
-            successMessage = $"✓ Account created successfully!\n\nAccount Number: {accountNumber}\nUsername: {username}\nRole: {(userType == "Employee" ? selectedRole : "Customer")}\n{(userType == "Employee" ? $"Employee ID: Auto-generated (EMP-YYYYMMDD-XXXXX)\nDepartment: {department}" : "")}\n\nUser has been authenticated and can log in immediately.";
+            successMessage = $"✓ Account created successfully!\n\nAccount Number: {accountNumber}\nUsername: {username}\nRole: {(userType == "Employee" ? selectedRole : "Customer")}\n{(userType == "Employee" ? $"Employee ID: {(employeeId.HasValue ? employeeId.Value : "Auto-generated")}\nDepartment: {department}" : "")}\n\nUser has been authenticated and can log in immediately.";
             
             // Clear form after brief delay
             await Task.Delay(2000);
@@ -341,7 +341,7 @@
         initialPassword = "";
         selectedRole = "";
         department = "";
-        employeeId = "";
+        employeeId = null;
         branchLocation = "";
         selectedPermissions.Clear();
         showError = false;

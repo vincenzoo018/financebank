@@ -27,7 +27,7 @@ namespace FinanceBank.Services
             string phoneNumber,
             string role,
             string? department = null,
-            string? employeeId = null,
+            int? employeeId = null,
             bool isActive = true)
         {
             try
@@ -79,7 +79,7 @@ namespace FinanceBank.Services
                 // Add to database
                 _dbContext.Users.Add(newUser);
                 await _dbContext.SaveChangesAsync();
-                Console.WriteLine($"✓ User '{username}' saved to database successfully");
+                Console.WriteLine($"[SUCCESS] User '{username}' saved to database successfully");
                 Console.WriteLine($"  - Role: {mappedRole}");
 
                 // If employee role, create employee record
@@ -130,11 +130,11 @@ namespace FinanceBank.Services
                 var authResult = await _authService.LoginAsync(username, password);
                 if (authResult)
                 {
-                    Console.WriteLine($"✓ User '{username}' authenticated successfully");
+                    Console.WriteLine($"[SUCCESS] User '{username}' authenticated successfully");
                 }
                 else
                 {
-                    Console.WriteLine($"⚠ User created but authentication failed. User can log in manually.");
+                    Console.WriteLine($"[WARNING] User created but authentication failed. User can log in manually.");
                 }
 
                 // Success - return account number
@@ -143,7 +143,7 @@ namespace FinanceBank.Services
             catch (DbUpdateException dbEx)
             {
                 var errorMessage = dbEx.InnerException?.Message ?? dbEx.Message;
-                Console.WriteLine($"✗ Database error creating user: {errorMessage}");
+                Console.WriteLine($"[ERROR] Database error creating user: {errorMessage}");
                 
                 // Check for CHECK constraint violation
                 if (errorMessage.Contains("CK_Users_Role") || errorMessage.Contains("CHECK constraint"))
@@ -155,7 +155,7 @@ namespace FinanceBank.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"✗ Error creating user: {ex.Message}");
+                Console.WriteLine($"[ERROR] Error creating user: {ex.Message}");
                 return (false, $"Error creating user: {ex.Message}", "");
             }
         }
@@ -172,13 +172,12 @@ namespace FinanceBank.Services
 
         /// <summary>
         /// Generates a unique employee ID automatically
-        /// Format: EMP-YYYYMMDD-XXXXX (e.g., EMP-20250118-00001)
+        /// Returns the next available integer ID
         /// </summary>
-        private string GenerateEmployeeId()
+        private int GenerateEmployeeId()
         {
-            var timestamp = DateTime.Now.ToString("yyyyMMdd");
-            var randomPart = new Random().Next(1, 99999).ToString("D5");
-            return $"EMP-{timestamp}-{randomPart}";
+            var maxId = _dbContext.Employees.Max(e => (int?)e.EmployeeId) ?? 0;
+            return maxId + 1;
         }
 
     }

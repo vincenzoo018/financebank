@@ -41,6 +41,19 @@ namespace FinanceBank.Services
         }
 
         /// <summary>
+        /// Gets any account by account number (for recipient lookup in transfers).
+        /// </summary>
+        public async Task<CustomerAccount?> GetAccountByNumberAsync(string accountNumber)
+        {
+            if (_context == null || string.IsNullOrWhiteSpace(accountNumber))
+                return null;
+
+            return await _context.CustomerAccounts
+                .Include(ca => ca.Customer)
+                .FirstOrDefaultAsync(ca => ca.AccountNumber == accountNumber && ca.IsActive);
+        }
+
+        /// <summary>
         /// Gets account by account number for the authenticated customer (security check).
         /// </summary>
         public async Task<(bool success, CustomerAccount? account, string message)> GetAccountByNumberForCurrentCustomerAsync(string accountNumber)
@@ -108,6 +121,9 @@ namespace FinanceBank.Services
                 account.AvailableBalance += amount;
                 account.LastTransactionAt = DateTime.Now;
 
+                // Get employee ID for current user
+                int? employeeId = await GetEmployeeIdForCurrentUserAsync();
+
                 // Create customer transaction
                 var customerTransaction = new CustomerTransaction
                 {
@@ -121,7 +137,7 @@ namespace FinanceBank.Services
                     Reference = GenerateReference("DEPREF"),
                     CreatedAt = DateTime.Now,
                     ProcessedAt = DateTime.Now,
-                    ProcessedBy = _authService.CurrentUser ?? "system"
+                    ProcessedByEmployeeId = employeeId
                 };
 
                 _context.CustomerTransactions.Add(customerTransaction);
@@ -181,6 +197,9 @@ namespace FinanceBank.Services
                 account.AvailableBalance -= amount;
                 account.LastTransactionAt = DateTime.Now;
 
+                // Get employee ID for current user
+                int? employeeId = await GetEmployeeIdForCurrentUserAsync();
+
                 var customerTransaction = new CustomerTransaction
                 {
                     AccountId = account.AccountId,
@@ -193,7 +212,7 @@ namespace FinanceBank.Services
                     Reference = GenerateReference("WDRREF"),
                     CreatedAt = DateTime.Now,
                     ProcessedAt = DateTime.Now,
-                    ProcessedBy = _authService.CurrentUser ?? "system"
+                    ProcessedByEmployeeId = employeeId
                 };
 
                 _context.CustomerTransactions.Add(customerTransaction);
@@ -254,6 +273,9 @@ namespace FinanceBank.Services
                 account.AvailableBalance -= amount;
                 account.LastTransactionAt = DateTime.Now;
 
+                // Get employee ID for current user
+                int? employeeId = await GetEmployeeIdForCurrentUserAsync();
+
                 var customerTransaction = new CustomerTransaction
                 {
                     AccountId = account.AccountId,
@@ -268,7 +290,7 @@ namespace FinanceBank.Services
                     BillerAccountNumber = billerAccountNumber,
                     CreatedAt = DateTime.Now,
                     ProcessedAt = DateTime.Now,
-                    ProcessedBy = _authService.CurrentUser ?? "system"
+                    ProcessedByEmployeeId = employeeId
                 };
 
                 _context.CustomerTransactions.Add(customerTransaction);
@@ -282,6 +304,110 @@ namespace FinanceBank.Services
             {
                 await transaction.RollbackAsync();
                 return (false, $"Error processing bill payment: {ex.Message}", null);
+            }
+        }
+
+        /// <summary>
+        /// Transfers money from the authenticated customer's account to another customer's account.
+        /// </summary>
+        public async Task<(bool success, string message)> TransferAsync(
+            int fromAccountId,
+            string toAccountNumber,
+            decimal amount,
+            string? purpose = null)
+        {
+            if (amount <= 0)
+                return (false, "Transfer amount must be greater than zero.");
+
+            if (_context == null)
+                return (false, "Database context is not configured.");
+
+            if (!_authService.IsAuthenticated || !_authService.CurrentUserId.HasValue)
+                return (false, "User is not authenticated.");
+
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Get sender account
+                    var senderAccount = await _context.CustomerAccounts
+                        .FirstOrDefaultAsync(a => a.AccountId == fromAccountId && a.IsActive);
+
+                    if (senderAccount == null)
+                        return (false, "Sender account not found.");
+
+                    if (senderAccount.Balance < amount)
+                        return (false, "Insufficient balance for transfer.");
+
+                    // Get recipient account
+                    var recipientAccount = await _context.CustomerAccounts
+                        .FirstOrDefaultAsync(a => a.AccountNumber == toAccountNumber && a.IsActive);
+
+                    if (recipientAccount == null)
+                        return (false, "Recipient account not found.");
+
+                    // Deduct from sender
+                    senderAccount.Balance -= amount;
+                    senderAccount.AvailableBalance -= amount;
+
+                    // Add to recipient
+                    recipientAccount.Balance += amount;
+                    recipientAccount.AvailableBalance += amount;
+
+                    // Get employee ID for current user
+                    int? employeeId = await GetEmployeeIdForCurrentUserAsync();
+
+                    // Create transaction record for sender
+                    var senderTransaction = new CustomerTransaction
+                    {
+                        AccountId = senderAccount.AccountId,
+                        TransactionNumber = GenerateReference("TRF"),
+                        TransactionType = "Transfer",
+                        Amount = amount,
+                        Fee = 0,
+                        Status = "Completed",
+                        Description = string.IsNullOrWhiteSpace(purpose) 
+                            ? $"Transfer to {recipientAccount.Customer?.FullName}" 
+                            : $"Transfer to {recipientAccount.Customer?.FullName} - {purpose}",
+                        Reference = GenerateReference("TRFREF"),
+                        ToAccountName = recipientAccount.Customer?.FullName,
+                        CreatedAt = DateTime.Now,
+                        ProcessedAt = DateTime.Now,
+                        ProcessedByEmployeeId = employeeId
+                    };
+
+                    // Create transaction record for recipient
+                    var recipientTransaction = new CustomerTransaction
+                    {
+                        AccountId = recipientAccount.AccountId,
+                        TransactionNumber = GenerateReference("TRF"),
+                        TransactionType = "Transfer",
+                        Amount = amount,
+                        Fee = 0,
+                        Status = "Completed",
+                        Description = string.IsNullOrWhiteSpace(purpose) 
+                            ? $"Transfer from {senderAccount.Customer?.FullName}" 
+                            : $"Transfer from {senderAccount.Customer?.FullName} - {purpose}",
+                        Reference = GenerateReference("TRFREF"),
+                        ToAccountName = senderAccount.Customer?.FullName,
+                        CreatedAt = DateTime.Now,
+                        ProcessedAt = DateTime.Now,
+                        ProcessedByEmployeeId = employeeId
+                    };
+
+                    _context.CustomerTransactions.Add(senderTransaction);
+                    _context.CustomerTransactions.Add(recipientTransaction);
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+
+                    return (true, "Transfer successful.");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return (false, $"Error processing transfer: {ex.Message}");
+                }
             }
         }
 
@@ -382,6 +508,50 @@ Please keep this invoice for your records.
 ========================================================
 ";
             return invoice;
+        }
+
+        /// <summary>
+        /// Get all invoices for a specific account
+        /// </summary>
+        public async Task<List<Invoice>> GetAccountInvoicesAsync(int accountId, int limit = 50)
+        {
+            if (_context == null)
+                return new List<Invoice>();
+
+            return await _context.Invoices
+                .Where(i => i.AccountId == accountId)
+                .OrderByDescending(i => i.CreatedAt)
+                .Take(limit)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Get the Employee ID for the current authenticated user
+        /// Joins Users → Employees to get the EmployeeId
+        /// </summary>
+        private async Task<int?> GetEmployeeIdForCurrentUserAsync()
+        {
+            try
+            {
+                if (_context == null || !_authService.IsAuthenticated || !_authService.CurrentUserId.HasValue)
+                    return null;
+
+                var userId = _authService.CurrentUserId.Value;
+
+                var employee = await _context.Employees
+                    .Where(e => e.UserId == userId)
+                    .FirstOrDefaultAsync();
+
+                if (employee == null)
+                    return null;
+
+                return employee.EmployeeId;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting employee ID: {ex.Message}");
+                return null;
+            }
         }
     }
 }

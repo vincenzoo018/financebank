@@ -3,134 +3,80 @@
 @inject NavigationManager Navigation
 @using System.Diagnostics
 
-<div style="min-height: 100vh; display: flex; background: linear-gradient(135deg, #0f766e 0%, #059669 50%, #10b981 100%); position: relative; overflow: hidden;">
-    <!-- Animated Background Elements -->
-    <div style="position: absolute; width: 500px; height: 500px; background: rgba(255,255,255,0.05); border-radius: 50%; top: -250px; right: -250px;"></div>
-    <div style="position: absolute; width: 300px; height: 300px; background: rgba(255,255,255,0.03); border-radius: 50%; bottom: -150px; left: -150px;"></div>
-    
-    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; position: relative; z-index: 1;">
-        <div style="width: 100%; max-width: 480px; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 48px; animation: slideUp 0.5s ease-out;">
-            
-            <!-- Logo & Branding -->
-            <div style="text-align: center; margin-bottom: 40px;">
-                <img src="images/finsys-logo.png" alt="FINSYS Logo" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto 20px; box-shadow: 0 8px 24px rgba(16,185,129,0.3); border: 4px solid #10b981;" />
-                <h1 style="font-size: 32px; font-weight: 800; color: #0f766e; margin-bottom: 8px; letter-spacing: -0.5px;">FINSYS</h1>
-                <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Finance Account and Banking Transaction System</p>
-                <div style="display: inline-flex; align-items: center; gap: 6px; background: #d1fae5; padding: 6px 16px; border-radius: 20px; margin-top: 12px;">
-                    <span style="font-size: 12px; color: #065f46; font-weight: 600;">🔒 256-BIT ENCRYPTED</span>
-                </div>
-            </div>
+<div style="min-height: 100vh; display: flex; background: #f9fafb;">
+    <!-- Left Side - Illustration (Green Gradient) -->
+    <div style="flex: 1; background: linear-gradient(135deg, #059669 0%, #10b981 100%); display: flex; align-items: center; justify-content: center; padding: 40px; position: relative; overflow: hidden; display: none;" class="left-side">
+        <div style="position: absolute; width: 400px; height: 400px; background: rgba(255,255,255,0.1); border-radius: 50%; top: -200px; right: -200px;"></div>
+        <div style="position: absolute; width: 300px; height: 300px; background: rgba(255,255,255,0.05); border-radius: 50%; bottom: -150px; left: -150px;"></div>
+        <div style="text-align: center; color: white; position: relative; z-index: 1;">
+            <img src="images/finsys-logo.PNG" alt="FINSYS Logo" style="width: 120px; height: 120px; margin: 0 auto 24px; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));" />
+            <h2 style="font-size: 36px; font-weight: 800; margin-bottom: 12px;">FINSYS</h2>
+            <p style="font-size: 16px; opacity: 0.9;">Your Account is Secured with us</p>
+        </div>
+    </div>
 
-            <div style="text-align: center; margin-bottom: 32px;">
-                <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 8px;">Welcome Back!</h2>
-                <p style="font-size: 14px; color: #6b7280;">Enter your credentials and we'll take you to your dashboard automatically</p>
+    <!-- Right Side - Login Form -->
+    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px;">
+        <div style="width: 100%; max-width: 420px; animation: slideUp 0.5s ease-out;">
+            
+           
+
+            <!-- Welcome Section -->
+            <div style="margin-bottom: 32px;">
+                <h2 style="font-size: 24px; font-weight: 800; color: #1f2937; margin-bottom: 8px;">Hello Again!</h2>
+                <p style="font-size: 14px; color: #6b7280; margin: 0;">Welcome back you've been missed!</p>
             </div>
 
         <form @onsubmit="HandleLogin">
-            <div class="form-group">
-                <label class="form-label required-field">Username or Email</label>
-                <div class="input-icon">
-                    <span class="input-icon-symbol">●</span>
-                    <input type="text" 
-                           class="form-control @(showError && string.IsNullOrEmpty(username) ? "error" : "")" 
-                           @bind="username" 
-                           placeholder="Enter your username or email" 
-                           @oninput="() => showError = false" />
-                </div>
-                @if (showError && string.IsNullOrEmpty(username))
-                {
-                    <span class="form-error">! Username is required</span>
-                }
-                <span class="form-help">Use your registered username or email address</span>
+            <!-- Username Input -->
+            <div style="margin-bottom: 16px;">
+                <input type="text" 
+                       class="login-input @(showError && string.IsNullOrEmpty(username) ? "error" : "")" 
+                       @bind="username" 
+                       placeholder="Enter username" 
+                       @oninput="() => showError = false" />
             </div>
 
-            <div class="form-group">
-                <label class="form-label required-field">Password</label>
-                <div class="input-icon">
-                    <span class="input-icon-symbol">◆</span>
-                    <input type="@(showPassword ? "text" : "password")" 
-                           class="form-control @(showError && string.IsNullOrEmpty(password) ? "error" : "")" 
-                           @bind="password" 
-                           placeholder="Enter your password" 
-                           @oninput="() => showError = false" />
-                </div>
-                @if (showError && string.IsNullOrEmpty(password))
-                {
-                    <span class="form-error">! Password is required</span>
-                }
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                    <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                        <input type="checkbox" @onchange="() => showPassword = !showPassword" />
-                        Show password
-                    </label>
-                    <a href="/forgot-password" style="font-size: 12px; color: var(--accent); text-decoration: none;">Forgot password?</a>
-                </div>
+            <!-- Password Input -->
+            <div style="margin-bottom: 16px; position: relative;">
+                <input type="@(showPassword ? "text" : "password")" 
+                       class="login-input @(showError && string.IsNullOrEmpty(password) ? "error" : "")" 
+                       @bind="password" 
+                       placeholder="Password" 
+                       @oninput="() => showError = false" />
+                <button type="button" @onclick="() => showPassword = !showPassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 18px;">
+                    @if (showPassword) { <span>👁️</span> } else { <span>👁️‍🗨️</span> }
+                </button>
             </div>
 
-
-            <!-- Remember Me -->
-            <div style="margin-bottom: 24px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: #374151;">
-                    <input type="checkbox" @bind="rememberMe" style="width: 18px; height: 18px; accent-color: #10b981; cursor: pointer;" />
-                    <span>Remember me for 30 days</span>
-                </label>
+            <!-- Recovery Password Link -->
+            <div style="text-align: right; margin-bottom: 24px;">
+                <a href="/forgot-password" style="font-size: 12px; color: #059669; text-decoration: none; font-weight: 600;">Recovery Password</a>
             </div>
 
+            <!-- Error Message -->
             @if (!string.IsNullOrEmpty(errorMessage))
             {
-                <div style="padding: 12px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-                    <span style="font-size: 18px; font-weight: bold;">!</span>
-                    <div>
-                        <strong>Login Failed</strong><br />
-                        <span>@errorMessage</span>
-                    </div>
+                <div style="padding: 12px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px; margin-bottom: 16px;">
+                    <strong>Login Failed:</strong> @errorMessage
                 </div>
             }
 
-            @if (isLoading)
-            {
-                <div style="padding: 12px; background: var(--primary-bg); border: 1px solid var(--border); border-radius: 8px; color: var(--accent); font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-                    <span style="font-size: 18px;">•••</span>
-                    <span>Authenticating your credentials...</span>
-                </div>
-            }
-
-            <button type="submit" style="width: 100%; padding: 16px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(16,185,129,0.3);" disabled="@isLoading" @onclick:preventDefault @onclick="HandleLogin">
+            <!-- Sign In Button -->
+            <button type="submit" class="login-button" disabled="@isLoading" @onclick:preventDefault @onclick="HandleLogin">
                 @if (isLoading)
                 {
                     <span style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        <span style="width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
-                        Authenticating...
+                        <span style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+                        Signing in...
                     </span>
                 }
                 else
                 {
-                    <span style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        <span>🔓</span> Sign In Securely
-                    </span>
+                    <span>Sign In</span>
                 }
             </button>
         </form>
-
-            <!-- Additional Links -->
-            <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-                <p style="font-size: 13px; color: #6b7280; margin-bottom: 16px;">Need help accessing your account?</p>
-                <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
-                    <a href="#" style="font-size: 13px; color: #10b981; text-decoration: none; font-weight: 600;">📞 Contact Support</a>
-                    <a href="#" style="font-size: 13px; color: #10b981; text-decoration: none; font-weight: 600;">❓ Help Center</a>
-                </div>
-                <div style="margin-top: 20px; padding: 12px; background: #f9fafb; border-radius: 8px;">
-                    <p style="font-size: 12px; color: #6b7280; margin: 0;">
-                        🔐 New user registration is managed by System Administrator only
-                    </p>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div style="text-align: center; margin-top: 32px;">
-                <p style="font-size: 11px; color: #9ca3af;">© 2025 FINSYS ERP. All rights reserved.</p>
-                <p style="font-size: 11px; color: #9ca3af; margin-top: 4px;">Protected by industry-standard security protocols</p>
-            </div>
         </div>
     </div>
 </div>
@@ -150,24 +96,66 @@
     @@keyframes spin {
         to { transform: rotate(360deg); }
     }
+
+    @@media (min-width: 768px) {
+        .left-side {
+            display: flex !important;
+        }
+    }
     
-    .form-control {
+    .login-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #1f2937;
+        background: white;
         transition: all 0.3s;
+        font-family: inherit;
     }
     
-    .form-control:focus {
+    .login-input::placeholder {
+        color: #9ca3af;
+    }
+    
+    .login-input:focus {
         outline: none;
-        border-color: #10b981 !important;
-        box-shadow: 0 0 0 3px rgba(16,185,129,0.1) !important;
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
     }
     
-    button:hover:not(:disabled) {
+    .login-input.error {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+    
+    .login-button {
+        width: 100%;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, #059669, #10b981);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+    }
+    
+    .login-button:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(16,185,129,0.4) !important;
+        box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
     }
     
-    button:active:not(:disabled) {
+    .login-button:active:not(:disabled) {
         transform: translateY(0);
+    }
+    
+    .login-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
     }
 </style>
 
