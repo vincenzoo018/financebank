@@ -32,6 +32,12 @@ namespace FinanceBank.Data
         public DbSet<CustomerTransaction> CustomerTransactions { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
 
+        // Approval Module Tables
+        public DbSet<ApprovalQueueEntity> ApprovalQueues { get; set; }
+
+        // Customer Card Tables
+        public DbSet<CustomerCardEntity> CustomerCards { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

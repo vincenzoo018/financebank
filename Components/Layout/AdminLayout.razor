@@ -18,217 +18,559 @@
         <div class="sidebar-nav" style="overflow-y: auto; max-height: calc(100vh - 200px);">
             <!-- Main Section -->
             <div class="sidebar-section">
-                <div class="sidebar-section-title">MAIN</div>
                 <a href="/admin/dashboard" class="sidebar-item @(IsActive("/admin/dashboard"))">
-                    <span>[HOME]</span>
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
                     <span>Dashboard</span>
                 </a>
             </div>
 
             @* User Management *@
-                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
-                    <div class="sidebar-section-title">USER MANAGEMENT</div>
-                    <div class="sidebar-dropdown @(userMgmtOpen ? "open" : "")">
-                        <button class="sidebar-dropdown-toggle" @onclick="() => userMgmtOpen = !userMgmtOpen">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span>[USERS]</span>
-                                <span>Users & Roles</span>
-                            </div>
-                            <span class="dropdown-arrow">▼</span>
-                        </button>
-                        <div class="sidebar-dropdown-menu">
-                            <a href="/admin/user-registration" class="sidebar-dropdown-item @(IsActive("/admin/user-registration"))">[+] Register New User</a>
-                            <a href="/admin/system/users" class="sidebar-dropdown-item @(IsActive("/admin/system/users"))">[LIST] All Users</a>
-                            <a href="/admin/system/roles" class="sidebar-dropdown-item @(IsActive("/admin/system/roles"))">[LOCK] Roles & Permissions</a>
-                            <a href="/admin/system/customers" class="sidebar-dropdown-item @(IsActive("/admin/system/customers"))">[USER] Customer Profiles</a>
+            <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
+                <div class="sidebar-section-title">USER MANAGEMENT</div>
+                <div class="sidebar-dropdown @(userMgmtOpen ? "open" : "")">
+                    <button class="sidebar-dropdown-toggle" @onclick="() => userMgmtOpen = !userMgmtOpen">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <span>Users & Roles</span>
                         </div>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="sidebar-dropdown-menu">
+                        <a href="/admin/user-registration" class="sidebar-dropdown-item @(IsActive("/admin/user-registration"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Register New User
+                        </a>
+                        <a href="/admin/system/users" class="sidebar-dropdown-item @(IsActive("/admin/system/users"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                            </svg>
+                            All Users
+                        </a>
+                        <a href="/admin/system/roles" class="sidebar-dropdown-item @(IsActive("/admin/system/roles"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                <line x1="9" y1="9" x2="15" y2="9"></line>
+                                <line x1="9" y1="15" x2="15" y2="15"></line>
+                            </svg>
+                            Roles & Permissions
+                        </a>
+                        <a href="/admin/system/customers" class="sidebar-dropdown-item @(IsActive("/admin/system/customers"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="8" r="4"></circle>
+                                <path d="M6 20c0-2.21 2.69-4 6-4s6 1.79 6 4"></path>
+                            </svg>
+                            Customer Profiles
+                        </a>
                     </div>
                 </div>
+            </div>
 
             @* Transaction Approvals *@
-                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">
-                    <div class="sidebar-section-title">TRANSACTION APPROVALS</div>
-                    <div class="sidebar-dropdown @(transactionsOpen ? "open" : "")">
-                        <button class="sidebar-dropdown-toggle" @onclick="() => transactionsOpen = !transactionsOpen">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span>[OK]</span>
-                                <span>Approve Transactions</span>
-                            </div>
-                            <span class="dropdown-arrow">▼</span>
-                        </button>
-                        <div class="sidebar-dropdown-menu">
-                            <a href="/admin/approvals/deposit-approvals" class="sidebar-dropdown-item @(IsActive("/admin/approvals/deposit-approvals"))">[MONEY] Deposit Approvals</a>
-                            <a href="/admin/approvals/withdrawal-approvals" class="sidebar-dropdown-item @(IsActive("/admin/approvals/withdrawal-approvals"))">[CASH] Withdrawal Approvals</a>
-                            <a href="/admin/approvals/transfer-approvals" class="sidebar-dropdown-item @(IsActive("/admin/approvals/transfer-approvals"))">[TRANSFER] Transfer Approvals</a>
-                            <a href="/admin/approvals/loan-applications" class="sidebar-dropdown-item @(IsActive("/admin/approvals/loan-applications"))">[BANK] Loan Applications</a>
-                            <a href="/admin/approvals/card-applications" class="sidebar-dropdown-item @(IsActive("/admin/approvals/card-applications"))">[CARD] Card Applications</a>
-                            <a href="/admin/approvals/bill-approvals" class="sidebar-dropdown-item @(IsActive("/admin/approvals/bill-approvals"))">[BILL] Bill Payment Approvals</a>
-                            <a href="/admin/approvals/all-transactions" class="sidebar-dropdown-item @(IsActive("/admin/approvals/all-transactions"))">[CHART] All Transactions</a>
+            <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">
+                <div class="sidebar-section-title">APPROVALS</div>
+                <div class="sidebar-dropdown @(transactionsOpen ? "open" : "")">
+                    <button class="sidebar-dropdown-toggle" @onclick="() => transactionsOpen = !transactionsOpen">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            <span>Approve Transactions</span>
                         </div>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="sidebar-dropdown-menu">
+                        <a href="/admin/approvals/deposit-approvals" class="sidebar-dropdown-item @(IsActive("/admin/approvals/deposit-approvals"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <polyline points="19 12 12 19 5 12"></polyline>
+                            </svg>
+                            Deposit Approvals
+                        </a>
+                        <a href="/admin/approvals/withdrawal-approvals" class="sidebar-dropdown-item @(IsActive("/admin/approvals/withdrawal-approvals"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <polyline points="5 12 12 5 19 12"></polyline>
+                            </svg>
+                            Withdrawal Approvals
+                        </a>
+                        <a href="/admin/approvals/transfer-approvals" class="sidebar-dropdown-item @(IsActive("/admin/approvals/transfer-approvals"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="1" y1="4" x2="23" y2="4"></line>
+                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                                <line x1="1" y1="16" x2="23" y2="16"></line>
+                                <line x1="1" y1="20" x2="23" y2="20"></line>
+                            </svg>
+                            Transfer Approvals
+                        </a>
+                        <a href="/admin/approvals/loans" class="sidebar-dropdown-item @(IsActive("/admin/approvals/loans"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                                <path d="M16 4V2M8 4V2"></path>
+                            </svg>
+                            Loan Applications
+                        </a>
+                        <a href="/admin/approvals/cards" class="sidebar-dropdown-item @(IsActive("/admin/approvals/cards"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="4" width="22" height="16" rx="2"></rect>
+                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                            </svg>
+                            Card Applications
+                        </a>
+                        <a href="/admin/approvals/bill-approvals" class="sidebar-dropdown-item @(IsActive("/admin/approvals/bill-approvals"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            Bill Payment Approvals
+                        </a>
+                        <a href="/admin/approvals/all-transactions" class="sidebar-dropdown-item @(IsActive("/admin/approvals/all-transactions"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="2" x2="12" y2="22"></line>
+                                <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                                <path d="M15 19H6.5a1.5 1.5 0 0 1 0-3H15"></path>
+                            </svg>
+                            All Transactions
+                        </a>
                     </div>
                 </div>
+            </div>
 
             @* Banking *@
-                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">
-                    <div class="sidebar-section-title">BANKING</div>
-                    <div class="sidebar-dropdown @(bankingOpen ? "open" : "")">
-                        <button class="sidebar-dropdown-toggle" @onclick="() => bankingOpen = !bankingOpen">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span>[BANK]</span>
-                                <span>Banking Operations</span>
-                            </div>
-                            <span class="dropdown-arrow">▼</span>
-                        </button>
-                        <div class="sidebar-dropdown-menu">
-                            <a href="/admin/banking/accounts" class="sidebar-dropdown-item @(IsActive("/admin/banking/accounts"))">[BRIEFCASE] Bank Accounts</a>
-                            <a href="/admin/banking/fund-transfer" class="sidebar-dropdown-item @(IsActive("/admin/banking/fund-transfer"))">[TRANSFER] Fund Transfers</a>
-                            <a href="/admin/banking/billers-management" class="sidebar-dropdown-item @(IsActive("/admin/banking/billers-management"))">[EDIT] Billers Management</a>
-                            <a href="/admin/banking/loan-management" class="sidebar-dropdown-item @(IsActive("/admin/banking/loan-management"))">[BANK] Loan Management</a>
-                            <a href="/admin/banking/card-management" class="sidebar-dropdown-item @(IsActive("/admin/banking/card-management"))">[CARD] Card Management</a>
-                            <a href="/admin/banking/reports" class="sidebar-dropdown-item @(IsActive("/admin/banking/reports"))">[CHART] Banking Reports</a>
+            <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">
+                <div class="sidebar-section-title">BANKING</div>
+                <div class="sidebar-dropdown @(bankingOpen ? "open" : "")">
+                    <button class="sidebar-dropdown-toggle" @onclick="() => bankingOpen = !bankingOpen">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 21h18M3 10h18M5 6h14M7 3h10"></path>
+                            </svg>
+                            <span>Banking Operations</span>
                         </div>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="sidebar-dropdown-menu">
+                        <a href="/admin/banking/accounts" class="sidebar-dropdown-item @(IsActive("/admin/banking/accounts"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                                <path d="M16 4V2M8 4V2"></path>
+                            </svg>
+                            Bank Accounts
+                        </a>
+                        <a href="/admin/banking/fund-transfer" class="sidebar-dropdown-item @(IsActive("/admin/banking/fund-transfer"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <polyline points="19 12 12 19 5 12"></polyline>
+                            </svg>
+                            Fund Transfers
+                        </a>
+                        <a href="/admin/banking/billers-management" class="sidebar-dropdown-item @(IsActive("/admin/banking/billers-management"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                            Billers Management
+                        </a>
+                        <a href="/admin/banking/loan-management" class="sidebar-dropdown-item @(IsActive("/admin/banking/loan-management"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                                <path d="M16 4V2M8 4V2"></path>
+                            </svg>
+                            Loan Management
+                        </a>
+                        <a href="/admin/banking/card-management" class="sidebar-dropdown-item @(IsActive("/admin/banking/card-management"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="4" width="22" height="16" rx="2"></rect>
+                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                            </svg>
+                            Card Management
+                        </a>
+                        <a href="/admin/banking/reports" class="sidebar-dropdown-item @(IsActive("/admin/banking/reports"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="2" x2="12" y2="22"></line>
+                                <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                                <path d="M15 19H6.5a1.5 1.5 0 0 1 0-3H15"></path>
+                            </svg>
+                            Banking Reports
+                        </a>
                     </div>
                 </div>
+            </div>
 
             @* Accounting *@
-                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">
-                    <div class="sidebar-section-title">ACCOUNTING</div>
-                    <div class="sidebar-dropdown @(accountingOpen ? "open" : "")">
-                        <button class="sidebar-dropdown-toggle" @onclick="() => accountingOpen = !accountingOpen">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span>[CHART]</span>
-                                <span>Accounting Operations</span>
-                            </div>
-                            <span class="dropdown-arrow">▼</span>
-                        </button>
-                        <div class="sidebar-dropdown-menu">
-                            <a href="/admin/accounting/journal-entries" class="sidebar-dropdown-item @(IsActive("/admin/accounting/journal-entries"))">[BOOK] Journal Entries</a>
-                            <a href="/admin/accounting/general-ledger" class="sidebar-dropdown-item @(IsActive("/admin/accounting/general-ledger"))">[LEDGER] General Ledger</a>
-                            <a href="/admin/accounting/trial-balance" class="sidebar-dropdown-item @(IsActive("/admin/accounting/trial-balance"))">[BALANCE] Trial Balance</a>
-                            <a href="/admin/accounting/financial-statements" class="sidebar-dropdown-item @(IsActive("/admin/accounting/financial-statements"))">[STATEMENT] Financial Statements</a>
-                            <a href="/admin/accounting/chart-of-accounts" class="sidebar-dropdown-item @(IsActive("/admin/accounting/chart-of-accounts"))">[ACCOUNTS] Chart of Accounts</a>
-                            <a href="/admin/accounting/reports" class="sidebar-dropdown-item @(IsActive("/admin/accounting/reports"))">[CHART] Accounting Reports</a>
+            <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">
+                <div class="sidebar-section-title">ACCOUNTING</div>
+                <div class="sidebar-dropdown @(accountingOpen ? "open" : "")">
+                    <button class="sidebar-dropdown-toggle" @onclick="() => accountingOpen = !accountingOpen">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="2" x2="12" y2="22"></line>
+                                <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                                <path d="M15 19H6.5a1.5 1.5 0 0 1 0-3H15"></path>
+                            </svg>
+                            <span>Accounting Operations</span>
                         </div>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="sidebar-dropdown-menu">
+                        <a href="/admin/accounting/journal-entries" class="sidebar-dropdown-item @(IsActive("/admin/accounting/journal-entries"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            Journal Entries
+                        </a>
+                        <a href="/admin/accounting/general-ledger" class="sidebar-dropdown-item @(IsActive("/admin/accounting/general-ledger"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="8" y1="6" x2="21" y2="6"></line>
+                                <line x1="8" y1="12" x2="21" y2="12"></line>
+                                <line x1="8" y1="18" x2="21" y2="18"></line>
+                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                            </svg>
+                            General Ledger
+                        </a>
+                        <a href="/admin/accounting/trial-balance" class="sidebar-dropdown-item @(IsActive("/admin/accounting/trial-balance"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 12a9 9 0 1 0 18 0A9 9 0 0 0 3 12z"></path>
+                                <path d="M12 7v5l3 2"></path>
+                            </svg>
+                            Trial Balance
+                        </a>
+                        <a href="/admin/accounting/financial-statements" class="sidebar-dropdown-item @(IsActive("/admin/accounting/financial-statements"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            Financial Statements
+                        </a>
+                        <a href="/admin/accounting/chart-of-accounts" class="sidebar-dropdown-item @(IsActive("/admin/accounting/chart-of-accounts"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Chart of Accounts
+                        </a>
+                        <a href="/admin/accounting/reports" class="sidebar-dropdown-item @(IsActive("/admin/accounting/reports"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="2" x2="12" y2="22"></line>
+                                <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                            </svg>
+                            Accounting Reports
+                        </a>
                     </div>
                 </div>
+            </div>
 
             @* Finance *@
-                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">
-                    <div class="sidebar-section-title">FINANCE</div>
-                    <div class="sidebar-dropdown @(financeOpen ? "open" : "")">
-                        <button class="sidebar-dropdown-toggle" @onclick="() => financeOpen = !financeOpen">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span>[FINANCE]</span>
-                                <span>Finance Operations</span>
-                            </div>
-                            <span class="dropdown-arrow">▼</span>
-                        </button>
-                        <div class="sidebar-dropdown-menu">
-                            <a href="/admin/finance/accounts-payable" class="sidebar-dropdown-item @(IsActive("/admin/finance/accounts-payable"))">[PAYABLE] Accounts Payable</a>
-                            <a href="/admin/finance/accounts-receivable" class="sidebar-dropdown-item @(IsActive("/admin/finance/accounts-receivable"))">[RECEIVABLE] Accounts Receivable</a>
-                            <a href="/admin/finance/budget-management" class="sidebar-dropdown-item @(IsActive("/admin/finance/budget-management"))">[BUDGET] Budget Management</a>
-                            <a href="/admin/finance/financial-forecasting" class="sidebar-dropdown-item @(IsActive("/admin/finance/financial-forecasting"))">[FORECAST] Financial Forecasting</a>
-                            <a href="/admin/finance/cashflow-analysis" class="sidebar-dropdown-item @(IsActive("/admin/finance/cashflow-analysis"))">[FLOW] Cash Flow Analysis</a>
-                            <a href="/admin/finance/reports" class="sidebar-dropdown-item @(IsActive("/admin/finance/reports"))">[CHART] Finance Reports</a>
+            <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">
+                <div class="sidebar-section-title">FINANCE</div>
+                <div class="sidebar-dropdown @(financeOpen ? "open" : "")">
+                    <button class="sidebar-dropdown-toggle" @onclick="() => financeOpen = !financeOpen">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                                <path d="M15 19H6.5a1.5 1.5 0 0 1 0-3H15"></path>
+                            </svg>
+                            <span>Finance Operations</span>
                         </div>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="sidebar-dropdown-menu">
+                        <a href="/admin/finance/accounts-payable" class="sidebar-dropdown-item @(IsActive("/admin/finance/accounts-payable"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 1v22M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                            </svg>
+                            Accounts Payable
+                        </a>
+                        <a href="/admin/finance/accounts-receivable" class="sidebar-dropdown-item @(IsActive("/admin/finance/accounts-receivable"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 1v22M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                            </svg>
+                            Accounts Receivable
+                        </a>
+                        <a href="/admin/finance/budget-management" class="sidebar-dropdown-item @(IsActive("/admin/finance/budget-management"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                <line x1="9" y1="9" x2="15" y2="9"></line>
+                                <line x1="9" y1="15" x2="15" y2="15"></line>
+                            </svg>
+                            Budget Management
+                        </a>
+                        <a href="/admin/finance/financial-forecasting" class="sidebar-dropdown-item @(IsActive("/admin/finance/financial-forecasting"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
+                                <polyline points="17 6 23 6 23 12"></polyline>
+                            </svg>
+                            Financial Forecasting
+                        </a>
+                        <a href="/admin/finance/cashflow-analysis" class="sidebar-dropdown-item @(IsActive("/admin/finance/cashflow-analysis"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5 12 3"></polyline>
+                                <line x1="12" y1="12" x2="20" y2="7.5"></line>
+                                <line x1="12" y1="12" x2="12" y2="21"></line>
+                                <line x1="12" y1="12" x2="4" y2="7.5"></line>
+                            </svg>
+                            Cash Flow Analysis
+                        </a>
+                        <a href="/admin/finance/reports" class="sidebar-dropdown-item @(IsActive("/admin/finance/reports"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="2" x2="12" y2="22"></line>
+                                <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                            </svg>
+                            Finance Reports
+                        </a>
                     </div>
                 </div>
+            </div>
 
             @* Security *@
-                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
-                    <div class="sidebar-section-title">SECURITY</div>
-                    <div class="sidebar-dropdown @(securityOpen ? "open" : "")">
-                        <button class="sidebar-dropdown-toggle" @onclick="() => securityOpen = !securityOpen">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span>[LOCK]</span>
-                                <span>Security & Audit</span>
-                            </div>
-                            <span class="dropdown-arrow">▼</span>
-                        </button>
-                        <div class="sidebar-dropdown-menu">
-                            <a href="/admin/system/security-center" class="sidebar-dropdown-item @(IsActive("/admin/system/security-center"))">[SECURE] Security Center</a>
-                            <a href="/admin/system/login-history" class="sidebar-dropdown-item @(IsActive("/admin/system/login-history"))">[HISTORY] Login History</a>
-                            <a href="/admin/system/session-management" class="sidebar-dropdown-item @(IsActive("/admin/system/session-management"))">[SESSION] Session Management</a>
-                            <a href="/admin/system/audit-logs" class="sidebar-dropdown-item @(IsActive("/admin/system/audit-logs"))">[AUDIT] Audit Trail</a>
-                            <a href="/admin/system/monitoring" class="sidebar-dropdown-item @(IsActive("/admin/system/monitoring"))">[MONITOR] System Monitoring</a>
+            <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
+                <div class="sidebar-section-title">SECURITY</div>
+                <div class="sidebar-dropdown @(securityOpen ? "open" : "")">
+                    <button class="sidebar-dropdown-toggle" @onclick="() => securityOpen = !securityOpen">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            <span>Security & Audit</span>
                         </div>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="sidebar-dropdown-menu">
+                        <a href="/admin/system/security-center" class="sidebar-dropdown-item @(IsActive("/admin/system/security-center"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            Security Center
+                        </a>
+                        <a href="/admin/system/login-history" class="sidebar-dropdown-item @(IsActive("/admin/system/login-history"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                            Login History
+                        </a>
+                        <a href="/admin/system/session-management" class="sidebar-dropdown-item @(IsActive("/admin/system/session-management"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                                <line x1="2" y1="17" x2="22" y2="17"></line>
+                            </svg>
+                            Session Management
+                        </a>
+                        <a href="/admin/system/audit-logs" class="sidebar-dropdown-item @(IsActive("/admin/system/audit-logs"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            Audit Trail
+                        </a>
+                        <a href="/admin/system/monitoring" class="sidebar-dropdown-item @(IsActive("/admin/system/monitoring"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                                <line x1="2" y1="17" x2="22" y2="17"></line>
+                            </svg>
+                            System Monitoring
+                        </a>
                     </div>
                 </div>
+            </div>
 
             @* Reports *@
-                <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">
-                    <div class="sidebar-section-title">REPORTS</div>
-                    <div class="sidebar-dropdown @(reportsOpen ? "open" : "")">
-                        <button class="sidebar-dropdown-toggle" @onclick="() => reportsOpen = !reportsOpen">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span>[CHART]</span>
-                                <span>System Reports</span>
-                            </div>
-                            <span class="dropdown-arrow">▼</span>
-                        </button>
-                        <div class="sidebar-dropdown-menu">
-                            <a href="/admin/system/accountant-reports" class="sidebar-dropdown-item @(IsActive("/admin/system/accountant-reports"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">[UP] Accountant Reports</a>
-                            <a href="/admin/system/finance-manager-reports" class="sidebar-dropdown-item @(IsActive("/admin/system/finance-manager-reports"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">[MONEY] Finance Manager Reports</a>
-                            <a href="/admin/reports/banking" class="sidebar-dropdown-item @(IsActive("/admin/reports/banking"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">[BANK] Banking Reports</a>
-                            <a href="/admin/reports/financial" class="sidebar-dropdown-item @(IsActive("/admin/reports/financial"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">[CHART] Financial Reports</a>
-                            <a href="/admin/reports/user-activity" class="sidebar-dropdown-item @(IsActive("/admin/reports/user-activity"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">[USERS] User Activity Reports</a>
-                            <a href="/admin/reports/transactions" class="sidebar-dropdown-item @(IsActive("/admin/reports/transactions"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">[MONEY] Transaction Reports</a>
-                            <a href="/admin/reports/budget" class="sidebar-dropdown-item @(IsActive("/admin/reports/budget"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">[CHART] Budget Reports</a>
-                            <a href="/admin/reports/cashflow" class="sidebar-dropdown-item @(IsActive("/admin/reports/cashflow"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">[FLOW] Cash Flow Reports</a>
+            <div class="sidebar-section" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">
+                <div class="sidebar-section-title">REPORTS</div>
+                <div class="sidebar-dropdown @(reportsOpen ? "open" : "")">
+                    <button class="sidebar-dropdown-toggle" @onclick="() => reportsOpen = !reportsOpen">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="2" x2="12" y2="22"></line>
+                                <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                                <path d="M15 19H6.5a1.5 1.5 0 0 1 0-3H15"></path>
+                            </svg>
+                            <span>System Reports</span>
                         </div>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="sidebar-dropdown-menu">
+                        <a href="/admin/system/accountant-reports" class="sidebar-dropdown-item @(IsActive("/admin/system/accountant-reports"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
+                                <polyline points="17 6 23 6 23 12"></polyline>
+                            </svg>
+                            Accountant Reports
+                        </a>
+                        <a href="/admin/system/finance-manager-reports" class="sidebar-dropdown-item @(IsActive("/admin/system/finance-manager-reports"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                            </svg>
+                            Finance Manager Reports
+                        </a>
+                        <a href="/admin/reports/banking" class="sidebar-dropdown-item @(IsActive("/admin/reports/banking"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 21h18M3 10h18M5 6h14M7 3h10"></path>
+                            </svg>
+                            Banking Reports
+                        </a>
+                        <a href="/admin/reports/financial" class="sidebar-dropdown-item @(IsActive("/admin/reports/financial"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="2" x2="12" y2="22"></line>
+                                <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                            </svg>
+                            Financial Reports
+                        </a>
+                        <a href="/admin/reports/user-activity" class="sidebar-dropdown-item @(IsActive("/admin/reports/user-activity"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                            </svg>
+                            User Activity Reports
+                        </a>
+                        <a href="/admin/reports/transactions" class="sidebar-dropdown-item @(IsActive("/admin/reports/transactions"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.Accountant)) ? "display:none" : "")">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                            </svg>
+                            Transaction Reports
+                        </a>
+                        <a href="/admin/reports/budget" class="sidebar-dropdown-item @(IsActive("/admin/reports/budget"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="2" x2="12" y2="22"></line>
+                                <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                            </svg>
+                            Budget Reports
+                        </a>
+                        <a href="/admin/reports/cashflow" class="sidebar-dropdown-item @(IsActive("/admin/reports/cashflow"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin) || AuthService.HasRole(AuthService.Roles.FinanceManager)) ? "display:none" : "")">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5 12 3"></polyline>
+                                <line x1="12" y1="12" x2="20" y2="7.5"></line>
+                                <line x1="12" y1="12" x2="12" y2="21"></line>
+                                <line x1="12" y1="12" x2="4" y2="7.5"></line>
+                            </svg>
+                            Cash Flow Reports
+                        </a>
                     </div>
                 </div>
+            </div>
 
             @* System Settings *@
-                <div class="sidebar-section">
-                    <div class="sidebar-section-title">SYSTEM SETTINGS</div>
-                    <div class="sidebar-dropdown @(settingsOpen ? "open" : "")">
-                        <button class="sidebar-dropdown-toggle" @onclick="() => settingsOpen = !settingsOpen">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span>[GEAR]</span>
-                                <span>System Configuration</span>
-                            </div>
-                            <span class="dropdown-arrow">▼</span>
-                        </button>
-                        <div class="sidebar-dropdown-menu">
-                            <a href="/admin/system/settings" class="sidebar-dropdown-item @(IsActive("/admin/system/settings"))">[WRENCH] System Settings</a>
-                            <a href="/admin/system/configuration" class="sidebar-dropdown-item @(IsActive("/admin/system/configuration"))">[GLOBE] Global Configuration</a>
-                            <a href="/admin/system/email-settings" class="sidebar-dropdown-item @(IsActive("/admin/system/email-settings"))">[EMAIL] Email Settings</a>
-                            <a href="/admin/system/notifications" class="sidebar-dropdown-item @(IsActive("/admin/system/notifications"))">[BELL] Notification Settings</a>
-                            <a href="/admin/system/database" class="sidebar-dropdown-item @(IsActive("/admin/system/database"))">[DATABASE] Database Management</a>
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">SYSTEM SETTINGS</div>
+                <div class="sidebar-dropdown @(settingsOpen ? "open" : "")">
+                    <button class="sidebar-dropdown-toggle" @onclick="() => settingsOpen = !settingsOpen">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path>
+                            </svg>
+                            <span>System Configuration</span>
                         </div>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="sidebar-dropdown-menu">
+                        <a href="/admin/system/settings" class="sidebar-dropdown-item @(IsActive("/admin/system/settings"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path>
+                            </svg>
+                            System Settings
+                        </a>
+                        <a href="/admin/system/configuration" class="sidebar-dropdown-item @(IsActive("/admin/system/configuration"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 6v6l4 2"></path>
+                            </svg>
+                            Global Configuration
+                        </a>
+                        <a href="/admin/system/email-settings" class="sidebar-dropdown-item @(IsActive("/admin/system/email-settings"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                            </svg>
+                            Email Settings
+                        </a>
+                        <a href="/admin/system/notifications" class="sidebar-dropdown-item @(IsActive("/admin/system/notifications"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            Notification Settings
+                        </a>
+                        <a href="/admin/system/database" class="sidebar-dropdown-item @(IsActive("/admin/system/database"))">
+                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                <path d="M3 5v14a9 3 0 0 0 18 0V5"></path>
+                            </svg>
+                            Database Management
+                        </a>
                     </div>
                 </div>
+            </div>
 
             @* System - All Roles *@
             <div class="sidebar-section">
                 <div class="sidebar-section-title">SYSTEM</div>
                 <a href="/admin/reports" class="sidebar-item @(IsActive("/admin/reports"))">
-                    <span>[UP]</span>
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
+                        <polyline points="17 6 23 6 23 12"></polyline>
+                    </svg>
                     <span>Reports</span>
                 </a>
                 <a href="/admin/settings" class="sidebar-item @(IsActive("/admin/settings"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
-                    <span>[GEAR]</span>
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path>
+                    </svg>
                     <span>Settings</span>
                 </a>
             </div>
         </div>
 
-        <div class="sidebar-footer">
-            <div class="sidebar-user" @onclick="HandleLogout">
-                <div class="sidebar-user-avatar">@userInitials</div>
-                <div class="sidebar-user-info">
-                    <h4>@displayName (@roleDisplay)</h4>
-                    <p>Logout</p>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Main Content Area -->
     <div class="sidebar-main">
         <div class="sidebar-topbar">
             <div class="topbar-title">@GetPageTitle()</div>
+            <div class="topbar-user-menu">
+                <button class="topbar-user-btn" @onclick="() => showUserMenu = !showUserMenu">
+                    <div class="topbar-user-avatar">@userInitials</div>
+                </button>
+                @if (showUserMenu)
+                {
+                    <div class="topbar-user-dropdown">
+                        <a href="/admin/settings" class="topbar-dropdown-item">
+                            <svg class="topbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path>
+                            </svg>
+                            <span>Settings</span>
+                        </a>
+                        <button class="topbar-dropdown-item logout-btn" @onclick="HandleLogout">
+                            <svg class="topbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                }
+            </div>
         </div>
         <div class="sidebar-content">
             @Body
@@ -245,6 +587,7 @@
     private bool accountingOpen = false;
     private bool reportsOpen = false;
     private bool settingsOpen = false;
+    private bool showUserMenu = false;
     
     private string currentRole = "";
     private string displayName = "";

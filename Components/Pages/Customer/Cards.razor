@@ -3,20 +3,36 @@
 @using FinanceBank.Services
 @using FinanceBank.Models
 @inject AuthService AuthService
+@inject CardApplicationService CardApplicationService
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+    <!-- Success/Error Message -->
+    @if (showSuccessMessage)
+    {
+        <div style="background: @(successMessage.StartsWith("✓") ? "#d1fae5" : "#fee2e2"); border-left: 4px solid @(successMessage.StartsWith("✓") ? "#10b981" : "#ef4444"); border-radius: 8px; padding: 16px; margin-bottom: 24px; color: @(successMessage.StartsWith("✓") ? "#065f46" : "#7f1d1d");">
+            @successMessage
+        </div>
+    }
+
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, #7c3aed, #5b21b6); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <span style="font-size: 32px;">&#x1F4B3;</span>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="4" width="22" height="16" rx="2"></rect>
+                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                </svg>
             </div>
             <div style="flex: 1;">
                 <h1 style="font-size: 28px; font-weight: 700; margin: 0;">My Cards</h1>
                 <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Manage your credit and debit cards</p>
             </div>
-            <button @onclick="ShowCardApplication" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                + Apply for New Card
+            <button @onclick="ShowCardApplication" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Apply for New Card
             </button>
         </div>
     </div>
@@ -37,15 +53,15 @@
                             </div>
                             <div style="font-size: 32px;">&#x1F4B3;</div>
                         </div>
-                        <div style="font-size: 22px; font-weight: 600; letter-spacing: 3px; font-family: 'Courier New', monospace; margin-bottom: 24px;">@DecryptCardNumber(card.CardNumber)</div>
+                        <div style="font-size: 22px; font-weight: 600; letter-spacing: 3px; font-family: 'Courier New', monospace; margin-bottom: 24px; cursor: pointer;" @onclick="() => ShowCardDetails(card)" title="Click to view full card number">@DecryptCardNumber(card.CardNumber)</div>
                         <div style="display: flex; justify-content: space-between; align-items: end;">
                             <div>
                                 <div style="font-size: 10px; opacity: 0.8; margin-bottom: 4px;">CARDHOLDER</div>
-                                <div style="font-size: 14px; font-weight: 600; text-transform: uppercase;">@card.CardholderName</div>
+                                <div style="font-size: 14px; font-weight: 600; text-transform: uppercase;">@card.CardName</div>
                             </div>
                             <div>
-                                <div style="font-size: 10px; opacity: 0.8; margin-bottom: 4px;">STATUS</div>
-                                <span style="padding: 4px 8px; background: @(card.Status == "Active" ? "#10b981" : "#f59e0b"); color: white; border-radius: 4px; font-weight: 500; font-size: 10px;">@card.Status</span>
+                                <div style="font-size: 10px; opacity: 0.8; margin-bottom: 4px;">EXPIRES</div>
+                                <div style="font-size: 14px; font-weight: 600;">@(card.ExpiryDate?.ToString("MM/yy") ?? "N/A")</div>
                             </div>
                         </div>
                     </div>
@@ -132,11 +148,13 @@
 }
 
 @code {
-    private List<CustomerCard> activeCards = new();
-    private List<CustomerCard> pendingCards = new();
+    private List<CustomerCardDto> activeCards = new();
+    private List<CustomerCardDto> pendingCards = new();
     private bool showApplicationModal = false;
     private bool showCardDetailsModal = false;
-    private CustomerCard? selectedCard;
+    private bool showSuccessMessage = false;
+    private string successMessage = "";
+    private CustomerCardDto? selectedCard;
     private string? selectedCardType;
     private string deliveryMethod = "Physical";
 
@@ -155,10 +173,29 @@
 
     private async Task LoadCustomerCards()
     {
-        // This would load from database in production
-        // For now, initialize empty lists
-        activeCards = new List<CustomerCard>();
-        pendingCards = new List<CustomerCard>();
+        try
+        {
+            if (!AuthService.IsAuthenticated || !AuthService.CurrentUserId.HasValue)
+            {
+                activeCards = new List<CustomerCardDto>();
+                pendingCards = new List<CustomerCardDto>();
+                return;
+            }
+
+            var userId = AuthService.CurrentUserId.Value;
+            
+            // Fetch approved/active cards
+            activeCards = await CardApplicationService.GetApprovedCardsForCustomerAsync(userId);
+            
+            // Fetch pending applications
+            pendingCards = await CardApplicationService.GetPendingCardsForCustomerAsync(userId);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading cards: {ex.Message}");
+            activeCards = new List<CustomerCardDto>();
+            pendingCards = new List<CustomerCardDto>();
+        }
     }
 
     private void ShowCardApplication()
@@ -186,37 +223,56 @@
 
     private async Task SubmitCardApplication()
     {
-        if (string.IsNullOrEmpty(selectedCardType))
+        if (string.IsNullOrEmpty(selectedCardType) || !AuthService.CurrentUserId.HasValue)
             return;
 
         try
         {
-            // Create new card application
-            var newCard = new CustomerCard
-            {
-                CardType = selectedCardType,
-                CardholderName = AuthService.CurrentUser ?? "Customer",
-                Status = "Pending",
-                CreatedAt = DateTime.Now,
-                DeliveryMethod = deliveryMethod,
-                CardNumber = EncryptCardNumber(GenerateCardNumber())
-            };
+            var userId = AuthService.CurrentUserId.Value;
+            
+            // Submit card application to database
+            var (success, message, cardId) = await CardApplicationService.SubmitCardApplicationAsync(
+                userId,
+                selectedCardType,
+                deliveryMethod
+            );
 
-            pendingCards.Add(newCard);
-            
-            // In production, save to database
-            System.Diagnostics.Debug.WriteLine($"Card application submitted: {selectedCardType} - {deliveryMethod}");
-            
-            CloseCardApplication();
-            StateHasChanged();
+            if (success)
+            {
+                // Show success message
+                successMessage = $"✓ {selectedCardType} Card application submitted successfully! Waiting for admin approval.";
+                showSuccessMessage = true;
+                
+                // Reload cards to show the new pending application
+                await LoadCustomerCards();
+                CloseCardApplication();
+                StateHasChanged();
+                
+                // Hide success message after 5 seconds
+                await Task.Delay(5000);
+                showSuccessMessage = false;
+                StateHasChanged();
+            }
+            else
+            {
+                successMessage = $"✗ Error: {message}";
+                showSuccessMessage = true;
+                System.Diagnostics.Debug.WriteLine($"Error submitting card application: {message}");
+                StateHasChanged();
+                // Don't hide error messages - let user see them
+            }
         }
         catch (Exception ex)
         {
+            successMessage = $"✗ Error: {ex.Message}";
+            showSuccessMessage = true;
             System.Diagnostics.Debug.WriteLine($"Error submitting card application: {ex.Message}");
+            StateHasChanged();
+            // Don't hide error messages - let user see them
         }
     }
 
-    private void ShowCardDetails(CustomerCard card)
+    private void ShowCardDetails(CustomerCardDto card)
     {
         selectedCard = card;
         showCardDetailsModal = true;
@@ -226,12 +282,6 @@
     {
         showCardDetailsModal = false;
         selectedCard = null;
-    }
-
-    private string EncryptCardNumber(string cardNumber)
-    {
-        // Simple encryption - in production use proper encryption
-        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(cardNumber));
     }
 
     private string DecryptCardNumber(string encryptedCardNumber)
@@ -248,27 +298,6 @@
         {
             return "**** **** **** ****";
         }
-    }
-
-    private string GenerateCardNumber()
-    {
-        // Generate a random 16-digit card number
-        var random = new Random();
-        return string.Concat(Enumerable.Range(0, 16).Select(_ => random.Next(0, 10)));
-    }
-
-    public class CustomerCard
-    {
-        public int CardId { get; set; }
-        public int CustomerId { get; set; }
-        public string CardType { get; set; } = ""; // Debit or Credit
-        public string CardNumber { get; set; } = ""; // Encrypted
-        public string CardholderName { get; set; } = "";
-        public string Status { get; set; } = "Pending"; // Pending, Active, Blocked, Expired
-        public string DeliveryMethod { get; set; } = "Physical"; // Physical or Digital
-        public DateTime CreatedAt { get; set; }
-        public DateTime? ApprovedAt { get; set; }
-        public DateTime? ExpiryDate { get; set; }
     }
 }
 

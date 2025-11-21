@@ -2,12 +2,12 @@
 @layout CustomerLayout
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #6366f1, #4f46e5); border-radius: 16px; padding: 32px; margin-bottom: 24px; color: white;">
+<div style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 32px; margin-bottom: 24px; color: white;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path>
             </svg>
         </div>
         <div>
@@ -26,7 +26,12 @@
         <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">[MOON] Dark Mode</div>
+                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                        Dark Mode
+                    </div>
                     <div style="font-size: 14px; color: #6b7280;">Enable dark mode for better viewing at night</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
@@ -39,7 +44,12 @@
         </div>
 
         <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 20px;">
-            <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">[FONT] Font Size</div>
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                    <path d="M4 7h16M4 12h16M4 17h16"></path>
+                </svg>
+                Font Size
+            </div>
             <select @bind="fontSize" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
                 <option value="small">Small</option>
                 <option value="medium">Medium</option>
@@ -51,7 +61,20 @@
         <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">[BRIGHT] High Contrast Mode</div>
+                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                        High Contrast Mode
+                    </div>
                     <div style="font-size: 14px; color: #6b7280;">Increase contrast for better visibility</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
@@ -64,7 +87,14 @@
         </div>
 
         <div style="padding: 20px; background: #f9fafb; border-radius: 12px;">
-            <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">[GLOBE] Language</div>
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+                Language
+            </div>
             <select @bind="language" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
                 <option value="en">English</option>
                 <option value="fil">Filipino</option>
@@ -79,14 +109,25 @@
         <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Security</h2>
         
         <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 16px;">
-            <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">[LOCK] Change Password</div>
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Change Password
+            </div>
             <button style="background: #6366f1; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Update Password</button>
         </div>
 
         <div style="padding: 20px; background: #f9fafb; border-radius: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">[SECURE] Two-Factor Authentication</div>
+                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                        Two-Factor Authentication
+                    </div>
                     <div style="font-size: 14px; color: #6b7280;">Add an extra layer of security</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">

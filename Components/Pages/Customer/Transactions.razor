@@ -10,22 +10,22 @@
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, #0891b2, #0e7490); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 3h18v18H3z"/>
-                    <path d="M3 9h18"/>
-                    <path d="M9 3v18"/>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="2" x2="12" y2="22"></line>
+                    <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                    <path d="M15 19H6.5a1.5 1.5 0 0 1 0-3H15"></path>
                 </svg>
             </div>
             <div style="flex: 1;">
                 <h1 style="font-size: 28px; font-weight: 700; margin: 0;">All Transactions</h1>
                 <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">View and filter your transaction history</p>
             </div>
-            <button @onclick="ShowFilters" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
-                    <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
+            <button @onclick="ShowFilters" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                 </svg>
                 Filters
             </button>
@@ -41,7 +41,7 @@
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     @foreach (var type in filterTypes)
                     {
-                        <button @onclick="() => selectedFilter = type" style="padding: 10px 12px; background: @(selectedFilter == type ? "#e0f2fe" : "transparent"); border: none; border-radius: 8px; text-align: left; cursor: pointer; font-weight: @(selectedFilter == type ? "600" : "400"); color: @(selectedFilter == type ? "#0891b2" : "#1f2937"); transition: all 0.2s;">
+                        <button @onclick="() => selectedFilter = type" style="padding: 10px 12px; background: @(selectedFilter == type ? "#d1fae5" : "transparent"); border: none; border-radius: 8px; text-align: left; cursor: pointer; font-weight: @(selectedFilter == type ? "600" : "400"); color: @(selectedFilter == type ? "var(--accent)" : "#1f2937"); transition: all 0.2s;">
                             @type
                         </button>
                     }

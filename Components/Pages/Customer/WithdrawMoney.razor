@@ -9,11 +9,12 @@
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, #dc2626, #991b1b); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5m0 0a3.5 3.5 0 0 1 0 7H6"></path>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                    <line x1="2" y1="17" x2="22" y2="17"></line>
                 </svg>
             </div>
             <div>
@@ -38,7 +39,7 @@
                 </div>
                 <div>
                     <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Current Balance</div>
-                    <div style="font-size: 18px; font-weight: 700; color: #dc2626;">₱@selectedAccount.Balance.ToString("N2")</div>
+                    <div style="font-size: 18px; font-weight: 700; color: var(--accent);">₱@selectedAccount.Balance.ToString("N2")</div>
                 </div>
             </div>
         </div>
@@ -72,18 +73,18 @@
                         {
                             <tr style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s; background: @(hoveredTransactionId == withdrawal.TransactionId ? "#f9fafb" : "white");" @onmouseover="@((MouseEventArgs e) => hoveredTransactionId = withdrawal.TransactionId)" @onmouseout="@((MouseEventArgs e) => hoveredTransactionId = null)">
                                 <td style="padding: 12px; color: #1f2937; font-size: 14px;">@withdrawal.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</td>
-                                <td style="padding: 12px; color: #dc2626; font-weight: 600; font-size: 13px;">@withdrawal.TransactionNumber</td>
+                                <td style="padding: 12px; color: var(--accent); font-weight: 600; font-size: 13px;">@withdrawal.TransactionNumber</td>
                                 <td style="padding: 12px; color: #1f2937; font-size: 14px;">
-                                    <span style="padding: 4px 8px; background: #fee2e2; color: #991b1b; border-radius: 6px; font-size: 12px; font-weight: 500;">Withdrawal</span>
+                                    <span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 12px; font-weight: 500;">Withdrawal</span>
                                 </td>
                                 <td style="padding: 12px; color: #6b7280; font-size: 14px;">@(withdrawal.Description ?? "-")</td>
-                                <td style="padding: 12px; text-align: right; color: #dc2626; font-weight: 700; font-size: 15px;">-₱@withdrawal.Amount.ToString("N2")</td>
+                                <td style="padding: 12px; text-align: right; color: var(--accent); font-weight: 700; font-size: 15px;">-₱@withdrawal.Amount.ToString("N2")</td>
                                 <td style="padding: 12px; text-align: center;">
                                     <span style="padding: 4px 8px; background: @(withdrawal.Status == "Completed" ? "#d1fae5" : "#fef3c7"); color: @(withdrawal.Status == "Completed" ? "#065f46" : "#92400e"); border-radius: 6px; font-size: 12px; font-weight: 500;">@withdrawal.Status</span>
                                 </td>
                                 <td style="padding: 12px; color: #6b7280; font-size: 13px;">@GetEmployeeName(withdrawal.ProcessedByEmployee)</td>
                                 <td style="padding: 12px; text-align: center;">
-                                    <button @onclick="@(() => ShowInvoiceModal(withdrawal))" style="background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                                    <button @onclick="@(() => ShowInvoiceModal(withdrawal))" style="background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
                                         View Invoice
                                     </button>
                                 </td>
@@ -154,7 +155,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
                             <span style="font-size: 14px; color: #6b7280;">Withdrawal Amount</span>
-                            <span style="font-size: 14px; font-weight: 600; color: #dc2626;">-₱@selectedInvoice.TransactionAmount.ToString("N2")</span>
+                            <span style="font-size: 14px; font-weight: 600; color: var(--accent);">-₱@selectedInvoice.TransactionAmount.ToString("N2")</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
                             <span style="font-size: 14px; color: #6b7280;">Transaction Method</span>
@@ -174,9 +175,9 @@
                                 <span style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.Notes</span>
                             </div>
                         }
-                        <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 2px solid #dc2626;">
+                        <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 2px solid var(--accent);">
                             <span style="font-size: 14px; font-weight: 700; color: #1f2937;">Balance After</span>
-                            <span style="font-size: 16px; font-weight: 700; color: #dc2626;">₱@selectedInvoice.BalanceAfter.ToString("N2")</span>
+                            <span style="font-size: 16px; font-weight: 700; color: var(--accent);">₱@selectedInvoice.BalanceAfter.ToString("N2")</span>
                         </div>
                     </div>
 
@@ -199,7 +200,7 @@
                     <button @onclick="@(() => showInvoiceModal = false)" style="background: #f3f4f6; color: #1f2937; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
                         Close
                     </button>
-                    <button @onclick="@(() => PrintInvoice(selectedInvoice))" style="background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                    <button @onclick="@(() => PrintInvoice(selectedInvoice))" style="background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
                         Print Invoice
                     </button>
                 </div>

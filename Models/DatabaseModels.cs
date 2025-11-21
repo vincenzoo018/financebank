@@ -699,3 +699,49 @@ public class ApprovalQueueEntity
     [MaxLength(500)]
     public string? ApprovalNotes { get; set; }
 }
+
+// =============================================
+// CUSTOMER CARD MODELS
+// =============================================
+
+[Table("CustomerCards")]
+public class CustomerCardEntity
+{
+    [Key]
+    public int CardId { get; set; }
+
+    [Required]
+    public int AccountId { get; set; }
+
+    [Required, MaxLength(50)]
+    public string CardNumber { get; set; } = ""; // Encrypted
+
+    [Required, MaxLength(50)]
+    public string CardType { get; set; } = ""; // Debit or Credit
+
+    [Required, MaxLength(100)]
+    public string CardName { get; set; } = "";
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal CreditLimit { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal AvailableCredit { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal OutstandingBalance { get; set; }
+
+    public DateTime? ExpiryDate { get; set; }
+
+    public DateTime? DueDate { get; set; }
+
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal InterestRate { get; set; }
+
+    public bool IsActive { get; set; } = true;
+
+    public bool IsLocked { get; set; } = false;
+
+    [Required]
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+}
