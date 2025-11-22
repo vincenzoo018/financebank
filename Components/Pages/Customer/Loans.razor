@@ -340,7 +340,7 @@
                 // Fetch real loans from database
                 var realLoans = await LoanService.GetByAccountIdAsync(accountId);
                 activeLoans = realLoans
-                    .Where(l => l.Status != "Closed")
+                    .Where(l => l.Status != "Closed" && l.Status != "Rejected")  // Exclude closed and rejected loans
                     .Select(l => new Loan
                     {
                         Id = l.LoanId.ToString(),

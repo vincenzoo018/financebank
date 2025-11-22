@@ -270,13 +270,66 @@ public class CardApplicationService
             
             var userId = _authService.CurrentUserId.Value;
 
+            // Get customer's primary account
+            var account = await _context.CustomerAccounts
+                .FirstOrDefaultAsync(a => a.CustomerId == userId && a.IsActive);
+            
+            if (account == null)
+                return (false, "Customer account not found", 0);
+
+            System.Diagnostics.Debug.WriteLine($"[SubmitLoanApplication] Creating loan for CustomerId: {userId}, AccountId: {account.AccountId}, LoanType: {loanType}");
+
+            // Calculate monthly payment using formula: P * (r(1+r)^n) / ((1+r)^n - 1)
+            var monthlyRate = (decimal)0.05 / 12; // Default 5% annual rate, adjust based on loanType
+            switch (loanType.ToUpper())
+            {
+                case "PERSONAL": monthlyRate = (decimal)5.8 / 100 / 12; break;
+                case "HOME": monthlyRate = (decimal)3.5 / 100 / 12; break;
+                case "CAR": monthlyRate = (decimal)4.2 / 100 / 12; break;
+                case "AUTO": monthlyRate = (decimal)4.2 / 100 / 12; break;
+                case "EDUCATION": monthlyRate = (decimal)3.9 / 100 / 12; break;
+            }
+
+            // Calculate monthly payment
+            var monthlyPayment = requestedAmount * 
+                (monthlyRate * (decimal)Math.Pow((double)(1 + monthlyRate), loanTerm)) / 
+                ((decimal)Math.Pow((double)(1 + monthlyRate), loanTerm) - 1);
+
+            // Generate unique loan number
+            var loanNumber = $"LN-{DateTime.Now:yyyyMMdd}-{userId}-{new Random().Next(1000, 9999)}";
+
+            // Create loan record with "Pending" status (waiting for admin approval)
+            var loan = new Loan
+            {
+                AccountId = account.AccountId,
+                LoanNumber = loanNumber,
+                LoanType = loanType,
+                LoanAmount = requestedAmount,
+                OutstandingBalance = requestedAmount,
+                InterestRate = GetInterestRate(loanType),
+                TermMonths = loanTerm,
+                MonthlyPayment = monthlyPayment,
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddMonths(loanTerm),
+                NextDueDate = DateTime.Now.AddMonths(1),
+                Status = "Pending", // Start as Pending - will be activated upon admin approval
+                Purpose = purpose ?? "",
+                CreatedAt = DateTime.Now
+            };
+
+            _context.Loans.Add(loan);
+            await _context.SaveChangesAsync();
+
+            System.Diagnostics.Debug.WriteLine($"[SubmitLoanApplication] Loan created with LoanId: {loan.LoanId}");
+
+            // Also create approval queue entry for admin tracking - set to PENDING
             var approval = new ApprovalQueueEntity
             {
                 RequestType = "LOAN",
-                RequestId = 0,
+                RequestId = loan.LoanId, // Links to the LoanId
                 RequestedBy = userId.ToString(),
                 Amount = requestedAmount,
-                Status = "Pending",
+                Status = "Pending", // Admin needs to review and approve
                 Priority = "Normal",
                 Description = $"{loanType} Loan - ₱{requestedAmount:N2} for {loanTerm} months. Purpose: {purpose}",
                 RequestedAt = DateTime.Now,
@@ -286,13 +339,29 @@ public class CardApplicationService
             _context.ApprovalQueues.Add(approval);
             await _context.SaveChangesAsync();
 
+            System.Diagnostics.Debug.WriteLine($"[SubmitLoanApplication] Approval queue entry created");
+
             return (true, $"{loanType} loan application submitted successfully", approval.ApprovalId);
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error submitting loan application: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             return (false, $"Error: {ex.Message}", 0);
         }
+    }
+
+    private decimal GetInterestRate(string loanType)
+    {
+        return loanType.ToUpper() switch
+        {
+            "PERSONAL" => 5.8m,
+            "HOME" => 3.5m,
+            "CAR" => 4.2m,
+            "AUTO" => 4.2m,
+            "EDUCATION" => 3.9m,
+            _ => 5.0m
+        };
     }
 
     /// <summary>
@@ -347,35 +416,73 @@ public class CardApplicationService
             if (!string.IsNullOrEmpty(status))
                 query = query.Where(a => a.Status == status);
 
-            var applications = await query
-                .Join(_context.Users,
-                    a => a.RequestedBy,
-                    u => u.UserId.ToString(),
-                    (a, u) => new LoanApplicationDto
-                    {
-                        ApprovalId = a.ApprovalId,
-                        RequestedBy = a.RequestedBy,
-                        CustomerName = u.FullName,
-                        CustomerEmail = u.Email,
-                        LoanType = ExtractLoanType(a.Description),
-                        RequestedAmount = a.Amount,
-                        LoanTerm = ExtractLoanTerm(a.Description),
-                        Purpose = ExtractPurpose(a.Description),
-                        RequestedAt = a.RequestedAt,
-                        Status = a.Status,
-                        Priority = a.Priority,
-                        Notes = a.ApprovalNotes,
-                        ProcessedAt = a.ProcessedAt,
-                        ProcessedBy = a.ProcessedBy
-                    })
+            System.Diagnostics.Debug.WriteLine($"[GetAllLoanApplicationsAsync] Fetching loan applications with status: {status ?? "All"}");
+
+            // First, try to get all approval queues for loans
+            var approvalQueues = await query
                 .OrderByDescending(a => a.RequestedAt)
                 .ToListAsync();
 
+            System.Diagnostics.Debug.WriteLine($"[GetAllLoanApplicationsAsync] Found {approvalQueues.Count} approval queue entries");
+
+            var applications = new List<LoanApplicationDto>();
+
+            foreach (var approval in approvalQueues)
+            {
+                try
+                {
+                    // Get the user who requested the loan
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId.ToString() == approval.RequestedBy);
+                    
+                    System.Diagnostics.Debug.WriteLine($"[GetAllLoanApplicationsAsync] ApprovalId: {approval.ApprovalId}, RequestedBy: {approval.RequestedBy}, User found: {user != null}");
+
+                    // If user not found, try getting loan details directly
+                    if (user == null && approval.RequestId > 0)
+                    {
+                        var loan = await _context.Loans.FirstOrDefaultAsync(l => l.LoanId == approval.RequestId);
+                        if (loan != null)
+                        {
+                            var account = await _context.CustomerAccounts.FirstOrDefaultAsync(a => a.AccountId == loan.AccountId);
+                            if (account != null)
+                            {
+                                user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == account.CustomerId);
+                            }
+                        }
+                    }
+
+                    var dto = new LoanApplicationDto
+                    {
+                        ApprovalId = approval.ApprovalId,
+                        RequestedBy = approval.RequestedBy,
+                        CustomerName = user?.FullName ?? "Unknown Customer",
+                        CustomerEmail = user?.Email ?? "unknown@example.com",
+                        LoanType = ExtractLoanType(approval.Description),
+                        RequestedAmount = approval.Amount,
+                        LoanTerm = ExtractLoanTerm(approval.Description),
+                        Purpose = ExtractPurpose(approval.Description),
+                        RequestedAt = approval.RequestedAt,
+                        Status = approval.Status,
+                        Priority = approval.Priority,
+                        Notes = approval.ApprovalNotes,
+                        ProcessedAt = approval.ProcessedAt,
+                        ProcessedBy = approval.ProcessedBy
+                    };
+
+                    applications.Add(dto);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error processing approval {approval.ApprovalId}: {ex.Message}");
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[GetAllLoanApplicationsAsync] Returning {applications.Count} applications");
             return applications;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error fetching loan applications: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             return new List<LoanApplicationDto>();
         }
     }
@@ -394,6 +501,9 @@ public class CardApplicationService
             if (approval == null)
                 return (false, "Application not found");
 
+            System.Diagnostics.Debug.WriteLine($"[ApproveLoanApplication] Approving loan with ApprovalId: {approvalId}, RequestId: {approval.RequestId}");
+
+            // Update approval status
             approval.Status = "Approved";
             approval.Amount = approvedAmount;
             approval.ProcessedAt = DateTime.Now;
@@ -402,6 +512,21 @@ public class CardApplicationService
 
             _context.ApprovalQueues.Update(approval);
             await _context.SaveChangesAsync();
+
+            // Also update the corresponding Loan record to "Active" status
+            if (approval.RequestId > 0)
+            {
+                var loan = await _context.Loans.FirstOrDefaultAsync(l => l.LoanId == approval.RequestId);
+                if (loan != null)
+                {
+                    loan.Status = "Active";
+                    loan.LoanAmount = approvedAmount; // Use approved amount
+                    loan.OutstandingBalance = approvedAmount;
+                    _context.Loans.Update(loan);
+                    await _context.SaveChangesAsync();
+                    System.Diagnostics.Debug.WriteLine($"[ApproveLoanApplication] Loan {approval.RequestId} activated with approved amount ₱{approvedAmount}");
+                }
+            }
 
             return (true, "Loan application approved successfully");
         }
@@ -425,6 +550,8 @@ public class CardApplicationService
             if (approval == null)
                 return (false, "Application not found");
 
+            System.Diagnostics.Debug.WriteLine($"[RejectLoanApplication] Rejecting loan with ApprovalId: {approvalId}, RequestId: {approval.RequestId}");
+
             approval.Status = "Rejected";
             approval.ProcessedAt = DateTime.Now;
             approval.ProcessedBy = _authService.CurrentUserId?.ToString();
@@ -432,6 +559,19 @@ public class CardApplicationService
 
             _context.ApprovalQueues.Update(approval);
             await _context.SaveChangesAsync();
+
+            // Also update the corresponding Loan record to "Rejected" status
+            if (approval.RequestId > 0)
+            {
+                var loan = await _context.Loans.FirstOrDefaultAsync(l => l.LoanId == approval.RequestId);
+                if (loan != null)
+                {
+                    loan.Status = "Rejected";
+                    _context.Loans.Update(loan);
+                    await _context.SaveChangesAsync();
+                    System.Diagnostics.Debug.WriteLine($"[RejectLoanApplication] Loan {approval.RequestId} marked as rejected");
+                }
+            }
 
             return (true, "Loan application rejected");
         }

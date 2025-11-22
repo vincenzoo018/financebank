@@ -1337,18 +1337,22 @@ public class LoanService
     public async Task<List<Loan>> GetByAccountIdAsync(int accountId)
     {
         if (_context == null) return new List<Loan>();
-        return await _context.CustomerAccounts
-            .Where(ca => ca.AccountId == accountId)
-            .SelectMany(ca => ca.Loans)
+        
+        System.Diagnostics.Debug.WriteLine($"[LoanService] Fetching loans for AccountId: {accountId}");
+        
+        var loans = await _context.Loans
+            .Where(l => l.AccountId == accountId)
             .OrderByDescending(l => l.CreatedAt)
             .ToListAsync();
+
+        System.Diagnostics.Debug.WriteLine($"[LoanService] Found {loans.Count} loans");
+        return loans;
     }
 
     public async Task<Loan?> GetByIdAsync(int loanId)
     {
         if (_context == null) return null;
-        return await _context.CustomerAccounts
-            .SelectMany(ca => ca.Loans)
+        return await _context.Loans
             .FirstOrDefaultAsync(l => l.LoanId == loanId);
     }
 
@@ -1357,9 +1361,7 @@ public class LoanService
         if (_context == null) return loan;
 
         loan.CreatedAt = DateTime.Now;
-        _context.CustomerAccounts
-            .FirstOrDefault(ca => ca.AccountId == loan.AccountId)?
-            .Loans.Add(loan);
+        _context.Loans.Add(loan);
         await _context.SaveChangesAsync();
         return loan;
     }
@@ -1368,8 +1370,7 @@ public class LoanService
     {
         if (_context == null) return loan;
 
-        var existing = await _context.CustomerAccounts
-            .SelectMany(ca => ca.Loans)
+        var existing = await _context.Loans
             .FirstOrDefaultAsync(l => l.LoanId == loan.LoanId);
 
         if (existing != null)
