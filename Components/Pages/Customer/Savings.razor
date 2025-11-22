@@ -1,5 +1,10 @@
 @page "/customer/savings"
 @layout CustomerLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@inject AuthService AuthService
+@inject SavingsGoalService SavingsGoalService
+@inject CustomerAccountService CustomerAccountService
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <!-- Header -->
@@ -130,22 +135,22 @@
             
             <div class="form-group" style="margin-bottom: 20px;">
                 <label class="form-label">Goal Name</label>
-                <input type="text" class="form-control" placeholder="e.g., Vacation Fund" style="font-size: 16px; padding: 12px;" />
+                <input type="text" class="form-control" placeholder="e.g., Vacation Fund" @bind="newGoalName" style="font-size: 16px; padding: 12px;" />
             </div>
 
             <div class="form-group" style="margin-bottom: 20px;">
                 <label class="form-label">Target Amount (₱)</label>
-                <input type="number" class="form-control" placeholder="50000" style="font-size: 16px; padding: 12px;" />
+                <input type="number" class="form-control" placeholder="50000" @bind="newGoalAmount" style="font-size: 16px; padding: 12px;" />
             </div>
 
             <div class="form-group" style="margin-bottom: 20px;">
                 <label class="form-label">Target Date</label>
-                <input type="date" class="form-control" style="font-size: 16px; padding: 12px;" />
+                <input type="date" class="form-control" @bind="newGoalDate" style="font-size: 16px; padding: 12px;" />
             </div>
 
             <div class="form-group" style="margin-bottom: 24px;">
                 <label class="form-label">Category</label>
-                <select class="form-control" style="font-size: 16px; padding: 12px;">
+                <select class="form-control" @bind="newGoalCategory" style="font-size: 16px; padding: 12px;">
                     <option value="Vacation">Vacation</option>
                     <option value="Car">Car</option>
                     <option value="Emergency">Emergency Fund</option>
@@ -159,7 +164,7 @@
                 <button @onclick="CloseCreateModal" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 16px; font-weight: 600; cursor: pointer;">
                     Cancel
                 </button>
-                <button style="flex: 1; padding: 14px; background: linear-gradient(135deg, #059669, #047857); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
+                <button @onclick="SubmitCreateGoal" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #059669, #047857); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
                     Create Goal
                 </button>
             </div>
@@ -170,36 +175,55 @@
 @code {
     private List<SavingsGoal> savingsGoals = new();
     private bool showCreateModal = false;
+    
+    // Form variables
+    private string newGoalName = "";
+    private decimal newGoalAmount = 0;
+    private DateTime newGoalDate = DateTime.Today;
+    private string newGoalCategory = "Other";
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        savingsGoals = new List<SavingsGoal>
+        await LoadSavingsGoals();
+    }
+
+    private async Task LoadSavingsGoals()
+    {
+        try
         {
-            new() 
-            { 
-                Category = "Vacation",
-                Name = "Vacation Fund", 
-                Current = 18500, 
-                Target = 50000, 
-                TargetDate = DateTime.Now.AddMonths(6) 
-            },
-            new() 
-            { 
-                Category = "Car",
-                Name = "Car Down Payment", 
-                Current = 15200, 
-                Target = 100000, 
-                TargetDate = DateTime.Now.AddMonths(12) 
-            },
-            new() 
-            { 
-                Category = "Emergency",
-                Name = "Emergency Fund", 
-                Current = 8650, 
-                Target = 30000, 
-                TargetDate = DateTime.Now.AddMonths(8) 
-            },
-        };
+            if (!AuthService.IsAuthenticated || !AuthService.CurrentUserId.HasValue)
+            {
+                savingsGoals = new List<SavingsGoal>();
+                return;
+            }
+
+            var userId = AuthService.CurrentUserId.Value;
+            
+            // Get customer's primary account
+            var accounts = await CustomerAccountService.GetByCustomerIdAsync(userId);
+            if (accounts.Any())
+            {
+                var accountId = accounts.First().AccountId;
+                
+                // Fetch real savings goals from database
+                var realGoals = await SavingsGoalService.GetByAccountIdAsync(accountId);
+                savingsGoals = realGoals
+                    .Select(g => new SavingsGoal
+                    {
+                        Category = "Other",
+                        Name = g.GoalName,
+                        Current = g.CurrentAmount,
+                        Target = g.TargetAmount,
+                        TargetDate = g.TargetDate
+                    })
+                    .ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading savings goals: {ex.Message}");
+            savingsGoals = new List<SavingsGoal>();
+        }
     }
 
     private decimal CalculateTotalSavings()
@@ -226,6 +250,60 @@
     private void CloseCreateModal()
     {
         showCreateModal = false;
+        // Reset form
+        newGoalName = "";
+        newGoalAmount = 0;
+        newGoalDate = DateTime.Today;
+        newGoalCategory = "Other";
+    }
+
+    private async Task SubmitCreateGoal()
+    {
+        if (string.IsNullOrWhiteSpace(newGoalName) || newGoalAmount <= 0 || newGoalDate <= DateTime.Today)
+        {
+            System.Diagnostics.Debug.WriteLine("Invalid form data");
+            return;
+        }
+
+        try
+        {
+            if (!AuthService.IsAuthenticated || !AuthService.CurrentUserId.HasValue)
+                return;
+
+            var userId = AuthService.CurrentUserId.Value;
+            
+            // Get customer's primary account
+            var accounts = await CustomerAccountService.GetByCustomerIdAsync(userId);
+            if (!accounts.Any())
+                return;
+
+            var accountId = accounts.First().AccountId;
+            
+            // Create savings goal
+            var (success, message) = await SavingsGoalService.CreateGoalAsync(
+                accountId,
+                newGoalName,
+                newGoalAmount,
+                newGoalDate,
+                newGoalCategory
+            );
+
+            if (success)
+            {
+                // Reload goals
+                await LoadSavingsGoals();
+                CloseCreateModal();
+                StateHasChanged();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Error creating goal: {message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
+        }
     }
 
     public class SavingsGoal

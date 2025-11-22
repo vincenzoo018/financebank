@@ -1,0 +1,215 @@
+@page "/teller/transactions"
+@layout TellerLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@inject AuthService AuthService
+@inject CustomerTransactionService CustomerTransactionService
+@inject CustomerAccountService CustomerAccountService
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Transaction History</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">View all processed transactions</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+    <div style="flex: 1 1 200px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Transaction Type</label>
+        <select class="form-control" @bind="selectedType">
+            <option value="">All Types</option>
+            <option value="Deposit">Deposit</option>
+            <option value="Withdrawal">Withdrawal</option>
+            <option value="Transfer">Transfer</option>
+            <option value="Bills">Bills</option>
+        </select>
+    </div>
+    <div style="flex: 1 1 200px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Status</label>
+        <select class="form-control" @bind="selectedStatus">
+            <option value="">All Statuses</option>
+            <option value="Completed">Completed</option>
+            <option value="Pending">Pending</option>
+            <option value="Failed">Failed</option>
+        </select>
+    </div>
+    <div style="flex: 0 0 auto; display:flex; gap:8px;">
+        <button class="btn" style="background:#f3f4f6; color:#111827; padding:8px 16px; border-radius:8px; font-size:14px;" @onclick="ReloadTransactions">Refresh</button>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div style="background:white; border-radius:16px; border:1px solid #e5e7eb; overflow:hidden;">
+    <table style="width:100%; border-collapse:collapse;">
+        <thead>
+            <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">TRANSACTION ID</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">ACCOUNT</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">TYPE</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">AMOUNT</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">STATUS</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">DATE</th>
+                <th style="padding:12px; text-align:center; font-size:12px; color:#6b7280;">ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (filteredTransactions.Any())
+            {
+                @foreach (var txn in filteredTransactions)
+                {
+                    <tr style="border-bottom:1px solid #e5e7eb;">
+                        <td style="padding:12px; font-size:13px; color:#111827;">@txn.TransactionNumber</td>
+                        <td style="padding:12px; font-size:13px; color:#4b5563;">@txn.Account?.AccountNumber</td>
+                        <td style="padding:12px; font-size:13px; color:#4b5563;">@txn.TransactionType</td>
+                        <td style="padding:12px; font-size:13px; color:#111827; font-weight:600;">₱@txn.Amount.ToString("N2")</td>
+                        <td style="padding:12px;">
+                            <span style="display:inline-flex; align-items:center; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:@GetStatusBg(txn.Status); color:@GetStatusColor(txn.Status);">
+                                @txn.Status
+                            </span>
+                        </td>
+                        <td style="padding:12px; font-size:13px; color:#6b7280;">@txn.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td style="padding:12px; text-align:center;">
+                            <button class="btn" style="background:#1f2937; color:white; padding:6px 12px; font-size:12px; border-radius:6px;" @onclick="() => ViewDetails(txn)">View</button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" style="padding:24px; text-align:center; font-size:14px; color:#6b7280;">No transactions found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Transaction Details Modal -->
+@if (showDetailsModal && selectedTransaction != null)
+{
+    <div @onclick="CloseDetailsModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;">
+        <div @onclick:stopPropagation style="background:white; border-radius:16px; max-width:600px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <div style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="font-size:20px; font-weight:700; color:#111827; margin:0;">Transaction Details</h2>
+                <button @onclick="CloseDetailsModal" style="background:none; border:none; font-size:22px; color:#6b7280; cursor:pointer;">×</button>
+            </div>
+            <div style="padding:20px 24px; display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div>
+                    <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Transaction ID</div>
+                    <div style="font-size:14px; color:#111827;">@selectedTransaction.TransactionNumber</div>
+                </div>
+                <div>
+                    <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Type</div>
+                    <div style="font-size:14px; color:#111827;">@selectedTransaction.TransactionType</div>
+                </div>
+                <div>
+                    <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Amount</div>
+                    <div style="font-size:14px; color:#111827; font-weight:600;">₱@selectedTransaction.Amount.ToString("N2")</div>
+                </div>
+                <div>
+                    <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Fee</div>
+                    <div style="font-size:14px; color:#111827;">₱@selectedTransaction.Fee.ToString("N2")</div>
+                </div>
+                <div>
+                    <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Status</div>
+                    <div style="font-size:14px; color:#111827;">@selectedTransaction.Status</div>
+                </div>
+                <div>
+                    <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Date</div>
+                    <div style="font-size:14px; color:#111827;">@selectedTransaction.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</div>
+                </div>
+                <div style="grid-column:1/-1;">
+                    <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Description</div>
+                    <div style="font-size:14px; color:#111827;">@selectedTransaction.Description</div>
+                </div>
+            </div>
+            <div style="padding:16px 24px; border-top:1px solid #e5e7eb; display:flex; justify-content:flex-end;">
+                <button class="btn" style="background:#f3f4f6; color:#111827; padding:8px 16px; border-radius:8px; font-size:14px;" @onclick="CloseDetailsModal">Close</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<CustomerTransaction> transactions = new();
+    private string selectedType = "";
+    private string selectedStatus = "";
+    private bool showDetailsModal;
+    private CustomerTransaction? selectedTransaction;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadTransactions();
+    }
+
+    private async Task ReloadTransactions()
+    {
+        try
+        {
+            // Load all transactions from all accounts (teller view)
+            var allAccounts = await CustomerAccountService.GetAllAsync();
+            transactions = new List<CustomerTransaction>();
+            
+            foreach (var account in allAccounts)
+            {
+                var accountTransactions = await CustomerTransactionService.GetByAccountIdAsync(account.AccountId);
+                transactions.AddRange(accountTransactions);
+            }
+            
+            transactions = transactions.OrderByDescending(t => t.CreatedAt).ToList();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading transactions: {ex.Message}");
+            transactions = new List<CustomerTransaction>();
+        }
+    }
+
+    private IEnumerable<CustomerTransaction> filteredTransactions => transactions
+        .Where(t => string.IsNullOrEmpty(selectedType) || t.TransactionType == selectedType)
+        .Where(t => string.IsNullOrEmpty(selectedStatus) || t.Status == selectedStatus);
+
+    private string GetStatusBg(string status)
+    {
+        return status switch
+        {
+            "Completed" => "#d1fae5",
+            "Pending" => "#fef3c7",
+            "Failed" => "#fee2e2",
+            _ => "#f3f4f6"
+        };
+    }
+
+    private string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Completed" => "#065f46",
+            "Pending" => "#92400e",
+            "Failed" => "#b91c1c",
+            _ => "#4b5563"
+        };
+    }
+
+    private void ViewDetails(CustomerTransaction txn)
+    {
+        selectedTransaction = txn;
+        showDetailsModal = true;
+    }
+
+    private void CloseDetailsModal()
+    {
+        showDetailsModal = false;
+        selectedTransaction = null;
+    }
+}

@@ -222,7 +222,7 @@ public class CustomerAccount
     
     [MaxLength(3)]
     public string Currency { get; set; } = "PHP";
-    
+
     public bool IsActive { get; set; } = true;
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;
@@ -236,6 +236,8 @@ public class CustomerAccount
     public virtual ICollection<CustomerTransaction> Transactions { get; set; } = new List<CustomerTransaction>();
     public virtual ICollection<Card> Cards { get; set; } = new List<Card>();
     public virtual ICollection<Loan> Loans { get; set; } = new List<Loan>();
+    public virtual ICollection<SavingsGoalEntity> SavingsGoals { get; set; } = new List<SavingsGoalEntity>();
+    public virtual ICollection<RewardPointsEntity> RewardPoints { get; set; } = new List<RewardPointsEntity>();
     
     // Helper method to generate unique 6-digit account number
     public static string GenerateAccountNumber()
@@ -347,7 +349,7 @@ public class Card
     public virtual CustomerAccount? Account { get; set; }
 }
 
-[Table("Loans")]
+[Table("CustomerLoans")]
 public class Loan
 {
     [Key]
@@ -413,6 +415,7 @@ public class SavingsGoalEntity
     
     public DateTime StartDate { get; set; } = DateTime.Now;
     public DateTime TargetDate { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
     
     [Required, MaxLength(50)]
     public string Status { get; set; } = "Active"; // Active, Completed, Cancelled
@@ -486,9 +489,157 @@ public class Biller
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 }
 
+[Table("BankingReports")]
+public class BankingReport
+{
+    [Key]
+    public int ReportId { get; set; }
+    
+    [Required, MaxLength(50)]
+    public string ReportType { get; set; } = string.Empty;
+    
+    [Required, MaxLength(100)]
+    public string ReportName { get; set; } = string.Empty;
+    
+    public DateTime PeriodStart { get; set; }
+    public DateTime PeriodEnd { get; set; }
+    
+    [Column(TypeName = "nvarchar(max)")]
+    public string? Data { get; set; }
+    
+    public DateTime GeneratedAt { get; set; } = DateTime.Now;
+    
+    [Required, MaxLength(50)]
+    public string GeneratedBy { get; set; } = string.Empty;
+}
+
+[Table("LoanManagement")]
+public class LoanManagementEntity
+{
+    [Key]
+    public int LoanMgmtId { get; set; }
+
+    [Required]
+    public int CustomerLoanId { get; set; }
+
+    [Required, MaxLength(50)]
+    public string Status { get; set; } = string.Empty;
+
+    [Required, MaxLength(50)]
+    public string ApprovalStatus { get; set; } = "Pending";
+
+    [MaxLength(50)]
+    public string? ApprovedBy { get; set; }
+
+    public DateTime? ApprovedAt { get; set; }
+
+    [MaxLength(500)]
+    public string? RejectionReason { get; set; }
+
+    [MaxLength(1000)]
+    public string? ProcessingNotes { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+}
+
+[Table("CardManagement")]
+public class CardManagementEntity
+{
+    [Key]
+    public int CardMgmtId { get; set; }
+
+    [Required]
+    public int CustomerCardId { get; set; }
+
+    [Required, MaxLength(50)]
+    public string Action { get; set; } = string.Empty;
+
+    [MaxLength(500)]
+    public string? Reason { get; set; }
+
+    [Required, MaxLength(50)]
+    public string ActionBy { get; set; } = string.Empty;
+
+    public DateTime ActionAt { get; set; } = DateTime.Now;
+}
+
 // =============================================
 // ACCOUNTING MODULE MODELS
 // =============================================
+
+[Table("AccountsPayable")]
+public class AccountsPayable
+{
+    [Key]
+    public int PayableId { get; set; }
+
+    [Required, MaxLength(100)]
+    public string VendorName { get; set; } = string.Empty;
+
+    [Required, MaxLength(50)]
+    public string InvoiceNumber { get; set; } = string.Empty;
+
+    public DateTime InvoiceDate { get; set; }
+
+    public DateTime DueDate { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal Amount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal PaidAmount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal OutstandingAmount { get; set; }
+
+    [Required, MaxLength(50)]
+    public string Status { get; set; } = "Pending"; // Pending, Partially Paid, Paid, Overdue
+
+    [MaxLength(500)]
+    public string? Description { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    [Required, MaxLength(50)]
+    public string CreatedBy { get; set; } = string.Empty;
+}
+
+[Table("AccountsReceivable")]
+public class AccountsReceivable
+{
+    [Key]
+    public int ReceivableId { get; set; }
+
+    [Required, MaxLength(100)]
+    public string CustomerName { get; set; } = string.Empty;
+
+    [Required, MaxLength(50)]
+    public string InvoiceNumber { get; set; } = string.Empty;
+
+    public DateTime InvoiceDate { get; set; }
+
+    public DateTime DueDate { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal Amount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal ReceivedAmount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal OutstandingAmount { get; set; }
+
+    [Required, MaxLength(50)]
+    public string Status { get; set; } = "Pending"; // Pending, Partially Paid, Paid, Overdue
+
+    [MaxLength(500)]
+    public string? Description { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    [Required, MaxLength(50)]
+    public string CreatedBy { get; set; } = string.Empty;
+}
 
 [Table("GeneralLedger")]
 public class GeneralLedgerEntry
@@ -738,9 +889,9 @@ public class CustomerCardEntity
     [Column(TypeName = "decimal(5,2)")]
     public decimal InterestRate { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    public bool IsActive { get; set; }
 
-    public bool IsLocked { get; set; } = false;
+    public bool IsLocked { get; set; }
 
     [Required]
     public DateTime CreatedAt { get; set; } = DateTime.Now;

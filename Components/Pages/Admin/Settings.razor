@@ -1,5 +1,7 @@
 @page "/admin/settings"
 @layout AdminLayout
+@inject AuditLogService AuditLogService
+@inject AuthService AuthService
 
 <div class="section-header">
     <h2 class="section-title">System Settings</h2>
@@ -10,24 +12,24 @@
     
     <div class="form-group">
         <label class="form-label">System Name</label>
-        <input type="text" class="form-control" value="FINEbank.io BFAS" />
+        <input type="text" class="form-control" @bind="systemName" />
     </div>
 
     <div class="form-group">
         <label class="form-label">System Email</label>
-        <input type="email" class="form-control" value="admin@bfas.com" />
+        <input type="email" class="form-control" @bind="systemEmail" />
     </div>
 
     <div class="form-group">
         <label class="form-label">Currency</label>
-        <select class="form-control">
-            <option selected>PHP - Philippine Peso</option>
-            <option>USD - US Dollar</option>
-            <option>EUR - Euro</option>
+        <select class="form-control" @bind="systemCurrency">
+            <option value="PHP">PHP - Philippine Peso</option>
+            <option value="USD">USD - US Dollar</option>
+            <option value="EUR">EUR - Euro</option>
         </select>
     </div>
 
-    <button class="btn btn-primary">Save Changes</button>
+    <button class="btn btn-primary" @onclick="SaveGeneralSettings">Save Changes</button>
 </div>
 
 <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 16px;">
@@ -35,26 +37,30 @@
     
     <div style="margin-bottom: 16px;">
         <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
-            <input type="checkbox" checked />
+            <input type="checkbox" @bind="enableTwoFactor" />
             <span style="font-size: 14px;">Enable Two-Factor Authentication</span>
         </label>
     </div>
 
     <div style="margin-bottom: 16px;">
         <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
-            <input type="checkbox" checked />
+            <input type="checkbox" @bind="requireStrongPasswords" />
             <span style="font-size: 14px;">Require Strong Passwords</span>
         </label>
     </div>
 
     <div style="margin-bottom: 16px;">
         <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
-            <input type="checkbox" checked />
+            <input type="checkbox" @bind="enableAuditLogging" />
             <span style="font-size: 14px;">Enable Audit Logging</span>
         </label>
     </div>
 
-    <button class="btn btn-primary">Save Security Settings</button>
+    <button class="btn btn-primary" @onclick="SaveSecuritySettings">Save Security Settings</button>
+    @if (!string.IsNullOrEmpty(securitySaveMessage))
+    {
+        <div style="margin-top: 10px; font-size: 12px; color: #16a34a;">@securitySaveMessage</div>
+    }
 </div>
 
 <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
@@ -65,6 +71,158 @@
         <div style="font-size: 13px; color: #991b1b;">This action cannot be undone</div>
     </div>
 
-    <button class="btn" style="background: var(--danger); color: white;">Clear Audit Logs</button>
+    <button class="btn" style="background: var(--danger); color: white;" @onclick="OnClearAuditLogsClicked">Clear Audit Logs</button>
+    @if (!string.IsNullOrEmpty(clearAuditMessage))
+    {
+        <div style="margin-top: 10px; font-size: 12px; color: @(clearAuditSuccess ? "#16a34a" : "#991b1b");">@clearAuditMessage</div>
+    }
 </div>
 
+<!-- Confirm Clear Logs Modal -->
+<div style="display: @(showConfirmClearModal ? "flex" : "none"); position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: white; border-radius: 16px; padding: 32px; max-width: 480px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 16px 0; color: #b91c1c;">Confirm Clear Audit Logs</h2>
+        <p style="font-size: 14px; color: #4b5563; margin-bottom: 20px;">
+            This will permanently delete all records from the <strong>AuditLogs</strong> table in BFASdatabase.
+            Only <strong>SuperAdmin</strong> is allowed to perform this action.
+        </p>
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+            <button class="btn" style="background: #e5e7eb; color: #374151; padding: 8px 18px; font-weight: 600;" @onclick="CloseConfirmModal">Cancel</button>
+            <button class="btn" style="background: #b91c1c; color: white; padding: 8px 18px; font-weight: 600;" @onclick="ConfirmClearAuditLogs" disabled="@(isClearing)">
+                @(isClearing ? "Clearing..." : "Yes, Clear Logs")
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string systemName = "FINEbank.io BFAS";
+    private string systemEmail = "admin@bfas.com";
+    private string systemCurrency = "PHP";
+
+    private bool enableTwoFactor = true;
+    private bool requireStrongPasswords = true;
+    private bool enableAuditLogging = true;
+
+    private string securitySaveMessage = string.Empty;
+
+    private bool showConfirmClearModal = false;
+    private bool isClearing = false;
+    private string clearAuditMessage = string.Empty;
+    private bool clearAuditSuccess = false;
+
+    private async Task SaveGeneralSettings()
+    {
+        try
+        {
+            // No dedicated system settings table in BFASdatabase;
+            // log the change into AuditLogs for traceability.
+            if (AuditLogService != null && AuthService != null && AuthService.CurrentUserId.HasValue)
+            {
+                var log = new AuditLog
+                {
+                    UserId = AuthService.CurrentUserId.Value.ToString(),
+                    Action = "UpdateGeneralSettings",
+                    Module = "Settings",
+                    Description = $"SystemName={systemName}; SystemEmail={systemEmail}; Currency={systemCurrency}",
+                    IpAddress = null,
+                    UserAgent = null
+                };
+                await AuditLogService.CreateAsync(log);
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private async Task SaveSecuritySettings()
+    {
+        securitySaveMessage = string.Empty;
+        try
+        {
+            if (AuditLogService != null && AuthService != null && AuthService.CurrentUserId.HasValue)
+            {
+                var log = new AuditLog
+                {
+                    UserId = AuthService.CurrentUserId.Value.ToString(),
+                    Action = "UpdateSecuritySettings",
+                    Module = "Settings",
+                    Description = $"TwoFactor={(enableTwoFactor ? "On" : "Off")}; StrongPassword={(requireStrongPasswords ? "On" : "Off")}; AuditLogging={(enableAuditLogging ? "On" : "Off")}",
+                    IpAddress = null,
+                    UserAgent = null
+                };
+                await AuditLogService.CreateAsync(log);
+                securitySaveMessage = "Security settings saved and audited.";
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private void OnClearAuditLogsClicked()
+    {
+        clearAuditMessage = string.Empty;
+        clearAuditSuccess = false;
+
+        if (AuthService == null || !AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        {
+            clearAuditMessage = "Only SuperAdmin can clear audit logs.";
+            clearAuditSuccess = false;
+            return;
+        }
+
+        showConfirmClearModal = true;
+    }
+
+    private void CloseConfirmModal()
+    {
+        showConfirmClearModal = false;
+    }
+
+    private async Task ConfirmClearAuditLogs()
+    {
+        if (AuditLogService == null || AuthService == null || !AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        {
+            showConfirmClearModal = false;
+            clearAuditMessage = "You are not authorized to clear audit logs.";
+            clearAuditSuccess = false;
+            return;
+        }
+
+        try
+        {
+            isClearing = true;
+            await AuditLogService.ClearAllAsync();
+
+            // Record the clear operation itself as a new audit entry
+            if (AuthService.CurrentUserId.HasValue)
+            {
+                var log = new AuditLog
+                {
+                    UserId = AuthService.CurrentUserId.Value.ToString(),
+                    Action = "ClearAuditLogs",
+                    Module = "Settings",
+                    Description = "All records in AuditLogs table were cleared from System Settings page.",
+                    IpAddress = null,
+                    UserAgent = null
+                };
+                await AuditLogService.CreateAsync(log);
+            }
+
+            clearAuditMessage = "Audit logs cleared successfully.";
+            clearAuditSuccess = true;
+        }
+        catch
+        {
+            clearAuditMessage = "An error occurred while clearing audit logs.";
+            clearAuditSuccess = false;
+        }
+        finally
+        {
+            isClearing = false;
+            showConfirmClearModal = false;
+        }
+    }
+}

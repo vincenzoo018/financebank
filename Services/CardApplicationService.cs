@@ -454,16 +454,28 @@ public class CardApplicationService
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"[SubmitCardApplication] Starting for CustomerId: {customerId}, CardType: {cardType}");
+
             // Get customer user info
             var customer = await _context.Users.FirstOrDefaultAsync(u => u.UserId == customerId);
             if (customer == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SubmitCardApplication] Customer not found for UserId: {customerId}");
                 return (false, "Customer not found", 0);
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[SubmitCardApplication] Found customer: {customer.FullName}");
 
             // Get customer's primary account
             var account = await _context.CustomerAccounts
                 .FirstOrDefaultAsync(a => a.CustomerId == customerId && a.IsActive);
             if (account == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SubmitCardApplication] No active account found for CustomerId: {customerId}");
                 return (false, "Customer account not found", 0);
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[SubmitCardApplication] Found account: {account.AccountNumber} (ID: {account.AccountId})");
 
             // Generate card number
             var cardNumber = GenerateCardNumber();
@@ -491,9 +503,13 @@ public class CardApplicationService
                 CreatedAt = DateTime.Now
             };
 
+            System.Diagnostics.Debug.WriteLine($"[SubmitCardApplication] Creating card with IsActive=false, AccountId: {account.AccountId}");
+
             // Save card first to get CardId
             _context.CustomerCards.Add(card);
             await _context.SaveChangesAsync();
+
+            System.Diagnostics.Debug.WriteLine($"[SubmitCardApplication] Card created successfully with CardId: {card.CardId}");
 
             // Create approval queue entry with the CardId
             var approval = new ApprovalQueueEntity
@@ -511,6 +527,8 @@ public class CardApplicationService
 
             _context.ApprovalQueues.Add(approval);
             await _context.SaveChangesAsync();
+
+            System.Diagnostics.Debug.WriteLine($"[SubmitCardApplication] Approval queue entry created");
 
             return (true, "Card application submitted successfully", card.CardId);
         }
@@ -536,6 +554,12 @@ public class CardApplicationService
                 .Select(a => a.AccountId)
                 .ToListAsync();
 
+            System.Diagnostics.Debug.WriteLine($"[GetPendingCards] CustomerId: {customerId}, Found {accountIds.Count} accounts");
+            foreach (var accId in accountIds)
+            {
+                System.Diagnostics.Debug.WriteLine($"  - Account ID: {accId}");
+            }
+
             // Get pending cards (IsActive = false means not yet approved)
             var cards = await _context.CustomerCards
                 .Where(c => accountIds.Contains(c.AccountId) && !c.IsActive)
@@ -559,11 +583,14 @@ public class CardApplicationService
                 })
                 .ToListAsync();
 
+            System.Diagnostics.Debug.WriteLine($"[GetPendingCards] Found {cards.Count} pending cards");
+
             return cards;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error fetching pending cards: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             return new List<CustomerCardDto>();
         }
     }

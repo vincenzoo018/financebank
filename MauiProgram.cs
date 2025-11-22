@@ -51,10 +51,26 @@ namespace FinanceBank
             // Register CRUD Services
             builder.Services.AddScoped<BankAccountService>();
             builder.Services.AddScoped<FundTransferService>();
+            builder.Services.AddScoped<BillerService>();
+            builder.Services.AddScoped<BankingReportService>();
+            builder.Services.AddScoped<LoanManagementService>();
+            builder.Services.AddScoped<CardManagementService>();
             builder.Services.AddScoped<JournalEntryService>();
             builder.Services.AddScoped<BudgetManagementService>();
+            builder.Services.AddScoped<AccountsPayableService>();
+            builder.Services.AddScoped<AccountsReceivableService>();
+            builder.Services.AddScoped<GeneralLedgerService>();
+            builder.Services.AddScoped<TrialBalanceService>();
+            builder.Services.AddScoped<FinancialStatementService>();
+            builder.Services.AddScoped<CashflowAnalysisService>();
+            builder.Services.AddScoped<FinancialForecastService>();
             builder.Services.AddScoped<CustomerAccountService>();
             builder.Services.AddScoped<CustomerTransactionService>();
+            builder.Services.AddScoped<CardService>();
+            builder.Services.AddScoped<LoanService>();
+            builder.Services.AddScoped<SavingsGoalService>();
+            builder.Services.AddScoped<RewardPointsService>();
+            builder.Services.AddScoped<AuditLogService>();
 
             // Register Card Application Service (card and loan approvals)
             builder.Services.AddScoped<CardApplicationService>();

@@ -19,17 +19,32 @@ namespace FinanceBank.Data
         // Banking Module Tables
         public DbSet<BankAccount> BankAccounts { get; set; }
         public DbSet<FundTransfer> FundTransfers { get; set; }
+        public DbSet<Biller> Billers { get; set; }
+        public DbSet<BankingReport> BankingReports { get; set; }
+        public DbSet<LoanManagementEntity> LoanManagementRecords { get; set; }
+        public DbSet<CardManagementEntity> CardManagementRecords { get; set; }
 
         // Accounting Module Tables
         public DbSet<JournalEntry> JournalEntries { get; set; }
         public DbSet<JournalEntryLine> JournalEntryLines { get; set; }
+        public DbSet<AccountsPayable> AccountsPayables { get; set; }
+        public DbSet<AccountsReceivable> AccountsReceivables { get; set; }
+        public DbSet<GeneralLedgerEntry> GeneralLedgerEntries { get; set; }
+        public DbSet<TrialBalanceEntry> TrialBalances { get; set; }
+        public DbSet<FinancialStatement> FinancialStatements { get; set; }
 
         // Finance Module Tables
         public DbSet<Budget> Budgets { get; set; }
+        public DbSet<CashflowEntry> CashflowEntries { get; set; }
+        public DbSet<FinancialForecast> FinancialForecasts { get; set; }
 
         // Customer Portal Tables
         public DbSet<CustomerAccount> CustomerAccounts { get; set; }
         public DbSet<CustomerTransaction> CustomerTransactions { get; set; }
+        public DbSet<Card> Cards { get; set; }
+        public DbSet<Loan> Loans { get; set; }
+        public DbSet<SavingsGoalEntity> SavingsGoals { get; set; }
+        public DbSet<RewardPointsEntity> RewardPoints { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
 
         // Approval Module Tables
@@ -37,6 +52,9 @@ namespace FinanceBank.Data
 
         // Customer Card Tables
         public DbSet<CustomerCardEntity> CustomerCards { get; set; }
+
+        // System / Audit Tables
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

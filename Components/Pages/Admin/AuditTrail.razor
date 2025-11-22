@@ -1,5 +1,9 @@
 @page "/admin/audit-trail"
 @layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@inject AuthService AuthService
+@inject AuditLogService AuditLogService
 
 <div class="section-header">
     <h2 class="section-title">📋 Audit Trail & Activity Logs</h2>
@@ -12,37 +16,38 @@
 <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border); margin-bottom: 24px;">
     <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
         <div class="form-group">
-            <label class="form-label">User/Employee</label>
-            <select class="form-control">
-                <option>All Users</option>
-                <option>Super Admins</option>
-                <option>Admins</option>
-                <option>Employees</option>
-                <option>Customers</option>
+            <label class="form-label">Module</label>
+            <select class="form-control" @bind="selectedModule">
+                <option value="">All Modules</option>
+                <option value="Settings">Settings</option>
+                <option value="Banking">Banking</option>
+                <option value="Accounting">Accounting</option>
+                <option value="Users">Users</option>
+                <option value="Security">Security</option>
             </select>
         </div>
         <div class="form-group">
-            <label class="form-label">Activity Type</label>
-            <select class="form-control">
-                <option>All Activities</option>
-                <option>Login/Logout</option>
-                <option>Transactions</option>
-                <option>Configuration Changes</option>
-                <option>User Management</option>
-                <option>Security Events</option>
+            <label class="form-label">Action Type</label>
+            <select class="form-control" @bind="selectedAction">
+                <option value="">All Actions</option>
+                <option value="Create">Create</option>
+                <option value="Update">Update</option>
+                <option value="Delete">Delete</option>
+                <option value="Login">Login</option>
+                <option value="Logout">Logout</option>
             </select>
         </div>
         <div class="form-group">
             <label class="form-label">Date From</label>
-            <input type="date" class="form-control" />
+            <input type="date" class="form-control" @bind="dateFrom" />
         </div>
         <div class="form-group">
             <label class="form-label">Date To</label>
-            <input type="date" class="form-control" />
+            <input type="date" class="form-control" @bind="dateTo" />
         </div>
         <div class="form-group">
             <label class="form-label" style="visibility: hidden;">Action</label>
-            <button class="btn btn-primary" style="width: 100%;">🔍 Search</button>
+            <button class="btn btn-primary" style="width: 100%;" @onclick="ApplyFilters">🔍 Search</button>
         </div>
     </div>
 </div>
@@ -50,20 +55,20 @@
 <!-- Stats -->
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
     <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
-        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Total Activities Today</div>
-        <div style="font-size: 28px; font-weight: 700; color: var(--text);">1,247</div>
+        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Total Activities</div>
+        <div style="font-size: 28px; font-weight: 700; color: var(--text);">@allLogs.Count</div>
     </div>
     <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
-        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Transactions</div>
-        <div style="font-size: 28px; font-weight: 700; color: #3b82f6;">856</div>
+        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Today's Activities</div>
+        <div style="font-size: 28px; font-weight: 700; color: #3b82f6;">@todayCount</div>
     </div>
     <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
-        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Security Events</div>
-        <div style="font-size: 28px; font-weight: 700; color: #f59e0b;">12</div>
+        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Unique Users</div>
+        <div style="font-size: 28px; font-weight: 700; color: #f59e0b;">@uniqueUsers</div>
     </div>
     <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
-        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Failed Actions</div>
-        <div style="font-size: 28px; font-weight: 700; color: #dc2626;">5</div>
+        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">This Week</div>
+        <div style="font-size: 28px; font-weight: 700; color: #10b981;">@weekCount</div>
     </div>
 </div>
 
@@ -81,158 +86,103 @@
             <tr style="border-bottom: 2px solid var(--border); background: #f9fafb;">
                 <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">TIMESTAMP</th>
                 <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">USER</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">MODULE</th>
                 <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">ACTION</th>
                 <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">DETAILS</th>
                 <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">IP ADDRESS</th>
-                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700;">STATUS</th>
             </tr>
         </thead>
         <tbody>
-            <tr style="border-bottom: 1px solid var(--border);">
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">12:15:43 AM</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Nov 12, 2025</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">Juan Dela Cruz</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Customer</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">💸 Transfer</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Fund Transfer</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-size: 13px;">Transferred ₱5,000 to BFAS-100000000123</div>
-                </td>
-                <td style="padding: 16px; font-family: monospace; font-size: 12px;">112.199.45.78</td>
-                <td style="padding: 16px;">
-                    <span style="padding: 4px 10px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 11px; font-weight: 600;">SUCCESS</span>
-                </td>
-            </tr>
-            <tr style="border-bottom: 1px solid var(--border);">
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">12:10:22 AM</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Nov 12, 2025</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">Admin User</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">SuperAdmin</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">👤 User Created</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">User Management</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-size: 13px;">Created new user: Maria Santos (Accountant)</div>
-                </td>
-                <td style="padding: 16px; font-family: monospace; font-size: 12px;">112.199.45.78</td>
-                <td style="padding: 16px;">
-                    <span style="padding: 4px 10px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 11px; font-weight: 600;">SUCCESS</span>
-                </td>
-            </tr>
-            <tr style="border-bottom: 1px solid var(--border);">
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">11:58:15 PM</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Nov 11, 2025</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">Carlos Reyes</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Cashier</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">💰 Deposit</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Cash Deposit</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-size: 13px;">Processed deposit of ₱15,000 to BFAS-100000000045</div>
-                </td>
-                <td style="padding: 16px; font-family: monospace; font-size: 12px;">192.168.1.100</td>
-                <td style="padding: 16px;">
-                    <span style="padding: 4px 10px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 11px; font-weight: 600;">SUCCESS</span>
-                </td>
-            </tr>
-            <tr style="border-bottom: 1px solid var(--border);">
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">11:45:30 PM</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Nov 11, 2025</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">Unknown User</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Anonymous</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">🔒 Login Attempt</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Security Event</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-size: 13px;">Failed login attempt - incorrect password</div>
-                </td>
-                <td style="padding: 16px; font-family: monospace; font-size: 12px;">203.177.89.45</td>
-                <td style="padding: 16px;">
-                    <span style="padding: 4px 10px; background: #fee2e2; color: #991b1b; border-radius: 6px; font-size: 11px; font-weight: 600;">FAILED</span>
-                </td>
-            </tr>
-            <tr style="border-bottom: 1px solid var(--border);">
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">11:30:12 PM</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Nov 11, 2025</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">Finance Manager</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">FinanceManager</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">⚙️ Settings Changed</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Configuration</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-size: 13px;">Updated transaction limit settings</div>
-                </td>
-                <td style="padding: 16px; font-family: monospace; font-size: 12px;">192.168.1.105</td>
-                <td style="padding: 16px;">
-                    <span style="padding: 4px 10px; background: #fef3c7; color: #92400e; border-radius: 6px; font-size: 11px; font-weight: 600;">MODIFIED</span>
-                </td>
-            </tr>
-            <tr style="border-bottom: 1px solid var(--border);">
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">11:20:08 PM</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Nov 11, 2025</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">Auditor User</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Auditor</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-weight: 600;">📊 Report Generated</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Report</div>
-                </td>
-                <td style="padding: 16px;">
-                    <div style="font-size: 13px;">Generated financial statement report</div>
-                </td>
-                <td style="padding: 16px; font-family: monospace; font-size: 12px;">192.168.1.110</td>
-                <td style="padding: 16px;">
-                    <span style="padding: 4px 10px; background: #dbeafe; color: #1e40af; border-radius: 6px; font-size: 11px; font-weight: 600;">COMPLETED</span>
-                </td>
-            </tr>
+            @if (filteredLogs.Any())
+            {
+                @foreach (var log in filteredLogs.OrderByDescending(l => l.CreatedAt).Take(25))
+                {
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 16px;">
+                            <div style="font-weight: 600;">@log.CreatedAt.ToString("HH:mm:ss")</div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">@log.CreatedAt.ToString("MMM dd, yyyy")</div>
+                        </td>
+                        <td style="padding: 16px;">
+                            <div style="font-weight: 600;">@log.UserId</div>
+                        </td>
+                        <td style="padding: 16px;">
+                            <div style="font-size: 13px;">@log.Module</div>
+                        </td>
+                        <td style="padding: 16px;">
+                            <div style="font-weight: 600;">@log.Action</div>
+                        </td>
+                        <td style="padding: 16px;">
+                            <div style="font-size: 13px;">@log.Description</div>
+                        </td>
+                        <td style="padding: 16px; font-family: monospace; font-size: 12px;">@(log.IpAddress ?? "N/A")</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" style="padding: 24px; text-align: center; font-size: 14px; color: var(--text-secondary);">No audit logs found.</td>
+                </tr>
+            }
         </tbody>
     </table>
 
     <!-- Pagination -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
         <div style="font-size: 13px; color: var(--text-secondary);">
-            Showing 1-25 of 1,247 records
-        </div>
-        <div style="display: flex; gap: 8px;">
-            <button style="padding: 8px 12px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer;">← Prev</button>
-            <button style="padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">1</button>
-            <button style="padding: 8px 12px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer;">2</button>
-            <button style="padding: 8px 12px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer;">3</button>
-            <button style="padding: 8px 12px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer;">Next →</button>
+            Showing 1-@Math.Min(25, filteredLogs.Count()) of @filteredLogs.Count() records
         </div>
     </div>
 </div>
 
 @code {
-    // UI Only - No backend logic
+    private List<AuditLog> allLogs = new();
+    private string selectedModule = "";
+    private string selectedAction = "";
+    private DateTime dateFrom = DateTime.Today.AddMonths(-1);
+    private DateTime dateTo = DateTime.Today;
+    private int todayCount = 0;
+    private int weekCount = 0;
+    private int uniqueUsers = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAuditLogs();
+    }
+
+    private async Task LoadAuditLogs()
+    {
+        try
+        {
+            allLogs = await AuditLogService.GetAllAsync();
+            CalculateStats();
+        }
+        catch (Exception ex)
+        {
+            // Error loading audit logs
+            allLogs = new List<AuditLog>();
+        }
+    }
+
+    private void CalculateStats()
+    {
+        var today = DateTime.Today;
+        var weekAgo = today.AddDays(-7);
+
+        todayCount = allLogs.Count(l => l.CreatedAt.Date == today);
+        weekCount = allLogs.Count(l => l.CreatedAt.Date >= weekAgo && l.CreatedAt.Date <= today);
+        uniqueUsers = allLogs.Select(l => l.UserId).Distinct().Count();
+    }
+
+    private IEnumerable<AuditLog> filteredLogs => allLogs
+        .Where(l => string.IsNullOrEmpty(selectedModule) || l.Module == selectedModule)
+        .Where(l => string.IsNullOrEmpty(selectedAction) || l.Action.Contains(selectedAction, StringComparison.OrdinalIgnoreCase))
+        .Where(l => l.CreatedAt.Date >= dateFrom && l.CreatedAt.Date <= dateTo);
+
+    private async Task ApplyFilters()
+    {
+        // Filters are applied via the filteredLogs property
+        await Task.CompletedTask;
+    }
 }
 

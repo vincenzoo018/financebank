@@ -1,5 +1,10 @@
 @page "/customer/rewards"
 @layout CustomerLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@inject AuthService AuthService
+@inject RewardPointsService RewardPointsService
+@inject CustomerAccountService CustomerAccountService
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <!-- Header -->
@@ -21,7 +26,7 @@
     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 24px;">
         <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
             <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Total Reward Points</div>
-            <div style="font-size: 48px; font-weight: 700; color: var(--accent); margin-bottom: 16px;">12,450</div>
+            <div style="font-size: 48px; font-weight: 700; color: var(--accent); margin-bottom: 16px;">@totalRewardPoints.ToString("N0")</div>
             <div style="display: flex; gap: 12px;">
                 <button style="flex: 1; padding: 12px; background: linear-gradient(135deg, var(--accent), #059669); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
                     Redeem Points
@@ -95,8 +100,8 @@
                             <div style="font-size: 14px; color: #7c3aed; font-weight: 600;">@reward.Points points required</div>
                         </div>
                     </div>
-                    <button style="padding: 12px 24px; background: @(reward.Points <= 12450 ? "linear-gradient(135deg, #7c3aed, #6d28d9)" : "#e5e7eb"); border: none; border-radius: 8px; color: @(reward.Points <= 12450 ? "white" : "#9ca3af"); font-weight: 600; cursor: @(reward.Points <= 12450 ? "pointer" : "not-allowed");" disabled="@(reward.Points > 12450)">
-                        @(reward.Points <= 12450 ? "Redeem" : "Locked")
+                    <button style="padding: 12px 24px; background: @(reward.Points <= totalRewardPoints ? "linear-gradient(135deg, #7c3aed, #6d28d9)" : "#e5e7eb"); border: none; border-radius: 8px; color: @(reward.Points <= totalRewardPoints ? "white" : "#9ca3af"); font-weight: 600; cursor: @(reward.Points <= totalRewardPoints ? "pointer" : "not-allowed");" disabled="@(reward.Points > totalRewardPoints)">
+                        @(reward.Points <= totalRewardPoints ? "Redeem" : "Locked")
                     </button>
                 </div>
             }
@@ -106,9 +111,12 @@
 
 @code {
     private List<Reward> availableRewards = new();
+    private int totalRewardPoints = 0;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        await LoadRewardPoints();
+        
         availableRewards = new List<Reward>
         {
             new Reward { Icon = "[COFFEE]", Name = "Starbucks ₱500 GC", Description = "Valid for 6 months", Points = 5000 },
@@ -117,6 +125,35 @@
             new Reward { Icon = "[PLANE]", Name = "Flight Discount 10%", Description = "For international flights", Points = 15000 },
             new Reward { Icon = "[HOTEL]", Name = "Hotel Stay ₱2000", Description = "Participating hotels", Points = 20000 },
         };
+    }
+
+    private async Task LoadRewardPoints()
+    {
+        try
+        {
+            if (!AuthService.IsAuthenticated || !AuthService.CurrentUserId.HasValue)
+            {
+                totalRewardPoints = 0;
+                return;
+            }
+
+            var userId = AuthService.CurrentUserId.Value;
+            
+            // Get customer's primary account
+            var accounts = await CustomerAccountService.GetByCustomerIdAsync(userId);
+            if (accounts.Any())
+            {
+                var accountId = accounts.First().AccountId;
+                
+                // Fetch total unredeemed reward points from database
+                totalRewardPoints = await RewardPointsService.GetTotalPointsAsync(accountId);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading reward points: {ex.Message}");
+            totalRewardPoints = 0;
+        }
     }
 
     private class Reward

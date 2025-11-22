@@ -1,5 +1,9 @@
 @page "/admin/banking/billers"
+@page "/admin/banking/billers-management"
 @layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@inject BillerService BillerService
 
 <!-- Page Header -->
 <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
@@ -16,14 +20,229 @@
     </div>
 </div>
 
-@code {
-    private bool showAddBillerModal = false;
-    private bool showEditBillerModal = false;
-    private int selectedBillerId = 0;
+<!-- Toolbar: New + Search/Filter -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:16px;">
+    <div style="display:flex; gap:12px; align-items:center;">
+        <button class="btn" style="background:#10b981; color:white; padding:8px 16px; font-size:14px; font-weight:600; border-radius:8px;" @onclick="ShowAddModal">
+            + New Biller
+        </button>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+        <input class="form-control" style="width:220px;" placeholder="Search by name or code" @bind="searchText" />
+        <select class="form-control" style="width:160px;" @bind="selectedCategory">
+            <option value="">All Categories</option>
+            @foreach (var cat in distinctCategories)
+            {
+                <option value="@cat">@cat</option>
+            }
+        </select>
+        <select class="form-control" style="width:140px;" @bind="selectedStatus">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+        </select>
+    </div>
+</div>
 
-    private void ShowAddBillerModal() => showAddBillerModal = true;
-    private void CloseAddBillerModal() => showAddBillerModal = false;
-    private void ShowEditBillerModal(int id) { selectedBillerId = id; showEditBillerModal = true; }
-    private void CloseEditBillerModal() => showEditBillerModal = false;
+<!-- Billers Table -->
+<div style="background:white; border-radius:16px; border:1px solid var(--border); overflow:hidden;">
+    <table style="width:100%; border-collapse:collapse;">
+        <thead>
+            <tr style="background:#f9fafb; border-bottom:1px solid var(--border);">
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">BILLER NAME</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">CODE</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">CATEGORY</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">DESCRIPTION</th>
+                <th style="padding:12px; text-align:right; font-size:12px; color:#6b7280;">FEE (₱)</th>
+                <th style="padding:12px; text-align:center; font-size:12px; color:#6b7280;">STATUS</th>
+                <th style="padding:12px; text-align:center; font-size:12px; color:#6b7280;">ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (filteredBillers.Any())
+            {
+                @foreach (var biller in filteredBillers)
+                {
+                    <tr style="border-bottom:1px solid var(--border);">
+                        <td style="padding:12px; font-size:14px; color:#111827; font-weight:500;">@biller.BillerName</td>
+                        <td style="padding:12px; font-size:13px; color:#6b7280;">@biller.BillerCode</td>
+                        <td style="padding:12px; font-size:13px; color:#111827;">@biller.Category</td>
+                        <td style="padding:12px; font-size:13px; color:#6b7280; max-width:260px;">@((biller.Description ?? "").Length > 80 ? biller.Description.Substring(0, 80) + "..." : biller.Description)</td>
+                        <td style="padding:12px; font-size:14px; color:#111827; text-align:right;">@biller.ProcessingFee.ToString("N2")</td>
+                        <td style="padding:12px; text-align:center;">
+                            <span style="display:inline-flex; align-items:center; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:@(biller.IsActive ? "#d1fae5" : "#fee2e2"); color:@(biller.IsActive ? "#065f46" : "#991b1b");">
+                                @(biller.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                        <td style="padding:12px; text-align:center;">
+                            <div style="display:inline-flex; gap:8px;">
+                                <button class="btn" style="background:#3b82f6; color:white; padding:6px 12px; font-size:12px; border-radius:6px;" @onclick="() => StartEdit(biller)">Edit</button>
+                                <button class="btn" style="background:@(biller.IsActive ? "#ef4444" : "#10b981"); color:white; padding:6px 12px; font-size:12px; border-radius:6px;" @onclick="() => ToggleStatus(biller)">
+                                    @(biller.IsActive ? "Deactivate" : "Activate")
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" style="padding:24px; text-align:center; font-size:14px; color:#6b7280;">
+                        No billers found. Use the "New Biller" button to add your first biller.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Add / Edit Modal -->
+@if (showModal)
+{
+    <div style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000;" @onclick="CloseModal">
+        <div style="background:white; border-radius:16px; padding:24px; width:560px; max-width:95%;" @onclick:stopPropagation="true">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h2 style="font-size:20px; font-weight:700; color:#111827; margin:0;">@(isEditing ? "Edit Biller" : "New Biller")</h2>
+                <button @onclick="CloseModal" style="background:none; border:none; font-size:22px; color:#6b7280; cursor:pointer;">×</button>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-bottom:16px;">
+                <div>
+                    <label style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px; display:block;">Biller Name</label>
+                    <input class="form-control" @bind="editModel.BillerName" />
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px; display:block;">Biller Code</label>
+                    <input class="form-control" @bind="editModel.BillerCode" />
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px; display:block;">Category</label>
+                    <input class="form-control" @bind="editModel.Category" placeholder="e.g. Utilities, Telecom, Government" />
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px; display:block;">Processing Fee (₱)</label>
+                    <input class="form-control" type="number" step="0.01" @bind-value="processingFee" />
+                </div>
+                <div style="grid-column:1 / span 2;">
+                    <label style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px; display:block;">Description</label>
+                    <textarea class="form-control" rows="3" @bind="editModel.Description"></textarea>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-size:12px; color:#6b7280;">
+                    Fields marked are required. Biller code must be unique.
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn" style="background:#f3f4f6; color:#111827; padding:8px 16px; border-radius:8px; font-size:14px;" @onclick="CloseModal">Cancel</button>
+                    <button class="btn" style="background:#10b981; color:white; padding:8px 16px; border-radius:8px; font-size:14px;" @onclick="SaveBiller">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Biller> billers = new();
+    private string searchText = string.Empty;
+    private string selectedCategory = string.Empty;
+    private string selectedStatus = "all";
+
+    private bool showModal = false;
+    private bool isEditing = false;
+    private Biller editModel = new();
+    private decimal processingFee;
+
+    protected override async Task OnInitializedAsync()
+    {
+        billers = await BillerService.GetAllAsync();
+    }
+
+    private IEnumerable<string> distinctCategories => billers
+        .Select(b => b.Category)
+        .Where(c => !string.IsNullOrWhiteSpace(c))
+        .Distinct()
+        .OrderBy(c => c);
+
+    private IEnumerable<Biller> filteredBillers => billers
+        .Where(b => string.IsNullOrWhiteSpace(searchText)
+            || (b.BillerName?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
+            || (b.BillerCode?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true))
+        .Where(b => string.IsNullOrWhiteSpace(selectedCategory) || b.Category == selectedCategory)
+        .Where(b => selectedStatus == "all"
+            || (selectedStatus == "active" && b.IsActive)
+            || (selectedStatus == "inactive" && !b.IsActive));
+
+    private void ShowAddModal()
+    {
+        isEditing = false;
+        editModel = new Biller
+        {
+            IsActive = true,
+            ProcessingFee = 0m
+        };
+        processingFee = 0m;
+        showModal = true;
+    }
+
+    private void StartEdit(Biller biller)
+    {
+        isEditing = true;
+        editModel = new Biller
+        {
+            BillerId = biller.BillerId,
+            BillerName = biller.BillerName,
+            BillerCode = biller.BillerCode,
+            Category = biller.Category,
+            Description = biller.Description,
+            ProcessingFee = biller.ProcessingFee,
+            IsActive = biller.IsActive,
+            CreatedAt = biller.CreatedAt
+        };
+        processingFee = biller.ProcessingFee;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task SaveBiller()
+    {
+        editModel.ProcessingFee = processingFee;
+
+        if (!isEditing)
+        {
+            var created = await BillerService.CreateAsync(editModel);
+            billers.Add(created);
+        }
+        else
+        {
+            var updated = await BillerService.UpdateAsync(editModel);
+            var idx = billers.FindIndex(b => b.BillerId == updated.BillerId);
+            if (idx >= 0)
+            {
+                billers[idx] = updated;
+            }
+        }
+
+        showModal = false;
+    }
+
+    private async Task ToggleStatus(Biller biller)
+    {
+        var newStatus = !biller.IsActive;
+        var ok = await BillerService.ToggleActiveAsync(biller.BillerId, newStatus);
+        if (ok)
+        {
+            var idx = billers.FindIndex(b => b.BillerId == biller.BillerId);
+            if (idx >= 0)
+            {
+                billers[idx].IsActive = newStatus;
+            }
+        }
+    }
 }
 

@@ -1,7 +1,24 @@
 @page "/customer/loans"
 @layout CustomerLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@inject AuthService AuthService
+@inject LoanService LoanService
+@inject CardApplicationService CardApplicationService
+@inject CustomerAccountService CustomerAccountService
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+    <!-- Success Message -->
+    @if (showSuccessMessage)
+    {
+        <div style="background: #d1fae5; border-left: 4px solid #059669; padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span style="color: #065f46; font-size: 16px;">@successMessage</span>
+        </div>
+    }
+
     <!-- Header -->
     <div style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <div style="display: flex; align-items: center; gap: 16px;">
@@ -32,7 +49,44 @@
             @foreach (var product in loanProducts)
             {
                 <div @onclick="() => SelectLoanProduct(product)" style="padding: 24px; background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #0891b2; border-radius: 16px; cursor: pointer; transition: all 0.3s;" class="loan-card">
-                    <div style="font-size: 32px; margin-bottom: 12px;">@product.Icon</div>
+                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                        @if (product.Name == "Personal Loan")
+                        {
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        }
+                        else if (product.Name == "Home Loan")
+                        {
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                        }
+                        else if (product.Name == "Auto Loan")
+                        {
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="18.5" cy="17.5" r="3.5"></circle>
+                                <circle cx="5.5" cy="17.5" r="3.5"></circle>
+                                <path d="M7 18H5a2 2 0 0 0-2-2h12a2 2 0 0 0-2 2h2"></path>
+                                <path d="M16 16V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7m17 4l.5 3h1.9a2 2 0 0 0 2-2v-4"></path>
+                            </svg>
+                        }
+                        else if (product.Name == "Education Loan")
+                        {
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 10v6m0 0l-8.5 4.35a2 2 0 0 1-1.998 0L2 16m20 0V8.5a2 2 0 0 0-1-1.73l-9-5.196a2 2 0 0 0-2 0l-9 5.196A2 2 0 0 0 2 8.5v7.5"></path>
+                            </svg>
+                        }
+                        else
+                        {
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                                <path d="M16 4V2M8 4V2"></path>
+                            </svg>
+                        }
+                    </div>
                     <div style="font-weight: 600; color: #1f2937; font-size: 18px; margin-bottom: 8px;">@product.Name</div>
                     <div style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">@product.Description</div>
                     <div style="display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid #bae6fd;">
@@ -151,10 +205,49 @@
             
             @if (selectedProduct != null)
             {
-                <div style="background: #f0f9ff; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                    <div style="font-size: 32px; margin-bottom: 8px;">@selectedProduct.Icon</div>
-                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">@selectedProduct.Name</div>
-                    <div style="font-size: 14px; color: #6b7280;">@selectedProduct.Description</div>
+                <div style="background: #f0f9ff; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px;">
+                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        @if (selectedProduct.Name == "Personal Loan")
+                        {
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        }
+                        else if (selectedProduct.Name == "Home Loan")
+                        {
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                        }
+                        else if (selectedProduct.Name == "Auto Loan")
+                        {
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="18.5" cy="17.5" r="3.5"></circle>
+                                <circle cx="5.5" cy="17.5" r="3.5"></circle>
+                                <path d="M7 18H5a2 2 0 0 0-2-2h12a2 2 0 0 0-2 2h2"></path>
+                                <path d="M16 16V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7m17 4l.5 3h1.9a2 2 0 0 0 2-2v-4"></path>
+                            </svg>
+                        }
+                        else if (selectedProduct.Name == "Education Loan")
+                        {
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 10v6m0 0l-8.5 4.35a2 2 0 0 1-1.998 0L2 16m20 0V8.5a2 2 0 0 0-1-1.73l-9-5.196a2 2 0 0 0-2 0l-9 5.196A2 2 0 0 0 2 8.5v7.5"></path>
+                            </svg>
+                        }
+                        else
+                        {
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                                <path d="M16 4V2M8 4V2"></path>
+                            </svg>
+                        }
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; color: #1f2937;">@selectedProduct.Name</div>
+                        <div style="font-size: 14px; color: #6b7280;">@selectedProduct.Description</div>
+                    </div>
                 </div>
             }
 
@@ -206,33 +299,65 @@
     private decimal applicationAmount = 0;
     private int applicationTerm = 24;
     private string applicationPurpose = "";
+    private string successMessage = "";
+    private bool showSuccessMessage = false;
     
     private decimal calcAmount = 100000;
     private decimal calcInterestRate = 5.5m;
     private int calcTerm = 24;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        activeLoans = new List<Loan>
-        {
-            new() 
-            { 
-                Id = "LN001", 
-                Type = "Personal Loan", 
-                Principal = 100000, 
-                Outstanding = 65000, 
-                MonthlyPayment = 5500,
-                NextDue = DateTime.Now.AddDays(15)
-            },
-        };
-
+        await LoadCustomerLoans();
+        
         loanProducts = new List<LoanProduct>
         {
-            new() { Name = "Personal Loan", Description = "For any personal needs", Icon = "[USER]", MaxAmount = "₱500,000", InterestRate = 5.8m },
-            new() { Name = "Home Loan", Description = "Finance your dream home", Icon = "[HOME]", MaxAmount = "₱5,000,000", InterestRate = 3.5m },
-            new() { Name = "Auto Loan", Description = "Buy your dream car", Icon = "[CAR]", MaxAmount = "₱2,000,000", InterestRate = 4.2m },
-            new() { Name = "Education Loan", Description = "Invest in your future", Icon = "[GRAD]", MaxAmount = "₱300,000", InterestRate = 3.9m },
+            new() { Name = "Personal Loan", Description = "For any personal needs", Icon = "", MaxAmount = "₱500,000", InterestRate = 5.8m },
+            new() { Name = "Home Loan", Description = "Finance your dream home", Icon = "", MaxAmount = "₱5,000,000", InterestRate = 3.5m },
+            new() { Name = "Auto Loan", Description = "Buy your dream car", Icon = "", MaxAmount = "₱2,000,000", InterestRate = 4.2m },
+            new() { Name = "Education Loan", Description = "Invest in your future", Icon = "", MaxAmount = "₱300,000", InterestRate = 3.9m },
         };
+    }
+
+    private async Task LoadCustomerLoans()
+    {
+        try
+        {
+            if (!AuthService.IsAuthenticated || !AuthService.CurrentUserId.HasValue)
+            {
+                activeLoans = new List<Loan>();
+                return;
+            }
+
+            var userId = AuthService.CurrentUserId.Value;
+            
+            // Get customer's primary account
+            var accounts = await CustomerAccountService.GetByCustomerIdAsync(userId);
+            if (accounts.Any())
+            {
+                var accountId = accounts.First().AccountId;
+                
+                // Fetch real loans from database
+                var realLoans = await LoanService.GetByAccountIdAsync(accountId);
+                activeLoans = realLoans
+                    .Where(l => l.Status != "Closed")
+                    .Select(l => new Loan
+                    {
+                        Id = l.LoanId.ToString(),
+                        Type = l.LoanType,
+                        Principal = l.LoanAmount,
+                        Outstanding = l.OutstandingBalance,
+                        MonthlyPayment = l.MonthlyPayment,
+                        NextDue = l.NextDueDate ?? DateTime.Now.AddMonths(1)
+                    })
+                    .ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading loans: {ex.Message}");
+            activeLoans = new List<Loan>();
+        }
     }
 
     private void SelectLoanProduct(LoanProduct product)
@@ -255,9 +380,70 @@
         applicationPurpose = "";
     }
 
-    private void SubmitApplication()
+    private async Task SubmitApplication()
     {
-        showApplicationModal = false;
+        if (applicationAmount <= 0 || applicationTerm <= 0 || string.IsNullOrWhiteSpace(applicationPurpose))
+        {
+            System.Diagnostics.Debug.WriteLine("Invalid loan application data");
+            return;
+        }
+
+        try
+        {
+            if (!AuthService.IsAuthenticated || !AuthService.CurrentUserId.HasValue || selectedProduct == null)
+                return;
+
+            var userId = AuthService.CurrentUserId.Value;
+            
+            // Get customer's primary account
+            var accounts = await CustomerAccountService.GetByCustomerIdAsync(userId);
+            if (!accounts.Any())
+                return;
+
+            var accountId = accounts.First().AccountId;
+            var loanType = selectedProduct.Name.Replace(" Loan", "").ToUpper();
+            
+            // Submit loan application
+            var (success, message, approvalId) = await CardApplicationService.SubmitLoanApplicationAsync(
+                loanType,
+                applicationAmount,
+                applicationTerm,
+                applicationPurpose
+            );
+
+            if (success)
+            {
+                // Show success message
+                successMessage = $"✓ {selectedProduct.Name} application submitted successfully! Waiting for admin approval.";
+                showSuccessMessage = true;
+                
+                // Reload loans to show the new pending application
+                await LoadCustomerLoans();
+                CloseApplication();
+                StateHasChanged();
+                
+                // Hide success message after 5 seconds
+                await Task.Delay(5000);
+                showSuccessMessage = false;
+                StateHasChanged();
+            }
+            else
+            {
+                successMessage = $"✗ Error: {message}";
+                showSuccessMessage = true;
+                System.Diagnostics.Debug.WriteLine($"Error submitting loan application: {message}");
+                StateHasChanged();
+                // Don't hide error messages - let user see them
+            }
+        }
+        catch (Exception ex)
+        {
+            successMessage = $"✗ Error: {ex.Message}";
+            showSuccessMessage = true;
+            System.Diagnostics.Debug.WriteLine($"Error submitting loan application: {ex.Message}");
+            StateHasChanged();
+            // Don't hide error messages - let user see them
+        }
     }
 
     private decimal CalculateMonthlyPayment()

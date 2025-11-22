@@ -4,6 +4,8 @@
 @using FinanceBank.Models
 @inject AuthService AuthService
 @inject CardApplicationService CardApplicationService
+@inject CardService CardService
+@inject CustomerAccountService CustomerAccountService
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <!-- Success/Error Message -->
@@ -183,12 +185,39 @@
             }
 
             var userId = AuthService.CurrentUserId.Value;
+            System.Diagnostics.Debug.WriteLine($"[LoadCustomerCards] Loading cards for UserId: {userId}");
             
-            // Fetch approved/active cards
-            activeCards = await CardApplicationService.GetApprovedCardsForCustomerAsync(userId);
+            // Get customer's primary account
+            var accounts = await CustomerAccountService.GetByCustomerIdAsync(userId);
+            if (accounts.Any())
+            {
+                var accountId = accounts.First().AccountId;
+                
+                // Fetch real cards from database
+                var realCards = await CardService.GetByAccountIdAsync(accountId);
+                activeCards = realCards
+                    .Where(c => c.IsActive)
+                    .Select(c => new CustomerCardDto
+                    {
+                        CardId = c.CardId,
+                        CardNumber = c.CardNumber,
+                        CardType = c.CardType,
+                        CardName = c.CardName,
+                        CreditLimit = c.CreditLimit,
+                        AvailableCredit = c.AvailableCredit,
+                        OutstandingBalance = c.OutstandingBalance,
+                        ExpiryDate = c.ExpiryDate,
+                        DueDate = c.DueDate,
+                        InterestRate = c.InterestRate,
+                        IsLocked = c.IsLocked,
+                        CreatedAt = c.CreatedAt
+                    })
+                    .ToList();
+            }
             
-            // Fetch pending applications
+            // Fetch pending applications from CardApplicationService
             pendingCards = await CardApplicationService.GetPendingCardsForCustomerAsync(userId);
+            System.Diagnostics.Debug.WriteLine($"[LoadCustomerCards] Loaded {activeCards.Count} active cards and {pendingCards.Count} pending cards");
         }
         catch (Exception ex)
         {
