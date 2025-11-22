@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Manager Limited Access Flowchart</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .badge.limited {
+            background: #f59e0b;
+        }
+
+        .badge.restricted {
+            background: #ef4444;
+        }
+
+        .flowchart-section {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .permission-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .permission-card.allowed {
+            border-left: 4px solid #10b981;
+            background: #f0fdf4;
+        }
+
+        .permission-card.denied {
+            border-left: 4px solid #ef4444;
+            background: #fef2f2;
+        }
+
+        .permission-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .permission-list {
+            list-style: none;
+            font-size: 13px;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .permission-list li {
+            padding: 4px 0;
+        }
+
+        .icon {
+            font-size: 16px;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+
+        .summary-box h3 {
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .summary-list {
+            list-style: none;
+            columns: 2;
+            gap: 24px;
+        }
+
+        .summary-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .authority-matrix {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .authority-matrix th,
+        .authority-matrix td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+        }
+
+        .authority-matrix th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .authority-matrix tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        .check-icon {
+            color: #10b981;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .cross-icon {
+            color: #ef4444;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .workflow-visual {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 24px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+
+        .workflow-step {
+            flex-shrink: 0;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            min-width: 180px;
+            text-align: center;
+        }
+
+        .workflow-step.fm {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .workflow-step.queue {
+            border-color: #f59e0b;
+            background: #fffbf0;
+        }
+
+        .workflow-step.review {
+            border-color: #3b82f6;
+            background: #f0f9ff;
+        }
+
+        .workflow-step.execute {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .workflow-arrow {
+            font-size: 24px;
+            color: #d1d5db;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .workflow-visual {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .workflow-arrow {
+                transform: rotate(90deg);
+            }
+
+            .summary-list {
+                columns: 1;
+            }
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .nav-tab {
+            padding: 10px 16px;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            background: #e5e7eb;
+        }
+
+        .nav-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        footer {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            color: #666;
+            margin-top: 32px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🏦 Finance Manager Role Flowchart</h1>
+            <p class="subtitle">Limited Access Model for Banking-Finance-Accounting System</p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <span class="badge">Mid-Level Role</span>
+                <span class="badge limited">Limited Access</span>
+                <span class="badge restricted">No Admin Rights</span>
+            </div>
+        </header>
+
+        <!-- Main Overview -->
+        <section class="flowchart-section">
+            <h2 class="section-title">📊 System Overview</h2>
+            <div class="mermaid">
+                graph TD
+                A["🔐 Finance Manager Login"] --> B["✅ Dashboard Access<br />(Finance View Only)"]
+                B --> C["❌ NO User Management"]
+                B --> D["❌ NO System Settings"]
+                B --> E["❌ NO Admin Tools"]
+                B --> F["✅ Finance Modules"]
+                F --> F1["Accounts Payable"]
+                F --> F2["Accounts Receivable"]
+                F --> F3["Budget Management"]
+                F --> F4["Financial Forecasting"]
+                F --> F5["Cash Flow Analysis"]
+                F --> F6["Financial Reports"]
+
+                style A fill:#667eea,stroke:#333,color:#fff
+                style B fill:#10b981,stroke:#333,color:#fff
+                style C fill:#ef4444,stroke:#333,color:#fff
+                style D fill:#ef4444,stroke:#333,color:#fff
+                style E fill:#ef4444,stroke:#333,color:#fff
+                style F fill:#f59e0b,stroke:#333,color:#fff
+                style F1 fill:#667eea,stroke:#333,color:#fff
+                style F2 fill:#667eea,stroke:#333,color:#fff
+                style F3 fill:#667eea,stroke:#333,color:#fff
+                style F4 fill:#667eea,stroke:#333,color:#fff
+                style F5 fill:#667eea,stroke:#333,color:#fff
+                style F6 fill:#667eea,stroke:#333,color:#fff
+            </div>
+        </section>
+
+        <!-- Accounts Payable Workflow -->
+        <section class="flowchart-section">
+            <h2 class="section-title">💳 Accounts Payable Workflow</h2>
+            <div class="mermaid">
+                graph TD
+                A["Accounts Payable"] --> B["View Invoices<br />[VIEW ONLY]"]
+                A --> C["Validate Details<br />[REVIEW ONLY]"]
+                A --> D["Recommend Payment<br />[SUBMIT FOR APPROVAL]"]
+
+                B --> B1["Filter by Vendor"]
+                B --> B2["Filter by Date"]
+                B --> B3["Filter by Status"]
+
+                C --> C1{"Valid?"}
+                C1 -->|Yes| C2["Mark as Validated"]
+                C1 -->|No| C3["Flag Issues<br />Add Comments"]
+                C2 --> C4["Submit to Admin"]
+                C3 --> C4
+
+                D --> D1["Select Bill"]
+                D1 --> D2["Review Details"]
+                D2 --> D3["Add Payment Recommendation"]
+                D3 --> D4["Submit for Approval"]
+                D4 --> D5["❌ CANNOT Approve"]
+                D4 --> D6["✅ Pending Admin Review"]
+
+                E["RESTRICTIONS:<br />✗ Cannot approve directly<br />✗ Cannot release payment<br />✗ Cannot modify
+                amounts"] -.-> A
+
+                style A fill:#667eea,stroke:#333,color:#fff
+                style B fill:#3b82f6,stroke:#333,color:#fff
+                style C fill:#3b82f6,stroke:#333,color:#fff
+                style D fill:#f59e0b,stroke:#333,color:#fff
+                style D5 fill:#ef4444,stroke:#333,color:#fff
+                style D6 fill:#10b981,stroke:#333,color:#fff
+                style E fill:#fee2e2,stroke:#ef4444
+            </div>
+
+            <div class="permissions-grid">
+                <div class="permission-card allowed">
+                    <div class="permission-title"><span class="icon">✓</span> Allowed Actions</div>
+                    <ul class="permission-list">
+                        <li>View all bills</li>
+                        <li>Review invoices</li>
+                        <li>Validate amounts</li>
+                        <li>Flag issues</li>
+                        <li>Recommend payments</li>
+                        <li>Submit for approval</li>
+                    </ul>
+                </div>
+                <div class="permission-card denied">
+                    <div class="permission-title"><span class="icon">✗</span> Denied Actions</div>
+                    <ul class="permission-list">
+                        <li>Approve payments</li>
+                        <li>Release final payment</li>
+                        <li>Edit invoice data</li>
+                        <li>Modify amounts</li>
+                        <li>Delete records</li>
+                        <li>Change payment terms</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Accounts Receivable Workflow -->
+        <section class="flowchart-section">
+            <h2 class="section-title">📥 Accounts Receivable Workflow</h2>
+            <div class="mermaid">
+                graph TD
+                A["Accounts Receivable"] --> B["View Payments<br />[VIEW ONLY]"]
+                A --> C["Validate Entries<br />[REVIEW ONLY]"]
+                A --> D["Flag Discrepancies<br />[REPORT]"]
+                A --> E["Generate AR Summary<br />[GENERATE ONLY]"]
+
+                B --> B1["By Customer"]
+                B --> B2["By Status"]
+                B --> B3["By Amount"]
+
+                C --> C1["Verify Details"]
+                C1 --> C2{"Discrepancy?"}
+                C2 -->|No| C3["Mark Validated"]
+                C2 -->|Yes| C4["Document Issue"]
+
+                D --> D1["Identify Issue Type"]
+                D1 --> D2["Amount Mismatch"]
+                D1 --> D3["Payment Late"]
+                D1 --> D4["Missing Documentation"]
+                D2 --> D5["Submit to Admin"]
+                D3 --> D5
+                D4 --> D5
+
+                E --> E1["Select Period"]
+                E1 --> E2["Calculate Metrics"]
+                E2 --> E3["Generate Report"]
+                E3 --> E4["Export/Submit"]
+
+                F["RESTRICTIONS:<br />✗ Cannot modify balances<br />✗ Cannot create transactions<br />✗ Cannot record
+                payments"] -.-> A
+
+                style A fill:#667eea,stroke:#333,color:#fff
+                style B fill:#3b82f6,stroke:#333,color:#fff
+                style C fill:#3b82f6,stroke:#333,color:#fff
+                style D fill:#f59e0b,stroke:#333,color:#fff
+                style E fill:#10b981,stroke:#333,color:#fff
+                style F fill:#fee2e2,stroke:#ef4444
+            </div>
+        </section>
+
+        <!-- Budget Management Workflow -->
+        <section class="flowchart-section">
+            <h2 class="section-title">📋 Budget Management Workflow</h2>
+            <div class="mermaid">
+                graph TD
+                A["Budget Management"] --> B["View Budgets<br />[VIEW ONLY]"]
+                A --> C["Propose New<br />[SUBMIT FOR APPROVAL]"]
+                A --> D["Submit Changes<br />[SUBMIT FOR APPROVAL]"]
+
+                B --> B1["Current Active"]
+                B --> B2["By Category"]
+                B --> B3["By Year"]
+
+                C --> C1["Create Proposal"]
+                C1 --> C2["Set Parameters"]
+                C2 --> C3["Add Justification"]
+                C3 --> C4["Submit for Approval"]
+                C4 --> C5["❌ CANNOT Finalize"]
+                C4 --> C6["✅ Pending Admin"]
+
+                D --> D1["Select Budget"]
+                D1 --> D2{"Type?"}
+                D2 -->|Increase| D3["Amount Change"]
+                D2 -->|Reallocate| D4["Category Transfer"]
+                D3 --> D5["Add Justification"]
+                D4 --> D5
+                D5 --> D6["Submit to Admin"]
+
+                E["RESTRICTIONS:<br />✗ Cannot finalize<br />✗ Cannot publish<br />✗ Cannot allocate funds"] -.-> A
+
+                style A fill:#667eea,stroke:#333,color:#fff
+                style B fill:#3b82f6,stroke:#333,color:#fff
+                style C fill:#f59e0b,stroke:#333,color:#fff
+                style D fill:#f59e0b,stroke:#333,color:#fff
+                style C5 fill:#ef4444,stroke:#333,color:#fff
+                style C6 fill:#10b981,stroke:#333,color:#fff
+                style E fill:#fee2e2,stroke:#ef4444
+            </div>
+        </section>
+
+        <!-- Financial Forecasting Workflow -->
+        <section class="flowchart-section">
+            <h2 class="section-title">🔮 Financial Forecasting Workflow</h2>
+            <div class="mermaid">
+                graph TD
+                A["Financial Forecasting"] --> B["Access History<br />[VIEW ONLY]"]
+                A --> C["Generate Projections<br />[GENERATE ONLY]"]
+                A --> D["Create Reports<br />[GENERATE ONLY]"]
+
+                B --> B1["Revenue Data"]
+                B --> B2["Expense Data"]
+                B --> B3["Trend Analysis"]
+
+                C --> C1["Set Parameters"]
+                C1 --> C2["Revenue Assumptions"]
+                C1 --> C3["Expense Assumptions"]
+                C2 --> C4["Generate Model"]
+                C3 --> C4
+                C4 --> C5["Create Forecast"]
+                C5 --> C6["Review Results"]
+
+                D --> D1["Select Report Type"]
+                D1 --> D2["Set Period"]
+                D2 --> D3["Calculate Data"]
+                D3 --> D4["Generate Report"]
+                D4 --> D5["Export/Submit"]
+
+                E["RESTRICTIONS:<br />✗ Cannot edit raw data<br />✗ Cannot modify GL<br />✗ Cannot post journals"] -.->
+                A
+
+                style A fill:#667eea,stroke:#333,color:#fff
+                style B fill:#3b82f6,stroke:#333,color:#fff
+                style C fill:#10b981,stroke:#333,color:#fff
+                style D fill:#10b981,stroke:#333,color:#fff
+                style E fill:#fee2e2,stroke:#ef4444
+            </div>
+        </section>
+
+        <!-- Cash Flow Analysis Workflow -->
+        <section class="flowchart-section">
+            <h2 class="section-title">💰 Cash Flow Analysis Workflow</h2>
+            <div class="mermaid">
+                graph TD
+                A["Cash Flow Analysis"] --> B["View Flows<br />[VIEW ONLY]"]
+                A --> C["Analyze Liquidity<br />[ANALYZE ONLY]"]
+                A --> D["Generate Insights<br />[GENERATE ONLY]"]
+
+                B --> B1["Operating"]
+                B --> B2["Investing"]
+                B --> B3["Financing"]
+
+                C --> C1["Calculate Ratios"]
+                C1 --> C2["Liquidity Metrics"]
+                C2 --> C3["Trend Analysis"]
+                C3 --> C4["Risk Assessment"]
+                C4 --> C5["Add Recommendations"]
+
+                D --> D1["Identify Drivers"]
+                D1 --> D2["Seasonal Patterns"]
+                D2 --> D3["Forecast Needs"]
+                D3 --> D4["Generate Report"]
+                D4 --> D5["Submit to Admin"]
+
+                E["RESTRICTIONS:<br />✗ Cannot alter ledger<br />✗ Cannot modify GL<br />✗ Cannot execute transfers"]
+                -.-> A
+
+                style A fill:#667eea,stroke:#333,color:#fff
+                style B fill:#3b82f6,stroke:#333,color:#fff
+                style C fill:#3b82f6,stroke:#333,color:#fff
+                style D fill:#f59e0b,stroke:#333,color:#fff
+                style E fill:#fee2e2,stroke:#ef4444
+            </div>
+        </section>
+
+        <!-- Financial Reports Workflow -->
+        <section class="flowchart-section">
+            <h2 class="section-title">📊 Financial Reports Workflow</h2>
+            <div class="mermaid">
+                graph TD
+                A["Financial Reports"] --> B["Generate Reports<br />[GENERATE ONLY]"]
+                A --> C["Export Data<br />[EXPORT ALLOWED]"]
+                A --> D["Submit Reports<br />[SUBMIT FOR APPROVAL]"]
+
+                B --> B1["P&L Statement"]
+                B --> B2["Balance Sheet"]
+                B --> B3["Cash Flow"]
+                B --> B4["Custom Reports"]
+                B1 --> B5["Select Period"]
+                B2 --> B5
+                B3 --> B5
+                B4 --> B5
+                B5 --> B6["Generate Data"]
+                B6 --> B7["Format Output"]
+
+                C --> C1["PDF Export"]
+                C --> C2["Excel Export"]
+                C --> C3["Print"]
+                C1 --> C4["Ready to Use"]
+                C2 --> C4
+                C3 --> C4
+
+                D --> D1["Add Cover Memo"]
+                D1 --> D2["Attach Supporting Docs"]
+                D2 --> D3["Submit to Admin"]
+                D3 --> D4["Awaiting Review"]
+
+                E["RESTRICTIONS:<br />✗ Cannot alter data<br />✗ Cannot modify GL<br />✗ Cannot publish official"] -.->
+                A
+
+                style A fill:#667eea,stroke:#333,color:#fff
+                style B fill:#10b981,stroke:#333,color:#fff
+                style C fill:#10b981,stroke:#333,color:#fff
+                style D fill:#f59e0b,stroke:#333,color:#fff
+                style E fill:#fee2e2,stroke:#ef4444
+            </div>
+        </section>
+
+        <!-- Access Control Matrix -->
+        <section class="flowchart-section">
+            <h2 class="section-title">🔐 Access Control Matrix</h2>
+            <table class="authority-matrix">
+                <thead>
+                    <tr>
+                        <th>Module/Action</th>
+                        <th>View</th>
+                        <th>Analyze</th>
+                        <th>Generate</th>
+                        <th>Execute</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Accounts Payable</strong></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Accounts Receivable</strong></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Budget Management</strong></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Financial Forecasting</strong></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cash Flow Analysis</strong></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Financial Reports</strong></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>General Ledger</strong></td>
+                        <td><span class="check-icon">✓</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>System Settings</strong></td>
+                        <td><span class="cross-icon">✗</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>User Management</strong></td>
+                        <td><span class="cross-icon">✗</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                        <td><span class="cross-icon">✗</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Workflow Pattern -->
+        <section class="flowchart-section">
+            <h2 class="section-title">⚙️ Universal Finance Manager Workflow Pattern</h2>
+            <div class="workflow-visual">
+                <div class="workflow-step fm">
+                    <strong>Finance Manager</strong><br>
+                    View & Analyze Data
+                </div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-step queue">
+                    <strong>Submission Queue</strong><br>
+                    Store in Approval Queue
+                </div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-step review">
+                    <strong>Admin Review</strong><br>
+                    Verify & Decide
+                </div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-step execute">
+                    <strong>Execution</strong><br>
+                    Final Action & Audit
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Principles -->
+        <section class="flowchart-section">
+            <h2 class="section-title">📌 Key Principles</h2>
+
+            <h3 style="color: #667eea; margin-top: 24px; margin-bottom: 12px;">✓ Finance Manager CAN:</h3>
+            <div class="permissions-grid">
+                <div class="permission-card allowed">
+                    <ul class="permission-list" style="line-height: 2;">
+                        <li>✓ View all financial data</li>
+                        <li>✓ Analyze trends & patterns</li>
+                        <li>✓ Validate transactions</li>
+                        <li>✓ Generate reports</li>
+                    </ul>
+                </div>
+                <div class="permission-card allowed">
+                    <ul class="permission-list" style="line-height: 2;">
+                        <li>✓ Recommend actions</li>
+                        <li>✓ Flag discrepancies</li>
+                        <li>✓ Submit for approval</li>
+                        <li>✓ Export reports</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="color: #ef4444; margin-top: 24px; margin-bottom: 12px;">✗ Finance Manager CANNOT:</h3>
+            <div class="permissions-grid">
+                <div class="permission-card denied">
+                    <ul class="permission-list" style="line-height: 2;">
+                        <li>✗ Approve any action</li>
+                        <li>✗ Execute transactions</li>
+                        <li>✗ Modify GL/journals</li>
+                        <li>✗ Release payments</li>
+                    </ul>
+                </div>
+                <div class="permission-card denied">
+                    <ul class="permission-list" style="line-height: 2;">
+                        <li>✗ Delete records</li>
+                        <li>✗ Override workflows</li>
+                        <li>✗ Access admin settings</li>
+                        <li>✗ Manage users</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="summary-box">
+                <h3>🎯 Finance Manager Authority Model</h3>
+                <ul class="summary-list">
+                    <li><strong>Tier 1 - VIEW/ANALYZE</strong>: Finance Manager sees all data</li>
+                    <li><strong>Tier 2 - RECOMMEND/SUBMIT</strong>: Finance Manager proposes actions</li>
+                    <li><strong>Tier 3 - APPROVE/EXECUTE</strong>: Admin only (Finance Manager blocked)</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer>
+            <p><strong>Finance Manager Role - Limited Access Banking System</strong></p>
+            <p>Mid-level position with review and analysis privileges, no administrative authority</p>
+            <p style="margin-top: 16px; font-size: 12px; color: #999;">Last Updated: November 22, 2025 | System Version:
+                1.0</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'base' });
+        mermaid.contentLoaded();
+    </script>
+</body>
+
+</html>

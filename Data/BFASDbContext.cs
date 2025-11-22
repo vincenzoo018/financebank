@@ -179,6 +179,16 @@ namespace FinanceBank.Data
                 
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
             });
+
+            // Configure Finance Module - Map entities to actual database table names
+            modelBuilder.Entity<Budget>()
+                .ToTable("BudgetManagement");
+            
+            modelBuilder.Entity<CashflowEntry>()
+                .ToTable("CashflowAnalysis");
+            
+            modelBuilder.Entity<FinancialForecast>()
+                .ToTable("FinancialForecasting");
         }
     }
 }

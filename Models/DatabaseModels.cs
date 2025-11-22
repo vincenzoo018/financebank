@@ -724,7 +724,7 @@ public class FinancialStatement
 
 // Removed duplicate Budget class - using the one from the top of the file
 
-[Table("CashflowAnalysis")]
+[Table("CashflowEntries")]
 public class CashflowEntry
 {
     [Key]
@@ -743,7 +743,11 @@ public class CashflowEntry
     public string? Description { get; set; }
     
     public DateTime TransactionDate { get; set; }
+    
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+    
+    [MaxLength(50)]
+    public string? CreatedBy { get; set; }
 }
 
 [Table("FinancialForecasting")]
@@ -759,6 +763,7 @@ public class FinancialForecast
     public string ForecastType { get; set; } = ""; // Revenue, Expense, Cashflow
     
     public DateTime PeriodStart { get; set; }
+    
     public DateTime PeriodEnd { get; set; }
     
     [Column(TypeName = "decimal(18,2)")]
@@ -770,7 +775,7 @@ public class FinancialForecast
     [Column(TypeName = "decimal(5,2)")]
     public decimal Variance { get; set; } = 0;
     
-    [MaxLength(4000)]
+    [MaxLength(int.MaxValue)]
     public string? Assumptions { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;

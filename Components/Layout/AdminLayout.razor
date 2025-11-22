@@ -290,13 +290,13 @@
                         <span class="dropdown-arrow">▼</span>
                     </button>
                     <div class="sidebar-dropdown-menu">
-                        <a href="/admin/finance/accounts-payable" class="sidebar-dropdown-item @(IsActive("/admin/finance/accounts-payable"))">
+                        <a href="/admin/finance/payables" class="sidebar-dropdown-item @(IsActive("/admin/finance/payables"))">
                             <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M12 1v22M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
                             </svg>
                             Accounts Payable
                         </a>
-                        <a href="/admin/finance/accounts-receivable" class="sidebar-dropdown-item @(IsActive("/admin/finance/accounts-receivable"))">
+                        <a href="/admin/finance/receivables" class="sidebar-dropdown-item @(IsActive("/admin/finance/receivables"))">
                             <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M12 1v22M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
                             </svg>
@@ -326,13 +326,48 @@
                             </svg>
                             Cash Flow Analysis
                         </a>
-                        <a href="/admin/finance/reports" class="sidebar-dropdown-item @(IsActive("/admin/finance/reports"))">
-                            <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="2" x2="12" y2="22"></line>
-                                <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
-                            </svg>
-                            Finance Reports
-                        </a>
+                        <button class="sidebar-dropdown-toggle" @onclick="() => financeReportsOpen = !financeReportsOpen" style="width: 100%; border: none; background: none; padding: 0; display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="2" x2="12" y2="22"></line>
+                                    <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                                </svg>
+                                <span>Finance Reports</span>
+                            </div>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        @if (financeReportsOpen)
+                        {
+                            <div class="sidebar-dropdown-menu" style="display: block;">
+                                <a href="/admin/system/reports" class="sidebar-dropdown-item @(IsActive("/admin/system/reports"))">
+                                    <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                                        <polyline points="13 2 13 9 20 9"></polyline>
+                                    </svg>
+                                    System Reports
+                                </a>
+                                <a href="/admin/system/finance-manager-reports" class="sidebar-dropdown-item @(IsActive("/admin/system/finance-manager-reports"))">
+                                    <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="12" y1="2" x2="12" y2="22"></line>
+                                        <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
+                                    </svg>
+                                    Finance Manager Reports
+                                </a>
+                                <a href="/admin/finance/budget-reports" class="sidebar-dropdown-item @(IsActive("/admin/finance/budget-reports"))">
+                                    <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    Budget Reports
+                                </a>
+                                <a href="/admin/finance/cashflow-reports" class="sidebar-dropdown-item @(IsActive("/admin/finance/cashflow-reports"))">
+                                    <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 12a9 9 0 1 0 18 0A9 9 0 1 0 3 12Z"></path>
+                                        <path d="M9 9h6v6H9z"></path>
+                                    </svg>
+                                    Cash Flow Reports
+                                </a>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -584,6 +619,7 @@
     private bool bankingOpen = false;
     private bool securityOpen = false;
     private bool financeOpen = false;
+    private bool financeReportsOpen = false;
     private bool accountingOpen = false;
     private bool reportsOpen = false;
     private bool settingsOpen = false;

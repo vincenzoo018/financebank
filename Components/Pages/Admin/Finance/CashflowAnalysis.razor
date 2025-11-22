@@ -33,6 +33,9 @@
             All Time
         </button>
     </div>
+    <button class="btn" style="background: #0891b2; color: white; padding: 10px 20px; font-weight: 600;" @onclick="ShowCreateEntryModal">
+        ➕ New Entry
+    </button>
 </div>
 
 <!-- Summary Cards -->
@@ -106,6 +109,7 @@
 
         @if (selectedEntry != null)
         {
+            var isInflow = string.Equals(selectedEntry.EntryType, "Inflow", StringComparison.OrdinalIgnoreCase);
             <div style="display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 14px; color: #374151; margin-bottom: 16px;">
                 <div><strong>Date:</strong> @selectedEntry.TransactionDate.ToString("yyyy-MM-dd")</div>
                 <div><strong>Type:</strong> @selectedEntry.EntryType</div>
@@ -121,9 +125,50 @@
     </div>
 </div>
 
+<!-- Create Entry Modal -->
+<div style="display: @(showCreateEntryModal ? "flex" : "none"); position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: white; border-radius: 16px; padding: 32px; max-width: 520px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 24px 0;">➕ New Cashflow Entry</h2>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label">Entry Type</label>
+            <select class="form-control" @bind="newEntry_Type">
+                <option value="Inflow">Inflow</option>
+                <option value="Outflow">Outflow</option>
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label">Category</label>
+            <input type="text" class="form-control" @bind="newEntry_Category" placeholder="e.g., Sales, Operating Expenses, Loan" />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label">Amount (₱)</label>
+            <input type="number" class="form-control" @bind="newEntry_Amount" step="0.01" placeholder="0.00" />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label">Transaction Date</label>
+            <input type="date" class="form-control" @bind="newEntry_TransactionDate" />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" @bind="newEntry_Description" placeholder="Describe the transaction" style="min-height: 80px;"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button class="btn" style="background: #e5e7eb; color: #374151; padding: 10px 20px; font-weight: 600;" @onclick="CloseCreateEntryModal">Cancel</button>
+            <button class="btn" style="background: #0891b2; color: white; padding: 10px 20px; font-weight: 600;" @onclick="CreateEntry">Create Entry</button>
+        </div>
+    </div>
+</div>
+
 @code {
     private List<CashflowEntry> entries = new();
     private bool showAnalysisDetailsModal = false;
+    private bool showCreateEntryModal = false;
     private string selectedPeriod = "ThisMonth";
     private string selectedPeriodLabel = "This Month";
 
@@ -132,6 +177,12 @@
     private decimal netCashflow;
 
     private CashflowEntry? selectedEntry;
+
+    private string newEntry_Type = "Inflow";
+    private string newEntry_Category = string.Empty;
+    private decimal newEntry_Amount = 0;
+    private DateTime newEntry_TransactionDate = DateTime.Today;
+    private string newEntry_Description = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -199,6 +250,57 @@
     {
         showAnalysisDetailsModal = false;
         selectedEntry = null;
+    }
+
+    private void ShowCreateEntryModal()
+    {
+        newEntry_Type = "Inflow";
+        newEntry_Category = string.Empty;
+        newEntry_Amount = 0;
+        newEntry_TransactionDate = DateTime.Today;
+        newEntry_Description = string.Empty;
+        showCreateEntryModal = true;
+    }
+
+    private void CloseCreateEntryModal()
+    {
+        showCreateEntryModal = false;
+    }
+
+    private async Task CreateEntry()
+    {
+        if (string.IsNullOrWhiteSpace(newEntry_Category) || newEntry_Amount <= 0)
+        {
+            return;
+        }
+
+        var entry = new CashflowEntry
+        {
+            EntryType = newEntry_Type,
+            Category = newEntry_Category,
+            Amount = newEntry_Amount,
+            TransactionDate = newEntry_TransactionDate,
+            Description = newEntry_Description,
+            CreatedBy = "FinanceManager"
+        };
+
+        try
+        {
+            await CashflowAnalysisService.CreateAsync(entry);
+            entries = await CashflowAnalysisService.GetAllAsync();
+            CalculateSummary();
+
+            newEntry_Type = "Inflow";
+            newEntry_Category = string.Empty;
+            newEntry_Amount = 0;
+            newEntry_TransactionDate = DateTime.Today;
+            newEntry_Description = string.Empty;
+
+            showCreateEntryModal = false;
+        }
+        catch
+        {
+        }
     }
 }
 

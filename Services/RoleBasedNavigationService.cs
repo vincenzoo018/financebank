@@ -85,6 +85,8 @@ public class RoleBasedNavigationService
                 "/admin/dashboard",
                 
                 // Finance Module - Full Access
+                "/admin/finance/payables",
+                "/admin/finance/receivables",
                 "/admin/finance/budget-management",
                 "/admin/finance/cashflow-analysis",
                 "/admin/finance/financial-forecasting",
