@@ -1329,45 +1329,61 @@ public class RewardPointsService
     }
 }
 
+// ===== AUDIT LOG SERVICE =====
 public class AuditLogService
 {
-    private readonly BFASDbContext? _context;
+    private readonly BFASDbContext _context;
 
-    public AuditLogService(BFASDbContext? context = null)
+    public AuditLogService(BFASDbContext context)
     {
         _context = context;
     }
 
     public async Task<List<AuditLog>> GetAllAsync()
     {
-        return await _context.AuditLogs
-            .OrderByDescending(a => a.CreatedAt)
-            .ToListAsync();
+        return await _context.AuditLogs.OrderByDescending(a => a.CreatedAt).ToListAsync();
     }
 
-    public async Task<List<AuditLog>> GetRecentAsync(int limit = 100)
+    public async Task<AuditLog> GetByIdAsync(int id)
     {
-        return await _context.AuditLogs
-            .OrderByDescending(a => a.CreatedAt)
-            .Take(limit)
-            .ToListAsync();
+        return await _context.AuditLogs.FindAsync(id);
     }
 
-    public async Task<AuditLog> CreateAsync(AuditLog log)
+    public async Task CreateAsync(AuditLog auditLog)
     {
-        log.CreatedAt = DateTime.Now;
-        _context.AuditLogs.Add(log);
+        auditLog.CreatedAt = DateTime.Now;
+        _context.AuditLogs.Add(auditLog);
         await _context.SaveChangesAsync();
-        return log;
     }
 
     public async Task ClearAllAsync()
     {
-        var logs = await _context.AuditLogs.ToListAsync();
-        if (logs.Count == 0) return;
-
-        _context.AuditLogs.RemoveRange(logs);
+        _context.AuditLogs.RemoveRange(_context.AuditLogs);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<AuditLog>> GetByModuleAsync(string module)
+    {
+        return await _context.AuditLogs
+            .Where(a => a.Module == module)
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<List<AuditLog>> GetByUserAsync(string userId)
+    {
+        return await _context.AuditLogs
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<List<AuditLog>> GetByDateRangeAsync(DateTime from, DateTime to)
+    {
+        return await _context.AuditLogs
+            .Where(a => a.CreatedAt >= from && a.CreatedAt <= to)
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync();
     }
 }
 

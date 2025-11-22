@@ -9,6 +9,13 @@ namespace FinanceBank.Data
         {
         }
 
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            // Suppress pending model changes warning for migrations
+            optionsBuilder.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            base.OnConfiguring(optionsBuilder);
+        }
+
         // Authentication Tables
         public DbSet<AuthUser> Users { get; set; }
         public DbSet<LoginHistory> LoginHistories { get; set; }
@@ -25,6 +32,7 @@ namespace FinanceBank.Data
         public DbSet<CardManagementEntity> CardManagementRecords { get; set; }
 
         // Accounting Module Tables
+        public DbSet<ChartOfAccounts> ChartOfAccounts { get; set; }
         public DbSet<JournalEntry> JournalEntries { get; set; }
         public DbSet<JournalEntryLine> JournalEntryLines { get; set; }
         public DbSet<AccountsPayable> AccountsPayables { get; set; }
@@ -189,6 +197,102 @@ namespace FinanceBank.Data
             
             modelBuilder.Entity<FinancialForecast>()
                 .ToTable("FinancialForecasting");
+
+            // Configure ChartOfAccounts entity
+            modelBuilder.Entity<ChartOfAccounts>(entity =>
+            {
+                entity.HasKey(e => e.AccountId);
+                entity.HasIndex(e => e.AccountCode).IsUnique();
+                entity.HasIndex(e => e.AccountType);
+                entity.HasIndex(e => e.IsActive);
+
+                entity.Property(e => e.NormalBalance).HasDefaultValue("Debit");
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsHeader).HasDefaultValue(false);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
+
+                // Self-referencing relationship for hierarchical accounts
+                entity.HasOne(e => e.ParentAccount)
+                    .WithMany(e => e.SubAccounts)
+                    .HasForeignKey(e => e.ParentAccountId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            // Configure JournalEntry entity
+            modelBuilder.Entity<JournalEntry>(entity =>
+            {
+                entity.HasKey(e => e.JournalId);
+                entity.HasIndex(e => e.JournalNumber).IsUnique();
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.TransactionDate);
+                entity.HasIndex(e => e.CreatedAt);
+
+                entity.Property(e => e.Status).HasDefaultValue("Draft");
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
+
+                // Self-referencing for reversals
+                entity.HasOne(e => e.ReversedEntry)
+                    .WithMany()
+                    .HasForeignKey(e => e.ReversedJournalId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            // Configure JournalEntryLine entity
+            modelBuilder.Entity<JournalEntryLine>(entity =>
+            {
+                entity.HasKey(e => e.LineId);
+                entity.HasIndex(e => e.JournalId);
+                entity.HasIndex(e => e.AccountCode);
+
+                entity.Property(e => e.Status).HasDefaultValue("Pending");
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
+
+                entity.HasOne(e => e.Journal)
+                    .WithMany(j => j.Lines)
+                    .HasForeignKey(e => e.JournalId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure GeneralLedgerEntry entity
+            modelBuilder.Entity<GeneralLedgerEntry>(entity =>
+            {
+                entity.HasKey(e => e.EntryId);
+                entity.HasIndex(e => e.AccountCode);
+                entity.HasIndex(e => e.TransactionDate);
+                entity.HasIndex(e => e.CreatedAt);
+
+                entity.Property(e => e.Status).HasDefaultValue("Posted");
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
+
+                entity.HasOne(e => e.Journal)
+                    .WithMany()
+                    .HasForeignKey(e => e.JournalId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            // Configure TrialBalanceEntry entity
+            modelBuilder.Entity<TrialBalanceEntry>(entity =>
+            {
+                entity.HasKey(e => e.TrialBalanceId);
+                entity.HasIndex(e => e.AccountCode);
+                entity.HasIndex(e => e.AsOfDate);
+                entity.HasIndex(e => e.Status);
+
+                entity.Property(e => e.Status).HasDefaultValue("Pending");
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
+            });
+
+            // Configure FinancialStatement entity
+            modelBuilder.Entity<FinancialStatement>(entity =>
+            {
+                entity.HasKey(e => e.StatementId);
+                entity.HasIndex(e => e.StatementType);
+                entity.HasIndex(e => e.PeriodStart);
+                entity.HasIndex(e => e.PeriodEnd);
+
+                entity.Property(e => e.Status).HasDefaultValue("Draft");
+                entity.Property(e => e.GeneratedAt).HasDefaultValueSql("GETDATE()");
+            });
         }
     }
 }

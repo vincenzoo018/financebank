@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinanceBank.Models;
 
@@ -90,6 +91,60 @@ public class FundTransfer
     public virtual BankAccount? ToAccount { get; set; }
 }
 
+// =============================================
+// CHART OF ACCOUNTS MODEL
+// =============================================
+
+[Table("ChartOfAccounts")]
+public class ChartOfAccounts
+{
+    [Key]
+    public int AccountId { get; set; }
+    
+    [Required, MaxLength(50)]
+    public string AccountCode { get; set; } = "";
+    
+    [Required, MaxLength(100)]
+    public string AccountName { get; set; } = "";
+    
+    [Required, MaxLength(50)]
+    public string AccountType { get; set; } = ""; // Asset, Liability, Equity, Revenue, Expense
+    
+    [MaxLength(50)]
+    public string? SubAccountType { get; set; } // More specific type
+    
+    [Required, MaxLength(10)]
+    public string NormalBalance { get; set; } = "Debit"; // Debit or Credit
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal CurrentBalance { get; set; } = 0;
+    
+    public bool IsActive { get; set; } = true;
+    
+    public bool IsHeader { get; set; } = false; // If true, this is a header/parent account
+    
+    public int? ParentAccountId { get; set; } // For hierarchical account structure
+    
+    [MaxLength(500)]
+    public string? Description { get; set; }
+    
+    [Required, MaxLength(50)]
+    public string CreatedBy { get; set; } = "";
+    
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    
+    [MaxLength(50)]
+    public string? ModifiedBy { get; set; }
+    
+    public DateTime? ModifiedAt { get; set; }
+    
+    // Navigation
+    [ForeignKey("ParentAccountId")]
+    public virtual ChartOfAccounts? ParentAccount { get; set; }
+    
+    public virtual ICollection<ChartOfAccounts> SubAccounts { get; set; } = new List<ChartOfAccounts>();
+}
+
 [Table("JournalEntries")]
 public class JournalEntry
 {
@@ -99,6 +154,8 @@ public class JournalEntry
     [Required, MaxLength(50)]
     public string JournalNumber { get; set; } = "";
     
+    public DateTime JournalDate { get; set; } = DateTime.Now;
+    
     public DateTime TransactionDate { get; set; }
     
     [Required, MaxLength(500)]
@@ -107,6 +164,12 @@ public class JournalEntry
     [MaxLength(100)]
     public string? Reference { get; set; }
     
+    [MaxLength(50)]
+    public string? Department { get; set; }
+    
+    [MaxLength(50)]
+    public string? CostCenter { get; set; }
+    
     [Column(TypeName = "decimal(18,2)")]
     public decimal TotalDebit { get; set; } = 0;
     
@@ -114,7 +177,12 @@ public class JournalEntry
     public decimal TotalCredit { get; set; } = 0;
     
     [Required, MaxLength(50)]
-    public string Status { get; set; } = "Draft";
+    public string Status { get; set; } = "Draft"; // Draft, Posted, Reversed
+    
+    [MaxLength(50)]
+    public string? ReversalStatus { get; set; } // Reversing, Reversed
+    
+    public int? ReversedJournalId { get; set; } // References original entry if this is a reversal
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
@@ -126,8 +194,16 @@ public class JournalEntry
     [MaxLength(50)]
     public string? PostedBy { get; set; }
     
+    [MaxLength(50)]
+    public string? ModifiedBy { get; set; }
+    
+    public DateTime? ModifiedAt { get; set; }
+    
     // Navigation
     public virtual ICollection<JournalEntryLine> Lines { get; set; } = new List<JournalEntryLine>();
+    
+    [ForeignKey("ReversedJournalId")]
+    public virtual JournalEntry? ReversedEntry { get; set; }
 }
 
 [Table("JournalEntryLines")]
@@ -145,6 +221,9 @@ public class JournalEntryLine
     [Required, MaxLength(100)]
     public string AccountName { get; set; } = "";
     
+    [Required, MaxLength(50)]
+    public string AccountType { get; set; } = ""; // Asset, Liability, Equity, Revenue, Expense
+    
     [MaxLength(500)]
     public string? Description { get; set; }
     
@@ -153,6 +232,17 @@ public class JournalEntryLine
     
     [Column(TypeName = "decimal(18,2)")]
     public decimal CreditAmount { get; set; } = 0;
+    
+    [MaxLength(50)]
+    public string? Department { get; set; }
+    
+    [MaxLength(50)]
+    public string? CostCenter { get; set; }
+    
+    [Required, MaxLength(50)]
+    public string Status { get; set; } = "Pending"; // Pending, Posted, Reversed
+    
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
     
     // Navigation
     [ForeignKey("JournalId")]
@@ -650,11 +740,17 @@ public class GeneralLedgerEntry
     [Required, MaxLength(50)]
     public string EntryNumber { get; set; } = "";
     
+    [Required]
+    public int JournalId { get; set; }
+    
     [Required, MaxLength(50)]
     public string AccountCode { get; set; } = "";
     
     [Required, MaxLength(100)]
     public string AccountName { get; set; } = "";
+    
+    [Required, MaxLength(50)]
+    public string AccountType { get; set; } = "";
     
     [Column(TypeName = "decimal(18,2)")]
     public decimal DebitAmount { get; set; } = 0;
@@ -662,17 +758,33 @@ public class GeneralLedgerEntry
     [Column(TypeName = "decimal(18,2)")]
     public decimal CreditAmount { get; set; } = 0;
     
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal Balance { get; set; } = 0; // Running balance
+    
     [MaxLength(500)]
     public string? Description { get; set; }
     
     [MaxLength(50)]
     public string? Reference { get; set; }
     
+    [MaxLength(50)]
+    public string? Department { get; set; }
+    
+    [MaxLength(50)]
+    public string? CostCenter { get; set; }
+    
     public DateTime TransactionDate { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
     [MaxLength(50)]
     public string? CreatedBy { get; set; }
+    
+    [Required, MaxLength(50)]
+    public string Status { get; set; } = "Posted"; // Posted, Reversed
+    
+    // Navigation
+    [ForeignKey("JournalId")]
+    public virtual JournalEntry? Journal { get; set; }
 }
 
 [Table("TrialBalance")]
@@ -687,6 +799,9 @@ public class TrialBalanceEntry
     [Required, MaxLength(100)]
     public string AccountName { get; set; } = "";
     
+    [Required, MaxLength(50)]
+    public string AccountType { get; set; } = "";
+    
     [Column(TypeName = "decimal(18,2)")]
     public decimal DebitBalance { get; set; } = 0;
     
@@ -695,6 +810,21 @@ public class TrialBalanceEntry
     
     public DateTime AsOfDate { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+    
+    [MaxLength(50)]
+    public string? CreatedBy { get; set; }
+    
+    [Required, MaxLength(50)]
+    public string Status { get; set; } = "Pending"; // Pending, Balanced, Unbalanced
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalDebits { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalCredits { get; set; } = 0;
+    
+    // Is balanced if TotalDebits == TotalCredits
+    public bool IsBalanced => TotalDebits == TotalCredits;
 }
 
 [Table("FinancialStatements")]
@@ -704,18 +834,42 @@ public class FinancialStatement
     public int StatementId { get; set; }
     
     [Required, MaxLength(50)]
-    public string StatementType { get; set; } = ""; // Income Statement, Balance Sheet, Cash Flow
+    public string StatementType { get; set; } = ""; // IncomeStatement, BalanceSheet, CashFlowStatement
     
     public DateTime PeriodStart { get; set; }
     public DateTime PeriodEnd { get; set; }
     
-    [MaxLength(4000)]
-    public string? Data { get; set; } // JSON data
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalAssets { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalLiabilities { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalEquity { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalRevenue { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalExpenses { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal NetIncome { get; set; } = 0;
+    
+    [Column(TypeName = "nvarchar(max)")]
+    public string? Data { get; set; } // JSON detailed data
+    
+    [MaxLength(500)]
+    public string? Notes { get; set; }
     
     public DateTime GeneratedAt { get; set; } = DateTime.Now;
     
     [MaxLength(50)]
     public string? GeneratedBy { get; set; }
+    
+    [Required, MaxLength(50)]
+    public string Status { get; set; } = "Draft"; // Draft, Final, Archived
 }
 
 // =============================================

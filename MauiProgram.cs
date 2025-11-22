@@ -55,13 +55,17 @@ namespace FinanceBank
             builder.Services.AddScoped<BankingReportService>();
             builder.Services.AddScoped<LoanManagementService>();
             builder.Services.AddScoped<CardManagementService>();
+            
+            // Register Accounting Services
             builder.Services.AddScoped<JournalEntryService>();
-            builder.Services.AddScoped<BudgetManagementService>();
-            builder.Services.AddScoped<AccountsPayableService>();
-            builder.Services.AddScoped<AccountsReceivableService>();
             builder.Services.AddScoped<GeneralLedgerService>();
             builder.Services.AddScoped<TrialBalanceService>();
             builder.Services.AddScoped<FinancialStatementService>();
+            
+            // Register other services
+            builder.Services.AddScoped<BudgetManagementService>();
+            builder.Services.AddScoped<AccountsPayableService>();
+            builder.Services.AddScoped<AccountsReceivableService>();
             builder.Services.AddScoped<CashflowAnalysisService>();
             builder.Services.AddScoped<FinancialForecastService>();
             builder.Services.AddScoped<CustomerAccountService>();
