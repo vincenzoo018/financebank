@@ -5,7 +5,7 @@
 @inject AuthService AuthService
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
@@ -43,7 +43,7 @@
 <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Expense Records</h2>
-        <button class="btn" style="background: #f59e0b; color: white; padding: 8px 16px; border-radius: 8px; font-size: 14px;" @onclick="ShowNewExpenseModal">+ New Expense</button>
+        <button class="btn" style="background: #059669; color: white; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600;" @onclick="ShowNewExpenseModal">+ New Expense</button>
     </div>
 
     <div style="overflow-x: auto;">
@@ -76,7 +76,7 @@
                             <td style="padding: 12px; text-align: center;">
                                 @if (expense.Status == "Pending")
                                 {
-                                    <button class="btn" style="background: #f3f4f6; color: #111827; padding: 6px 12px; font-size: 12px; border-radius: 6px;" @onclick="() => EditExpense(expense)">Edit</button>
+                                    <button class="btn" style="background: #059669; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600;" @onclick="() => EditExpense(expense)">Edit</button>
                                 }
                             </td>
                         </tr>

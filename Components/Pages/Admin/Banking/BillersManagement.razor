@@ -6,7 +6,7 @@
 @inject BillerService BillerService
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
@@ -21,22 +21,20 @@
 </div>
 
 <!-- Toolbar: New + Search/Filter -->
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:16px;">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; gap:16px;">
+    <button class="btn" style="background:#059669; color:white; padding:10px 18px; font-size:14px; font-weight:600; border-radius:8px;" @onclick="ShowAddModal">
+        + New Biller
+    </button>
     <div style="display:flex; gap:12px; align-items:center;">
-        <button class="btn" style="background:#10b981; color:white; padding:8px 16px; font-size:14px; font-weight:600; border-radius:8px;" @onclick="ShowAddModal">
-            + New Biller
-        </button>
-    </div>
-    <div style="display:flex; gap:8px; align-items:center;">
-        <input class="form-control" style="width:220px;" placeholder="Search by name or code" @bind="searchText" />
-        <select class="form-control" style="width:160px;" @bind="selectedCategory">
+        <input class="form-control" style="width:220px; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px;" placeholder="Search by name or code" @bind="searchText" />
+        <select class="form-control" style="width:160px; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px;" @bind="selectedCategory">
             <option value="">All Categories</option>
             @foreach (var cat in distinctCategories)
             {
                 <option value="@cat">@cat</option>
             }
         </select>
-        <select class="form-control" style="width:140px;" @bind="selectedStatus">
+        <select class="form-control" style="width:140px; padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px;" @bind="selectedStatus">
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -76,8 +74,8 @@
                         </td>
                         <td style="padding:12px; text-align:center;">
                             <div style="display:inline-flex; gap:8px;">
-                                <button class="btn" style="background:#3b82f6; color:white; padding:6px 12px; font-size:12px; border-radius:6px;" @onclick="() => StartEdit(biller)">Edit</button>
-                                <button class="btn" style="background:@(biller.IsActive ? "#ef4444" : "#10b981"); color:white; padding:6px 12px; font-size:12px; border-radius:6px;" @onclick="() => ToggleStatus(biller)">
+                                <button class="btn" style="background:#059669; color:white; padding:6px 12px; font-size:12px; border-radius:6px; font-weight:600;" @onclick="() => StartEdit(biller)">Edit</button>
+                                <button class="btn" style="background:@(biller.IsActive ? "#dc2626" : "#059669"); color:white; padding:6px 12px; font-size:12px; border-radius:6px; font-weight:600;" @onclick="() => ToggleStatus(biller)">
                                     @(biller.IsActive ? "Deactivate" : "Activate")
                                 </button>
                             </div>

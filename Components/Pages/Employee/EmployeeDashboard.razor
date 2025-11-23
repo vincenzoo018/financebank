@@ -3,16 +3,16 @@
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Header with Filter -->
-    <div style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="background: linear-gradient(135deg, #059669, #047857); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <h1 style="font-size: 24px; font-weight: 700; margin: 0;">Employee Dashboard</h1>
                 <p style="margin: 8px 0 0; font-size: 14px; opacity: 0.9;">Your work overview and tasks</p>
             </div>
             <div style="display: flex; gap: 8px;">
-                <button @onclick='() => selectedPeriod = "day"' style="padding: 8px 16px; background: @(selectedPeriod == "day" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "day" ? "var(--accent)" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Day</button>
-                <button @onclick='() => selectedPeriod = "week"' style="padding: 8px 16px; background: @(selectedPeriod == "week" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "week" ? "var(--accent)" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Week</button>
-                <button @onclick='() => selectedPeriod = "month"' style="padding: 8px 16px; background: @(selectedPeriod == "month" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "month" ? "var(--accent)" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Month</button>
+                <button @onclick='() => selectedPeriod = "day"' style="padding: 8px 16px; background: @(selectedPeriod == "day" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "day" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Day</button>
+                <button @onclick='() => selectedPeriod = "week"' style="padding: 8px 16px; background: @(selectedPeriod == "week" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "week" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Week</button>
+                <button @onclick='() => selectedPeriod = "month"' style="padding: 8px 16px; background: @(selectedPeriod == "month" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "month" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Month</button>
             </div>
         </div>
     </div>

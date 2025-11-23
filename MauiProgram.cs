@@ -79,6 +79,12 @@ namespace FinanceBank
             // Register Card Application Service (card and loan approvals)
             builder.Services.AddScoped<CardApplicationService>();
 
+            // Register CRUD Services Layer
+            builder.Services.AddScoped<BankingService>();
+            builder.Services.AddScoped<AccountingService>();
+            builder.Services.AddScoped<FinanceService>();
+            builder.Services.AddScoped<ApprovalsService>();
+
 #if DEBUG
     		builder.Services.AddBlazorWebViewDeveloperTools();
     		builder.Logging.AddDebug();

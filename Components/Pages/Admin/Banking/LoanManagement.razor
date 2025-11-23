@@ -7,7 +7,7 @@
 @inject AuthService AuthService
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
@@ -76,7 +76,7 @@
                         <td style="padding:12px; font-size:13px; color:#6b7280;">@loan.ApprovedBy</td>
                         <td style="padding:12px; font-size:13px; color:#6b7280;">@(loan.ApprovedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
                         <td style="padding:12px; text-align:center;">
-                            <button class="btn" style="background:#1f2937; color:white; padding:6px 12px; font-size:12px; border-radius:6px;" @onclick="() => OpenReviewModal(loan)">Review</button>
+                            <button class="btn" style="background:#059669; color:white; padding:8px 14px; font-size:12px; border-radius:6px; font-weight:600;" @onclick="() => OpenReviewModal(loan)">Review</button>
                         </td>
                     </tr>
                 }
@@ -115,9 +115,9 @@
             </div>
 
             <div style="padding:16px 24px; border-top:1px solid #e5e7eb; display:flex; justify-content:flex-end; gap:8px;">
-                <button class="btn" style="background:#f3f4f6; color:#111827; padding:8px 16px; border-radius:8px; font-size:14px;" @onclick="CloseReviewModal">Cancel</button>
-                <button class="btn" style="background:#b91c1c; color:white; padding:8px 16px; border-radius:8px; font-size:14px;" @onclick="Reject">Reject</button>
-                <button class="btn" style="background:#059669; color:white; padding:8px 16px; border-radius:8px; font-size:14px;" @onclick="Approve">Approve</button>
+                <button class="btn" style="background:#e5e7eb; color:#111827; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;" @onclick="CloseReviewModal">Cancel</button>
+                <button class="btn" style="background:#dc2626; color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;" @onclick="Reject">Reject</button>
+                <button class="btn" style="background:#059669; color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;" @onclick="Approve">Approve</button>
             </div>
         </div>
     </div>

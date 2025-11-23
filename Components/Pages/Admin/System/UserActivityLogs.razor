@@ -1,0 +1,261 @@
+@page "/admin/system/user-activity-logs"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">User Activity Logs</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Monitor user actions and system activities</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px;">
+    <div>
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">Search User</label>
+        <input type="text" placeholder="Username or full name..." @bind="searchUser" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+    </div>
+    <div>
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">Module</label>
+        <select @bind="filterModule" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            <option value="">All Modules</option>
+            <option value="User">User</option>
+            <option value="Banking">Banking</option>
+            <option value="Accounting">Accounting</option>
+            <option value="Finance">Finance</option>
+            <option value="Approvals">Approvals</option>
+            <option value="Reports">Reports</option>
+        </select>
+    </div>
+    <div>
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">Action</label>
+        <select @bind="filterAction" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            <option value="">All Actions</option>
+            <option value="Create">Create</option>
+            <option value="Update">Update</option>
+            <option value="Delete">Delete</option>
+            <option value="Approve">Approve</option>
+            <option value="Reject">Reject</option>
+            <option value="Login">Login</option>
+            <option value="Logout">Logout</option>
+        </select>
+    </div>
+    <div>
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">Date Range</label>
+        <input type="date" @bind="filterStartDate" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+    </div>
+</div>
+
+<!-- Filter Button -->
+<div style="display: flex; gap: 12px; margin-bottom: 24px;">
+    <button class="btn" style="background: #059669; color: white; padding: 10px 18px; font-weight: 600; border-radius: 8px; font-size: 14px; cursor: pointer;" @onclick="ApplyFilters">Apply Filters</button>
+    <button class="btn" style="background: #e5e7eb; color: #111827; padding: 10px 18px; font-weight: 600; border-radius: 8px; font-size: 14px; cursor: pointer;" @onclick="ResetFilters">Reset</button>
+    <button class="btn" style="background: #047857; color: white; padding: 10px 18px; font-weight: 600; border-radius: 8px; font-size: 14px; cursor: pointer;" @onclick="ExportLogs">📥 Export</button>
+</div>
+
+<!-- Activity Logs Table -->
+<div style="background: white; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
+                <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">USER</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">ACTION</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">MODULE</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">DESCRIPTION</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">IP ADDRESS</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">TIMESTAMP</th>
+                <th style="padding: 12px; text-align: center; font-size: 12px; color: #6b7280; font-weight: 600;">DETAILS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (displayedLogs.Count == 0)
+            {
+                <tr>
+                    <td colspan="7" style="padding: 24px; text-align: center; color: #6b7280; font-size: 14px;">No activity logs found</td>
+                </tr>
+            }
+            @foreach (var log in displayedLogs)
+            {
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px; font-size: 13px; color: #111827; font-weight: 600;">User #@log.UserId</td>
+                    <td style="padding: 12px; font-size: 13px;">
+                        <span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: @(log.Action == "Create" ? "#d1fae5" : log.Action == "Update" ? "#dbeafe" : log.Action == "Delete" ? "#fee2e2" : log.Action == "Approve" ? "#d1fae5" : "#f3e8ff"); color: @(log.Action == "Create" ? "#065f46" : log.Action == "Update" ? "#0c4a6e" : log.Action == "Delete" ? "#991b1b" : log.Action == "Approve" ? "#065f46" : "#581c87");">
+                            @log.Action
+                        </span>
+                    </td>
+                    <td style="padding: 12px; font-size: 13px; color: #6b7280;">@log.Module</td>
+                    <td style="padding: 12px; font-size: 13px; color: #6b7280;">@log.Description</td>
+                    <td style="padding: 12px; font-size: 13px; color: #6b7280;">@log.IpAddress</td>
+                    <td style="padding: 12px; font-size: 13px; color: #6b7280;">@log.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                    <td style="padding: 12px; text-align: center;">
+                        <button class="btn" style="background: #059669; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer;" @onclick="() => ShowDetails(log)">View</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Details Modal -->
+@if (showDetailsModal && selectedLog != null)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="HideDetails">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 600px; box-shadow: 0 20px 25px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto;" @onclick:stopPropagation="true">
+            <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 24px 0;">Activity Log Details</h2>
+            
+            <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px;">
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 4px;">User ID</div>
+                        <div style="font-size: 14px; color: #111827; font-weight: 600;">@selectedLog.UserId</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 4px;">Action</div>
+                        <div style="font-size: 14px; color: #111827;">@selectedLog.Action</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 4px;">Module</div>
+                        <div style="font-size: 14px; color: #111827;">@selectedLog.Module</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 4px;">Timestamp</div>
+                        <div style="font-size: 14px; color: #111827;">@selectedLog.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 4px;">Description</div>
+                    <div style="font-size: 14px; color: #111827;">@selectedLog.Description</div>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 4px;">IP Address</div>
+                    <div style="font-size: 14px; color: #111827;">@selectedLog.IpAddress</div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(selectedLog.UserAgent))
+                {
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 4px;">User Agent</div>
+                        <div style="font-size: 12px; color: #111827; word-break: break-all;">@selectedLog.UserAgent</div>
+                    </div>
+                }
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="btn" style="background: #059669; color: white; padding: 10px 18px; font-weight: 600; border-radius: 8px; cursor: pointer;" @onclick="HideDetails">Close</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<AuditLog> allLogs = new();
+    private List<AuditLog> displayedLogs = new();
+    private string searchUser = "";
+    private string filterModule = "";
+    private string filterAction = "";
+    private DateTime filterStartDate = DateTime.Today.AddDays(-30);
+    private bool showDetailsModal = false;
+    private AuditLog selectedLog = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadActivityLogs();
+    }
+
+    private async Task LoadActivityLogs()
+    {
+        // Mock data - in real implementation, load from database
+        allLogs = new List<AuditLog>
+        {
+            new() { 
+                AuditId = 1, 
+                UserId = "1",
+                Action = "Create", 
+                Module = "User", 
+                Description = "Created new user account",
+                IpAddress = "192.168.1.100",
+                CreatedAt = DateTime.Now.AddMinutes(-5)
+            },
+            new() { 
+                AuditId = 2, 
+                UserId = "2",
+                Action = "Update", 
+                Module = "Accounting", 
+                Description = "Posted journal entry JE001",
+                IpAddress = "192.168.1.101",
+                CreatedAt = DateTime.Now.AddMinutes(-15)
+            },
+            new() { 
+                AuditId = 3, 
+                UserId = "3",
+                Action = "Approve", 
+                Module = "Finance", 
+                Description = "Approved budget allocation",
+                IpAddress = "192.168.1.102",
+                CreatedAt = DateTime.Now.AddMinutes(-30)
+            },
+            new() { 
+                AuditId = 4, 
+                UserId = "1",
+                Action = "Login", 
+                Module = "System", 
+                Description = "User logged in",
+                IpAddress = "192.168.1.100",
+                CreatedAt = DateTime.Now.AddHours(-1)
+            }
+        };
+        displayedLogs = new List<AuditLog>(allLogs);
+    }
+
+    private async Task ApplyFilters()
+    {
+        displayedLogs = allLogs
+            .Where(l => 
+                (string.IsNullOrWhiteSpace(searchUser) || l.UserId.Contains(searchUser, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(filterModule) || l.Module == filterModule) &&
+                (string.IsNullOrWhiteSpace(filterAction) || l.Action == filterAction) &&
+                (l.CreatedAt.Date >= filterStartDate.Date))
+            .OrderByDescending(l => l.CreatedAt)
+            .ToList();
+        await Task.CompletedTask;
+    }
+
+    private async Task ResetFilters()
+    {
+        searchUser = "";
+        filterModule = "";
+        filterAction = "";
+        filterStartDate = DateTime.Today.AddDays(-30);
+        displayedLogs = new List<AuditLog>(allLogs.OrderByDescending(l => l.CreatedAt).ToList());
+        await Task.CompletedTask;
+    }
+
+    private void ShowDetails(AuditLog log)
+    {
+        selectedLog = log;
+        showDetailsModal = true;
+    }
+
+    private void HideDetails()
+    {
+        showDetailsModal = false;
+        selectedLog = null;
+    }
+
+    private async Task ExportLogs()
+    {
+        // Mock export - in real implementation, export to CSV/Excel
+        await Task.CompletedTask;
+    }
+}

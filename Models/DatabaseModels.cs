@@ -1055,3 +1055,47 @@ public class CustomerCardEntity
     [Required]
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 }
+
+// =============================================
+// USER REGISTRATION MODEL
+// =============================================
+
+[Table("UserRegistrations")]
+public class UserRegistration
+{
+    [Key]
+    public int? RegistrationId { get; set; }
+
+    [Required, MaxLength(50)]
+    public string Username { get; set; } = "";
+
+    [Required, MaxLength(255)]
+    public string PasswordHash { get; set; } = "";
+
+    [Required, MaxLength(50)]
+    public string Role { get; set; } = "Customer";
+
+    [MaxLength(100)]
+    public string? FullName { get; set; }
+
+    [MaxLength(100)]
+    public string? Email { get; set; }
+
+    [MaxLength(20)]
+    public string? PhoneNumber { get; set; }
+
+    [MaxLength(50)]
+    public string? Department { get; set; }
+
+    [MaxLength(50)]
+    public string? EmployeeId { get; set; }
+
+    [Required, MaxLength(50)]
+    public string Status { get; set; } = "Active";
+
+    [Required]
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    [MaxLength(50)]
+    public string? CreatedBy { get; set; }
+}

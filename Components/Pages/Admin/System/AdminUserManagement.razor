@@ -1,0 +1,287 @@
+@page "/admin/system/user-management"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">User Management</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">View, create, and manage all system users</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filter & Actions -->
+<div style="display: flex; gap: 12px; margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+    <input type="text" placeholder="Search users..." @bind="searchTerm" style="flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+    
+    <select @bind="filterRole" style="padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+        <option value="">All Roles</option>
+        <option value="Admin">Admin</option>
+        <option value="SuperAdmin">SuperAdmin</option>
+        <option value="Accountant">Accountant</option>
+        <option value="FinanceManager">FinanceManager</option>
+        <option value="Teller">Teller</option>
+        <option value="Customer">Customer</option>
+    </select>
+
+    <button class="btn" style="background: #059669; color: white; padding: 10px 18px; font-weight: 600; border-radius: 8px; font-size: 14px; cursor: pointer;" @onclick="FilterUsers">Filter</button>
+    <button class="btn" style="background: #047857; color: white; padding: 10px 18px; font-weight: 600; border-radius: 8px; font-size: 14px; cursor: pointer;" @onclick="ShowCreateModal">+ Add User</button>
+</div>
+
+<!-- Create/Edit Modal -->
+@if (showModal)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="HideModal">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 700px; box-shadow: 0 20px 25px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto;" @onclick:stopPropagation="true">
+            <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 24px 0;">@(editingUser?.RegistrationId > 0 ? "Edit User" : "Create New User")</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">Username</label>
+                    <input type="text" placeholder="Enter username" @bind="editingUser.Username" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">Full Name</label>
+                    <input type="text" placeholder="Enter full name" @bind="editingUser.FullName" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">Email</label>
+                    <input type="email" placeholder="Enter email" @bind="editingUser.Email" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">Phone Number</label>
+                    <input type="text" placeholder="Enter phone" @bind="editingUser.PhoneNumber" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">Role</label>
+                    <select @bind="editingUser.Role" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        <option value="">Select Role</option>
+                        <option value="Admin">Admin</option>
+                        <option value="SuperAdmin">SuperAdmin</option>
+                        <option value="Accountant">Accountant</option>
+                        <option value="FinanceManager">FinanceManager</option>
+                        <option value="Teller">Teller</option>
+                        <option value="Customer">Customer</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">Department</label>
+                    <input type="text" placeholder="Enter department" @bind="editingUser.Department" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                </div>
+            </div>
+
+            @if (editingUser?.RegistrationId == 0 || editingUser?.RegistrationId == null)
+            {
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">Password</label>
+                    <input type="password" placeholder="Enter password" @bind="userPassword" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                </div>
+            }
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="btn" style="background: #e5e7eb; color: #111827; padding: 10px 18px; font-weight: 600; border-radius: 8px; cursor: pointer;" @onclick="HideModal">Cancel</button>
+                <button class="btn" style="background: #059669; color: white; padding: 10px 18px; font-weight: 600; border-radius: 8px; cursor: pointer;" @onclick="SaveUser">Save User</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Users Table -->
+<div style="background: white; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
+                <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">USERNAME</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">FULL NAME</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">EMAIL</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">ROLE</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">DEPARTMENT</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">STATUS</th>
+                <th style="padding: 12px; text-align: center; font-size: 12px; color: #6b7280; font-weight: 600;">ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (displayedUsers.Count == 0)
+            {
+                <tr>
+                    <td colspan="7" style="padding: 24px; text-align: center; color: #6b7280; font-size: 14px;">No users found</td>
+                </tr>
+            }
+            @foreach (var user in displayedUsers)
+            {
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px; font-size: 13px; color: #111827; font-weight: 600;">@user.Username</td>
+                    <td style="padding: 12px; font-size: 13px; color: #111827;">@user.FullName</td>
+                    <td style="padding: 12px; font-size: 13px; color: #6b7280;">@user.Email</td>
+                    <td style="padding: 12px; font-size: 13px;">
+                        <span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: #f0fdf4; color: #065f46;">
+                            @user.Role
+                        </span>
+                    </td>
+                    <td style="padding: 12px; font-size: 13px; color: #6b7280;">@user.Department</td>
+                    <td style="padding: 12px; font-size: 13px;">
+                        <span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: @(user.Status == "Active" ? "#d1fae5" : "#fee2e2"); color: @(user.Status == "Active" ? "#065f46" : "#991b1b");">
+                            @user.Status
+                        </span>
+                    </td>
+                    <td style="padding: 12px; text-align: center; display: flex; gap: 6px; justify-content: center;">
+                        <button class="btn" style="background: #059669; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer;" @onclick="() => EditUser(user)">Edit</button>
+                        <button class="btn" style="background: @(user.Status == "Active" ? "#dc2626" : "#10b981"); color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer;" @onclick="() => ToggleUserStatus(user)">@(user.Status == "Active" ? "Deactivate" : "Activate")</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<UserRegistration> users = new();
+    private List<UserRegistration> displayedUsers = new();
+    private string searchTerm = "";
+    private string filterRole = "";
+    private bool showModal = false;
+    private UserRegistration editingUser = new();
+    private string userPassword = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        // Mock data - in real implementation, load from database
+        users = new List<UserRegistration>
+        {
+            new() { 
+                RegistrationId = 1, 
+                Username = "admin@bank", 
+                FullName = "Admin User", 
+                Email = "admin@financebank.com",
+                Role = "Admin",
+                Department = "Administration",
+                Status = "Active",
+                CreatedAt = DateTime.Now.AddMonths(-3)
+            },
+            new() { 
+                RegistrationId = 2, 
+                Username = "accountant1", 
+                FullName = "Maria Flores", 
+                Email = "maria@financebank.com",
+                Role = "Accountant",
+                Department = "Accounting",
+                Status = "Active",
+                CreatedAt = DateTime.Now.AddMonths(-2)
+            },
+            new() { 
+                RegistrationId = 3, 
+                Username = "finance_mgr", 
+                FullName = "Juan Reyes", 
+                Email = "juan@financebank.com",
+                Role = "FinanceManager",
+                Department = "Finance",
+                Status = "Active",
+                CreatedAt = DateTime.Now.AddMonths(-1)
+            }
+        };
+        displayedUsers = new List<UserRegistration>(users);
+    }
+
+    private void ShowCreateModal()
+    {
+        editingUser = new UserRegistration { Status = "Active" };
+        userPassword = "";
+        showModal = true;
+    }
+
+    private void EditUser(UserRegistration user)
+    {
+        editingUser = new UserRegistration
+        {
+            RegistrationId = user.RegistrationId,
+            Username = user.Username,
+            FullName = user.FullName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            Role = user.Role,
+            Department = user.Department,
+            Status = user.Status
+        };
+        userPassword = "";
+        showModal = true;
+    }
+
+    private void HideModal()
+    {
+        showModal = false;
+        editingUser = new();
+    }
+
+    private async Task SaveUser()
+    {
+        if (string.IsNullOrWhiteSpace(editingUser.Username) || string.IsNullOrWhiteSpace(editingUser.FullName))
+        {
+            return;
+        }
+
+        if (editingUser.RegistrationId == 0 || editingUser.RegistrationId == null)
+        {
+            editingUser.RegistrationId = users.Count + 1;
+            editingUser.CreatedAt = DateTime.Now;
+            users.Add(editingUser);
+        }
+        else
+        {
+            var existingIndex = users.FindIndex(u => u.RegistrationId == editingUser.RegistrationId);
+            if (existingIndex >= 0)
+            {
+                users[existingIndex] = editingUser;
+            }
+        }
+
+        displayedUsers = new List<UserRegistration>(users);
+        showModal = false;
+        await Task.CompletedTask;
+    }
+
+    private async Task ToggleUserStatus(UserRegistration user)
+    {
+        var index = users.FindIndex(u => u.RegistrationId == user.RegistrationId);
+        if (index >= 0)
+        {
+            users[index].Status = user.Status == "Active" ? "Inactive" : "Active";
+            displayedUsers = new List<UserRegistration>(users);
+        }
+        await Task.CompletedTask;
+    }
+
+    private async Task FilterUsers()
+    {
+        displayedUsers = users
+            .Where(u => 
+                (string.IsNullOrWhiteSpace(searchTerm) || 
+                 u.Username.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                 u.FullName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                 u.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(filterRole) || u.Role == filterRole))
+            .ToList();
+        await Task.CompletedTask;
+    }
+}

@@ -27,10 +27,11 @@ namespace FinanceBank.Services
             _context = context;
         }
 
-        // 5 ROLES
+        // 6 ROLES
         public static class Roles
         {
             public const string SuperAdmin = "SuperAdmin";
+            public const string Admin = "Admin";
             public const string Accountant = "Accountant";
             public const string FinanceManager = "FinanceManager";
             public const string Teller = "Teller";

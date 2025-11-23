@@ -6,7 +6,7 @@
 @inject AccountsReceivableService AccountsReceivableService
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
@@ -22,19 +22,34 @@
 
 <!-- Summary Cards -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 24px;">
-    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb;">
-        <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 8px;">Total Outstanding</div>
-        <div style="font-size: 32px; font-weight: 700; color: #dc2626; margin-bottom: 4px;">₱@totalOutstanding.ToString("N2")</div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; border-left: 4px solid #dc2626;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+            <div>
+                <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px;">💰 TOTAL OUTSTANDING</div>
+                <div style="font-size: 28px; font-weight: 800; color: #dc2626;">₱@totalOutstanding.ToString("N2")</div>
+            </div>
+            <div style="width: 44px; height: 44px; background: #fef2f2; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📊</div>
+        </div>
         <div style="font-size: 12px; color: #6b7280;">@pendingInvoices invoices pending</div>
     </div>
-    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb;">
-        <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 8px;">Due This Month</div>
-        <div style="font-size: 32px; font-weight: 700; color: #f59e0b; margin-bottom: 4px;">₱@dueThisMonth.ToString("N2")</div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; border-left: 4px solid #f59e0b;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+            <div>
+                <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px;">📅 DUE THIS MONTH</div>
+                <div style="font-size: 28px; font-weight: 800; color: #f59e0b;">₱@dueThisMonth.ToString("N2")</div>
+            </div>
+            <div style="width: 44px; height: 44px; background: #fef3c7; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📝</div>
+        </div>
         <div style="font-size: 12px; color: #6b7280;">@dueSoonCount invoices due soon</div>
     </div>
-    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb;">
-        <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 8px;">Collected This Month</div>
-        <div style="font-size: 32px; font-weight: 700; color: #10b981; margin-bottom: 4px;">₱@collectedThisMonth.ToString("N2")</div>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; border-left: 4px solid #059669;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+            <div>
+                <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px;">✓ COLLECTED THIS MONTH</div>
+                <div style="font-size: 28px; font-weight: 800; color: #059669;">₱@collectedThisMonth.ToString("N2")</div>
+            </div>
+            <div style="width: 44px; height: 44px; background: #f0fdf4; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">✓</div>
+        </div>
         <div style="font-size: 12px; color: #6b7280;">@collectedCount payments received</div>
     </div>
 </div>
@@ -43,7 +58,7 @@
 <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Outstanding Invoices</h2>
-        <button class="btn" style="background: #10b981; color: white; padding: 8px 16px; border-radius: 8px; font-size: 14px;" @onclick="ShowNewInvoiceModal">+ New Invoice</button>
+        <button class="btn" style="background: #059669; color: white; padding: 8px 16px; border-radius: 8px; font-size: 14px;" @onclick="ShowNewInvoiceModal">+ New Invoice</button>
     </div>
 
     <div style="overflow-x: auto;">
@@ -74,7 +89,9 @@
                                 </span>
                             </td>
                             <td style="padding: 12px; text-align: center;">
-                                <button class="btn" style="background: #f3f4f6; color: #111827; padding: 6px 12px; font-size: 12px; border-radius: 6px;" @onclick="() => RecordPayment(invoice)">Receive</button>
+                                <button class="btn" style="background: #059669; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; margin-right: 4px; font-weight: 600;" @onclick="() => EditInvoice(invoice)">Edit</button>
+                                <button class="btn" style="background: #10b981; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; margin-right: 4px; font-weight: 600;" @onclick="() => RecordPayment(invoice)">Receive</button>
+                                <button class="btn" style="background: #dc2626; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600;" @onclick="() => DeleteInvoice(invoice)">Delete</button>
                             </td>
                         </tr>
                     }
@@ -90,6 +107,77 @@
     </div>
 </div>
 
+<!-- New/Edit Invoice Modal -->
+@if (showInvoiceModal)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50;" @onclick="CloseInvoiceModal">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 500px; box-shadow: 0 20px 25px rgba(0,0,0,0.1);" @onclick:stopPropagation="true">
+            <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 24px 0;">@(isEditingInvoice ? "Edit Invoice" : "New Invoice")</h2>
+            
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Customer Name *</label>
+                <input type="text" @bind="newInvoice.CustomerName" placeholder="Enter customer name" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Invoice Number *</label>
+                <input type="text" @bind="newInvoice.InvoiceNumber" placeholder="Enter invoice number" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Amount *</label>
+                <input type="number" step="0.01" @bind="newInvoice.Amount" placeholder="0.00" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Due Date *</label>
+                <input type="date" @bind="newInvoice.DueDate" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Description</label>
+                <textarea @bind="newInvoice.Description" placeholder="Enter invoice description" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; min-height: 80px;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button class="btn" style="flex: 1; background: #059669; color: white; padding: 10px; border-radius: 8px; font-weight: 600;" @onclick="SaveInvoice">Save Invoice</button>
+                <button class="btn" style="flex: 1; background: #e5e7eb; color: #111827; padding: 10px; border-radius: 8px; font-weight: 600;" @onclick="CloseInvoiceModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Payment Modal -->
+@if (showPaymentModal)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50;" @onclick="ClosePaymentModal">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 500px; box-shadow: 0 20px 25px rgba(0,0,0,0.1);" @onclick:stopPropagation="true">
+            <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 24px 0;">Record Payment</h2>
+            
+            <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Invoice: @selectedInvoice?.InvoiceNumber</div>
+                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Customer: @selectedInvoice?.CustomerName</div>
+                <div style="font-size: 14px; font-weight: 600; color: #111827;">Outstanding: ₱@selectedInvoice?.OutstandingAmount.ToString("N2")</div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Payment Amount *</label>
+                <input type="number" step="0.01" @bind="paymentAmount" placeholder="0.00" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Payment Date *</label>
+                <input type="date" @bind="paymentDate" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button class="btn" style="flex: 1; background: #059669; color: white; padding: 10px; border-radius: 8px; font-weight: 600;" @onclick="ConfirmPayment">Confirm Payment</button>
+                <button class="btn" style="flex: 1; background: #e5e7eb; color: #111827; padding: 10px; border-radius: 8px; font-weight: 600;" @onclick="ClosePaymentModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<Models.AccountsReceivable> invoices = new();
     private decimal totalOutstanding = 0;
@@ -98,6 +186,15 @@
     private int pendingInvoices = 0;
     private int dueSoonCount = 0;
     private int collectedCount = 0;
+
+    // Modal states
+    private bool showInvoiceModal = false;
+    private bool showPaymentModal = false;
+    private bool isEditingInvoice = false;
+    private Models.AccountsReceivable newInvoice = new();
+    private Models.AccountsReceivable selectedInvoice = null;
+    private decimal paymentAmount = 0;
+    private DateTime paymentDate = DateTime.Today;
 
     protected override async Task OnInitializedAsync()
     {
@@ -156,11 +253,132 @@
 
     private void ShowNewInvoiceModal()
     {
-        // TODO: Implement new invoice modal
+        newInvoice = new Models.AccountsReceivable 
+        { 
+            DueDate = DateTime.Today.AddDays(30),
+            CreatedAt = DateTime.Now
+        };
+        isEditingInvoice = false;
+        showInvoiceModal = true;
+    }
+
+    private void EditInvoice(Models.AccountsReceivable invoice)
+    {
+        newInvoice = new Models.AccountsReceivable
+        {
+            ReceivableId = invoice.ReceivableId,
+            CustomerName = invoice.CustomerName,
+            InvoiceNumber = invoice.InvoiceNumber,
+            Amount = invoice.Amount,
+            DueDate = invoice.DueDate,
+            Description = invoice.Description,
+            Status = invoice.Status
+        };
+        isEditingInvoice = true;
+        showInvoiceModal = true;
+    }
+
+    private async Task SaveInvoice()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(newInvoice.CustomerName) || string.IsNullOrWhiteSpace(newInvoice.InvoiceNumber) || newInvoice.Amount <= 0)
+            {
+                System.Diagnostics.Debug.WriteLine("Please fill all required fields");
+                return;
+            }
+
+            if (isEditingInvoice && newInvoice.ReceivableId > 0)
+            {
+                newInvoice.Status = invoices.First(i => i.ReceivableId == newInvoice.ReceivableId).Status;
+                await AccountsReceivableService.UpdateAsync(newInvoice);
+            }
+            else
+            {
+                newInvoice.Status = "Pending";
+                newInvoice.OutstandingAmount = newInvoice.Amount;
+                newInvoice.ReceivedAmount = 0;
+                await AccountsReceivableService.CreateAsync(newInvoice);
+            }
+
+            await LoadInvoices();
+            CloseInvoiceModal();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error saving invoice: {ex.Message}");
+        }
+    }
+
+    private void CloseInvoiceModal()
+    {
+        showInvoiceModal = false;
+        newInvoice = new();
+        isEditingInvoice = false;
     }
 
     private void RecordPayment(Models.AccountsReceivable invoice)
     {
-        // TODO: Implement payment recording
+        selectedInvoice = invoice;
+        paymentAmount = invoice.OutstandingAmount;
+        paymentDate = DateTime.Today;
+        showPaymentModal = true;
+    }
+
+    private async Task ConfirmPayment()
+    {
+        try
+        {
+            if (paymentAmount <= 0 || paymentAmount > selectedInvoice.OutstandingAmount)
+            {
+                System.Diagnostics.Debug.WriteLine("Invalid payment amount");
+                return;
+            }
+
+            selectedInvoice.ReceivedAmount += paymentAmount;
+            selectedInvoice.OutstandingAmount -= paymentAmount;
+
+            if (selectedInvoice.OutstandingAmount <= 0)
+            {
+                selectedInvoice.Status = "Paid";
+                selectedInvoice.OutstandingAmount = 0;
+            }
+
+            await AccountsReceivableService.UpdateAsync(selectedInvoice);
+            await LoadInvoices();
+            ClosePaymentModal();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error recording payment: {ex.Message}");
+        }
+    }
+
+    private void ClosePaymentModal()
+    {
+        showPaymentModal = false;
+        selectedInvoice = null;
+        paymentAmount = 0;
+    }
+
+    private void DeleteInvoice(Models.AccountsReceivable invoice)
+    {
+        try
+        {
+            if (invoice.Status == "Paid")
+            {
+                System.Diagnostics.Debug.WriteLine("Cannot delete paid invoices");
+                return;
+            }
+
+            // Remove from list and reload
+            invoices.Remove(invoice);
+            CalculateStats();
+            System.Diagnostics.Debug.WriteLine($"Invoice {invoice.InvoiceNumber} marked for deletion");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error deleting invoice: {ex.Message}");
+        }
     }
 }
