@@ -92,12 +92,20 @@
             <!-- Loans & Services Section -->
             <div class="sidebar-section">
                 <div class="sidebar-section-title">SERVICES</div>
+                <a href="/customer/loan-application" class="sidebar-item @(IsActive("/customer/loan-application"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <path d="M12 13v4m-2-2h4"></path>
+                    </svg>
+                    <span>Apply for Loan</span>
+                </a>
                 <a href="/customer/loans" class="sidebar-item @(IsActive("/customer/loans"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
                     </svg>
-                    <span>Loans</span>
+                    <span>My Loans</span>
                 </a>
                 <a href="/customer/rewards" class="sidebar-item @(IsActive("/customer/rewards"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -240,6 +248,7 @@
         if (path.Contains("/transactions")) return "Transactions";
         if (path.Contains("/bills")) return "Pay Bills";
         if (path.Contains("/cards")) return "Cards";
+        if (path.Contains("/loan-application")) return "Apply for Loan";
         if (path.Contains("/loans")) return "Loans";
         if (path.Contains("/savings")) return "Savings";
         if (path.Contains("/rewards")) return "Rewards";

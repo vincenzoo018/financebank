@@ -473,16 +473,51 @@ public class Loan
     public DateTime? NextDueDate { get; set; }
     
     [Required, MaxLength(50)]
-    public string Status { get; set; } = "Active"; // Active, Paid, Defaulted
+    public string Status { get; set; } = "Active"; // Active, Paid, Defaulted, Completed
     
     [MaxLength(500)]
     public string? Purpose { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
+    // Loan Process Tracking Fields
+    public int? ApplicationId { get; set; }
+    public int? AssessmentId { get; set; }
+    public int? ApprovalId { get; set; }
+    public int? DisbursalId { get; set; }
+    
+    public int CumulativeLateDays { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalPenalties { get; set; } = 0;
+    
+    public DateTime? LastPaymentDate { get; set; }
+    
+    public bool IsBlacklisted { get; set; } = false;
+    public DateTime? BlacklistedAt { get; set; }
+    
+    [MaxLength(500)]
+    public string? BlacklistedReason { get; set; }
+    
     // Navigation
     [ForeignKey("AccountId")]
     public virtual CustomerAccount? Account { get; set; }
+    
+    [ForeignKey("ApplicationId")]
+    public virtual LoanApplication? LoanApplication { get; set; }
+    
+    [ForeignKey("AssessmentId")]
+    public virtual LoanAssessment? LoanAssessment { get; set; }
+    
+    [ForeignKey("ApprovalId")]
+    public virtual LoanApproval? LoanApprovalRecord { get; set; }
+    
+    [ForeignKey("DisbursalId")]
+    public virtual LoanDisbursal? LoanDisbursalRecord { get; set; }
+    
+    public virtual ICollection<LoanPaymentSchedule>? PaymentSchedules { get; set; }
+    public virtual ICollection<LoanPayment>? Payments { get; set; }
+    public virtual ICollection<LoanViolation>? Violations { get; set; }
 }
 
 [Table("SavingsGoals")]

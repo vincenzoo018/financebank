@@ -55,6 +55,15 @@ namespace FinanceBank.Data
         public DbSet<RewardPointsEntity> RewardPoints { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
 
+        // Loan Process Tables
+        public DbSet<LoanApplication> LoanApplications { get; set; }
+        public DbSet<LoanAssessment> LoanAssessments { get; set; }
+        public DbSet<LoanApproval> LoanApprovals { get; set; }
+        public DbSet<LoanPaymentSchedule> LoanPaymentSchedules { get; set; }
+        public DbSet<LoanPayment> LoanPayments { get; set; }
+        public DbSet<LoanViolation> LoanViolations { get; set; }
+        public DbSet<LoanDisbursal> LoanDisbursals { get; set; }
+
         // Approval Module Tables
         public DbSet<ApprovalQueueEntity> ApprovalQueues { get; set; }
 

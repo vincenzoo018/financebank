@@ -20,12 +20,30 @@ namespace FinanceBank
 
             builder.Services.AddMauiBlazorWebView();
 
-            // Add Entity Framework DbContext
-            builder.Services.AddDbContext<BFASDbContext>(options =>
+            // Add Entity Framework DbContext with Factory pattern for proper lifetime management
+            // Using lazy initialization to prevent startup errors
+            try
             {
-                var connectionString = "Server=localhost\\SQLEXPRESS;Database=BFASdatabase;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;";
-                options.UseSqlServer(connectionString);
-            });
+                builder.Services.AddDbContextFactory<BFASDbContext>(options =>
+                {
+                    var connectionString = "Server=localhost\\SQLEXPRESS;Database=BFASdatabase;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;";
+                    options.UseSqlServer(connectionString);
+                    options.EnableSensitiveDataLogging(false);
+                });
+
+                // Also add regular DbContext for scoped usage
+                builder.Services.AddDbContext<BFASDbContext>(options =>
+                {
+                    var connectionString = "Server=localhost\\SQLEXPRESS;Database=BFASdatabase;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;";
+                    options.UseSqlServer(connectionString);
+                    options.EnableSensitiveDataLogging(false);
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Database context registration error: {ex.Message}");
+                // Continue without database context - will use fallback auth
+            }
 
             // Register AuthService as Singleton (persists across page navigations)
             builder.Services.AddSingleton<AuthService>();
@@ -84,6 +102,11 @@ namespace FinanceBank
             builder.Services.AddScoped<AccountingService>();
             builder.Services.AddScoped<FinanceService>();
             builder.Services.AddScoped<ApprovalsService>();
+
+            // Register Loan Process Services
+            builder.Services.AddScoped<LoanProcessService>();
+            builder.Services.AddScoped<LoanPaymentService>();
+            builder.Services.AddScoped<LoanEligibilityService>();
 
 #if DEBUG
     		builder.Services.AddBlazorWebViewDeveloperTools();

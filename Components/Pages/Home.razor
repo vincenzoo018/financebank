@@ -2,36 +2,70 @@
 @inject NavigationManager Navigation
 @inject AuthService AuthService
 
+<div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #f9fafb;">
+    <div style="text-align: center;">
+        <p style="color: #6b7280; font-size: 16px;">Loading...</p>
+    </div>
+</div>
+
 @code {
-    protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Check if user is already authenticated
-        if (AuthService.IsAuthenticated)
+        if (firstRender)
         {
-            // Redirect to appropriate dashboard based on role
-            if (AuthService.CurrentRole == AuthService.Roles.Customer)
+            try
             {
-                Navigation.NavigateTo("/customer/dashboard", replace: true);
-            }
-            else if (AuthService.CurrentRole == AuthService.Roles.Teller)
-            {
-                Navigation.NavigateTo("/teller/dashboard", replace: true);
-            }
-            else if (AuthService.CurrentRole == AuthService.Roles.SuperAdmin || 
-                     AuthService.CurrentRole == AuthService.Roles.Accountant || 
-                     AuthService.CurrentRole == AuthService.Roles.FinanceManager)
-            {
-                Navigation.NavigateTo("/admin/dashboard", replace: true);
-            }
-            else
-            {
+                // Small delay to ensure services are initialized
+                await Task.Delay(100);
+                
+                try
+                {
+                    // Try to check if user is authenticated
+                    if (AuthService != null && AuthService.IsAuthenticated)
+                    {
+                        // Redirect to appropriate dashboard based on role
+                        string redirectPath = AuthService.CurrentRole switch
+                        {
+                            AuthService.Roles.Customer => "/customer/dashboard",
+                            AuthService.Roles.Teller => "/teller/dashboard",
+                            AuthService.Roles.SuperAdmin => "/admin/dashboard",
+                            AuthService.Roles.Accountant => "/accountant/dashboard",
+                            AuthService.Roles.FinanceManager => "/finance-manager/dashboard",
+                            _ => "/login"
+                        };
+                        
+                        Navigation.NavigateTo(redirectPath, replace: true);
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Auth check error: {ex.Message}");
+                    // If auth check fails, go to login
+                    Navigation.NavigateTo("/login", replace: true);
+                    return;
+                }
+
+                // Not authenticated, go to login
                 Navigation.NavigateTo("/login", replace: true);
             }
-        }
-        else
-        {
-            // Not authenticated, go to login
-            Navigation.NavigateTo("/login", replace: true);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Navigation error in Home: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                // Emergency fallback to login
+                try
+                {
+                    Navigation.NavigateTo("/login", replace: true);
+                }
+                catch
+                {
+                    // If even navigation fails, wait and try once more
+                    await Task.Delay(500);
+                    Navigation.NavigateTo("/login", replace: true);
+                }
+            }
         }
     }
 }

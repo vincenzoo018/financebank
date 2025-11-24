@@ -9,7 +9,7 @@
         <div class="sidebar-header">
             <div style="text-align: center;">
                 <img src="images/finsys-logo.png" alt="FINSYS Logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
-                <div class="sidebar-logo">FINSYS Employee</div>
+                <div class="sidebar-logo">FINSYS @GetRoleDisplayName()</div>
                 <div class="sidebar-subtitle">Finance Portal</div>
             </div>
         </div>
@@ -24,39 +24,97 @@
                 </a>
             </div>
 
-            <!-- Finance -->
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">FINANCE</div>
-                <a href="/employee/payables" class="sidebar-item @(IsActive("/employee/payables"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path></svg>
-                    <span>Accounts Payable</span>
-                </a>
-                <a href="/employee/receivables" class="sidebar-item @(IsActive("/employee/receivables"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    <span>Accounts Receivable</span>
-                </a>
-                <a href="/employee/expenses" class="sidebar-item @(IsActive("/employee/expenses"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><path d="M19.07 4.93l-2.58 2.58A8 8 0 1 0 20.5 12z"></path></svg>
-                    <span>Expenses</span>
-                </a>
-            </div>
+            <!-- Finance - For Finance Manager and SuperAdmin -->
+            @if (AuthService.CurrentRole == AuthService.Roles.FinanceManager || AuthService.CurrentRole == AuthService.Roles.SuperAdmin)
+            {
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">FINANCE</div>
+                    <a href="/employee/payables" class="sidebar-item @(IsActive("/employee/payables"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path></svg>
+                        <span>Accounts Payable</span>
+                    </a>
+                    <a href="/employee/receivables" class="sidebar-item @(IsActive("/employee/receivables"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        <span>Accounts Receivable</span>
+                    </a>
+                    <a href="/employee/expenses" class="sidebar-item @(IsActive("/employee/expenses"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><path d="M19.07 4.93l-2.58 2.58A8 8 0 1 0 20.5 12z"></path></svg>
+                        <span>Expenses</span>
+                    </a>
+                </div>
+            }
 
-            <!-- Accounting -->
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">ACCOUNTING</div>
-                <a href="/employee/journal" class="sidebar-item @(IsActive("/employee/journal"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="13" x2="12" y2="17"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
-                    <span>Journal Entries</span>
-                </a>
-                <a href="/employee/ledger" class="sidebar-item @(IsActive("/employee/ledger"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"></path></svg>
-                    <span>General Ledger</span>
-                </a>
-                <a href="/employee/reports" class="sidebar-item @(IsActive("/employee/reports"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"></path><path d="M9 9h6v6H9z"></path></svg>
-                    <span>Reports</span>
-                </a>
-            </div>
+            <!-- Finance - For Accountant and SuperAdmin -->
+            @if (AuthService.CurrentRole == AuthService.Roles.Accountant || AuthService.CurrentRole == AuthService.Roles.SuperAdmin)
+            {
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">FINANCE</div>
+                    <a href="/fmanager/budget" class="sidebar-item @(IsActive("/fmanager/budget"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path></svg>
+                        <span>Budget Management</span>
+                    </a>
+                    <a href="/fmanager/cashflow" class="sidebar-item @(IsActive("/fmanager/cashflow"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        <span>Cashflow Analysis</span>
+                    </a>
+                    <a href="/fmanager/forecasting" class="sidebar-item @(IsActive("/fmanager/forecasting"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><path d="M19.07 4.93l-2.58 2.58A8 8 0 1 0 20.5 12z"></path></svg>
+                        <span>Financial Forecasting</span>
+                    </a>
+                </div>
+            }
+
+            <!-- Accounting - Only for Accountant and SuperAdmin -->
+            @if (AuthService.CurrentRole == AuthService.Roles.Accountant || AuthService.CurrentRole == AuthService.Roles.SuperAdmin)
+            {
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">ACCOUNTING</div>
+                    <a href="/employee/journal" class="sidebar-item @(IsActive("/employee/journal"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="13" x2="12" y2="17"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                        <span>Journal Entries</span>
+                    </a>
+                    <a href="/employee/ledger" class="sidebar-item @(IsActive("/employee/ledger"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"></path></svg>
+                        <span>General Ledger</span>
+                    </a>
+                    <a href="/employee/reports" class="sidebar-item @(IsActive("/employee/reports"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"></path><path d="M9 9h6v6H9z"></path></svg>
+                        <span>Reports</span>
+                    </a>
+                </div>
+            }
+
+            <!-- Loan Processing - Accountant Only -->
+            @if (AuthService.CurrentRole == AuthService.Roles.Accountant || AuthService.CurrentRole == AuthService.Roles.SuperAdmin)
+            {
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">LOAN PROCESSING</div>
+                    <a href="/accountant/review-assessment" class="sidebar-item @(IsActive("/accountant/review-assessment"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <span>Review Assessment</span>
+                    </a>
+                    <a href="/accountant/loan-recording" class="sidebar-item @(IsActive("/accountant/loan-recording"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 9h6"></path><path d="M9 13h6"></path><path d="M9 17h2"></path></svg>
+                        <span>Loan Recording</span>
+                    </a>
+                    <a href="/accountant/clearance-certificate" class="sidebar-item @(IsActive("/accountant/clearance-certificate"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <span>Clearance Certificate</span>
+                    </a>
+                </div>
+            }
+
+            <!-- Loan Processing - Finance Manager Only -->
+            @if (AuthService.CurrentRole == AuthService.Roles.FinanceManager || AuthService.CurrentRole == AuthService.Roles.SuperAdmin)
+            {
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">LOAN APPROVALS</div>
+                    <a href="/finance-manager/approval-decision" class="sidebar-item @(IsActive("/finance-manager/approval-decision"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span>Approval Decision</span>
+                    </a>
+                </div>
+            }
         </div>
 
         <div class="sidebar-footer"></div>
@@ -92,7 +150,7 @@
                         </div>
                     }
                 </div>
-                <span style="font-size: 12px; background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 20px; font-weight: 600;">Employee</span>
+                <span style="font-size: 12px; background: @GetRoleBadgeColor(); color: white; padding: 4px 12px; border-radius: 20px; font-weight: 600;">@GetRoleDisplayName()</span>
             </div>
         </div>
         <div class="sidebar-content">
@@ -133,6 +191,10 @@
         if (path.Contains("/receivables")) return "Accounts Receivable";
         if (path.Contains("/journal")) return "Journal Entries";
         if (path.Contains("/reports")) return "Reports";
+        if (path.Contains("/review-assessment")) return "Review Loan Assessment";
+        if (path.Contains("/loan-recording")) return "Loan Recording";
+        if (path.Contains("/clearance-certificate")) return "Clearance Certificate";
+        if (path.Contains("/approval-decision")) return "Loan Approval Decision";
         return "Employee Portal";
     }
 
@@ -140,6 +202,28 @@
     {
         AuthService.Logout();
         Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    private string GetRoleDisplayName()
+    {
+        return AuthService.CurrentRole switch
+        {
+            AuthService.Roles.Accountant => "Accountant",
+            AuthService.Roles.FinanceManager => "Finance Manager",
+            AuthService.Roles.SuperAdmin => "Administrator",
+            _ => "Employee"
+        };
+    }
+
+    private string GetRoleBadgeColor()
+    {
+        return AuthService.CurrentRole switch
+        {
+            AuthService.Roles.Accountant => "#f59e0b",      // Amber
+            AuthService.Roles.FinanceManager => "#3b82f6",   // Blue
+            AuthService.Roles.SuperAdmin => "#ef4444",       // Red
+            _ => "#6b7280"                                   // Gray
+        };
     }
 
     public void Dispose()

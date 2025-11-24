@@ -1,0 +1,236 @@
+@page "/finance-manager/approval-decision"
+@using Microsoft.AspNetCore.Authorization
+@using FinanceBank.Services
+@using FinanceBank.Models
+@layout FinanceManagerLayout
+@inject LoanProcessService LoanProcessService
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "FinanceManager")]
+
+<div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0"><i class="bi bi-hand-thumbs-up"></i> Loan Approval Decision</h4>
+        </div>
+        <div class="card-body">
+            @if (successMessage != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show">
+                    @successMessage
+                    <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
+                </div>
+            }
+
+            @if (errorMessage != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">
+                    @errorMessage
+                    <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+                </div>
+            }
+
+            @if (pendingAssessments == null)
+            {
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (pendingAssessments.Count == 0)
+            {
+                <div class="alert alert-info">No assessments pending approval.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Assessment ID</th>
+                                <th>Customer</th>
+                                <th>Loan Amount</th>
+                                <th>Interest Rate</th>
+                                <th>Term (Months)</th>
+                                <th>Monthly Payment</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var assessment in pendingAssessments)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-primary">ASS-@assessment.AssessmentId</span></td>
+                                    <td>@assessment.Account?.Customer?.FullName</td>
+                                    <td>₱@assessment.LoanAmount.ToString("N2")</td>
+                                    <td>@assessment.InterestRate%</td>
+                                    <td>@assessment.TermMonths</td>
+                                    <td>₱@assessment.ComputedMonthlyPayment.ToString("N2")</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-success" @onclick="() => ShowApprovalForm(assessment)">
+                                            <i class="bi bi-check-lg"></i> Approve
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" @onclick="() => ShowDeclineForm(assessment)">
+                                            <i class="bi bi-x-lg"></i> Decline
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (selectedAssessment != null)
+            {
+                <div class="card mt-4 border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">@(isApproving ? "Approve Loan" : "Decline Loan")</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (isApproving)
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Approved Amount (₱)</label>
+                                <input type="number" class="form-control" @bind="approvalAmount" step="0.01" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Approved Interest Rate (%)</label>
+                                <input type="number" class="form-control" @bind="approvalRate" step="0.01" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Approved Term (Months)</label>
+                                <input type="number" class="form-control" @bind="approvalTerm" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Special Conditions</label>
+                                <textarea class="form-control" @bind="specialConditions" rows="3"></textarea>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-success" @onclick="ApproveAsync">
+                                    <i class="bi bi-check-lg"></i> Approve Loan
+                                </button>
+                                <button class="btn btn-secondary" @onclick="CancelDecision">Cancel</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Reason for Declination</label>
+                                <textarea class="form-control" @bind="declinationReason" rows="3" required></textarea>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-danger" @onclick="DeclineAsync">
+                                    <i class="bi bi-x-lg"></i> Decline Application
+                                </button>
+                                <button class="btn btn-secondary" @onclick="CancelDecision">Cancel</button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+@code {
+    private List<LoanAssessment>? pendingAssessments;
+    private LoanAssessment? selectedAssessment;
+    private bool isApproving = false;
+    private decimal approvalAmount;
+    private decimal approvalRate;
+    private int approvalTerm;
+    private string? specialConditions;
+    private string? declinationReason;
+    private string? successMessage;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPendingAssessmentsAsync();
+    }
+
+    private async Task LoadPendingAssessmentsAsync()
+    {
+        try
+        {
+            pendingAssessments = await LoanProcessService.GetPendingAssessmentsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading assessments: {ex.Message}";
+        }
+    }
+
+    private void ShowApprovalForm(LoanAssessment assessment)
+    {
+        selectedAssessment = assessment;
+        isApproving = true;
+        approvalAmount = assessment.LoanAmount;
+        approvalRate = assessment.InterestRate;
+        approvalTerm = assessment.TermMonths;
+        specialConditions = "";
+    }
+
+    private void ShowDeclineForm(LoanAssessment assessment)
+    {
+        selectedAssessment = assessment;
+        isApproving = false;
+        declinationReason = "";
+    }
+
+    private async Task ApproveAsync()
+    {
+        try
+        {
+            if (selectedAssessment != null)
+            {
+                await LoanProcessService.ApproveLoanAsync(
+                    assessmentId: selectedAssessment.AssessmentId,
+                    applicationId: selectedAssessment.ApplicationId,
+                    accountId: selectedAssessment.AccountId,
+                    approvedAmount: approvalAmount,
+                    approvedInterestRate: approvalRate,
+                    approvedTermMonths: approvalTerm,
+                    approvedBy: "finance-manager"
+                );
+
+                successMessage = "Loan approved successfully!";
+                selectedAssessment = null;
+                await LoadPendingAssessmentsAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error approving loan: {ex.Message}";
+        }
+    }
+
+    private async Task DeclineAsync()
+    {
+        try
+        {
+            if (selectedAssessment != null)
+            {
+                await LoanProcessService.DeclineLoanAsync(
+                    assessmentId: selectedAssessment.AssessmentId,
+                    applicationId: selectedAssessment.ApplicationId,
+                    accountId: selectedAssessment.AccountId,
+                    declinationReason: declinationReason ?? "",
+                    declinedBy: "finance-manager"
+                );
+
+                successMessage = "Loan declined successfully!";
+                selectedAssessment = null;
+                await LoadPendingAssessmentsAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error declining loan: {ex.Message}";
+        }
+    }
+
+    private void CancelDecision()
+    {
+        selectedAssessment = null;
+    }
+}

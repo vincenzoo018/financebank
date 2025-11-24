@@ -1,0 +1,289 @@
+@page "/teller/payment-processing"
+@using Microsoft.AspNetCore.Authorization
+@using FinanceBank.Services
+@using FinanceBank.Models
+@layout TellerLayout
+@inject LoanPaymentService LoanPaymentService
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Teller")]
+
+<div class="card shadow">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0"><i class="bi bi-credit-card"></i> Loan Payment Processing</h4>
+        </div>
+        <div class="card-body">
+            @if (successMessage != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show">
+                    @successMessage
+                    <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
+                </div>
+            }
+
+            @if (errorMessage != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">
+                    @errorMessage
+                    <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+                </div>
+            }
+
+            <ul class="nav nav-tabs mb-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" @onclick="OnPendingTabClick" type="button" role="tab">
+                        <i class="bi bi-hourglass-split"></i> Pending Payments
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" @onclick="OnOverdueTabClick" type="button" role="tab">
+                        <i class="bi bi-exclamation-triangle"></i> Overdue Payments
+                    </button>
+                </li>
+            </ul>
+
+            @if (activeTab == "pending")
+            {
+                @if (pendingPayments == null)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+                else if (pendingPayments.Count == 0)
+                {
+                    <div class="alert alert-info">No pending payments.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Schedule ID</th>
+                                    <th>Loan Number</th>
+                                    <th>Payment #</th>
+                                    <th>Due Date</th>
+                                    <th>Minimum Payment</th>
+                                    <th>Principal</th>
+                                    <th>Interest</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var payment in pendingPayments)
+                                {
+                                    <tr>
+                                        <td><span class="badge bg-primary">SCH-@payment.ScheduleId</span></td>
+                                        <td>@payment.Loan?.LoanNumber</td>
+                                        <td>#@payment.PaymentNumber</td>
+                                        <td>@payment.DueDate.ToString("yyyy-MM-dd")</td>
+                                        <td>₱@payment.MinimumPayment.ToString("N2")</td>
+                                        <td>₱@payment.PrincipalAmount.ToString("N2")</td>
+                                        <td>₱@payment.InterestAmount.ToString("N2")</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-success" @onclick="() => ShowPaymentForm(payment)">
+                                                <i class="bi bi-check-lg"></i> Pay
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+
+            @if (activeTab == "overdue")
+            {
+                @if (overduePayments == null)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+                else if (overduePayments.Count == 0)
+                {
+                    <div class="alert alert-info">No overdue payments.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-danger">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Schedule ID</th>
+                                    <th>Loan Number</th>
+                                    <th>Payment #</th>
+                                    <th>Due Date</th>
+                                    <th>Days Overdue</th>
+                                    <th>Penalty</th>
+                                    <th>Total Due</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var payment in overduePayments)
+                                {
+                                    <tr>
+                                        <td><span class="badge bg-danger">SCH-@payment.ScheduleId</span></td>
+                                        <td>@payment.Loan?.LoanNumber</td>
+                                        <td>#@payment.PaymentNumber</td>
+                                        <td>@payment.DueDate.ToString("yyyy-MM-dd")</td>
+                                        <td><span class="badge bg-danger">@payment.DaysOverdue days</span></td>
+                                        <td>₱@payment.Penalty.ToString("N2")</td>
+                                        <td>₱@(payment.MinimumPayment + payment.Penalty).ToString("N2")</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger" @onclick="() => ShowPaymentForm(payment)">
+                                                <i class="bi bi-exclamation-lg"></i> Collect
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+
+            @if (selectedSchedule != null)
+            {
+                <div class="card mt-4 border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Process Payment</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Payment Amount (₱)</label>
+                                <input type="number" class="form-control" @bind="paymentAmount" step="0.01" />
+                                <small class="text-muted">Minimum: ₱@selectedSchedule.MinimumPayment.ToString("N2")</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Payment Method</label>
+                                <select class="form-select" @bind="paymentMethod">
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Check">Check</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Online Banking">Online Banking</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Reference Number</label>
+                            <input type="text" class="form-control" @bind="paymentReference" placeholder="e.g., CHK-001" />
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" @onclick="ProcessPaymentAsync">
+                                <i class="bi bi-check-lg"></i> Process Payment
+                            </button>
+                            <button class="btn btn-secondary" @onclick="CancelPayment">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (paymentConfirmation != null)
+            {
+                <div class="card mt-4 border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Payment Confirmation</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Amount Paid:</strong> ₱@paymentConfirmation.PaymentAmount.ToString("N2")</p>
+                                <p><strong>Method:</strong> @paymentConfirmation.PaymentMethod</p>
+                                <p><strong>Date:</strong> @paymentConfirmation.PaymentDate.ToString("yyyy-MM-dd HH:mm")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Reference:</strong> <span class="badge bg-primary">@paymentConfirmation.Reference</span></p>
+                                <p><strong>Processed By:</strong> @paymentConfirmation.ProcessedBy</p>
+                                <p><strong>Status:</strong> <span class="badge bg-success">PROCESSED</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+@code {
+    private List<LoanPaymentSchedule>? pendingPayments;
+    private List<LoanPaymentSchedule>? overduePayments;
+    private string activeTab = "pending";
+    private LoanPaymentSchedule? selectedSchedule;
+    private decimal paymentAmount;
+    private string? paymentMethod = "Bank Transfer";
+    private string? paymentReference;
+    private LoanPayment? paymentConfirmation;
+    private string? successMessage;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPaymentsAsync();
+    }
+
+    private async Task LoadPaymentsAsync()
+    {
+        try
+        {
+            pendingPayments = await LoanPaymentService.GetUpcomingPaymentsAsync(loanId: 1); // Should be dynamic
+            overduePayments = await LoanPaymentService.GetOverduePaymentsAsync(loanId: 1);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading payments: {ex.Message}";
+        }
+    }
+
+    private void ShowPaymentForm(LoanPaymentSchedule schedule)
+    {
+        selectedSchedule = schedule;
+        paymentAmount = schedule.MinimumPayment;
+        paymentReference = $"REF-{DateTime.Now:yyyyMMddHHmmss}";
+    }
+
+    private async Task ProcessPaymentAsync()
+    {
+        try
+        {
+            if (selectedSchedule != null)
+            {
+                paymentConfirmation = await LoanPaymentService.ProcessPaymentAsync(
+                    scheduleId: selectedSchedule.ScheduleId,
+                    amount: paymentAmount,
+                    method: paymentMethod ?? "",
+                    processedBy: "teller-user"
+                );
+
+                successMessage = "Payment processed successfully!";
+                selectedSchedule = null;
+                await LoadPaymentsAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error processing payment: {ex.Message}";
+        }
+    }
+
+    private void CancelPayment()
+    {
+        selectedSchedule = null;
+    }
+
+    private void OnPendingTabClick()
+    {
+        activeTab = "pending";
+    }
+
+    private void OnOverdueTabClick()
+    {
+        activeTab = "overdue";
+    }
+}

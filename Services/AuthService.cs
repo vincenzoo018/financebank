@@ -6,7 +6,7 @@ namespace FinanceBank.Services
 {
     public class AuthService
     {
-        private readonly BFASDbContext? _context;
+        private readonly IDbContextFactory<BFASDbContext>? _contextFactory;
         
         public bool IsAuthenticated { get; private set; }
         public int? CurrentUserId { get; private set; }
@@ -21,10 +21,10 @@ namespace FinanceBank.Services
         // Event to notify when authentication state changes
         public event Action? OnAuthStateChanged;
 
-        // Constructor for dependency injection
-        public AuthService(BFASDbContext? context = null)
+        // Constructor for dependency injection with DbContextFactory
+        public AuthService(IDbContextFactory<BFASDbContext>? contextFactory = null)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         // 6 ROLES
@@ -61,7 +61,7 @@ namespace FinanceBank.Services
         // Authenticate user with database
         public async Task<(bool success, string message)> AuthenticateAsync(string username, string password, string? ipAddress = null, string? userAgent = null)
         {
-            if (_context == null)
+            if (_contextFactory == null)
             {
                 // Fallback to simple authentication if no database
                 return AuthenticateSimple(username, password);
@@ -69,8 +69,11 @@ namespace FinanceBank.Services
 
             try
             {
+                // Create a new DbContext instance for this operation
+                using var context = await _contextFactory.CreateDbContextAsync();
+                
                 // Find user by username (include Employee data)
-                var user = await _context.Users
+                var user = await context.Users
                     .Include(u => u.Employee)
                     .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
 
@@ -127,12 +130,14 @@ namespace FinanceBank.Services
         // Login with database user (public for service-to-service calls)
         public async Task<bool> LoginAsync(string username, string password, string? ipAddress = null, string? userAgent = null)
         {
-            if (_context == null)
+            if (_contextFactory == null)
                 return false;
 
             try
             {
-                var user = await _context.Users
+                using var context = await _contextFactory.CreateDbContextAsync();
+                
+                var user = await context.Users
                     .Include(u => u.Employee)
                     .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
 
@@ -163,7 +168,7 @@ namespace FinanceBank.Services
 
                 // Update last login time
                 user.LastLoginAt = DateTime.Now;
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
 
                 // Log successful login
                 var loginHistory = new LoginHistory
@@ -174,8 +179,8 @@ namespace FinanceBank.Services
                     UserAgent = userAgent,
                     LoginStatus = "Success"
                 };
-                _context.LoginHistories.Add(loginHistory);
-                await _context.SaveChangesAsync();
+                context.LoginHistories.Add(loginHistory);
+                await context.SaveChangesAsync();
                 
                 // Notify authentication state changed
                 OnAuthStateChanged?.Invoke();
@@ -212,21 +217,32 @@ namespace FinanceBank.Services
             
             Permissions = GetPermissionsForRole(user.Role);
 
-            // Update last login time
-            user.LastLoginAt = DateTime.Now;
-            await _context!.SaveChangesAsync();
-
-            // Log successful login
-            var loginHistory = new LoginHistory
+            if (_contextFactory != null)
             {
-                UserId = user.UserId,
-                LoginTime = DateTime.Now,
-                IpAddress = ipAddress,
-                UserAgent = userAgent,
-                LoginStatus = "Success"
-            };
-            _context.LoginHistories.Add(loginHistory);
-            await _context.SaveChangesAsync();
+                try
+                {
+                    using var context = await _contextFactory.CreateDbContextAsync();
+                    
+                    // Attach and update the user
+                    context.Users.Attach(user);
+                    user.LastLoginAt = DateTime.Now;
+                    context.Entry(user).Property(u => u.LastLoginAt).IsModified = true;
+                    await context.SaveChangesAsync();
+
+                    // Log successful login
+                    var loginHistory = new LoginHistory
+                    {
+                        UserId = user.UserId,
+                        LoginTime = DateTime.Now,
+                        IpAddress = ipAddress,
+                        UserAgent = userAgent,
+                        LoginStatus = "Success"
+                    };
+                    context.LoginHistories.Add(loginHistory);
+                    await context.SaveChangesAsync();
+                }
+                catch { /* Ignore logging errors */ }
+            }
             
             // Notify authentication state changed
             OnAuthStateChanged?.Invoke();
@@ -250,11 +266,13 @@ namespace FinanceBank.Services
         // Log failed login attempt
         private async Task LogFailedLoginAsync(string username, string reason, string? ipAddress, string? userAgent)
         {
-            if (_context == null) return;
+            if (_contextFactory == null) return;
 
             try
             {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+                using var context = await _contextFactory.CreateDbContextAsync();
+                
+                var user = await context.Users.FirstOrDefaultAsync(u => u.Username == username);
                 if (user != null)
                 {
                     var loginHistory = new LoginHistory
@@ -266,8 +284,8 @@ namespace FinanceBank.Services
                         LoginStatus = "Failed",
                         FailureReason = reason
                     };
-                    _context.LoginHistories.Add(loginHistory);
-                    await _context.SaveChangesAsync();
+                    context.LoginHistories.Add(loginHistory);
+                    await context.SaveChangesAsync();
                 }
             }
             catch { /* Ignore logging errors */ }

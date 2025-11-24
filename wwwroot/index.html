@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>FinanceBank</title>
     <base href="/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
@@ -25,6 +27,31 @@
     </div>
 
     <script src="_framework/blazor.webview.js" autostart="false"></script>
+
+    <script>
+        // For MAUI webview, we need to start Blazor manually
+        // This ensures proper initialization and error handling
+        async function startBlazor() {
+            try {
+                await window.Blazor.start();
+                console.log('Blazor started successfully');
+            } catch (error) {
+                console.error('Failed to start Blazor:', error);
+                // Show error to user
+                const app = document.getElementById('app');
+                if (app) {
+                    app.innerHTML = '<div style="color: red; padding: 20px;">Failed to initialize the application. Please refresh the page.</div>';
+                }
+            }
+        }
+
+        // Start Blazor when the DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startBlazor);
+        } else {
+            startBlazor();
+        }
+    </script>
 
 </body>
 

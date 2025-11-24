@@ -1,0 +1,191 @@
+@page "/teller/final-receipt"
+@using Microsoft.AspNetCore.Authorization
+@using FinanceBank.Services
+@using FinanceBank.Models
+@layout TellerLayout
+@inject LoanProcessService LoanProcessService
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Teller")]
+
+<div class="card shadow">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0"><i class="bi bi-receipt"></i> Loan Final Receipt & Clearance</h4>
+        </div>
+        <div class="card-body">
+            @if (successMessage != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show">
+                    @successMessage
+                    <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
+                </div>
+            }
+
+            @if (errorMessage != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">
+                    @errorMessage
+                    <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+                </div>
+            }
+
+            @if (disbursedLoans == null)
+            {
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (disbursedLoans.Count == 0)
+            {
+                <div class="alert alert-info">No disbursed loans available.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Loan Number</th>
+                                <th>Customer</th>
+                                <th>Loan Amount</th>
+                                <th>Interest Rate</th>
+                                <th>Term (Months)</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var loan in disbursedLoans)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-primary">@loan.LoanNumber</span></td>
+                                    <td>@loan.Account?.Customer?.FullName</td>
+                                    <td>₱@loan.LoanAmount.ToString("N2")</td>
+                                    <td>@loan.InterestRate.ToString("N2")%</td>
+                                    <td>@loan.TermMonths</td>
+                                    <td><span class="badge bg-success">@loan.Status</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" @onclick="() => ViewReceiptAsync(loan)">
+                                            <i class="bi bi-printer"></i> Receipt
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (selectedLoan != null)
+            {
+                <div class="card mt-4 border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">📋 Loan Final Receipt</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Loan Number:</strong> @selectedLoan.LoanNumber
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Customer:</strong> @selectedLoan.Account?.Customer?.FullName
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Loan Amount:</strong> ₱@selectedLoan.LoanAmount.ToString("N2")
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Interest Rate:</strong> @selectedLoan.InterestRate.ToString("N2")%
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Term:</strong> @selectedLoan.TermMonths months
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Monthly Payment:</strong> ₱@selectedLoan.MonthlyPayment.ToString("N2")
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Start Date:</strong> @selectedLoan.StartDate.ToString("yyyy-MM-dd")
+                            </div>
+                            <div class="col-md-6">
+                                <strong>End Date:</strong> @selectedLoan.EndDate.ToString("yyyy-MM-dd")
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Outstanding Balance:</strong> ₱@selectedLoan.OutstandingBalance.ToString("N2")
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Status:</strong> <span class="badge bg-success">@selectedLoan.Status</span>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2 mt-4">
+                            <button class="btn btn-primary" @onclick="PrintReceiptAsync">
+                                <i class="bi bi-printer"></i> Print Receipt
+                            </button>
+                            <button class="btn btn-secondary" @onclick="ClearSelection">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+@code {
+    private List<Loan>? disbursedLoans;
+    private Loan? selectedLoan;
+    private string? successMessage;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDisbursedLoansAsync();
+    }
+
+    private async Task LoadDisbursedLoansAsync()
+    {
+        try
+        {
+            disbursedLoans = await LoanProcessService.GetActiveLoansAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading loans: {ex.Message}";
+        }
+    }
+
+    private void ViewReceiptAsync(Loan loan)
+    {
+        selectedLoan = loan;
+    }
+
+    private async Task PrintReceiptAsync()
+    {
+        try
+        {
+            if (selectedLoan == null) return;
+            
+            // In a real scenario, this would generate a PDF
+            // For now, we'll just show a success message
+            successMessage = $"Receipt for loan {selectedLoan.LoanNumber} generated successfully!";
+            await Task.Delay(2000);
+            ClearSelection();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error generating receipt: {ex.Message}";
+        }
+    }
+
+    private void ClearSelection()
+    {
+        selectedLoan = null;
+    }
+}

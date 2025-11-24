@@ -54,6 +54,35 @@
                 </a>
             </div>
 
+            <!-- Loan Processing -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">LOAN PROCESSING</div>
+                <a href="/teller/verify-identity" class="sidebar-item @(IsActive("/teller/verify-identity"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span>Verify Identity</span>
+                </a>
+                <a href="/teller/encode-application" class="sidebar-item @(IsActive("/teller/encode-application"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    <span>Encode Application</span>
+                </a>
+                <a href="/teller/contract-preparation" class="sidebar-item @(IsActive("/teller/contract-preparation"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 9h6"></path><path d="M9 13h6"></path><path d="M9 17h2"></path></svg>
+                    <span>Contract Preparation</span>
+                </a>
+                <a href="/teller/funds-disbursement" class="sidebar-item @(IsActive("/teller/funds-disbursement"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"></path><path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path><path d="M15 19H6.5a1.5 1.5 0 0 1 0-3H15"></path></svg>
+                    <span>Funds Disbursement</span>
+                </a>
+                <a href="/teller/payment-processing" class="sidebar-item @(IsActive("/teller/payment-processing"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4"></path></svg>
+                    <span>Payment Processing</span>
+                </a>
+                <a href="/teller/final-receipt" class="sidebar-item @(IsActive("/teller/final-receipt"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    <span>Final Receipt</span>
+                </a>
+            </div>
+
             <!-- Reports -->
             <div class="sidebar-section">
                 <div class="sidebar-section-title">REPORTS</div>
@@ -168,6 +197,12 @@
         if (path.Contains("/transactions")) return "Transaction History";
         if (path.Contains("/accounts")) return "Customer Accounts";
         if (path.Contains("/verification")) return "Account Verification";
+        if (path.Contains("/verify-identity")) return "Verify Customer Identity";
+        if (path.Contains("/encode-application")) return "Encode Application";
+        if (path.Contains("/contract-preparation")) return "Contract Preparation";
+        if (path.Contains("/funds-disbursement")) return "Funds Disbursement";
+        if (path.Contains("/payment-processing")) return "Payment Processing";
+        if (path.Contains("/final-receipt")) return "Final Receipt";
         if (path.Contains("/daily-report")) return "Daily Report";
         if (path.Contains("/cash-summary")) return "Cash Summary";
         return "Teller Portal";

@@ -1,0 +1,58 @@
+@using FinanceBank.Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+@if (isAuthorized)
+{
+    @ChildContent
+}
+else if (isLoading)
+{
+    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #f9fafb;">
+        <div style="text-align: center;">
+            <p style="color: #6b7280; font-size: 16px;">Verifying access...</p>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string[] AllowedRoles { get; set; } = Array.Empty<string>();
+
+    private bool isAuthorized = false;
+    private bool isLoading = true;
+
+    protected override void OnInitialized()
+    {
+        // Check if user is authenticated
+        if (!AuthService.IsAuthenticated)
+        {
+            // Not authenticated - redirect to login
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        // If specific roles are required, check them
+        if (AllowedRoles.Length > 0)
+        {
+            isAuthorized = AllowedRoles.Contains(AuthService.CurrentRole ?? "");
+        }
+        else
+        {
+            // If no roles specified, just check authentication
+            isAuthorized = true;
+        }
+
+        if (!isAuthorized)
+        {
+            // Not authorized - redirect to unauthorized page or home
+            Navigation.NavigateTo("/", forceLoad: true);
+            return;
+        }
+
+        isLoading = false;
+    }
+}

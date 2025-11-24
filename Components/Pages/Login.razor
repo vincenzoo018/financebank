@@ -34,7 +34,8 @@
                        class="login-input @(showError && string.IsNullOrEmpty(username) ? "error" : "")" 
                        @bind="username" 
                        placeholder="Enter username" 
-                       @oninput="() => showError = false" />
+                       @oninput="() => showError = false"
+                       disabled="@isLoading" />
             </div>
 
             <!-- Password Input -->
@@ -43,8 +44,9 @@
                        class="login-input @(showError && string.IsNullOrEmpty(password) ? "error" : "")" 
                        @bind="password" 
                        placeholder="Password" 
-                       @oninput="() => showError = false" />
-                <button type="button" @onclick="() => showPassword = !showPassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 18px;">
+                       @oninput="() => showError = false"
+                       disabled="@isLoading" />
+                <button type="button" @onclick="() => showPassword = !showPassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 18px;" disabled="@isLoading">
                     @if (showPassword) { <span>👁️</span> } else { <span>👁️‍🗨️</span> }
                 </button>
             </div>
@@ -76,6 +78,18 @@
                     <span>Sign In</span>
                 }
             </button>
+
+            <!-- Test Credentials Box -->
+            <div style="margin-top: 24px; padding: 16px; background: #f3f4f6; border-radius: 8px; border-left: 4px solid #059669;">
+                <p style="font-size: 12px; color: #6b7280; margin: 0 0 8px 0; font-weight: 600;">Test Credentials (Demo Mode):</p>
+                <div style="font-size: 11px; color: #7f8699; font-family: monospace; line-height: 1.6;">
+                    <div><strong style="color: #6b7280;">Admin:</strong> admin / admin123</div>
+                    <div><strong style="color: #6b7280;">Accountant:</strong> accountant / accountant123</div>
+                    <div><strong style="color: #6b7280;">Finance Mgr:</strong> financemanager / financemanager123</div>
+                    <div><strong style="color: #6b7280;">Teller:</strong> teller / teller123</div>
+                    <div><strong style="color: #6b7280;">Customer:</strong> customer / customer123</div>
+                </div>
+            </div>
         </form>
         </div>
     </div>
@@ -128,6 +142,12 @@
     .login-input.error {
         border-color: #dc2626;
         box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+    
+    .login-input:disabled {
+        background-color: #f3f4f6;
+        opacity: 0.6;
+        cursor: not-allowed;
     }
     
     .login-button {
@@ -186,7 +206,6 @@
             return;
         }
 
-
         // Set loading state
         isLoading = true;
         StateHasChanged();
@@ -221,8 +240,8 @@
                 AuthService.Roles.Customer => "/customer/dashboard",
                 AuthService.Roles.Teller => "/teller/dashboard",
                 AuthService.Roles.SuperAdmin => "/admin/dashboard",
-                AuthService.Roles.Accountant => "/admin/dashboard",
-                AuthService.Roles.FinanceManager => "/admin/dashboard",
+                AuthService.Roles.Accountant => "/accountant/dashboard",
+                AuthService.Roles.FinanceManager => "/finance-manager/dashboard",
                 _ => "/login"
             };
             

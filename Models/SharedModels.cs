@@ -98,8 +98,8 @@ namespace FinanceBank.Models
         public string ReferenceNumber { get; set; } = "";
     }
 
-    // Loan Application
-    public class LoanApplication
+    // Loan Application (Legacy DTO - for general workflow)
+    public class LoanApplicationDTO
     {
         public string Id { get; set; } = "";
         public string CustomerName { get; set; } = "";

@@ -1,0 +1,241 @@
+@page "/accountant/loan-recording"
+@using Microsoft.AspNetCore.Authorization
+@using FinanceBank.Services
+@using FinanceBank.Models
+@layout AccountantLayout
+@inject LoanProcessService LoanProcessService
+@inject LoanPaymentService LoanPaymentService
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Accountant")]
+
+<div class="card shadow">
+        <div class="card-header bg-warning text-white">
+            <h4 class="mb-0"><i class="bi bi-book"></i> Loan Recording & Completion</h4>
+        </div>
+        <div class="card-body">
+            @if (successMessage != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show">
+                    @successMessage
+                    <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
+                </div>
+            }
+
+            @if (errorMessage != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">
+                    @errorMessage
+                    <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+                </div>
+            }
+
+            <ul class="nav nav-tabs mb-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" @onclick="OnActiveLoansTabClick" type="button" role="tab">
+                        <i class="bi bi-play-circle"></i> Active Loans
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" @onclick="OnCompletedLoansTabClick" type="button" role="tab">
+                        <i class="bi bi-check-circle"></i> Completed Loans
+                    </button>
+                </li>
+            </ul>
+
+            @if (activeTab == "active")
+            {
+                @if (activeLoans == null)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+                else if (activeLoans.Count == 0)
+                {
+                    <div class="alert alert-info">No active loans.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Loan Number</th>
+                                    <th>Customer</th>
+                                    <th>Loan Amount</th>
+                                    <th>Outstanding Balance</th>
+                                    <th>Monthly Payment</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var loan in activeLoans)
+                                {
+                                    <tr>
+                                        <td><span class="badge bg-primary">@loan.LoanNumber</span></td>
+                                        <td>@loan.Account?.Customer?.FullName ?? "N/A"</td>
+                                        <td>₱@loan.LoanAmount.ToString("N2")</td>
+                                        <td>₱@loan.OutstandingBalance.ToString("N2")</td>
+                                        <td>₱@loan.MonthlyPayment.ToString("N2")</td>
+                                        <td><span class="badge bg-info">@loan.Status</span></td>
+                                        <td>
+                                            @if (loan.OutstandingBalance == 0)
+                                            {
+                                                <button class="btn btn-sm btn-success" @onclick="() => CompleteLoanAsync(loan.LoanId)">
+                                                    <i class="bi bi-check-lg"></i> Mark Complete
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-info" @onclick="() => ViewLoanDetails(loan)">
+                                                    <i class="bi bi-eye"></i> View Details
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+
+            @if (activeTab == "completed")
+            {
+                @if (completedLoans == null)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+                else if (completedLoans.Count == 0)
+                {
+                    <div class="alert alert-info">No completed loans.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Loan Number</th>
+                                    <th>Customer</th>
+                                    <th>Loan Amount</th>
+                                    <th>Total Paid</th>
+                                    <th>Total Interest</th>
+                                    <th>Completion Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var loan in completedLoans)
+                                {
+                                    <tr>
+                                        <td><span class="badge bg-success">@loan.LoanNumber</span></td>
+                                        <td>@loan.Account?.Customer?.FullName</td>
+                                        <td>₱@loan.LoanAmount.ToString("N2")</td>
+                                        <td>₱@loan.LoanAmount.ToString("N2")</td>
+                                        <td>₱@((loan.MonthlyPayment * 12) - loan.LoanAmount).ToString("N2")</td>
+                                        <td>@loan.EndDate.ToString("yyyy-MM-dd")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+
+            @if (selectedLoan != null)
+            {
+                <div class="card mt-4 border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Loan Summary - @selectedLoan.LoanNumber</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p><strong>Customer:</strong> @selectedLoan.Account?.Customer?.FullName</p>
+                                <p><strong>Loan Type:</strong> @selectedLoan.LoanType</p>
+                                <p><strong>Original Amount:</strong> ₱@selectedLoan.LoanAmount.ToString("N2")</p>
+                                <p><strong>Interest Rate:</strong> @selectedLoan.InterestRate%</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Term Months:</strong> @selectedLoan.TermMonths</p>
+                                <p><strong>Monthly Payment:</strong> ₱@selectedLoan.MonthlyPayment.ToString("N2")</p>
+                                <p><strong>Outstanding Balance:</strong> ₱@selectedLoan.OutstandingBalance.ToString("N2")</p>
+                                <p><strong>Total Penalties:</strong> ₱@selectedLoan.TotalPenalties.ToString("N2")</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" @onclick="ClearDetails">Close</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+@code {
+    private List<Loan>? activeLoans;
+    private List<Loan>? completedLoans;
+    private string activeTab = "active";
+    private Loan? selectedLoan;
+    private string? successMessage;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLoansAsync();
+    }
+
+    private async Task LoadLoansAsync()
+    {
+        try
+        {
+            // Get active loans (already disbursed)
+            activeLoans = await LoanProcessService.GetActiveLoansAsync();
+            // Get completed loans
+            completedLoans = await LoanProcessService.GetCompletedLoansAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading loans: {ex.Message}";
+        }
+    }
+
+    private void ViewLoanDetails(Loan loan)
+    {
+        selectedLoan = loan;
+    }
+
+    private async Task CompleteLoanAsync(int loanId)
+    {
+        try
+        {
+            await LoanPaymentService.MarkLoanCompleteAsync(loanId);
+            successMessage = "Loan marked as complete!";
+            await LoadLoansAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error completing loan: {ex.Message}";
+        }
+    }
+
+    private void ClearDetails()
+    {
+        selectedLoan = null;
+    }
+
+    private void OnActiveLoansTabClick()
+    {
+        activeTab = "active";
+    }
+
+    private void OnCompletedLoansTabClick()
+    {
+        activeTab = "completed";
+    }
+}

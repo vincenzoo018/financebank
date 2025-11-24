@@ -1,0 +1,183 @@
+@page "/customer/loan-application"
+@using Microsoft.AspNetCore.Authorization
+@using FinanceBank.Services
+@using FinanceBank.Models
+@layout CustomerLayout
+@inject LoanProcessService LoanProcessService
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Customer")]
+
+<div class="card shadow">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-file-earmark-plus"></i> New Loan Application</h4>
+                </div>
+                <div class="card-body">
+                    @if (successMessage != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <strong>Success!</strong> @successMessage
+                            <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
+                        </div>
+                    }
+
+                    @if (errorMessage != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong>Error!</strong> @errorMessage
+                            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+                        </div>
+                    }
+
+                    <form @onsubmit="SubmitApplicationAsync">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="loanType" class="form-label">Loan Type <span class="text-danger">*</span></label>
+                                <select class="form-select" id="loanType" @bind="loanType" required>
+                                    <option value="">Select Loan Type</option>
+                                    <option value="Personal">Personal Loan</option>
+                                    <option value="Home">Home Loan</option>
+                                    <option value="Auto">Auto Loan</option>
+                                    <option value="Business">Business Loan</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="requestedAmount" class="form-label">Loan Amount (₱) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="requestedAmount" @bind="requestedAmount" 
+                                       placeholder="Enter loan amount" required step="0.01" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="purpose" class="form-label">Purpose <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="purpose" @bind="purpose" 
+                                   placeholder="e.g., Education, Medical, Home Improvement" required />
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="employmentStatus" class="form-label">Employment Status <span class="text-danger">*</span></label>
+                                <select class="form-select" id="employmentStatus" @bind="employmentStatus" required>
+                                    <option value="">Select Employment Status</option>
+                                    <option value="Employed">Employed</option>
+                                    <option value="Self-Employed">Self-Employed</option>
+                                    <option value="Retired">Retired</option>
+                                    <option value="Unemployed">Unemployed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="monthlyIncome" class="form-label">Monthly Income (₱) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="monthlyIncome" @bind="monthlyIncome" 
+                                       placeholder="Enter monthly income" required step="0.01" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Interest Rates by Type:</label>
+                            <div class="alert alert-info">
+                                <ul class="mb-0">
+                                    <li>Personal Loan: <strong>12.5% per annum</strong></li>
+                                    <li>Home Loan: <strong>8.5% per annum</strong></li>
+                                    <li>Auto Loan: <strong>9.5% per annum</strong></li>
+                                    <li>Late Payment Penalty: <strong>0.05% daily</strong> on outstanding balance</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    <span>Submitting Application...</span>
+                                }
+                                else
+                                {
+                                    <span>Submit Application</span>
+                                }
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if (submittedApplication != null)
+            {
+                <div class="card mt-4 border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Application Submitted Successfully</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Application Number:</strong> <span class="badge bg-primary">@submittedApplication.ApplicationNumber</span></p>
+                                <p><strong>Loan Type:</strong> @submittedApplication.LoanType</p>
+                                <p><strong>Status:</strong> <span class="badge bg-warning">@submittedApplication.Status</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Requested Amount:</strong> ₱@submittedApplication.RequestedAmount.ToString("N2")</p>
+                                <p><strong>Submitted Date:</strong> @submittedApplication.ApplicationDate.ToString("yyyy-MM-dd HH:mm")</p>
+                                <p><strong>Purpose:</strong> @submittedApplication.Purpose</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" @onclick="ResetForm">Apply for Another Loan</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+@code {
+    private string? loanType = "";
+    private decimal requestedAmount;
+    private string? purpose = "";
+    private string? employmentStatus = "";
+    private decimal monthlyIncome;
+    private bool isSubmitting = false;
+    private string? successMessage;
+    private string? errorMessage;
+    private Models.LoanApplication? submittedApplication;
+
+    private async Task SubmitApplicationAsync()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+
+            var accountId = 1; // This should come from CurrentUser
+            
+            submittedApplication = await LoanProcessService.SubmitApplicationAsync(
+                accountId: accountId,
+                loanType: loanType ?? "",
+                requestedAmount: requestedAmount,
+                purpose: purpose,
+                employmentStatus: employmentStatus,
+                monthlyIncome: monthlyIncome,
+                submittedBy: "customer-user"
+            );
+
+            successMessage = $"Your loan application {submittedApplication.ApplicationNumber} has been submitted successfully!";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error submitting application: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void ResetForm()
+    {
+        loanType = "";
+        requestedAmount = 0;
+        purpose = "";
+        employmentStatus = "";
+        monthlyIncome = 0;
+        submittedApplication = null;
+        successMessage = null;
+    }
+}
