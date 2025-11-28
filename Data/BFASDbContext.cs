@@ -63,6 +63,8 @@ namespace FinanceBank.Data
         public DbSet<LoanPayment> LoanPayments { get; set; }
         public DbSet<LoanViolation> LoanViolations { get; set; }
         public DbSet<LoanDisbursal> LoanDisbursals { get; set; }
+        public DbSet<LoanTransactionHistory> LoanTransactionHistory { get; set; }
+        public DbSet<LoanInvoice> LoanInvoices { get; set; }
 
         // Approval Module Tables
         public DbSet<ApprovalQueueEntity> ApprovalQueues { get; set; }

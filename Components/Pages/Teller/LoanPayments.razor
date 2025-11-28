@@ -5,6 +5,7 @@
 @using Microsoft.EntityFrameworkCore
 @using FinanceBank.Components.Shared
 @inject LoanProcessService LoanService
+@inject AuthService AuthService
 @inject BFASDbContext DbContext
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
@@ -13,10 +14,18 @@
     <div class="card">
         <div class="card-header">
             <h1 class="modal-title">Process Loan Payment</h1>
-            <p class="modal-subtitle">Physical payment processing with penalty calculation</p>
+            <p class="modal-subtitle">Physical cash/check payment processing with automatic penalty calculation</p>
         </div>
 
         <div class="card-body" style="padding: 24px;">
+            <!-- Important Notice -->
+            <div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
+                <p style="margin: 0; color: #1e40af; font-weight: 600;">
+                    💵 <strong>Physical Payment Mode:</strong> This system assumes customer pays in physical cash/check. 
+                    Payment amounts are NOT deducted from the customer's bank account balance.
+                </p>
+            </div>
+
             <div class="form-group">
                 <label class="form-label required">Account Number</label>
                 <div style="display: flex; gap: 12px;">
@@ -256,7 +265,10 @@
 
             <div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: var(--radius-md); padding: 16px;">
                 <p style="margin: 0; color: #1e40af; font-weight: 600;">
-                    ℹ️ Payment receipt will be generated after confirmation.
+                    💵 <strong>Physical Payment:</strong> Payment received in cash/check. No deduction from customer's bank account.
+                </p>
+                <p style="margin: 8px 0 0 0; color: #1e40af;">
+                    ℹ️ Payment receipt and invoice will be generated after confirmation.
                 </p>
             </div>
         </Step2Content>
@@ -304,6 +316,7 @@
         try
         {
             selectedAccount = await DbContext.CustomerAccounts
+                .Include(a => a.Customer)
                 .FirstOrDefaultAsync(a => a.AccountNumber == searchAccountNumber);
 
             if (selectedAccount == null)
@@ -395,13 +408,15 @@
 
         try
         {
+            var processedBy = AuthService.FullName ?? AuthService.CurrentUser ?? "Teller";
+
             // Process payment through service
             lastPayment = await LoanService.ProcessPaymentAsync(
                 selectedLoan.LoanId,
                 nextPayment.ScheduleId,
                 paymentAmount,
                 paymentMethod,
-                "Teller", // Replace with actual user
+                processedBy,
                 referenceNumber
             );
 

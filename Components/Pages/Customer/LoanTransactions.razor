@@ -1,0 +1,227 @@
+@page "/customer/loan-transactions"
+@layout CustomerLayout
+@using FinanceBank.Models
+@using FinanceBank.Services
+@using Microsoft.EntityFrameworkCore
+@inject LoanProcessService LoanService
+@inject CustomerBankingService CustomerService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="sidebar-content">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="modal-title">My Loan Transaction History</h1>
+            <p class="modal-subtitle">Track all your loan activities and payments</p>
+        </div>
+
+        <div class="card-body" style="padding: 24px;">
+            @if (isLoading)
+            {
+                <div style="text-align: center; padding: 40px;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading transaction history...</p>
+                </div>
+            }
+            else if (!transactionHistory.Any())
+            {
+                <div style="text-align: center; padding: 40px;">
+                    <svg style="width: 64px; height: 64px; color: var(--text-gray); margin-bottom: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <p style="color: var(--text-gray);">No loan transactions found.</p>
+                    <a href="/customer/loan-application" class="btn btn-primary" style="margin-top: 16px;">
+                        Apply for a Loan
+                    </a>
+                </div>
+            }
+            else
+            {
+                <!-- Summary Stats -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+                    <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: var(--radius-md); padding: 16px;">
+                        <span style="font-size: 12px; color: #1e40af;">Total Applications</span>
+                        <div style="font-size: 24px; font-weight: 700; color: #1e40af;">
+                            @transactionHistory.Count(t => t.TransactionType == "APPLICATION")
+                        </div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); border-radius: var(--radius-md); padding: 16px;">
+                        <span style="font-size: 12px; color: #166534;">Approved</span>
+                        <div style="font-size: 24px; font-weight: 700; color: #166534;">
+                            @transactionHistory.Count(t => t.TransactionType == "FM_APPROVAL" || t.TransactionType == "RELEASE")
+                        </div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: var(--radius-md); padding: 16px;">
+                        <span style="font-size: 12px; color: #92400e;">Payments Made</span>
+                        <div style="font-size: 24px; font-weight: 700; color: #92400e;">
+                            @transactionHistory.Count(t => t.TransactionType == "PAYMENT" || t.TransactionType == "FULL_PAYMENT")
+                        </div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, var(--primary-green-start) 0%, var(--primary-green-end) 100%); border-radius: var(--radius-md); padding: 16px;">
+                        <span style="font-size: 12px; color: white;">Total Paid</span>
+                        <div style="font-size: 24px; font-weight: 700; color: white;">
+                            ₱@transactionHistory.Where(t => t.TransactionType == "PAYMENT" || t.TransactionType == "FULL_PAYMENT").Sum(t => t.Amount).ToString("N2")
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction List -->
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    @foreach (var transaction in transactionHistory)
+                    {
+                        var (icon, color, bgColor) = GetTransactionStyle(transaction.TransactionType);
+
+                        <div class="card" style="border-left: 4px solid @color;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 16px;">
+                                    <div style="width: 48px; height: 48px; background: @bgColor; 
+                                                border-radius: 50%; display: flex; align-items: center; 
+                                                justify-content: center; font-size: 24px;">
+                                        @icon
+                                    </div>
+                                    <div>
+                                        <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 4px;">
+                                            @GetTransactionTitle(transaction.TransactionType)
+                                        </h4>
+                                        <p style="font-size: 13px; color: var(--text-gray); margin: 0;">
+                                            @transaction.Description
+                                        </p>
+                                        <p style="font-size: 12px; color: var(--text-gray); margin: 4px 0 0;">
+                                            @transaction.TransactionDate.ToString("MMMM dd, yyyy hh:mm tt")
+                                        </p>
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 18px; font-weight: 700; color: @color;">
+                                        @(IsDebit(transaction.TransactionType) ? "-" : "+")₱@transaction.Amount.ToString("N2")
+                                    </div>
+                                    @if (transaction.PenaltyAmount > 0)
+                                    {
+                                        <div style="font-size: 12px; color: #dc2626;">
+                                            Penalty: ₱@transaction.PenaltyAmount?.ToString("N2")
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(transaction.Reference))
+                                    {
+                                        <div style="font-size: 11px; color: var(--text-gray);">
+                                            Ref: @transaction.Reference
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(transaction.Status))
+                                    {
+                                        <span style="background: @GetStatusBg(transaction.Status); 
+                                                     color: @GetStatusColor(transaction.Status);
+                                                     padding: 2px 8px; border-radius: 12px; 
+                                                     font-size: 11px; font-weight: 600;">
+                                            @transaction.Status
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<LoanTransactionHistory> transactionHistory = new();
+    private bool isLoading = true;
+    private int? customerAccountId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTransactionHistory();
+    }
+
+    private async Task LoadTransactionHistory()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Get customer's primary account
+            var account = await CustomerService.GetPrimaryAccountForCurrentCustomerAsync();
+            if (account != null)
+            {
+                customerAccountId = account.AccountId;
+                transactionHistory = await LoanService.GetTransactionHistoryAsync(accountId: account.AccountId);
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error loading history: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private (string Icon, string Color, string BgColor) GetTransactionStyle(string type)
+    {
+        return type switch
+        {
+            "APPLICATION" => ("📝", "#3b82f6", "#dbeafe"),
+            "TELLER_REVIEW" => ("👀", "#8b5cf6", "#ede9fe"),
+            "ACCOUNTANT_ASSESSMENT" => ("📊", "#f59e0b", "#fef3c7"),
+            "FM_APPROVAL" => ("✅", "#22c55e", "#dcfce7"),
+            "FM_DECLINE" => ("❌", "#ef4444", "#fee2e2"),
+            "RELEASE" => ("💰", "#10b981", "#d1fae5"),
+            "PAYMENT" => ("💵", "#06b6d4", "#cffafe"),
+            "FULL_PAYMENT" => ("🎉", "#22c55e", "#dcfce7"),
+            _ => ("📄", "#6b7280", "#f3f4f6")
+        };
+    }
+
+    private string GetTransactionTitle(string type)
+    {
+        return type switch
+        {
+            "APPLICATION" => "Loan Application Submitted",
+            "TELLER_REVIEW" => "Teller Review Completed",
+            "ACCOUNTANT_ASSESSMENT" => "Accountant Assessment",
+            "FM_APPROVAL" => "Loan Approved",
+            "FM_DECLINE" => "Loan Declined",
+            "RELEASE" => "Funds Released",
+            "PAYMENT" => "Loan Payment",
+            "FULL_PAYMENT" => "Loan Fully Paid 🎉",
+            _ => "Transaction"
+        };
+    }
+
+    private bool IsDebit(string type)
+    {
+        return type == "PAYMENT" || type == "FULL_PAYMENT";
+    }
+
+    private string GetStatusBg(string status)
+    {
+        return status switch
+        {
+            "APPROVED" or "COMPLETED" or "RELEASED" => "#dcfce7",
+            "DECLINED" or "REJECTED" => "#fee2e2",
+            "ACTIVE" => "#dbeafe",
+            _ => "#f3f4f6"
+        };
+    }
+
+    private string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "APPROVED" or "COMPLETED" or "RELEASED" => "#166534",
+            "DECLINED" or "REJECTED" => "#dc2626",
+            "ACTIVE" => "#1e40af",
+            _ => "#374151"
+        };
+    }
+}

@@ -4,6 +4,8 @@
 @using FinanceBank.Models
 @layout CustomerLayout
 @inject LoanProcessService LoanProcessService
+@inject CustomerBankingService CustomerBankingService
+@inject AuthService AuthService
 @inject NavigationManager Navigation
 @attribute [Authorize(Roles = "Customer")]
 
@@ -138,6 +140,22 @@
     private string? successMessage;
     private string? errorMessage;
     private Models.LoanApplication? submittedApplication;
+    private CustomerAccount? customerAccount;
+    private string customerFullName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Get the logged-in customer's account
+        customerAccount = await CustomerBankingService.GetPrimaryAccountForCurrentCustomerAsync();
+        if (customerAccount != null)
+        {
+            customerFullName = AuthService.FullName ?? "Customer";
+        }
+        else
+        {
+            errorMessage = "Unable to find your account. Please contact support.";
+        }
+    }
 
     private async Task SubmitApplicationAsync()
     {
@@ -146,7 +164,14 @@
             isSubmitting = true;
             errorMessage = null;
 
-            var accountId = 1; // This should come from CurrentUser
+            if (customerAccount == null)
+            {
+                errorMessage = "No account found. Please ensure you have an active account.";
+                return;
+            }
+
+            var accountId = customerAccount.AccountId;
+            var submittedBy = AuthService.CurrentUser ?? "customer";
             
             submittedApplication = await LoanProcessService.SubmitApplicationAsync(
                 accountId: accountId,
@@ -155,7 +180,7 @@
                 purpose: purpose,
                 employmentStatus: employmentStatus,
                 monthlyIncome: monthlyIncome,
-                submittedBy: "customer-user"
+                submittedBy: submittedBy
             );
 
             successMessage = $"Your loan application {submittedApplication.ApplicationNumber} has been submitted successfully!";

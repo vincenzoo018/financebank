@@ -5,6 +5,7 @@
 @using Microsoft.EntityFrameworkCore
 @using FinanceBank.Components.Shared
 @inject LoanProcessService LoanService
+@inject AuthService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
@@ -358,30 +359,55 @@
 
         try
         {
+            var currentUser = AuthService.FullName ?? AuthService.CurrentUser ?? "Finance Manager";
+
             if (approvalStatus == "APPROVED")
             {
+                // Validate required values before submission
+                if (!approvedAmount.HasValue || approvedAmount.Value <= 0)
+                {
+                    await JS.InvokeVoidAsync("alert", "Please enter a valid approved amount.");
+                    return;
+                }
+                if (!approvedInterestRate.HasValue || approvedInterestRate.Value < 0)
+                {
+                    await JS.InvokeVoidAsync("alert", "Please enter a valid interest rate.");
+                    return;
+                }
+                if (!approvedTermMonths.HasValue || approvedTermMonths.Value <= 0)
+                {
+                    await JS.InvokeVoidAsync("alert", "Please enter a valid loan term.");
+                    return;
+                }
+
                 await LoanService.ApproveLoanAsync(
                     selectedAssessment.AssessmentId,
                     selectedAssessment.ApplicationId,
                     selectedAssessment.AccountId,
-                    approvedAmount!.Value,
-                    approvedInterestRate!.Value,
-                    approvedTermMonths!.Value,
-                    "Finance Manager", // Replace with actual user
+                    approvedAmount.Value,
+                    approvedInterestRate.Value,
+                    approvedTermMonths.Value,
+                    currentUser,
                     specialConditions
                 );
-                await JS.InvokeVoidAsync("alert", "Loan approved successfully!");
+                await JS.InvokeVoidAsync("alert", "Loan approved successfully! The loan is now ready for release by the Teller.");
             }
             else
             {
+                if (string.IsNullOrWhiteSpace(declinationReason))
+                {
+                    await JS.InvokeVoidAsync("alert", "Please provide a declination reason.");
+                    return;
+                }
+
                 await LoanService.DeclineLoanAsync(
                     selectedAssessment.AssessmentId,
                     selectedAssessment.ApplicationId,
                     selectedAssessment.AccountId,
                     declinationReason,
-                    "Finance Manager" // Replace with actual user
+                    currentUser
                 );
-                await JS.InvokeVoidAsync("alert", "Loan declined successfully!");
+                await JS.InvokeVoidAsync("alert", "Loan declined successfully.");
             }
 
             CloseModal();

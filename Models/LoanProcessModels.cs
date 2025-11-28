@@ -355,6 +355,135 @@ public class LoanDisbursal
     public virtual LoanApproval? Approval { get; set; }
 }
 
+/// <summary>
+/// Loan Transaction History - Tracks all loan-related activities
+/// </summary>
+[Table("LoanTransactionHistory")]
+public class LoanTransactionHistory
+{
+    [Key]
+    public int HistoryId { get; set; }
+
+    public int? LoanId { get; set; }
+    
+    public int? ApplicationId { get; set; }
+    
+    public int? ApprovalId { get; set; }
+
+    public int AccountId { get; set; }
+
+    [Required, MaxLength(50)]
+    public string TransactionType { get; set; } = ""; // APPLICATION, TELLER_REVIEW, ACCOUNTANT_ASSESSMENT, FM_APPROVAL, FM_DECLINE, RELEASE, PAYMENT, FULL_PAYMENT
+
+    [MaxLength(500)]
+    public string Description { get; set; } = "";
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal Amount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? PenaltyAmount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? BalanceBefore { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? BalanceAfter { get; set; }
+
+    [MaxLength(100)]
+    public string? Reference { get; set; }
+
+    [Required, MaxLength(100)]
+    public string ProcessedBy { get; set; } = "";
+
+    public DateTime TransactionDate { get; set; } = DateTime.Now;
+
+    [MaxLength(50)]
+    public string? Status { get; set; }
+
+    // Navigation
+    [ForeignKey("LoanId")]
+    public virtual Loan? Loan { get; set; }
+
+    [ForeignKey("ApplicationId")]
+    public virtual LoanApplication? Application { get; set; }
+
+    [ForeignKey("AccountId")]
+    public virtual CustomerAccount? Account { get; set; }
+}
+
+/// <summary>
+/// Loan Invoice - Generated for release and payment transactions
+/// </summary>
+[Table("LoanInvoices")]
+public class LoanInvoice
+{
+    [Key]
+    public int InvoiceId { get; set; }
+
+    [Required, MaxLength(50)]
+    public string InvoiceNumber { get; set; } = "";
+
+    [Required, MaxLength(50)]
+    public string InvoiceType { get; set; } = ""; // RELEASE, PAYMENT
+
+    public int? LoanId { get; set; }
+
+    public int? PaymentId { get; set; }
+
+    public int? DisbursalId { get; set; }
+
+    public int AccountId { get; set; }
+
+    [Required, MaxLength(200)]
+    public string CustomerName { get; set; } = "";
+
+    [MaxLength(100)]
+    public string? AccountNumber { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal PrincipalAmount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal InterestAmount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal PenaltyAmount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal FeesAmount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalAmount { get; set; }
+
+    [MaxLength(50)]
+    public string? PaymentMethod { get; set; }
+
+    [MaxLength(100)]
+    public string? Reference { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? BalanceBefore { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? BalanceAfter { get; set; }
+
+    [Required, MaxLength(100)]
+    public string ProcessedBy { get; set; } = "";
+
+    public DateTime InvoiceDate { get; set; } = DateTime.Now;
+
+    [MaxLength(500)]
+    public string? Notes { get; set; }
+
+    // Navigation
+    [ForeignKey("LoanId")]
+    public virtual Loan? Loan { get; set; }
+
+    [ForeignKey("AccountId")]
+    public virtual CustomerAccount? Account { get; set; }
+}
+
 // =====================================================================
 // EXTENDED ENTITIES FOR EXISTING TABLES
 // =====================================================================

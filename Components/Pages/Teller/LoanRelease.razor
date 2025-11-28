@@ -1,0 +1,388 @@
+@page "/teller/loan-release"
+@layout TellerLayout
+@using FinanceBank.Models
+@using FinanceBank.Services
+@using Microsoft.EntityFrameworkCore
+@inject LoanProcessService LoanService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="sidebar-content">
+    <div class="card">
+        <div class="card-header" style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 20px;">
+            <h4 style="margin: 0; font-weight: 600;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px; vertical-align: middle;">
+                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                    <path d="M12 12v4"></path>
+                    <path d="M12 8h.01"></path>
+                </svg>
+                Loan Release & Contract
+            </h4>
+            <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Release approved loans and generate contracts</p>
+        </div>
+
+        <div class="card-body" style="padding: 24px;">
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 16px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    @successMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    @errorMessage
+                </div>
+            }
+
+            @if (isLoading)
+            {
+                <div style="text-align: center; padding: 40px;">
+                    <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                    <p style="margin-top: 16px; color: #6b7280;">Loading approved loans...</p>
+                </div>
+            }
+            else if (approvedLoans == null || approvedLoans.Count == 0)
+            {
+                <div style="text-align: center; padding: 60px 20px; background: #f9fafb; border-radius: 12px;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin: 0 auto;">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <h5 style="color: #6b7280; margin-top: 16px;">No Loans Ready for Release</h5>
+                    <p style="color: #9ca3af; font-size: 14px;">There are no approved loans waiting for fund release.</p>
+                </div>
+            }
+            else
+            {
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Approval ID</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Customer</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Approved Amount</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151;">Interest Rate</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151;">Term</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Approved By</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var approval in approvedLoans)
+                            {
+                                var customer = approval.Assessment?.Application?.Account?.Customer;
+                                <tr style="border-bottom: 1px solid #e5e7eb; transition: background 0.2s;" class="table-row-hover">
+                                    <td style="padding: 16px 12px;">
+                                        <span style="background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 13px;">
+                                            APV-@approval.ApprovalId
+                                        </span>
+                                    </td>
+                                    <td style="padding: 16px 12px;">
+                                        <div style="font-weight: 500; color: #1f2937;">@(customer?.FullName ?? "N/A")</div>
+                                        <div style="font-size: 12px; color: #6b7280;">@(approval.Assessment?.Application?.Account?.AccountNumber ?? "")</div>
+                                    </td>
+                                    <td style="padding: 16px 12px; text-align: right; font-weight: 600; color: #059669; font-size: 16px;">
+                                        ₱@(approval.ApprovedAmount?.ToString("N2") ?? "0.00")
+                                    </td>
+                                    <td style="padding: 16px 12px; text-align: center; color: #374151;">
+                                        @(approval.ApprovedInterestRate?.ToString("N2") ?? "0")%
+                                    </td>
+                                    <td style="padding: 16px 12px; text-align: center; color: #374151;">
+                                        @(approval.ApprovedTermMonths ?? 0) months
+                                    </td>
+                                    <td style="padding: 16px 12px; color: #374151;">
+                                        <div>@approval.ApprovedBy</div>
+                                        <div style="font-size: 12px; color: #6b7280;">@approval.ApprovalDate.ToString("MMM dd, yyyy")</div>
+                                    </td>
+                                    <td style="padding: 16px 12px; text-align: center;">
+                                        <button style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;"
+                                                @onclick="() => OpenReleaseModal(approval)">
+                                            Release Funds
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* Release Modal *@
+@if (showReleaseModal && selectedApproval != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseModal">
+        <div style="background: white; border-radius: 16px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.25);" @onclick:stopPropagation>
+            <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px; border-radius: 16px 16px 0 0;">
+                <h4 style="margin: 0; font-weight: 600;">Release Loan Funds</h4>
+                <p style="margin: 8px 0 0 0; opacity: 0.9;">Approval ID: APV-@selectedApproval.ApprovalId</p>
+            </div>
+
+            <div style="padding: 24px;">
+                @if (currentStep == 1)
+                {
+                    <!-- Step 1: Loan Details -->
+                    <div style="margin-bottom: 24px;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                            <div style="width: 32px; height: 32px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">1</div>
+                            <h5 style="margin: 0; color: #1f2937;">Loan Details</h5>
+                        </div>
+
+                        <div style="background: #f0fdf4; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                                <div>
+                                    <label style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Approved Amount</label>
+                                    <p style="margin: 4px 0 0 0; font-weight: 700; color: #059669; font-size: 24px;">₱@(selectedApproval.ApprovedAmount?.ToString("N2"))</p>
+                                </div>
+                                <div>
+                                    <label style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Interest Rate</label>
+                                    <p style="margin: 4px 0 0 0; font-weight: 600; color: #1f2937; font-size: 18px;">@(selectedApproval.ApprovedInterestRate?.ToString("N2"))% p.a.</p>
+                                </div>
+                                <div>
+                                    <label style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Loan Term</label>
+                                    <p style="margin: 4px 0 0 0; font-weight: 600; color: #1f2937; font-size: 18px;">@(selectedApproval.ApprovedTermMonths) months</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label style="font-size: 14px; font-weight: 500; color: #374151; display: block; margin-bottom: 8px;">Disbursed To *</label>
+                                <input type="text" @bind="disbursedTo" placeholder="Customer full name" 
+                                       style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+                            </div>
+                            <div>
+                                <label style="font-size: 14px; font-weight: 500; color: #374151; display: block; margin-bottom: 8px;">Contract Reference</label>
+                                <input type="text" @bind="contractReference" placeholder="Auto-generated if blank" 
+                                       style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(selectedApproval.SpecialConditions))
+                        {
+                            <div style="margin-top: 20px; background: #fef3c7; padding: 16px; border-radius: 8px;">
+                                <label style="font-size: 12px; color: #92400e; text-transform: uppercase; font-weight: 600;">Special Conditions</label>
+                                <p style="margin: 8px 0 0 0; color: #78350f;">@selectedApproval.SpecialConditions</p>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <!-- Step 2: Contract Preview -->
+                    <div style="margin-bottom: 24px;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                            <div style="width: 32px; height: 32px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">2</div>
+                            <h5 style="margin: 0; color: #1f2937;">Contract Preview & Confirmation</h5>
+                        </div>
+
+                        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 32px;">
+                            <div style="text-align: center; margin-bottom: 24px;">
+                                <h3 style="margin: 0; color: #1f2937;">LOAN AGREEMENT CONTRACT</h3>
+                                <p style="color: #6b7280; margin: 8px 0 0 0;">FINSYS Banking Corporation</p>
+                            </div>
+
+                            <div style="border-top: 2px solid #e5e7eb; padding-top: 20px;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                                    <div>
+                                        <strong>Contract Reference:</strong><br/>
+                                        <span style="color: #059669;">@(string.IsNullOrEmpty(contractReference) ? $"REL-{DateTime.Now:yyyyMMddHHmmss}" : contractReference)</span>
+                                    </div>
+                                    <div>
+                                        <strong>Contract Date:</strong><br/>
+                                        @DateTime.Now.ToString("MMMM dd, yyyy")
+                                    </div>
+                                </div>
+
+                                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                                    <h5 style="margin: 0 0 12px 0;">Borrower Information</h5>
+                                    <p style="margin: 0;"><strong>Name:</strong> @disbursedTo</p>
+                                    <p style="margin: 8px 0 0 0;"><strong>Account:</strong> @(selectedApproval.Assessment?.Application?.Account?.AccountNumber ?? "N/A")</p>
+                                </div>
+
+                                <div style="background: #f0fdf4; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                                    <h5 style="margin: 0 0 12px 0;">Loan Terms</h5>
+                                    <table style="width: 100%;">
+                                        <tr><td style="padding: 4px 0;"><strong>Principal Amount:</strong></td><td style="text-align: right;">₱@(selectedApproval.ApprovedAmount?.ToString("N2"))</td></tr>
+                                        <tr><td style="padding: 4px 0;"><strong>Interest Rate:</strong></td><td style="text-align: right;">@(selectedApproval.ApprovedInterestRate?.ToString("N2"))% per annum</td></tr>
+                                        <tr><td style="padding: 4px 0;"><strong>Loan Term:</strong></td><td style="text-align: right;">@(selectedApproval.ApprovedTermMonths) months</td></tr>
+                                        <tr><td style="padding: 4px 0;"><strong>Monthly Payment:</strong></td><td style="text-align: right;">₱@CalculateMonthlyPayment().ToString("N2")</td></tr>
+                                        <tr style="border-top: 1px solid #e5e7eb;"><td style="padding: 8px 0;"><strong>Total Amount Payable:</strong></td><td style="text-align: right; font-weight: 700; color: #059669;">₱@(CalculateMonthlyPayment() * selectedApproval.ApprovedTermMonths!.Value).ToString("N2")</td></tr>
+                                    </table>
+                                </div>
+
+                                <div style="text-align: center; margin-top: 32px; padding-top: 20px; border-top: 1px dashed #d1d5db;">
+                                    <p style="margin: 0; color: #6b7280; font-size: 12px;">By releasing this loan, you confirm that the customer has:</p>
+                                    <p style="margin: 8px 0 0 0; color: #374151; font-size: 14px;">✓ Signed the physical contract &nbsp;&nbsp; ✓ Provided valid ID &nbsp;&nbsp; ✓ Agreed to terms</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                    <button style="background: #f3f4f6; color: #374151; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500;"
+                            @onclick="CloseModal" disabled="@isProcessing">
+                        Cancel
+                    </button>
+                    
+                    @if (currentStep == 1)
+                    {
+                        <button style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;"
+                                @onclick="GoToStep2" disabled="@(string.IsNullOrWhiteSpace(disbursedTo))">
+                            Continue to Contract
+                        </button>
+                    }
+                    else
+                    {
+                        <button style="background: #6b7280; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500;"
+                                @onclick="() => currentStep = 1" disabled="@isProcessing">
+                            Back
+                        </button>
+                        <button style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;"
+                                @onclick="ReleaseFunds" disabled="@isProcessing">
+                            @if (isProcessing)
+                            {
+                                <span>Processing...</span>
+                            }
+                            else
+                            {
+                                <span>Confirm & Release Funds</span>
+                            }
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    .table-row-hover:hover {
+        background: #f9fafb;
+    }
+</style>
+
+@code {
+    private List<LoanApproval>? approvedLoans;
+    private LoanApproval? selectedApproval;
+    private bool showReleaseModal = false;
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private int currentStep = 1;
+    private string disbursedTo = "";
+    private string contractReference = "";
+    private string successMessage = "";
+    private string errorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadApprovedLoans();
+    }
+
+    private async Task LoadApprovedLoans()
+    {
+        isLoading = true;
+        try
+        {
+            approvedLoans = await LoanService.GetApprovedLoansForReleaseAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading approved loans: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void OpenReleaseModal(LoanApproval approval)
+    {
+        selectedApproval = approval;
+        disbursedTo = approval.Assessment?.Application?.Account?.Customer?.FullName ?? "";
+        contractReference = "";
+        currentStep = 1;
+        showReleaseModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showReleaseModal = false;
+        selectedApproval = null;
+        currentStep = 1;
+    }
+
+    private void GoToStep2()
+    {
+        if (!string.IsNullOrWhiteSpace(disbursedTo))
+        {
+            currentStep = 2;
+        }
+    }
+
+    private decimal CalculateMonthlyPayment()
+    {
+        if (selectedApproval?.ApprovedAmount == null || 
+            selectedApproval?.ApprovedInterestRate == null || 
+            selectedApproval?.ApprovedTermMonths == null)
+            return 0;
+
+        var principal = selectedApproval.ApprovedAmount.Value;
+        var rate = selectedApproval.ApprovedInterestRate.Value / 100 / 12;
+        var term = selectedApproval.ApprovedTermMonths.Value;
+
+        if (rate == 0) return principal / term;
+
+        return principal * (rate * (decimal)Math.Pow(1 + (double)rate, term))
+            / ((decimal)Math.Pow(1 + (double)rate, term) - 1);
+    }
+
+    private async Task ReleaseFunds()
+    {
+        if (selectedApproval == null) return;
+
+        isProcessing = true;
+        errorMessage = "";
+
+        try
+        {
+            var result = await LoanService.TellerReleaseFundsAsync(
+                selectedApproval.ApprovalId,
+                selectedApproval.ApplicationId,
+                selectedApproval.AccountId,
+                selectedApproval.ApprovedAmount ?? 0,
+                disbursedTo,
+                AuthService.CurrentUser ?? "teller",
+                contractReference
+            );
+
+            var loan = result.Item1;
+            var disbursal = result.Item2;
+
+            successMessage = $"Loan {loan.LoanNumber} has been released successfully! ₱{disbursal.DisbursalAmount:N2} has been credited to the customer's account.";
+            CloseModal();
+            await LoadApprovedLoans();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error releasing funds: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+}

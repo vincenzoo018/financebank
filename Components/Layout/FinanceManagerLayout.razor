@@ -11,7 +11,8 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <div style="text-align: center;">
-                <img src="images/finsys-logo.png" alt="FINSYS Logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
+                <img src="images/finsys-logo.png" alt="FINSYS Logo"
+                    style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
                 <div class="sidebar-logo">FINSYS Finance Manager</div>
                 <div class="sidebar-subtitle">Finance Portal</div>
             </div>
@@ -22,7 +23,11 @@
             <div class="sidebar-section">
                 <div class="sidebar-section-title">MAIN</div>
                 <a href="/finance-manager/dashboard" class="sidebar-item @(IsActive("/finance-manager/dashboard"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
                     <span>Dashboard</span>
                 </a>
             </div>
@@ -30,9 +35,23 @@
             <!-- Loan Approvals -->
             <div class="sidebar-section">
                 <div class="sidebar-section-title">LOAN APPROVALS</div>
-                <a href="/finance-manager/loan-approvals" class="sidebar-item @(IsActive("/finance-manager/loan-approvals"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                <a href="/finance-manager/loan-approvals"
+                    class="sidebar-item @(IsActive("/finance-manager/loan-approvals"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
                     <span>Approve/Decline Loans</span>
+                </a>
+                <a href="/financemanager/loan-history"
+                    class="sidebar-item @(IsActive("/financemanager/loan-history"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Approval History</span>
                 </a>
             </div>
 
@@ -40,27 +59,50 @@
             <div class="sidebar-section">
                 <div class="sidebar-section-title">FINANCE</div>
                 <a href="/admin/finance/payables" class="sidebar-item @(IsActive("/admin/finance/payables"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path></svg>
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v20M2 12h20"></path>
+                    </svg>
                     <span>Accounts Payable</span>
                 </a>
                 <a href="/admin/finance/receivables" class="sidebar-item @(IsActive("/admin/finance/receivables"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
                     <span>Accounts Receivable</span>
                 </a>
                 <a href="/admin/finance/expenses" class="sidebar-item @(IsActive("/admin/finance/expenses"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><path d="M19.07 4.93l-2.58 2.58A8 8 0 1 0 20.5 12z"></path></svg>
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="1"></circle>
+                        <path d="M19.07 4.93l-2.58 2.58A8 8 0 1 0 20.5 12z"></path>
+                    </svg>
                     <span>Expenses</span>
                 </a>
-                <a href="/admin/finance/budget-management" class="sidebar-item @(IsActive("/admin/finance/budget-management"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path></svg>
+                <a href="/admin/finance/budget-management"
+                    class="sidebar-item @(IsActive("/admin/finance/budget-management"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v20M2 12h20"></path>
+                    </svg>
                     <span>Budget Management</span>
                 </a>
-                <a href="/admin/finance/cashflow-analysis" class="sidebar-item @(IsActive("/admin/finance/cashflow-analysis"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <a href="/admin/finance/cashflow-analysis"
+                    class="sidebar-item @(IsActive("/admin/finance/cashflow-analysis"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
                     <span>Cashflow Analysis</span>
                 </a>
-                <a href="/admin/finance/financial-forecasting" class="sidebar-item @(IsActive("/admin/finance/financial-forecasting"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><path d="M19.07 4.93l-2.58 2.58A8 8 0 1 0 20.5 12z"></path></svg>
+                <a href="/admin/finance/financial-forecasting"
+                    class="sidebar-item @(IsActive("/admin/finance/financial-forecasting"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="1"></circle>
+                        <path d="M19.07 4.93l-2.58 2.58A8 8 0 1 0 20.5 12z"></path>
+                    </svg>
                     <span>Financial Forecasting</span>
                 </a>
             </div>
@@ -68,28 +110,28 @@
             <!-- Finance Reports -->
             <div class="sidebar-section">
                 <div class="sidebar-section-title">FINANCE REPORTS</div>
-                <a href="/admin/finance/budget-reports" class="sidebar-item @(IsActive("/admin/finance/budget-reports"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                <a href="/admin/finance/budget-reports"
+                    class="sidebar-item @(IsActive("/admin/finance/budget-reports"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
+                        <polyline points="17 6 23 6 23 12"></polyline>
+                    </svg>
                     <span>Budget Reports</span>
                 </a>
-                <a href="/admin/finance/cashflow-reports" class="sidebar-item @(IsActive("/admin/finance/cashflow-reports"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                <a href="/admin/finance/cashflow-reports"
+                    class="sidebar-item @(IsActive("/admin/finance/cashflow-reports"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
+                        <polyline points="17 6 23 6 23 12"></polyline>
+                    </svg>
                     <span>Cashflow Reports</span>
                 </a>
             </div>
 
-            <!-- Loan Approvals - Finance Manager Only -->
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">LOAN APPROVALS</div>
-                <a href="/finance-manager/approval-queue" class="sidebar-item @(IsActive("/finance-manager/approval-queue"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span>Approval Queue</span>
-                </a>
-                <a href="/finance-manager/approval-decision" class="sidebar-item @(IsActive("/finance-manager/approval-decision"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span>Approval Decision</span>
-                </a>
-            </div>
+
+
         </div>
 
         <div class="sidebar-footer"></div>
@@ -101,21 +143,26 @@
             <div class="topbar-title">@GetPageTitle()</div>
             <div style="display: flex; align-items: center; gap: 16px;">
                 <div class="topbar-user-menu">
-                    <button class="topbar-user-avatar" @onclick="() => showUserMenu = !showUserMenu" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                    <button class="topbar-user-avatar" @onclick="() => showUserMenu = !showUserMenu"
+                        style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
                         @userInitials
                     </button>
                     @if (showUserMenu)
                     {
                         <div class="topbar-user-dropdown">
                             <button class="topbar-dropdown-item" @onclick="() => { showUserMenu = false; }">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    style="margin-right: 8px;">
                                     <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"></path>
                                     <path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path>
                                 </svg>
                                 Settings
                             </button>
                             <button class="topbar-dropdown-item logout-btn" @onclick="HandleLogout">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    style="margin-right: 8px;">
                                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                                     <polyline points="16 17 21 12 16 7"></polyline>
                                     <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -125,7 +172,9 @@
                         </div>
                     }
                 </div>
-                <span style="font-size: 12px; background: #3b82f6; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 600;">Finance Manager</span>
+                <span
+                    style="font-size: 12px; background: #3b82f6; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 600;">Finance
+                    Manager</span>
             </div>
         </div>
         <div class="sidebar-content">
@@ -148,9 +197,9 @@
     {
         if (string.IsNullOrEmpty(name)) return "FM";
         var parts = name.Split(' ');
-        return parts.Length >= 2 
-            ? $"{parts[0][0]}{parts[1][0]}".ToUpper()
-            : $"{parts[0][0]}".ToUpper();
+        return parts.Length >= 2
+        ? $"{parts[0][0]}{parts[1][0]}".ToUpper()
+        : $"{parts[0][0]}".ToUpper();
     }
 
     private string IsActive(string path)
