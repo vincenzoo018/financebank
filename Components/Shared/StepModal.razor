@@ -1,0 +1,187 @@
+@* Step-Based Modal Component *@
+@* Usage: Step 1 for Details, Step 2 for Confirmation *@
+
+@if (IsVisible)
+{
+    <div class="modal-overlay" @onclick="HandleOverlayClick">
+        <div class="modal-container" @onclick:stopPropagation="true">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <div class="modal-header-content">
+                    @if (!string.IsNullOrEmpty(IconPath))
+                    {
+                        <div class="modal-icon">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                @((MarkupString)IconPath)
+                            </svg>
+                        </div>
+                    }
+                    <div>
+                        <div class="modal-title">@Title</div>
+                        <div class="modal-subtitle">@Subtitle</div>
+                    </div>
+                </div>
+                <button class="modal-close" @onclick="HandleClose">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Step Indicator -->
+            @if (ShowSteps)
+            {
+                <div class="modal-steps">
+                    <div class="step-item">
+                        <div class="step-circle @(CurrentStep == 1 ? "active" : "") @(CurrentStep > 1 ? "completed" : "")">
+                            @if (CurrentStep > 1)
+                            {
+                                <span>✓</span>
+                            }
+                            else
+                            {
+                                <span>1</span>
+                            }
+                        </div>
+                        <span class="step-label @(CurrentStep == 1 ? "active" : "")">@Step1Label</span>
+                    </div>
+                    <div class="step-divider @(CurrentStep > 1 ? "completed" : "")"></div>
+                    <div class="step-item">
+                        <div class="step-circle @(CurrentStep == 2 ? "active" : "") @(CurrentStep > 2 ? "completed" : "")">
+                            @if (CurrentStep > 2)
+                            {
+                                <span>✓</span>
+                            }
+                            else
+                            {
+                                <span>2</span>
+                            }
+                        </div>
+                        <span class="step-label @(CurrentStep == 2 ? "active" : "")">@Step2Label</span>
+                    </div>
+                </div>
+            }
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                @if (CurrentStep == 1)
+                {
+                    <div class="step-content active">
+                        @Step1Content
+                    </div>
+                }
+                else if (CurrentStep == 2)
+                {
+                    <div class="step-content active">
+                        @Step2Content
+                    </div>
+                }
+                else
+                {
+                    @BodyContent
+                }
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                @if (ShowSteps && CurrentStep == 1)
+                {
+                    <button class="btn btn-secondary" style="flex: 1;" @onclick="HandleClose">Cancel</button>
+                    <button class="btn btn-primary" style="flex: 2;" @onclick="GoToNextStep" disabled="@(!Step1Valid)">
+                        Next: @Step2Label
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                }
+                else if (ShowSteps && CurrentStep == 2)
+                {
+                    <button class="btn btn-secondary" style="flex: 1;" @onclick="GoToPreviousStep">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        Back
+                    </button>
+                    <button class="btn btn-primary btn-success" style="flex: 2;" @onclick="HandleConfirm" disabled="@(!Step2Valid)">
+                        @ConfirmButtonText
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </button>
+                }
+                else
+                {
+                    @FooterContent
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    
+    [Parameter] public string Title { get; set; } = "Modal Title";
+    [Parameter] public string Subtitle { get; set; } = "";
+    [Parameter] public string IconPath { get; set; } = "";
+    
+    [Parameter] public bool ShowSteps { get; set; } = true;
+    [Parameter] public int CurrentStep { get; set; } = 1;
+    
+    [Parameter] public string Step1Label { get; set; } = "Details";
+    [Parameter] public string Step2Label { get; set; } = "Confirmation";
+    
+    [Parameter] public RenderFragment? Step1Content { get; set; }
+    [Parameter] public RenderFragment? Step2Content { get; set; }
+    [Parameter] public RenderFragment? BodyContent { get; set; }
+    [Parameter] public RenderFragment? FooterContent { get; set; }
+    
+    [Parameter] public bool Step1Valid { get; set; } = true;
+    [Parameter] public bool Step2Valid { get; set; } = true;
+    
+    [Parameter] public string ConfirmButtonText { get; set; } = "Confirm";
+    [Parameter] public bool CloseOnOverlayClick { get; set; } = true;
+    
+    [Parameter] public EventCallback<int> OnStepChanged { get; set; }
+
+    private async Task HandleClose()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task HandleConfirm()
+    {
+        await OnConfirm.InvokeAsync();
+    }
+
+    private async Task HandleOverlayClick()
+    {
+        if (CloseOnOverlayClick)
+        {
+            await HandleClose();
+        }
+    }
+
+    private async Task GoToNextStep()
+    {
+        if (CurrentStep < 2)
+        {
+            CurrentStep++;
+            await OnStepChanged.InvokeAsync(CurrentStep);
+            StateHasChanged();
+        }
+    }
+
+    private async Task GoToPreviousStep()
+    {
+        if (CurrentStep > 1)
+        {
+            CurrentStep--;
+            await OnStepChanged.InvokeAsync(CurrentStep);
+            StateHasChanged();
+        }
+    }
+}

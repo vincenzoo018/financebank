@@ -9,7 +9,7 @@
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
         <div>
-            <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Teller Dashboard</h1>
+            <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Banking Dashboard</h1>
             <p style="margin: 4px 0 0; opacity: 0.9; font-size: 14px;">Process customer deposits and withdrawals</p>
         </div>
     </div>
@@ -110,6 +110,70 @@
     </div>
 </div>
 
+<!-- Transaction Analytics -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px;">
+    <!-- Daily Transaction Chart -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px;">Daily Transaction Volume</h3>
+        <div style="display: flex; align-items: flex-end; gap: 12px; height: 220px; padding-bottom: 20px; border-bottom: 2px solid #e5e7eb;">
+            @foreach (var data in transactionData)
+            {
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    <div style="display: flex; flex-direction: column; gap: 4px; width: 100%; align-items: center;">
+                        <div style="width: 70%; background: linear-gradient(180deg, #059669, #047857); border-radius: 8px 8px 0 0; height: @(data.Deposits * 1.5)px; min-height: 15px;"></div>
+                        <div style="width: 70%; background: linear-gradient(180deg, #dc2626, #991b1b); border-radius: 8px 8px 0 0; height: @(data.Withdrawals * 1.5)px; min-height: 15px;"></div>
+                    </div>
+                    <div style="font-size: 11px; color: #6b7280; font-weight: 600;">@data.Hour</div>
+                </div>
+            }
+        </div>
+        <div style="display: flex; justify-content: center; gap: 24px; margin-top: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 12px; height: 12px; background: #059669; border-radius: 2px;"></div>
+                <span style="font-size: 12px; color: #6b7280;">Deposits</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 12px; height: 12px; background: #dc2626; border-radius: 2px;"></div>
+                <span style="font-size: 12px; color: #6b7280;">Withdrawals</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Type Breakdown -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px;">Today's Breakdown</h3>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-size: 12px; color: #6b7280;">Deposits (60%)</span>
+                    <span style="font-size: 12px; font-weight: 700; color: #059669;">₱45,250</span>
+                </div>
+                <div style="height: 8px; background: #f3f4f6; border-radius: 4px; overflow: hidden;">
+                    <div style="width: 60%; height: 100%; background: linear-gradient(90deg, #059669, #047857);"></div>
+                </div>
+            </div>
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-size: 12px; color: #6b7280;">Withdrawals (40%)</span>
+                    <span style="font-size: 12px; font-weight: 700; color: #dc2626;">₱32,100</span>
+                </div>
+                <div style="height: 8px; background: #f3f4f6; border-radius: 4px; overflow: hidden;">
+                    <div style="width: 40%; height: 100%; background: linear-gradient(90deg, #dc2626, #991b1b);"></div>
+                </div>
+            </div>
+            <div style="margin-top: 16px; padding: 16px; background: #f9fafb; border-radius: 12px;">
+                <div style="font-size: 12px; color: #6b7280;">Transaction Count</div>
+                <div style="font-size: 24px; font-weight: 700; color: #059669; margin-top: 4px;">20</div>
+                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">12 deposits • 8 withdrawals</div>
+            </div>
+            <div style="padding: 16px; background: #f0fdf4; border-radius: 12px; border: 1px solid #bbf7d0;">
+                <div style="font-size: 12px; color: #15803d; font-weight: 600;">Peak Hour</div>
+                <div style="font-size: 20px; font-weight: 700; color: #15803d; margin-top: 4px;">10:00 AM</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Recent Transactions -->
 <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
     <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1f2937;">Recent Transactions</h3>
@@ -159,6 +223,24 @@
 </div>
 
 @code {
+    private List<TransactionData> transactionData = new()
+    {
+        new() { Hour = "8AM", Deposits = 25, Withdrawals = 15 },
+        new() { Hour = "9AM", Deposits = 45, Withdrawals = 30 },
+        new() { Hour = "10AM", Deposits = 80, Withdrawals = 55 },
+        new() { Hour = "11AM", Deposits = 65, Withdrawals = 40 },
+        new() { Hour = "12PM", Deposits = 50, Withdrawals = 35 },
+        new() { Hour = "1PM", Deposits = 40, Withdrawals = 25 },
+        new() { Hour = "2PM", Deposits = 60, Withdrawals = 45 }
+    };
+
+    private class TransactionData
+    {
+        public string Hour { get; set; } = "";
+        public int Deposits { get; set; }
+        public int Withdrawals { get; set; }
+    }
+
     protected override void OnInitialized()
     {
         // Check authentication

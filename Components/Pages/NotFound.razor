@@ -10,14 +10,10 @@
         </p>
         
         <div style="margin-top: 40px; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-            <a href="/" style="background: white; color: #667eea; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" 
-               @onmouseover="s => style = s.ToString()" 
-               @onmouseout="s => style = s.ToString()">
+            <a href="/" style="background: white; color: #667eea; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
                 Go to Home
             </a>
-            <a href="/login" style="background: rgba(255,255,255,0.2); color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; border: 2px solid white; transition: all 0.2s;" 
-               @onmouseover="s => style = s.ToString()" 
-               @onmouseout="s => style = s.ToString()">
+            <a href="/login" style="background: rgba(255,255,255,0.2); color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; border: 2px solid white; transition: all 0.2s;">
                 Back to Login
             </a>
         </div>
@@ -25,5 +21,6 @@
 </div>
 
 @code {
-    private string style = "";
+    [Parameter]
+    public string? catchall { get; set; }
 }

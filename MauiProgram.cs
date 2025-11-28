@@ -94,6 +94,12 @@ namespace FinanceBank
             builder.Services.AddScoped<RewardPointsService>();
             builder.Services.AddScoped<AuditLogService>();
 
+            // Register Security and ERP Services
+            builder.Services.AddScoped<PasswordHashingService>();
+            builder.Services.AddScoped<TaxCalculationService>();
+            builder.Services.AddScoped<AccountingEntryService>();
+            builder.Services.AddScoped<TransactionValidationService>();
+
             // Register Card Application Service (card and loan approvals)
             builder.Services.AddScoped<CardApplicationService>();
 

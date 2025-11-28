@@ -1,0 +1,256 @@
+@using FinanceBank.Models
+@inject IJSRuntime JS
+
+@if (IsVisible)
+{
+    <div class="modal-overlay" @onclick="HandleClose">
+        <div class="modal-container" style="max-width: 800px;" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <div style="text-align: center; width: 100%;">
+                    <h1 class="modal-title">PAYMENT RECEIPT</h1>
+                    <p class="modal-subtitle">FinSys Banking System</p>
+                </div>
+                <button class="modal-close" @onclick="HandleClose">✕</button>
+            </div>
+
+            <div class="modal-body" id="invoice-content">
+                <!-- Bank Header -->
+                <div style="text-align: center; padding: 20px; border-bottom: 3px solid var(--primary-green-start);">
+                    <div style="width: 80px; height: 80px; margin: 0 auto 16px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <svg style="width: 40px; height: 40px; stroke: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h2 style="font-size: 24px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">
+                        FinSys Banking Corporation
+                    </h2>
+                    <p style="font-size: 14px; color: var(--text-gray);">
+                        Professional Banking Services | Est. 2024
+                    </p>
+                </div>
+
+                <!-- Receipt Information -->
+                <div style="padding: 24px; background: var(--bg-lighter); margin: 0 -32px;">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center;">
+                        <div>
+                            <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Receipt No.
+                            </p>
+                            <p style="font-size: 16px; font-weight: 700; color: var(--text-dark);">
+                                #@Payment.PaymentId.ToString("D8")
+                            </p>
+                        </div>
+                        <div>
+                            <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Date & Time
+                            </p>
+                            <p style="font-size: 16px; font-weight: 700; color: var(--text-dark);">
+                                @Payment.PaymentDate.ToString("MMM dd, yyyy")
+                            </p>
+                            <p style="font-size: 13px; color: var(--text-gray);">
+                                @Payment.PaymentDate.ToString("hh:mm tt")
+                            </p>
+                        </div>
+                        <div>
+                            <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Processed By
+                            </p>
+                            <p style="font-size: 16px; font-weight: 700; color: var(--text-dark);">
+                                @Payment.ProcessedBy
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer & Loan Details -->
+                <div style="padding: 24px 0; border-bottom: 2px solid var(--border);">
+                    <h3 style="font-size: 14px; font-weight: 700; color: var(--text-gray); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">
+                        Customer Information
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                        <div>
+                            <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 4px;">Customer Name</p>
+                            <p style="font-size: 16px; font-weight: 600; color: var(--text-dark);">@Account?.Customer?.FullName</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 4px;">Account Number</p>
+                            <p style="font-size: 16px; font-weight: 600; color: var(--text-dark);">@Account?.AccountNumber</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 4px;">Loan Number</p>
+                            <p style="font-size: 16px; font-weight: 600; color: var(--text-dark);">@Loan?.LoanNumber</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 4px;">Loan Type</p>
+                            <p style="font-size: 16px; font-weight: 600; color: var(--text-dark);">@Loan?.LoanType</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Breakdown -->
+                <div style="padding: 24px 0;">
+                    <h3 style="font-size: 14px; font-weight: 700; color: var(--text-gray); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">
+                        Payment Details
+                    </h3>
+                    
+                    <div style="background: white; border: 2px solid var(--border); border-radius: var(--radius-md); overflow: hidden;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tbody>
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <td style="padding: 16px; font-size: 15px; color: var(--text-gray);">Payment Amount</td>
+                                    <td style="padding: 16px; font-size: 18px; font-weight: 700; text-align: right; color: var(--text-dark);">
+                                        ₱@Payment.PaymentAmount.ToString("N2")
+                                    </td>
+                                </tr>
+                                @if (Payment.PenaltyPaid > 0)
+                                {
+                                    <tr style="border-bottom: 1px solid var(--border);">
+                                        <td style="padding: 16px; font-size: 15px; color: var(--text-gray);">
+                                            Penalty Paid
+                                            @if (Payment.IsLatePayment)
+                                            {
+                                                <span style="color: var(--danger); font-size: 12px; display: block; margin-top: 4px;">
+                                                    Late payment penalty (0.05% daily)
+                                                </span>
+                                            }
+                                        </td>
+                                        <td style="padding: 16px; font-size: 16px; font-weight: 600; text-align: right; color: var(--danger);">
+                                            ₱@Payment.PenaltyPaid.ToString("N2")
+                                        </td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid var(--border);">
+                                        <td style="padding: 16px; font-size: 15px; color: var(--text-gray);">Principal Payment</td>
+                                        <td style="padding: 16px; font-size: 16px; font-weight: 600; text-align: right; color: var(--text-dark);">
+                                            ₱@((Payment.PaymentAmount - Payment.PenaltyPaid).ToString("N2"))
+                                        </td>
+                                    </tr>
+                                }
+                                <tr style="background: var(--primary-gradient);">
+                                    <td style="padding: 20px; font-size: 16px; font-weight: 700; color: white;">
+                                        TOTAL PAID
+                                    </td>
+                                    <td style="padding: 20px; font-size: 24px; font-weight: 700; text-align: right; color: white;">
+                                        ₱@Payment.PaymentAmount.ToString("N2")
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                        <div>
+                            <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 4px;">Payment Method</p>
+                            <p style="font-size: 16px; font-weight: 600; color: var(--text-dark);">@Payment.PaymentMethod</p>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(Payment.Reference))
+                        {
+                            <div>
+                                <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 4px;">Reference Number</p>
+                                <p style="font-size: 16px; font-weight: 600; color: var(--text-dark);">@Payment.Reference</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Remaining Balance -->
+                @if (Loan != null)
+                {
+                    <div style="background: var(--bg-lighter); border-radius: var(--radius-md); padding: 20px; margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 4px;">
+                                    Remaining Loan Balance
+                                </p>
+                                <p style="font-size: 28px; font-weight: 700; color: var(--primary-green-start);">
+                                    ₱@Loan.OutstandingBalance.ToString("N2")
+                                </p>
+                            </div>
+                            @if (Loan.NextDueDate.HasValue)
+                            {
+                                <div style="text-align: right;">
+                                    <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 4px;">
+                                        Next Payment Due
+                                    </p>
+                                    <p style="font-size: 18px; font-weight: 600; color: var(--text-dark);">
+                                        @Loan.NextDueDate.Value.ToString("MMM dd, yyyy")
+                                    </p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Footer -->
+                <div style="margin-top: 32px; padding-top: 24px; border-top: 2px solid var(--border); text-align: center;">
+                    <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 8px;">
+                        This is a computer-generated receipt and requires no signature.
+                    </p>
+                    <p style="font-size: 12px; color: var(--text-light);">
+                        For inquiries, please contact our customer service hotline or visit any FinSys branch.
+                    </p>
+                    <p style="font-size: 12px; color: var(--text-light); margin-top: 16px;">
+                        © @DateTime.Now.Year FinSys Banking Corporation. All rights reserved.
+                    </p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="HandleClose">
+                    Close
+                </button>
+                <button class="btn btn-primary" @onclick="PrintInvoice">
+                    🖨️ Print Receipt
+                </button>
+                <button class="btn btn-success" @onclick="DownloadInvoice">
+                    ⬇️ Download PDF
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public LoanPayment Payment { get; set; } = null!;
+    [Parameter] public Loan? Loan { get; set; }
+    [Parameter] public CustomerAccount? Account { get; set; }
+    [Parameter] public bool IsVisible { get; set; } = true;
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private void HandleClose()
+    {
+        OnClose.InvokeAsync();
+    }
+
+    private async Task PrintInvoice()
+    {
+        await JS.InvokeVoidAsync("eval", @"
+            var content = document.getElementById('invoice-content').innerHTML;
+            var printWindow = window.open('', '', 'height=800,width=800');
+            printWindow.document.write('<html><head><title>Payment Receipt</title>');
+            printWindow.document.write('<style>body { font-family: Arial, sans-serif; padding: 20px; }</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write(content);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        ");
+    }
+
+    private async Task DownloadInvoice()
+    {
+        // Simple HTML download as fallback (for PDF, would need a proper library)
+        await JS.InvokeVoidAsync("eval", $@"
+            var content = document.getElementById('invoice-content').innerHTML;
+            var blob = new Blob([content], {{ type: 'text/html' }});
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'payment-receipt-{Payment.PaymentId}.html';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        ");
+        
+        await JS.InvokeVoidAsync("alert", "Receipt downloaded! You can open it in a browser and save as PDF.");
+    }
+}

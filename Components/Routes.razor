@@ -2,54 +2,67 @@
     <ChildContent>
         <Router AppAssembly="@typeof(MauiProgram).Assembly">
             <Found Context="routeData">
-                <RouteView RouteData="@routeData" />
+                <RouteView RouteData="@routeData" DefaultLayout="@typeof(Components.Layout.EmptyLayout)" />
                 <FocusOnNavigate RouteData="@routeData" Selector="h1" />
             </Found>
             <NotFound>
-                <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #F7FAF7;">
+                <div
+                    style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #F7FAF7;">
                     <div style="text-align: center;">
                         <h1 style="font-size: 72px; margin: 0; color: #5C715E;">404</h1>
                         <p style="font-size: 18px; color: #6b7280; margin: 16px 0;">Page not found</p>
-                        <a href="/login" style="display: inline-block; padding: 12px 24px; background: #5C715E; color: white; text-decoration: none; border-radius: 12px; font-weight: 500;">Go to Login</a>
+                        <a href="/login"
+                            style="display: inline-block; padding: 12px 24px; background: #5C715E; color: white; text-decoration: none; border-radius: 12px; font-weight: 500;">Go
+                            to Login</a>
                     </div>
                 </div>
             </NotFound>
         </Router>
     </ChildContent>
     <ErrorContent Context="errorContext">
-        <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #fee2e2; padding: 20px;">
-            <div style="text-align: center; max-width: 700px; background: white; padding: 32px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div
+            style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #fee2e2; padding: 20px;">
+            <div
+                style="text-align: center; max-width: 700px; background: white; padding: 32px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                 <h2 style="color: #991b1b; margin-bottom: 16px; font-size: 28px;">⚠️ An Error Occurred</h2>
-                <p style="color: #7f1d1d; margin-bottom: 16px; line-height: 1.6; font-size: 15px;">An unexpected error has occurred. This is usually due to a service initialization issue or database connection problem.</p>
-                
-                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: left; font-size: 12px; color: #7f1d1d; max-height: 180px; overflow-y: auto; font-family: monospace;">
+                <p style="color: #7f1d1d; margin-bottom: 16px; line-height: 1.6; font-size: 15px;">An unexpected error
+                    has occurred. This is usually due to a service initialization issue or database connection problem.
+                </p>
+
+                <div
+                    style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: left; font-size: 12px; color: #7f1d1d; max-height: 180px; overflow-y: auto; font-family: monospace;">
                     <strong style="display: block; margin-bottom: 8px; color: #991b1b;">Error Details:</strong>
                     <div style="word-wrap: break-word; white-space: pre-wrap;">@errorContext?.Message</div>
                     @if (!string.IsNullOrEmpty(errorContext?.InnerException?.Message))
                     {
                         <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #fca5a5;">
                             <strong style="display: block; margin-bottom: 8px; color: #991b1b;">Inner Error:</strong>
-                            <div style="word-wrap: break-word; white-space: pre-wrap;">@errorContext.InnerException.Message</div>
+                            <div style="word-wrap: break-word; white-space: pre-wrap;">@errorContext.InnerException.Message
+                            </div>
                         </div>
                     }
                 </div>
 
-                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px; margin-bottom: 24px; text-align: left; font-size: 13px; color: #1e40af;">
+                <div
+                    style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px; margin-bottom: 24px; text-align: left; font-size: 13px; color: #1e40af;">
                     <strong style="display: block; margin-bottom: 8px;">✓ Troubleshooting Tips:</strong>
-                    ✓ Ensure SQL Server is running at: localhost\SQLEXPRESS<br/>
-                    ✓ Verify database exists: BFASdatabase<br/>
-                    ✓ Check your network connection<br/>
+                    ✓ Ensure SQL Server is running at: localhost\SQLEXPRESS<br />
+                    ✓ Verify database exists: BFASdatabase<br />
+                    ✓ Check your network connection<br />
                     ✓ Clear browser cache and try again
                 </div>
 
                 <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                    <button @onclick="ReloadPage" style="padding: 12px 24px; background: #dc2626; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; font-size: 14px;">
+                    <button @onclick="ReloadPage"
+                        style="padding: 12px 24px; background: #dc2626; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; font-size: 14px;">
                         🔄 Reload Page
                     </button>
-                    <a href="/login" style="padding: 12px 24px; background: #6b7280; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14px; display: inline-block;">
+                    <a href="/login"
+                        style="padding: 12px 24px; background: #6b7280; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14px; display: inline-block;">
                         🔐 Go to Login
                     </a>
-                    <a href="/" style="padding: 12px 24px; background: #059669; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14px; display: inline-block;">
+                    <a href="/"
+                        style="padding: 12px 24px; background: #059669; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14px; display: inline-block;">
                         🏠 Go Home
                     </a>
                 </div>
@@ -67,8 +80,7 @@
 
     private void ReloadPage()
     {
-        // Reload the entire page
-        var uri = new Uri(System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName ?? "about:blank");
+        errorBoundary?.Recover();
     }
 
     public async ValueTask DisposeAsync()
@@ -77,4 +89,3 @@
         await ValueTask.CompletedTask;
     }
 }
-

@@ -70,10 +70,9 @@ namespace FinanceBank.Data
         // Customer Card Tables
         public DbSet<CustomerCardEntity> CustomerCards { get; set; }
 
-        // System / Audit Tables
-        public DbSet<AuditLog> AuditLogs { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+    // System / Audit Tables
+    public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<AccountingEntry> AccountingEntries { get; set; }        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 

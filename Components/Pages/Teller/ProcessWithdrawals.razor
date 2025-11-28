@@ -53,10 +53,14 @@
             <div>
                 <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Withdrawal Amount (₱) *</label>
                 <input type="number" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
-                       @bind="withdrawalAmount" placeholder="0.00" step="0.01" />
+                       @bind="withdrawalAmount" @bind:event="oninput" placeholder="0.00" step="0.01" />
                 @if (showError && withdrawalAmount <= 0) 
                 { 
                     <span style="color: #dc2626; font-size: 12px;">Amount must be greater than 0</span> 
+                }
+                @if (withdrawalAmount > 0 && currentAccountBalance > 0 && withdrawalAmount > currentAccountBalance)
+                {
+                    <span style="color: #dc2626; font-size: 12px; display: block; margin-top: 4px;">⚠️ Insufficient balance. Available: ₱@currentAccountBalance.ToString("N2")</span>
                 }
             </div>
 
@@ -331,6 +335,7 @@
     private string accountNumber = "";
     private string customerName = "";
     private string availableBalance = "₱0.00";
+    private decimal currentAccountBalance = 0;
     private decimal withdrawalAmount = 0;
     private string referenceNumber = "";
     private string withdrawalMethod = "";
@@ -383,11 +388,16 @@
         if (success && account != null)
         {
             customerName = account.Customer?.FullName ?? "";
-            availableBalance = $"₱{account.AvailableBalance:N2}";
+            currentAccountBalance = account.Balance;
+            availableBalance = $"₱{account.Balance:N2}";
+            StateHasChanged();
         }
         else
         {
+            customerName = "";
+            currentAccountBalance = 0;
             availableBalance = "₱0.00";
+            StateHasChanged();
         }
     }
 

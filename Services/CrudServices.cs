@@ -1385,6 +1385,60 @@ public class AuditLogService
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
     }
+
+    // Enhanced audit methods for transactions and security
+    public async Task LogTransaction(
+        int? accountId,
+        string transactionType,
+        decimal amount,
+        bool success,
+        string details,
+        string performedBy,
+        string ipAddress = "")
+    {
+        var auditLog = new AuditLog
+        {
+            UserId = performedBy,
+            Action = $"{transactionType}_{(success ? "SUCCESS" : "FAILURE")}",
+            Module = "TRANSACTION",
+            Description = $"Amount: ₱{amount:N2} | {details}",
+            IpAddress = ipAddress,
+            CreatedAt = DateTime.Now
+        };
+
+        await CreateAsync(auditLog);
+    }
+
+    public async Task LogAuthentication(
+        string username,
+        bool success,
+        string details,
+        string ipAddress = "")
+    {
+        var auditLog = new AuditLog
+        {
+            UserId = username,
+            Action = success ? "LOGIN_SUCCESS" : "LOGIN_FAILURE",
+            Module = "AUTHENTICATION",
+            Description = details,
+            IpAddress = ipAddress,
+            CreatedAt = DateTime.Now
+        };
+
+        await CreateAsync(auditLog);
+    }
+
+    public async Task<List<AuditLog>> GetFailedLoginAttempts(string username, TimeSpan timeWindow)
+    {
+        var cutoffTime = DateTime.Now.Subtract(timeWindow);
+
+        return await _context.AuditLogs
+            .Where(a => a.UserId == username 
+                && a.Action == "LOGIN_FAILURE" 
+                && a.CreatedAt >= cutoffTime)
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync();
+    }
 }
 
 

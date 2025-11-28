@@ -129,12 +129,29 @@
                 </div>
                 <div>
                     <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Password *</label>
-                    <input type="@(showPassword ? "text" : "password")" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px;" @bind="initialPassword" placeholder="Password" />
-                    @if (showError && string.IsNullOrEmpty(initialPassword)) { <span style="color: #dc2626; font-size: 12px;">Required</span> }
+                    <input type="@(showPassword ? "text" : "password")" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px;" @bind="initialPassword" placeholder="Minimum 12 characters" />
+                    @if (showError && string.IsNullOrEmpty(initialPassword))
+                    {
+                        <span style="color: #dc2626; font-size: 12px;">Password is required</span>
+                    }
+                    @if (!string.IsNullOrEmpty(passwordError))
+                    {
+                        <span style="color: #dc2626; font-size: 12px; display: block; margin-top: 4px;">@passwordError</span>
+                    }
                     <label style="font-size: 12px; margin-top: 8px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
                         <input type="checkbox" @onchange="() => showPassword = !showPassword" />
-                        Show
+                        Show Password
                     </label>
+                    <div style="margin-top: 8px; padding: 10px; background: #f0f9ff; border-radius: 6px; border: 1px solid #bfdbfe;">
+                        <p style="font-size: 11px; color: #1e40af; margin: 0 0 4px; font-weight: 600;">Password Requirements:</p>
+                        <ul style="font-size: 11px; color: #1e40af; margin: 0; padding-left: 20px;">
+                            <li>Minimum 12 characters</li>
+                            <li>At least 1 uppercase letter (A-Z)</li>
+                            <li>At least 1 lowercase letter (a-z)</li>
+                            <li>At least 1 number (0-9)</li>
+                            <li>At least 1 special character (!@@#$%^&*)</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -215,6 +232,7 @@
 @using FinanceBank.Data
 @using FinanceBank.Models
 @using Microsoft.EntityFrameworkCore
+@inject PasswordHashingService PasswordHasher
 
 @code {
     private Toast? toastComponent;
@@ -240,6 +258,7 @@
     private bool isLoading = false;
     private string errorMessage = "";
     private string successMessage = "";
+    private string passwordError = "";
     private List<PendingUser> pendingUsers = new();
 
     private void SelectUserType(string type)
@@ -267,11 +286,21 @@
         showError = true;
         errorMessage = "";
         successMessage = "";
+        passwordError = "";
 
         // Validate required fields
         if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(contactNumber) || string.IsNullOrEmpty(address) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(initialPassword))
         {
             errorMessage = "Please fill in all required fields";
+            return;
+        }
+
+        // Validate password strength
+        var (isValid, validationError) = PasswordHasher.ValidatePasswordStrength(initialPassword);
+        if (!isValid)
+        {
+            passwordError = validationError;
+            errorMessage = "Password does not meet security requirements";
             return;
         }
 
@@ -285,10 +314,13 @@
 
         try
         {
-            // Call backend service to create user
+            // Hash the password before sending to service
+            var hashedPassword = PasswordHasher.HashPassword(initialPassword);
+            
+            // Call backend service to create user with hashed password
             var (success, message, accountNumber) = await RegistrationService.CreateUserAsync(
                 username: username,
-                password: initialPassword,
+                password: hashedPassword,
                 fullName: fullName,
                 email: email,
                 phoneNumber: contactNumber,
@@ -306,7 +338,7 @@
             }
 
             // Show success message
-            successMessage = $"✓ Account created successfully!\n\nAccount Number: {accountNumber}\nUsername: {username}\nRole: {(userType == "Employee" ? selectedRole : "Customer")}\n{(userType == "Employee" ? $"Employee ID: {(employeeId.HasValue ? employeeId.Value : "Auto-generated")}\nDepartment: {department}" : "")}\n\nUser has been authenticated and can log in immediately.";
+            successMessage = $"✓ Account created successfully!\n\nAccount Number: {accountNumber}\nUsername: {username}\nRole: {(userType == "Employee" ? selectedRole : "Customer")}\n{(userType == "Employee" ? $"Employee ID: {(employeeId.HasValue ? employeeId.Value : "Auto-generated")}\nDepartment: {department}" : "")}\n\nPassword has been securely hashed. User can log in immediately.";
             
             // Clear form after brief delay
             await Task.Delay(2000);
@@ -346,6 +378,7 @@
         selectedPermissions.Clear();
         showError = false;
         errorMessage = "";
+        passwordError = "";
     }
 
     private async Task HandleIDUpload(InputFileChangeEventArgs e)

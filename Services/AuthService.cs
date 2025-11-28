@@ -1,6 +1,7 @@
 using FinanceBank.Data;
 using FinanceBank.Models;
 using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;
 
 namespace FinanceBank.Services
 {
@@ -84,8 +85,9 @@ namespace FinanceBank.Services
                     return (false, "Invalid username or password");
                 }
 
-                // Check password (In production, use BCrypt.Verify)
-                if (user.PasswordHash != password)
+                // Verify password using BCrypt
+                bool isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+                if (!isPasswordValid)
                 {
                     await LogFailedLoginAsync(username, "Invalid password", ipAddress, userAgent);
                     return (false, "Invalid username or password");
@@ -141,7 +143,7 @@ namespace FinanceBank.Services
                     .Include(u => u.Employee)
                     .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
 
-                if (user == null || user.PasswordHash != password)
+                if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
                     return false;
 
                 // Set authentication properties

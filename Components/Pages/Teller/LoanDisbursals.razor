@@ -1,0 +1,388 @@
+@page "/teller/loan-disbursals"
+@layout TellerLayout
+@using FinanceBank.Models
+@using FinanceBank.Services
+@using Microsoft.EntityFrameworkCore
+@using FinanceBank.Components.Shared
+@inject LoanProcessService LoanService
+@inject BFASDbContext DbContext
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="sidebar-content">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="modal-title">Loan Disbursals</h1>
+            <p class="modal-subtitle">Release approved loan funds to customers</p>
+        </div>
+
+        <div class="card-body" style="padding: 24px;">
+            @if (isLoading)
+            {
+                <div class="text-center" style="padding: 40px;">
+                    <p style="color: var(--text-gray);">Loading approved loans...</p>
+                </div>
+            }
+            else if (!approvedLoans.Any())
+            {
+                <div class="text-center" style="padding: 40px;">
+                    <p style="color: var(--text-gray); font-size: 16px;">No approved loans pending disbursal</p>
+                </div>
+            }
+            else
+            {
+                <div style="display: grid; gap: 16px;">
+                    @foreach (var approval in approvedLoans)
+                    {
+                        var loan = GetLoanForApproval(approval.ApprovalId);
+                        var alreadyDisbursed = loan != null && DbContext.LoanDisbursals.Any(d => d.LoanId == loan.LoanId);
+
+                        <div class="card" style="border: 2px solid @(alreadyDisbursed ? "#10b981" : "var(--border)");">
+                            <div style="display: flex; justify-content: space-between; align-items: start; gap: 20px;">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-dark); margin: 0;">
+                                            @approval.Application?.ApplicationNumber
+                                        </h3>
+                                        @if (alreadyDisbursed)
+                                        {
+                                            <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                                ✓ DISBURSED
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                                PENDING
+                                            </span>
+                                        }
+                                    </div>
+                                    
+                                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                                        <div>
+                                            <span style="font-size: 13px; color: var(--text-gray); display: block;">Customer</span>
+                                            <span style="font-size: 15px; font-weight: 600; color: var(--text-dark);">@approval.Account?.Customer?.FullName</span>
+                                        </div>
+                                        <div>
+                                            <span style="font-size: 13px; color: var(--text-gray); display: block;">Loan Type</span>
+                                            <span style="font-size: 15px; font-weight: 600; color: var(--text-dark);">@approval.Application?.LoanType</span>
+                                        </div>
+                                        <div>
+                                            <span style="font-size: 13px; color: var(--text-gray); display: block;">Approved Amount</span>
+                                            <span style="font-size: 17px; font-weight: 700; color: var(--primary-green-start);">₱@approval.ApprovedAmount?.ToString("N2")</span>
+                                        </div>
+                                        <div>
+                                            <span style="font-size: 13px; color: var(--text-gray); display: block;">Approval Date</span>
+                                            <span style="font-size: 15px; font-weight: 600; color: var(--text-dark);">@approval.ApprovalDate.ToString("MMM dd, yyyy")</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                @if (!alreadyDisbursed)
+                                {
+                                    <button class="btn btn-primary btn-sm" @onclick="() => OpenDisbursalModal(approval, loan)">
+                                        Disburse →
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (showDisbursalModal && selectedApproval != null)
+{
+    <StepModal Title="Disburse Loan Funds" 
+               Subtitle="@modalSubtitle"
+               CurrentStep="currentStep"
+               ShowSteps="true"
+               IsVisible="showDisbursalModal"
+               OnClose="CloseModal"
+               OnConfirm="ProcessDisbursal"
+               OnStepChanged="HandleStepChanged"
+               Step1Label="Disbursal Details"
+               Step2Label="Confirmation"
+               ConfirmButtonText="Release Funds"
+               Step1Valid="true"
+               Step2Valid="true">
+        
+        <Step1Content>
+            <div class="step-section">
+                <h3 class="step-section-title">Loan Approval Details</h3>
+                
+                <div style="background: var(--bg-lighter); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px;">
+                    <div class="summary-row">
+                        <span class="summary-label">Application Number</span>
+                        <span class="summary-value">@selectedApproval.Application?.ApplicationNumber</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Customer Name</span>
+                        <span class="summary-value">@selectedApproval.Account?.Customer?.FullName</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Account Number</span>
+                        <span class="summary-value">@selectedApproval.Account?.AccountNumber</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Loan Type</span>
+                        <span class="summary-value">@selectedApproval.Application?.LoanType</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Approved Amount</span>
+                        <span class="summary-value highlight">₱@selectedApproval.ApprovedAmount?.ToString("N2")</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Interest Rate</span>
+                        <span class="summary-value">@selectedApproval.ApprovedInterestRate%</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Term</span>
+                        <span class="summary-value">@selectedApproval.ApprovedTermMonths months</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Approved By</span>
+                        <span class="summary-value">@selectedApproval.ApprovedBy</span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(selectedApproval.SpecialConditions))
+                    {
+                        <div class="summary-row">
+                            <span class="summary-label">Special Conditions</span>
+                            <span class="summary-value">@selectedApproval.SpecialConditions</span>
+                        </div>
+                    }
+                </div>
+
+                <h3 class="step-section-title">Disbursal Information</h3>
+
+                <div class="form-group">
+                    <label class="form-label required">Disbursal Method</label>
+                    <select class="form-control" @bind="disbursalMethod">
+                        <option value="">-- Select Method --</option>
+                        <option value="Account Credit">Credit to Account</option>
+                        <option value="Cash">Cash Disbursal</option>
+                        <option value="Check">Bank Check</option>
+                        <option value="Wire Transfer">Wire Transfer</option>
+                    </select>
+                    <span class="form-help">How will the funds be released to the customer?</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required">Disbursal Amount</label>
+                    <input type="number" class="form-control" @bind="disbursalAmount" step="0.01" 
+                           placeholder="Enter disbursal amount" />
+                    <span class="form-help">Approved: ₱@selectedApproval.ApprovedAmount?.ToString("N2")</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Reference Number</label>
+                    <input type="text" class="form-control" @bind="referenceNumber" 
+                           placeholder="Transaction reference, check number, etc." />
+                    <span class="form-help">Optional: For tracking purposes</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Remarks</label>
+                    <textarea class="form-control" @bind="remarks" rows="3" 
+                              placeholder="Additional notes or instructions..."></textarea>
+                </div>
+            </div>
+        </Step1Content>
+
+        <Step2Content>
+            <div class="confirmation-summary">
+                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-dark);">
+                    ✓ Disbursal Confirmation
+                </h3>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Customer</span>
+                    <span class="summary-value">@selectedApproval.Account?.Customer?.FullName</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Account Number</span>
+                    <span class="summary-value">@selectedApproval.Account?.AccountNumber</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Disbursal Amount</span>
+                    <span class="summary-value highlight">₱@disbursalAmount.ToString("N2")</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Disbursal Method</span>
+                    <span class="summary-value">@disbursalMethod</span>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(referenceNumber))
+                {
+                    <div class="summary-row">
+                        <span class="summary-label">Reference</span>
+                        <span class="summary-value">@referenceNumber</span>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(remarks))
+                {
+                    <div class="summary-row">
+                        <span class="summary-label">Remarks</span>
+                        <span class="summary-value">@remarks</span>
+                    </div>
+                }
+            </div>
+
+            <div style="background: #fee2e2; border: 2px solid #ef4444; border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
+                <p style="margin: 0; color: #dc2626; font-weight: 600;">
+                    ⚠️ IMPORTANT: Funds will be released immediately. Verify all information before confirming.
+                </p>
+            </div>
+        </Step2Content>
+    </StepModal>
+}
+
+@code {
+    private List<LoanApproval> approvedLoans = new();
+    private LoanApproval? selectedApproval;
+    private Loan? selectedLoan;
+    private bool showDisbursalModal = false;
+    private bool isLoading = true;
+    private int currentStep = 1;
+
+    // Form fields
+    private string disbursalMethod = "";
+    private decimal disbursalAmount;
+    private string referenceNumber = "";
+    private string remarks = "";
+
+    private string modalSubtitle => currentStep == 1 ? "Step 1: Enter disbursal details" : "Step 2: Confirm disbursal";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadApprovedLoans();
+    }
+
+    private async Task LoadApprovedLoans()
+    {
+        isLoading = true;
+        try
+        {
+            approvedLoans = await LoanService.GetApprovedLoansAsync();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error loading loans: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private Loan? GetLoanForApproval(int approvalId)
+    {
+        return DbContext.Loans.FirstOrDefault(l => l.ApprovalId == approvalId);
+    }
+
+    private void OpenDisbursalModal(LoanApproval approval, Loan? loan)
+    {
+        selectedApproval = approval;
+        selectedLoan = loan;
+        currentStep = 1;
+        disbursalMethod = "";
+        disbursalAmount = approval.ApprovedAmount ?? 0;
+        referenceNumber = "";
+        remarks = "";
+        showDisbursalModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showDisbursalModal = false;
+        selectedApproval = null;
+        selectedLoan = null;
+        currentStep = 1;
+    }
+
+    private void HandleStepChanged(int step)
+    {
+        currentStep = step;
+        StateHasChanged();
+    }
+
+    private bool ValidateCurrentStep()
+    {
+        if (currentStep == 1)
+        {
+            if (string.IsNullOrWhiteSpace(disbursalMethod))
+            {
+                JS.InvokeVoidAsync("alert", "Please select a disbursal method");
+                return false;
+            }
+
+            if (disbursalAmount <= 0)
+            {
+                JS.InvokeVoidAsync("alert", "Please enter a valid disbursal amount");
+                return false;
+            }
+
+            if (disbursalAmount > (selectedApproval?.ApprovedAmount ?? 0))
+            {
+                JS.InvokeVoidAsync("alert", "Disbursal amount cannot exceed approved amount");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private async Task ProcessDisbursal()
+    {
+        if (selectedApproval == null) return;
+
+        try
+        {
+            // Create or get loan
+            int loanId;
+            if (selectedLoan != null)
+            {
+                loanId = selectedLoan.LoanId;
+            }
+            else
+            {
+                // Create loan record if doesn't exist
+                var newLoan = new Loan
+                {
+                    AccountId = selectedApproval.AccountId,
+                    LoanType = selectedApproval.Application?.LoanType ?? "",
+                    LoanAmount = selectedApproval.ApprovedAmount ?? 0,
+                    OutstandingBalance = selectedApproval.ApprovedAmount ?? 0,
+                    InterestRate = selectedApproval.ApprovedInterestRate ?? 0,
+                    TermMonths = selectedApproval.ApprovedTermMonths ?? 0,
+                    Status = "ACTIVE",
+                    ApplicationId = selectedApproval.ApplicationId,
+                    AssessmentId = selectedApproval.AssessmentId,
+                    ApprovalId = selectedApproval.ApprovalId,
+                    StartDate = DateTime.Now
+                };
+                
+                DbContext.Loans.Add(newLoan);
+                await DbContext.SaveChangesAsync();
+                loanId = newLoan.LoanId;
+            }
+
+            // Process disbursal
+            await LoanService.DisburseLoanAsync(
+                selectedApproval.ApprovalId,
+                selectedApproval.AccountId,
+                disbursalAmount,
+                disbursalMethod,
+                "Teller" // Replace with actual user
+            );
+
+            await JS.InvokeVoidAsync("alert", "Loan funds disbursed successfully!");
+            CloseModal();
+            await LoadApprovedLoans();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error processing disbursal: {ex.Message}");
+        }
+    }
+}

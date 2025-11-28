@@ -7,29 +7,31 @@
 @inject CustomerTransactionService TransactionService
 @inject AuthService AuthService
 
+@* Import Unified Design System *@
+<link rel="stylesheet" href="css/unified-design-system.css" />
+
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
-    <!-- Header -->
-    <div style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+    <!-- Header with Gradient Green -->
+    <div style="background: var(--primary-gradient); border-radius: var(--radius-xl); padding: 32px; margin-bottom: 24px; color: white; box-shadow: var(--shadow-lg);">
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="9" y1="15" x2="15" y2="15"></line>
                 </svg>
             </div>
-            <div>
-                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Pay Bills</h1>
-                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Manage and pay your bills easily</p>
+            <div style="flex: 1;">
+                <h1 style="font-size: 32px; font-weight: 700; margin: 0;">Pay Bills</h1>
+                <p style="margin: 6px 0 0; opacity: 0.95; font-size: 16px;">Manage and pay your bills easily</p>
             </div>
-            <div style="margin-left: auto; text-align: right;">
-                <button type="button" @onclick="ShowHistory" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px 20px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                    </svg>
-                    History
-                </button>
-            </div>
+            <button type="button" @onclick="ShowHistory" class="btn btn-secondary" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                </svg>
+                History
+            </button>
         </div>
     </div>
 
@@ -83,10 +85,10 @@
 
                     <!-- Action Buttons -->
                     <div style="display: flex; gap: 12px;">
-                        <button type="button" @onclick="ClearForm" style="flex: 1; padding: 16px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 16px; font-weight: 600; cursor: pointer;">
+                        <button type="button" @onclick="ClearForm" class="btn btn-secondary" style="flex: 1;">
                             Clear
                         </button>
-                        <button type="button" @onclick="ShowPaymentConfirmation" style="flex: 2; padding: 16px; background: linear-gradient(135deg, var(--accent), #059669); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
+                        <button type="button" @onclick="ShowPaymentConfirmation" class="btn btn-primary" style="flex: 2;">
                             Pay Now →
                         </button>
                     </div>
@@ -97,35 +99,35 @@
         <!-- Sidebar -->
         <div>
             <!-- Saved Billers -->
-            <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
-                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Saved Billers</h3>
+            <div class="card" style="margin-bottom: 24px;">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--text-dark);">Saved Billers</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     @foreach (var saved in savedBillers)
                     {
-                        <div @onclick="() => QuickPayBiller(saved)" style="padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="saved-biller">
-                            <div style="font-weight: 600; font-size: 14px; color: #1f2937;">@saved.Name</div>
-                            <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">****@saved.AccountNumber.Substring(saved.AccountNumber.Length - 4)</div>
+                        <div @onclick="() => QuickPayBiller(saved)" class="card" style="padding: 12px; cursor: pointer; transition: all 0.2s; border: 2px solid var(--border);">
+                            <div style="font-weight: 600; font-size: 14px; color: var(--text-dark);">@saved.Name</div>
+                            <div style="font-size: 12px; color: var(--text-gray); margin-top: 2px;">****@saved.AccountNumber.Substring(saved.AccountNumber.Length - 4)</div>
                         </div>
                     }
                 </div>
             </div>
 
             <!-- Recent Payments -->
-            <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="font-size: 18px; font-weight: 600; color: #1f2937;">Recent Payments</h3>
-                    <button type="button" @onclick="ShowHistory" style="font-size: 14px; color: #f59e0b; background: none; border: none; cursor: pointer; font-weight: 500;">View All</button>
+                    <h3 style="font-size: 18px; font-weight: 600; color: var(--text-dark);">Recent Payments</h3>
+                    <button type="button" @onclick="ShowHistory" style="font-size: 14px; color: var(--primary-green-start); background: none; border: none; cursor: pointer; font-weight: 600;">View All</button>
                 </div>
                 
                 @foreach (var payment in recentPayments.Take(3))
                 {
-                    <div style="padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;" class="payment-item">
+                    <div class="card" style="padding: 12px; margin-bottom: 8px; border: 2px solid var(--border); transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div>
-                                <div style="font-weight: 600; font-size: 14px; color: #1f2937;">@payment.Biller</div>
-                                <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">@payment.Date.ToString("MMM dd, yyyy")</div>
+                                <div style="font-weight: 600; font-size: 14px; color: var(--text-dark);">@payment.Biller</div>
+                                <div style="font-size: 12px; color: var(--text-gray); margin-top: 2px;">@payment.Date.ToString("MMM dd, yyyy")</div>
                             </div>
-                            <div style="font-weight: 600; color: #dc2626;">-₱@payment.Amount.ToString("N2")</div>
+                            <div style="font-weight: 700; color: var(--danger);">-₱@payment.Amount.ToString("N2")</div>
                         </div>
                     </div>
                 }
@@ -134,53 +136,98 @@
     </div>
 </div>
 
-<!-- Payment Confirmation Modal -->
-@if (showConfirmationModal)
-{
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseConfirmation">
-        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
-            <div style="text-align: center; margin-bottom: 24px;">
-                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
-                    <span style="font-size: 40px;">[BILL]</span>
+<!-- Step-Based Payment Modal -->
+<StepModal IsVisible="@showConfirmationModal"
+           OnClose="@CloseConfirmation"
+           OnConfirm="@ProcessPayment"
+           Title="Bill Payment"
+           Subtitle="Review and confirm your payment"
+           IconPath='<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline>'
+           ShowSteps="true"
+           CurrentStep="@currentStep"
+           Step1Label="Payment Details"
+           Step2Label="Confirmation"
+           Step1Valid="@IsStep1Valid"
+           Step2Valid="true"
+           ConfirmButtonText="Process Payment"
+           OnStepChanged="@HandleStepChanged">
+    
+    <Step1Content>
+        <div class="step-section">
+            <h3 class="step-section-title">Selected Biller</h3>
+            <div class="card" style="padding: 16px; background: var(--bg-lighter);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 48px; height: 48px; background: var(--primary-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 20px;">
+                        @selectedBiller.Substring(0, 1)
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; color: var(--text-dark);">@selectedBiller</div>
+                        <div style="font-size: 13px; color: var(--text-gray);">@selectedCategory</div>
+                    </div>
                 </div>
-                <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">Confirm Payment</h2>
-                <p style="color: #6b7280;">Please review the details below</p>
-            </div>
-            
-            <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
-                    <span style="color: #6b7280;">Biller:</span>
-                    <span style="font-weight: 600; color: #1f2937;">@selectedBiller</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
-                    <span style="color: #6b7280;">Account Number:</span>
-                    <span style="font-weight: 600; color: #1f2937; font-family: monospace;">@accountNumber</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
-                    <span style="color: #6b7280;">Amount:</span>
-                    <span style="font-weight: 700; color: #f59e0b; font-size: 18px;">₱@amount.ToString("N2")</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px 0;">
-                    <span style="color: #6b7280;">Convenience Fee:</span>
-                    <span style="font-weight: 600; color: #1f2937;">₱10.00</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 16px 0; border-top: 2px solid #e5e7eb; margin-top: 8px;">
-                    <span style="font-weight: 600; color: #1f2937;">Total Amount:</span>
-                    <span style="font-weight: 700; color: #dc2626; font-size: 20px;">₱@((amount + 10).ToString("N2"))</span>
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 12px;">
-                <button @onclick="CloseConfirmation" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 15px; font-weight: 600; cursor: pointer;">
-                    Cancel
-                </button>
-                <button @onclick="ProcessPayment" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; border-radius: 12px; color: white; font-size: 15px; font-weight: 600; cursor: pointer;">
-                    Confirm Payment
-                </button>
             </div>
         </div>
-    </div>
-}
+
+        <div class="step-section">
+            <h3 class="step-section-title">Payment Information</h3>
+            <div class="form-group">
+                <label class="form-label">Account Number</label>
+                <input type="text" class="form-control" @bind="accountNumber" placeholder="Enter account number" readonly style="background: var(--bg-lighter);" />
+            </div>
+            <div class="form-group">
+                <label class="form-label required">Amount to Pay</label>
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--primary-green-start); font-size: 20px;">₱</span>
+                    <input type="number" class="form-control" @bind="amount" placeholder="0.00" style="font-size: 24px; font-weight: 700; padding-left: 40px; text-align: left; color: var(--primary-green-start);" />
+                </div>
+                <small class="form-help">Convenience fee of ₱10.00 will be added</small>
+            </div>
+        </div>
+    </Step1Content>
+    
+    <Step2Content>
+        <div class="confirmation-summary">
+            <div class="summary-row">
+                <span class="summary-label">Biller:</span>
+                <span class="summary-value">@selectedBiller</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Category:</span>
+                <span class="summary-value">@selectedCategory</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Account Number:</span>
+                <span class="summary-value" style="font-family: monospace;">@accountNumber</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Payment Amount:</span>
+                <span class="summary-value">₱@amount.ToString("N2")</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Convenience Fee:</span>
+                <span class="summary-value">₱10.00</span>
+            </div>
+            <div class="summary-row" style="padding-top: 16px; border-top: 2px solid var(--border); margin-top: 8px;">
+                <span class="summary-label" style="font-size: 16px; color: var(--text-dark); font-weight: 700;">Total Amount:</span>
+                <span class="summary-value highlight">₱@((amount + 10).ToString("N2"))</span>
+            </div>
+        </div>
+        
+        <div style="background: rgba(74, 124, 89, 0.1); border-left: 4px solid var(--primary-green-start); padding: 16px; border-radius: var(--radius-md);">
+            <div style="display: flex; gap: 12px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-green-start)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <div>
+                    <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Important Notice</div>
+                    <div style="font-size: 13px; color: var(--text-gray);">Please review all details carefully before confirming. This transaction cannot be reversed once processed.</div>
+                </div>
+            </div>
+        </div>
+    </Step2Content>
+</StepModal>
 
 <!-- Payment History Modal -->
 @if (showHistoryModal)
@@ -239,21 +286,9 @@
 }
 
 <style>
-    .biller-card:hover {
-        background: #fef3c7 !important;
-        border-color: #f59e0b !important;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(245,158,11,0.2);
-    }
-    
-    .saved-biller:hover {
-        background: #f9fafb;
-        border-color: #f59e0b;
-    }
-    
-    .payment-item:hover {
-        background: #fef3c7;
-        border-color: #f59e0b;
+    .card:hover {
+        border-color: var(--primary-green-start) !important;
+        box-shadow: var(--shadow-md);
     }
 </style>
 
@@ -267,15 +302,23 @@
     private bool showSuccessModal = false;
     private bool isProcessing = false;
     private string errorMessage = "";
+    private int currentStep = 1;
 
     private CustomerAccount? account;
     private List<string> billerCategories = new() { "Utilities", "Telecommunications", "Government", "Credit Cards", "Insurance", "Others" };
     private List<Payment> recentPayments = new();
     private List<SavedBiller> savedBillers = new();
 
+    private bool IsStep1Valid => !string.IsNullOrEmpty(selectedBiller) && !string.IsNullOrEmpty(accountNumber) && amount > 0;
+
     protected override async Task OnInitializedAsync()
     {
         await LoadAccountAndHistoryAsync();
+    }
+
+    private void HandleStepChanged(int step)
+    {
+        currentStep = step;
     }
 
     private async Task LoadAccountAndHistoryAsync()
@@ -357,12 +400,14 @@
     {
         if (!string.IsNullOrEmpty(selectedBiller) && !string.IsNullOrEmpty(accountNumber) && amount > 0)
         {
+            currentStep = 1;
             showConfirmationModal = true;
         }
     }
 
     private void CloseConfirmation()
     {
+        currentStep = 1;
         showConfirmationModal = false;
     }
 

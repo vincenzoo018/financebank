@@ -94,10 +94,16 @@
                 <div style="margin-bottom: 24px;">
                     <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Amount</h3>
                     <div class="form-group">
-                        <input type="number" class="form-control" @bind="amount" placeholder="0.00" style="font-size: 20px; font-weight: 600; padding: 14px; text-align: center; color: #0891b2; border: 2px solid #e5e7eb; border-radius: 8px;" />
+                        <input type="number" class="form-control" @bind="amount" @bind:event="oninput" placeholder="0.00" style="font-size: 20px; font-weight: 600; padding: 14px; text-align: center; color: #0891b2; border: 2px solid #e5e7eb; border-radius: 8px;" />
                         <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #6b7280;">
                             Transfer Fee: <span style="font-weight: 600;">₱15.00</span> | Total: <span style="font-weight: 600; color: #dc2626;">₱@((amount + 15).ToString("N2"))</span>
                         </div>
+                        @if (amount > 0 && senderAccount != null && (amount + 15) > senderAccount.Balance)
+                        {
+                            <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #dc2626; font-weight: 600;">
+                                ⚠️ Insufficient balance. Available: ₱@senderAccount.Balance.ToString("N2")
+                            </div>
+                        }
                     </div>
                 </div>
 
@@ -112,7 +118,7 @@
                     <button type="button" @onclick="ClearForm" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 14px; font-weight: 600; cursor: pointer;">
                         Clear
                     </button>
-                    <button type="button" @onclick="ShowConfirmation" disabled="@(!recipientFound || amount <= 0 || senderAccount == null || amount > senderAccount.Balance)" style="flex: 2; padding: 14px; background: @(recipientFound && amount > 0 && senderAccount != null && amount <= senderAccount.Balance ? "linear-gradient(135deg, #059669, #047857)" : "#d1d5db"); border: none; border-radius: 12px; color: white; font-size: 14px; font-weight: 600; cursor: @(recipientFound && amount > 0 && senderAccount != null && amount <= senderAccount.Balance ? "pointer" : "not-allowed");">
+                    <button type="button" @onclick="ShowConfirmation" disabled="@(!recipientFound || amount <= 0 || senderAccount == null || (amount + 15) > senderAccount.Balance)" style="flex: 2; padding: 14px; background: @(recipientFound && amount > 0 && senderAccount != null && (amount + 15) <= senderAccount.Balance ? "linear-gradient(135deg, #059669, #047857)" : "#d1d5db"); border: none; border-radius: 12px; color: white; font-size: 14px; font-weight: 600; cursor: @(recipientFound && amount > 0 && senderAccount != null && (amount + 15) <= senderAccount.Balance ? "pointer" : "not-allowed");">
                         Send Money →
                     </button>
                 </div>
