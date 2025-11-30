@@ -16,7 +16,7 @@ public class TransactionValidationService
     private const decimal MaximumWithdrawalAmount = 100000m; // ₱100,000 per transaction
     private const decimal MaximumTransferAmount = 1000000m; // ₱1,000,000 per transaction
     private const decimal MaximumDepositAmount = 500000m; // ₱500,000 per transaction
-    
+
     // Daily limits
     private const decimal DailyWithdrawalLimit = 200000m; // ₱200,000 per day
     private const decimal DailyTransferLimit = 2000000m; // ₱2,000,000 per day
@@ -286,9 +286,9 @@ public class TransactionValidationService
         var tomorrow = today.AddDays(1);
 
         return await _context.CustomerTransactions
-            .Where(t => t.AccountId == accountId 
-                && t.TransactionType == "Withdrawal" 
-                && t.CreatedAt >= today 
+            .Where(t => t.AccountId == accountId
+                && t.TransactionType == "Withdrawal"
+                && t.CreatedAt >= today
                 && t.CreatedAt < tomorrow)
             .SumAsync(t => t.Amount);
     }
@@ -299,9 +299,9 @@ public class TransactionValidationService
         var tomorrow = today.AddDays(1);
 
         return await _context.CustomerTransactions
-            .Where(t => t.AccountId == accountId 
-                && t.TransactionType == "Transfer" 
-                && t.CreatedAt >= today 
+            .Where(t => t.AccountId == accountId
+                && t.TransactionType == "Transfer"
+                && t.CreatedAt >= today
                 && t.CreatedAt < tomorrow)
             .SumAsync(t => t.Amount);
     }

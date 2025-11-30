@@ -1,0 +1,302 @@
+@page "/accountant/financial-statements"
+@layout AccountantLayout
+@inject FinancialStatementService FinancialStatementService
+
+<!-- Page Header -->
+<div
+    style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path
+                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Financial Statements</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Income statement, balance
+                sheet, cash flow</p>
+        </div>
+    </div>
+</div>
+
+<!-- Action Bar -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div style="display: flex; gap: 12px;">
+        <button
+            style="background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;"
+            @onclick='() => ShowStatementModal("IncomeStatement")'>
+            📈 Income Statement
+        </button>
+        <button
+            style="background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;"
+            @onclick='() => ShowStatementModal("BalanceSheet")'>
+            📊 Balance Sheet
+        </button>
+        <button
+            style="background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;"
+            @onclick='() => ShowStatementModal("CashFlow")'>
+            💵 Cash Flow
+        </button>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px;">
+    <div
+        style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-radius: 16px; padding: 24px; border: 2px solid #c4b5fd;">
+        <div style="font-size: 13px; color: #5b21b6; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
+            📈 Income Statements</div>
+        <div style="font-size: 32px; font-weight: 700; color: #5b21b6;">@statements.Count(s => s.StatementType ==
+                        "IncomeStatement")</div>
+    </div>
+    <div
+        style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 16px; padding: 24px; border: 2px solid #93c5fd;">
+        <div style="font-size: 13px; color: #1e40af; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
+            📊 Balance Sheets</div>
+        <div style="font-size: 32px; font-weight: 700; color: #1e40af;">@statements.Count(s => s.StatementType ==
+                        "BalanceSheet")</div>
+    </div>
+    <div
+        style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 16px; padding: 24px; border: 2px solid #6ee7b7;">
+        <div style="font-size: 13px; color: #065f46; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
+            💵 Cash Flows</div>
+        <div style="font-size: 32px; font-weight: 700; color: #065f46;">@statements.Count(s => s.StatementType ==
+                        "CashFlow")</div>
+    </div>
+</div>
+
+<!-- Alerts -->
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div
+        style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 1px solid #6ee7b7; color: #065f46; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span style="font-weight: 500;">@successMessage</span>
+        <button @onclick="() => successMessage = string.Empty"
+            style="margin-left: auto; background: none; border: none; color: #065f46; cursor: pointer; font-size: 18px;">×</button>
+    </div>
+}
+
+<!-- Financial Statements Table -->
+<div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+    <div style="background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: white; padding: 20px 24px;">
+        <h4 style="margin: 0; font-weight: 600; font-size: 18px;">
+            📄 Generated Statements
+        </h4>
+        <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">View and manage financial statements</p>
+    </div>
+
+    <div style="padding: 24px;">
+        @if (isLoading)
+        {
+            <div style="text-align: center; padding: 60px;">
+                <div
+                    style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+                </div>
+                <p style="margin-top: 16px; color: #6b7280;">Loading statements...</p>
+            </div>
+        }
+        else if (statements == null || !statements.Any())
+        {
+            <div style="text-align: center; padding: 60px;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"
+                    style="margin: 0 auto 16px;">
+                    <path
+                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p style="color: #6b7280; font-size: 16px;">No financial statements generated yet</p>
+                <p style="color: #9ca3af; font-size: 14px;">Click the buttons above to generate a statement</p>
+            </div>
+        }
+        else
+        {
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                <thead>
+                    <tr style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
+                        <th
+                            style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                            Statement Type</th>
+                        <th
+                            style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                            Period</th>
+                        <th
+                            style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                            Generated At</th>
+                        <th
+                            style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                            Generated By</th>
+                        <th
+                            style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                            Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var stmt in statements)
+                    {
+                        <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;">
+                            <td style="padding: 16px;">
+                                @{
+                                    var (typeIcon, typeColor, typeBg) = GetStatementTypeStyle(stmt.StatementType);
+                                }
+                                <span
+                                    style="background: @typeBg; color: @typeColor; padding: 6px 12px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                                    @typeIcon @stmt.StatementType
+                                </span>
+                            </td>
+                            <td style="padding: 16px; font-weight: 500; color: #1e293b;">
+                                @stmt.PeriodStart.ToString("MMM yyyy") - @stmt.PeriodEnd.ToString("MMM yyyy")
+                            </td>
+                            <td style="padding: 16px; font-size: 14px; color: #64748b;">@stmt.GeneratedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                            <td style="padding: 16px; font-weight: 500;">@stmt.GeneratedBy</td>
+                            <td style="padding: 16px; text-align: center;">
+                                <button
+                                    style="background: white; border: 2px solid #e5e7eb; color: #374151; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;"
+                                    @onclick="() => ViewStatement(stmt)">
+                                    👁️ View
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<!-- Generate Statement Modal -->
+@if (showStatementModal)
+{
+    <div
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div
+            style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <h2
+                style="font-size: 20px; font-weight: 700; margin: 0 0 24px 0; display: flex; align-items: center; gap: 10px;">
+                📄 Generate @FormatStatementType(selectedStatement)
+            </h2>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Period Start</label>
+                <input type="date" @bind="genStmt_PeriodStart"
+                    style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Period End</label>
+                <input type="date" @bind="genStmt_PeriodEnd"
+                    style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button
+                    style="background: #e5e7eb; color: #374151; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;"
+                    @onclick="CloseStatementModal">Cancel</button>
+                <button
+                    style="background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;"
+                    @onclick="GenerateStatement">Generate</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+@code {
+    private List<FinanceBank.Models.FinancialStatement> statements = new();
+    private bool showStatementModal = false;
+    private string selectedStatement = "";
+    private DateTime genStmt_PeriodStart = DateTime.Today.AddMonths(-1);
+    private DateTime genStmt_PeriodEnd = DateTime.Today;
+    private bool isLoading = true;
+    private string successMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStatements();
+    }
+
+    private async Task LoadStatements()
+    {
+        isLoading = true;
+        try
+        {
+            statements = await FinancialStatementService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading statements: {ex.Message}");
+            statements = new List<FinanceBank.Models.FinancialStatement>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ShowStatementModal(string type)
+    {
+        selectedStatement = type;
+        showStatementModal = true;
+    }
+
+    private void CloseStatementModal() => showStatementModal = false;
+
+    private async Task GenerateStatement()
+    {
+        if (string.IsNullOrWhiteSpace(selectedStatement))
+            return;
+
+        var newStatement = new FinanceBank.Models.FinancialStatement
+        {
+            StatementType = selectedStatement,
+            PeriodStart = genStmt_PeriodStart,
+            PeriodEnd = genStmt_PeriodEnd,
+            GeneratedBy = "Accountant",
+            Data = "{}"
+        };
+
+        try
+        {
+            await FinancialStatementService.CreateAsync(newStatement);
+            await LoadStatements();
+            CloseStatementModal();
+            successMessage = $"✓ {FormatStatementType(selectedStatement)} generated successfully!";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error generating statement: {ex.Message}");
+        }
+    }
+
+    private void ViewStatement(FinanceBank.Models.FinancialStatement stmt)
+    {
+        // View statement details
+        successMessage = $"Viewing {stmt.StatementType} for {stmt.PeriodStart:MMM yyyy} - {stmt.PeriodEnd:MMM yyyy}";
+    }
+
+    private string FormatStatementType(string type) => type switch
+    {
+        "IncomeStatement" => "Income Statement",
+        "BalanceSheet" => "Balance Sheet",
+        "CashFlow" => "Cash Flow Statement",
+        _ => type
+    };
+
+    private (string icon, string color, string bg) GetStatementTypeStyle(string type) => type switch
+    {
+        "IncomeStatement" => ("📈", "#5b21b6", "#ede9fe"),
+        "BalanceSheet" => ("📊", "#1e40af", "#dbeafe"),
+        "CashFlow" => ("💵", "#065f46", "#d1fae5"),
+        _ => ("📄", "#374151", "#f3f4f6")
+    };
+}

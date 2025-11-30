@@ -757,10 +757,19 @@ public class AccountsReceivable
     [Column(TypeName = "decimal(18,2)")]
     public decimal OutstandingAmount { get; set; }
 
-    [Required, MaxLength(50)]
-    public string Status { get; set; } = "Pending"; // Pending, Partially Paid, Paid, Overdue
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TaxAmount { get; set; } = 0;
 
-    [MaxLength(500)]
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal InterestAmount { get; set; } = 0;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal PenaltyAmount { get; set; } = 0;
+
+    [Required, MaxLength(100)]
+    public string Status { get; set; } = "Pending"; // Pending, Pending Review, FM Approved - Pending Accountant, Partially Paid, Paid, Overdue
+
+    [MaxLength(1000)]
     public string? Description { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;

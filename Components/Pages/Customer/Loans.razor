@@ -4,370 +4,785 @@
 @using FinanceBank.Models
 @inject AuthService AuthService
 @inject LoanService LoanService
+@inject LoanProcessService LoanProcessService
+@inject LoanPaymentService LoanPaymentService
 @inject CardApplicationService CardApplicationService
 @inject CustomerAccountService CustomerAccountService
+@inject CustomerBankingService CustomerBankingService
+@inject IJSRuntime JS
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
-    <!-- Success Message -->
-    @if (showSuccessMessage)
+    <!-- Success/Error Messages -->
+    @if (!string.IsNullOrEmpty(alertMessage))
     {
-        <div style="background: #d1fae5; border-left: 4px solid #059669; padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
+        <div
+            style="background: @(isError ? "#fee2e2" : "#d1fae5"); border-left: 4px solid @(isError ? "#dc2626" : "#059669"); padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="@(isError ? "#dc2626" : "#059669")"
+                stroke-width="2">
+                @if (isError)
+                {
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                }
+                else
+                {
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                }
             </svg>
-            <span style="color: #065f46; font-size: 16px;">@successMessage</span>
+            <span style="color: @(isError ? "#991b1b" : "#065f46"); font-size: 16px; flex: 1;">@alertMessage</span>
+            <button @onclick="() => alertMessage = string.Empty"
+                style="background: none; border: none; color: @(isError ? "#991b1b" : "#065f46"); cursor: pointer; font-size: 20px;">×</button>
         </div>
     }
 
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div
+        style="background: linear-gradient(135deg, #059669, #10b981); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <div
+                style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                     <rect x="2" y="7" width="20" height="14" rx="2"></rect>
                     <path d="M16 4V2M8 4V2"></path>
                 </svg>
             </div>
-            <div style="flex: 1;">
-                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Loans</h1>
-                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Your loan applications and active loans</p>
+            <div style="flex: 1; min-width: 200px;">
+                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">My Loans</h1>
+                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Manage applications, payments, and
+                    transaction history</p>
             </div>
-            <button @onclick="ShowLoanApplication" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                Apply for Loan
-            </button>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button @onclick="() => activeTab = 0"
+                    style="background: @(activeTab == 0 ? "white" : "rgba(255,255,255,0.2)"); color: @(activeTab == 0 ? "#059669" : "white"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    📋 My Loans
+                </button>
+                <button @onclick="() => activeTab = 1"
+                    style="background: @(activeTab == 1 ? "white" : "rgba(255,255,255,0.2)"); color: @(activeTab == 1 ? "#059669" : "white"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    📜 Transaction History
+                </button>
+                <button @onclick="ShowLoanApplication"
+                    style="background: rgba(255,255,255,0.3); border: 2px solid white; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Apply for Loan
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Loan Products -->
-    <div style="background: white; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Available Loan Products</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-            @foreach (var product in loanProducts)
-            {
-                <div @onclick="() => SelectLoanProduct(product)" style="padding: 24px; background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #0891b2; border-radius: 16px; cursor: pointer; transition: all 0.3s;" class="loan-card">
-                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-                        @if (product.Name == "Personal Loan")
-                        {
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                        }
-                        else if (product.Name == "Home Loan")
-                        {
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                            </svg>
-                        }
-                        else if (product.Name == "Auto Loan")
-                        {
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="18.5" cy="17.5" r="3.5"></circle>
-                                <circle cx="5.5" cy="17.5" r="3.5"></circle>
-                                <path d="M7 18H5a2 2 0 0 0-2-2h12a2 2 0 0 0-2 2h2"></path>
-                                <path d="M16 16V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7m17 4l.5 3h1.9a2 2 0 0 0 2-2v-4"></path>
-                            </svg>
-                        }
-                        else if (product.Name == "Education Loan")
-                        {
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 10v6m0 0l-8.5 4.35a2 2 0 0 1-1.998 0L2 16m20 0V8.5a2 2 0 0 0-1-1.73l-9-5.196a2 2 0 0 0-2 0l-9 5.196A2 2 0 0 0 2 8.5v7.5"></path>
-                            </svg>
-                        }
-                        else
-                        {
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
-                                <path d="M16 4V2M8 4V2"></path>
-                            </svg>
-                        }
+    @if (activeTab == 0)
+    {
+
+        <!-- Tab 0: My Loans (Products + Active Loans + Calculator) -->
+
+        <!-- Stats Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 20px; border: 1px solid #bbf7d0;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 48px; height: 48px; background: #059669; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
                     </div>
-                    <div style="font-weight: 600; color: #1f2937; font-size: 18px; margin-bottom: 8px;">@product.Name</div>
-                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">@product.Description</div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid #bae6fd;">
-                        <div>
-                            <div style="font-size: 11px; color: #6b7280;">Up to</div>
-                            <div style="font-size: 16px; font-weight: 700; color: #0891b2;">@product.MaxAmount</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 11px; color: #6b7280;">Interest Rate</div>
-                            <div style="font-size: 16px; font-weight: 700; color: #0891b2;">@product.InterestRate%</div>
-                        </div>
+                    <div>
+                        <p style="margin: 0; color: #059669; font-size: 12px; font-weight: 600; text-transform: uppercase;">Active Loans</p>
+                        <p style="margin: 4px 0 0 0; font-size: 28px; font-weight: 700; color: #065f46;">@(activeLoans?.Count ?? 0)</p>
                     </div>
                 </div>
-            }
+            </div>
+            <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 12px; padding: 20px; border: 1px solid #bfdbfe;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 48px; height: 48px; background: #3b82f6; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <path d="M12 2v20M2 12h20"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p style="margin: 0; color: #3b82f6; font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Borrowed</p>
+                        <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #1e40af;">₱@(activeLoans?.Sum(l => l.Principal) ?? 0).ToString("N2")</p>
+                    </div>
+                </div>
+            </div>
+            <div style="background: linear-gradient(135deg, #fefce8, #fef9c3); border-radius: 12px; padding: 20px; border: 1px solid #fde047;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 48px; height: 48px; background: #eab308; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                    </div>
+                    <div>
+                        <p style="margin: 0; color: #ca8a04; font-size: 12px; font-weight: 600; text-transform: uppercase;">Outstanding</p>
+                        <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #854d0e;">₱@(activeLoans?.Sum(l => l.Outstanding) ?? 0).ToString("N2")</p>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <!-- Active Loans -->
-    @if (activeLoans.Any())
-    {
-        <div style="background: white; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
-            <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">My Active Loans</h2>
-            <div style="display: grid; gap: 20px;">
-                @foreach (var loan in activeLoans)
+        <!-- Loan Products -->
+        <div
+            style="background: white; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"
+                    style="vertical-align: middle; margin-right: 8px;">
+                    <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                    <path d="M16 4V2M8 4V2"></path>
+                </svg>
+                Available Loan Products
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                @foreach (var product in loanProducts)
                 {
-                    <div style="background: #f9fafb; border-radius: 16px; padding: 24px; border: 2px solid #e5e7eb;">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                    <div @onclick="() => SelectLoanProduct(product)"
+                        style="padding: 24px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #059669; border-radius: 16px; cursor: pointer; transition: all 0.3s;"
+                        class="loan-card">
+                        <div
+                            style="width: 56px; height: 56px; background: linear-gradient(135deg, #059669, #10b981); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                @if (product.Name == "Personal Loan")
+                                {
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                }
+                                else if (product.Name == "Home Loan")
+                                {
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                }
+                                else if (product.Name == "Auto Loan")
+                                {
+                                    <circle cx="18.5" cy="17.5" r="3.5"></circle>
+                                    <circle cx="5.5" cy="17.5" r="3.5"></circle>
+                                    <rect x="3" y="8" width="18" height="6" rx="2"></rect>
+                                }
+                                else
+                                {
+                                    <path d="M22 10v6m0 0l-8.5 4.35a2 2 0 0 1-1.998 0L2 16m20 0V8.5"></path>
+                                }
+                            </svg>
+                        </div>
+                        <div style="font-weight: 600; color: #1f2937; font-size: 18px; margin-bottom: 8px;">@product.Name</div>
+                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">@product.Description</div>
+                        <div
+                            style="display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid #bbf7d0;">
                             <div>
-                                <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">@loan.Type</div>
-                                <div style="font-size: 12px; color: var(--text-light);">Loan ID: @loan.Id</div>
+                                <div style="font-size: 11px; color: #6b7280;">Up to</div>
+                                <div style="font-size: 16px; font-weight: 700; color: #059669;">@product.MaxAmount</div>
                             </div>
-                            <div style="padding: 6px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">
-                                Active
+                            <div style="text-align: right;">
+                                <div style="font-size: 11px; color: #6b7280;">Interest Rate</div>
+                                <div style="font-size: 16px; font-weight: 700; color: #059669;">@product.InterestRate%</div>
                             </div>
                         </div>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px;">
-                            <div>
-                                <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Principal Amount</div>
-                                <div style="font-size: 14px; font-weight: 600;">₱@loan.Principal.ToString("N2")</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Outstanding</div>
-                                <div style="font-size: 14px; font-weight: 600;">₱@loan.Outstanding.ToString("N2")</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Monthly Payment</div>
-                                <div style="font-size: 14px; font-weight: 600;">₱@loan.MonthlyPayment.ToString("N2")</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">Next Due</div>
-                                <div style="font-size: 14px; font-weight: 600;">@loan.NextDue.ToString("MMM dd")</div>
-                            </div>
-                        </div>
+                    </div>
+                }
+            </div>
+        </div>
 
-                        <div style="margin-bottom: 12px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span style="font-size: 13px; color: #6b7280;">Paid: ₱@((loan.Principal - loan.Outstanding).ToString("N2"))</span>
-                                <span style="font-size: 13px; font-weight: 600; color: #0891b2;">@(((loan.Principal - loan.Outstanding) / loan.Principal * 100).ToString("F0"))%</span>
-                            </div>
-                            <div style="height: 10px; background: #e0f2fe; border-radius: 5px; overflow: hidden;">
-                                <div style="height: 100%; background: linear-gradient(135deg, #0891b2, #0e7490); width: @(((loan.Principal - loan.Outstanding) / loan.Principal * 100).ToString("F0"))%;"></div>
-                            </div>
+        <!-- Active Loans Table -->
+        <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
+            <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 20px 24px;">
+                <h4 style="margin: 0; font-weight: 600; font-size: 18px;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px; vertical-align: middle;">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    My Active Loans
+                </h4>
+                <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">Manage your loan payments and track progress</p>
+            </div>
+
+            <div style="padding: 24px;">
+                @if (isLoading)
+                {
+                    <div style="text-align: center; padding: 60px;">
+                        <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                        <p style="margin-top: 16px; color: #6b7280; font-size: 15px;">Loading your loans...</p>
+                    </div>
+                }
+                else if (!activeLoans.Any())
+                {
+                    <div style="text-align: center; padding: 80px 20px; background: linear-gradient(135deg, #f9fafb, #f3f4f6); border-radius: 16px;">
+                        <div style="width: 80px; height: 80px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5">
+                                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                            </svg>
                         </div>
-                        <button style="width: 100%; padding: 12px; background: #0891b2; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Make Payment</button>
+                        <h5 style="color: #4b5563; margin-top: 20px; font-size: 18px; font-weight: 600;">No Active Loans</h5>
+                        <p style="color: #9ca3af; font-size: 14px; margin-top: 8px;">Apply for a loan to get started.</p>
+                        <button @onclick="ShowLoanApplication"
+                                style="margin-top: 20px; background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
+                            Apply Now
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                            <thead>
+                                <tr style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
+                                    <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Loan ID</th>
+                                    <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Type</th>
+                                    <th style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Principal</th>
+                                    <th style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Outstanding</th>
+                                    <th style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Monthly</th>
+                                    <th style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Next Due</th>
+                                    <th style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Progress</th>
+                                    <th style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var loan in activeLoans)
+                                {
+                                    var progressPercent = loan.Principal > 0 ? ((loan.Principal - loan.Outstanding) / loan.Principal * 100) : 0;
+                                    <tr style="border-bottom: 1px solid #f1f5f9; transition: all 0.2s;">
+                                        <td style="padding: 16px;">
+                                            <span style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; display: inline-block;">
+                                                @loan.Id
+                                            </span>
+                                        </td>
+                                        <td style="padding: 16px;">
+                                            <div style="font-weight: 600; color: #1e293b; font-size: 15px;">@loan.Type</div>
+                                            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Active</div>
+                                        </td>
+                                        <td style="padding: 16px; text-align: right;">
+                                            <span style="font-weight: 700; color: #1e293b; font-size: 15px;">₱@loan.Principal.ToString("N2")</span>
+                                        </td>
+                                        <td style="padding: 16px; text-align: right;">
+                                            <span style="font-weight: 700; color: #dc2626; font-size: 15px;">₱@loan.Outstanding.ToString("N2")</span>
+                                        </td>
+                                        <td style="padding: 16px; text-align: right; color: #475569; font-weight: 500;">
+                                            ₱@loan.MonthlyPayment.ToString("N2")
+                                        </td>
+                                        <td style="padding: 16px; text-align: center;">
+                                            <span style="color: @(loan.NextDue < DateTime.Now ? "#dc2626" : "#f59e0b"); font-weight: 600;">
+                                                @loan.NextDue.ToString("MMM dd, yyyy")
+                                            </span>
+                                        </td>
+                                        <td style="padding: 16px;">
+                                            <div style="min-width: 100px;">
+                                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                                    <span style="font-size: 11px; color: #6b7280;">Paid</span>
+                                                    <span style="font-size: 11px; font-weight: 600; color: #059669;">@progressPercent.ToString("F0")%</span>
+                                                </div>
+                                                <div style="height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden;">
+                                                    <div style="height: 100%; background: linear-gradient(135deg, #059669, #10b981); width: @progressPercent.ToString("F0")%;"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td style="padding: 16px; text-align: center;">
+                                            <button style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25); transition: all 0.2s;"
+                                                    @onclick="() => OpenPaymentModal(loan)">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
+                                                    <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                                                    <path d="M2 10h20"></path>
+                                                </svg>
+                                                Pay
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 }
             </div>
         </div>
     }
+    else
+    {
+        <!-- Tab 1: Transaction History -->
+        <div style="background: white; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"
+                    style="vertical-align: middle; margin-right: 8px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                Loan Transaction History
+            </h2>
 
-    <!-- Loan Calculator -->
-    <div style="background: white; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Loan Calculator</h2>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-            <div>
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label class="form-label">Loan Amount</label>
-                    <input type="number" class="form-control" @bind="calcAmount" placeholder="100000" style="font-size: 18px; padding: 12px;" />
+            @if (isLoadingHistory)
+            {
+                <div style="text-align: center; padding: 40px;">
+                    <div
+                        style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+                    </div>
+                    <p style="margin-top: 16px; color: #6b7280;">Loading transaction history...</p>
                 </div>
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label class="form-label">Interest Rate (%)</label>
-                    <input type="number" class="form-control" @bind="calcInterestRate" placeholder="5.5" step="0.1" style="font-size: 18px; padding: 12px;" />
+            }
+            else if (!transactionHistory.Any())
+            {
+                <div
+                    style="text-align: center; padding: 60px; background: linear-gradient(135deg, #f9fafb, #f3f4f6); border-radius: 16px;">
+                    <div
+                        style="width: 80px; height: 80px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <h5 style="color: #4b5563; font-size: 18px; font-weight: 600;">No Transaction History</h5>
+                    <p style="color: #9ca3af; font-size: 14px;">Apply for a loan to start tracking</p>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Loan Term (months)</label>
-                    <input type="number" class="form-control" @bind="calcTerm" placeholder="24" style="font-size: 18px; padding: 12px;" />
+            }
+            else
+            {
+                <!-- Summary Stats -->
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                    <div
+                        style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 12px; padding: 16px; border: 1px solid #bfdbfe;">
+                        <span style="font-size: 12px; color: #1e40af; font-weight: 600;">Total Applications</span>
+                        <div style="font-size: 28px; font-weight: 700; color: #1e40af;">
+                            @transactionHistory.Count(t => t.TransactionType == "APPLICATION")
+                        </div>
+                    </div>
+                    <div
+                        style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 16px; border: 1px solid #bbf7d0;">
+                        <span style="font-size: 12px; color: #166534; font-weight: 600;">Approved</span>
+                        <div style="font-size: 28px; font-weight: 700; color: #166534;">
+                            @transactionHistory.Count(t => t.TransactionType == "FM_APPROVAL" || t.TransactionType == "RELEASE")
+                        </div>
+                    </div>
+                    <div
+                        style="background: linear-gradient(135deg, #fefce8, #fef9c3); border-radius: 12px; padding: 16px; border: 1px solid #fde047;">
+                        <span style="font-size: 12px; color: #92400e; font-weight: 600;">Payments Made</span>
+                        <div style="font-size: 28px; font-weight: 700; color: #92400e;">
+                            @transactionHistory.Count(t => t.TransactionType == "PAYMENT" || t.TransactionType ==
+                            "FULL_PAYMENT")
                 </div>
             </div>
-            <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-radius: 12px; padding: 24px;">
-                <div style="margin-bottom: 20px;">
-                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Monthly Payment</div>
-                    <div style="font-size: 32px; font-weight: 700; color: #0891b2;">₱@CalculateMonthlyPayment().ToString("N2")</div>
-                </div>
-                <div style="border-top: 1px solid #bae6fd; padding-top: 16px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="font-size: 13px; color: #6b7280;">Total Interest:</span>
-                        <span style="font-size: 13px; font-weight: 600; color: #1f2937;">₱@CalculateTotalInterest().ToString("N2")</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="font-size: 13px; color: #6b7280;">Total Payment:</span>
-                        <span style="font-size: 13px; font-weight: 600; color: #1f2937;">₱@CalculateTotalPayment().ToString("N2")</span>
-                    </div>
+            <div style="background: linear-gradient(135deg, #059669, #10b981); border-radius: 12px; padding: 16px;">
+                <span style="font-size: 12px; color: white; font-weight: 600;">Total Paid</span>
+                <div style="font-size: 28px; font-weight: 700; color: white;">
+                    ₱@transactionHistory.Where(t => t.TransactionType == "PAYMENT" || t.TransactionType ==
+                                        "FULL_PAYMENT").Sum(t => t.Amount).ToString("N0")
                 </div>
             </div>
         </div>
-    </div>
+
+                <!-- Transaction List -->
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+            @foreach (var transaction in transactionHistory)
+                    {
+                        var (icon, color, bgColor) = GetTransactionStyle(transaction.TransactionType);
+                        <div
+                            style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid @color;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                                <div style="display: flex; align-items: center; gap: 16px;">
+                                    <div
+                                        style="width: 48px; height: 48px; background: @bgColor; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                        @icon
+                                    </div>
+                                    <div>
+                                        <h4 style="font-size: 15px; font-weight: 700; color: #1f2937; margin: 0 0 4px 0;">
+                                            @GetTransactionTitle(transaction.TransactionType)
+                                        </h4>
+                                        <p style="font-size: 13px; color: #6b7280; margin: 0;">@transaction.Description</p>
+                                        <p style="font-size: 12px; color: #9ca3af; margin: 4px 0 0;">
+                                            @transaction.TransactionDate.ToString("MMMM dd, yyyy hh:mm tt")
+                                        </p>
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 18px; font-weight: 700; color: @color;">
+                                        @(IsDebit(transaction.TransactionType) ? "-" : "+")₱@transaction.Amount.ToString("N2")
+                                    </div>
+                                    @if (transaction.PenaltyAmount > 0)
+                                    {
+                                        <div style="font-size: 12px; color: #dc2626;">
+                                            Penalty: ₱@transaction.PenaltyAmount?.ToString("N2")
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(transaction.Status))
+                                    {
+                                        <span
+                                            style="background: @GetStatusBg(transaction.Status); color: @GetStatusColor(transaction.Status); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block; margin-top: 4px;">
+                                            @transaction.Status
+                                        </span>
+                                    }
+                                    @if (transaction.TransactionType == "PAYMENT" || transaction.TransactionType == "FULL_PAYMENT" || transaction.TransactionType == "RELEASE")
+                                    {
+                                        <button @onclick="() => DownloadInvoice(transaction)" 
+                                                style="display: inline-flex; align-items: center; gap: 4px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #059669; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 8px;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                <polyline points="7 10 12 15 17 10"></polyline>
+                                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                                            </svg>
+                                            Invoice
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
 </div>
 
 <!-- Loan Application Modal -->
 @if (showApplicationModal)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseApplication">
-        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
-            <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 24px;">Apply for @(selectedProduct?.Name ?? "Loan")</h2>
-            
-            @if (selectedProduct != null)
-            {
-                <div style="background: #f0f9ff; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px;">
-                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        @if (selectedProduct.Name == "Personal Loan")
-                        {
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                        }
-                        else if (selectedProduct.Name == "Home Loan")
-                        {
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                            </svg>
-                        }
-                        else if (selectedProduct.Name == "Auto Loan")
-                        {
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="18.5" cy="17.5" r="3.5"></circle>
-                                <circle cx="5.5" cy="17.5" r="3.5"></circle>
-                                <path d="M7 18H5a2 2 0 0 0-2-2h12a2 2 0 0 0-2 2h2"></path>
-                                <path d="M16 16V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7m17 4l.5 3h1.9a2 2 0 0 0 2-2v-4"></path>
-                            </svg>
-                        }
-                        else if (selectedProduct.Name == "Education Loan")
-                        {
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 10v6m0 0l-8.5 4.35a2 2 0 0 1-1.998 0L2 16m20 0V8.5a2 2 0 0 0-1-1.73l-9-5.196a2 2 0 0 0-2 0l-9 5.196A2 2 0 0 0 2 8.5v7.5"></path>
-                            </svg>
-                        }
-                        else
-                        {
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
+        @onclick="CloseApplication">
+        <div style="background: white; border-radius: 20px; max-width: 600px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
+            @onclick:stopPropagation>
+            <div
+                style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px 28px; border-radius: 20px 20px 0 0;">
+                <h4 style="margin: 0; font-weight: 700; font-size: 22px;">Apply for @(selectedProduct?.Name ?? "Loan")</h4>
+                <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">Fill out the form to submit your application
+                </p>
+            </div>
+
+            <div style="padding: 28px;">
+                @if (selectedProduct != null)
+                {
+                    <div
+                        style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; border: 1px solid #bbf7d0;">
+                        <div
+                            style="width: 56px; height: 56px; background: linear-gradient(135deg, #059669, #10b981); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                                 <rect x="2" y="7" width="20" height="14" rx="2"></rect>
-                                <path d="M16 4V2M8 4V2"></path>
                             </svg>
-                        }
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: #1f2937;">@selectedProduct.Name</div>
+                            <div style="font-size: 14px; color: #6b7280;">@selectedProduct.Description</div>
+                            <div style="font-size: 13px; color: #059669; font-weight: 600; margin-top: 4px;">Interest Rate:
+                                @selectedProduct.InterestRate%</div>
+                        </div>
+                    </div>
+                }
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <div>
+                        <label
+                            style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan
+                            Type <span style="color: #ef4444;">*</span></label>
+                        <select @bind="applicationLoanType"
+                            style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; background: white;">
+                            <option value="">Select Type</option>
+                            <option value="Personal">Personal Loan</option>
+                            <option value="Home">Home Loan</option>
+                            <option value="Auto">Auto Loan</option>
+                            <option value="Education">Education Loan</option>
+                        </select>
                     </div>
                     <div>
-                        <div style="font-weight: 600; color: #1f2937;">@selectedProduct.Name</div>
-                        <div style="font-size: 14px; color: #6b7280;">@selectedProduct.Description</div>
+                        <label
+                            style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan
+                            Amount <span style="color: #ef4444;">*</span></label>
+                        <input type="number" @bind="applicationAmount" placeholder="Enter amount"
+                            style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px;" />
                     </div>
                 </div>
-            }
 
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label class="form-label">Loan Amount</label>
-                <input type="number" class="form-control" @bind="applicationAmount" placeholder="Enter amount" style="font-size: 16px; padding: 12px;" />
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <div>
+                        <label
+                            style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan
+                            Term <span style="color: #ef4444;">*</span></label>
+                        <select @bind="applicationTerm"
+                            style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; background: white;">
+                            <option value="12">12 months</option>
+                            <option value="24">24 months</option>
+                            <option value="36">36 months</option>
+                            <option value="48">48 months</option>
+                            <option value="60">60 months</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Employment
+                            Status <span style="color: #ef4444;">*</span></label>
+                        <select @bind="employmentStatus"
+                            style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; background: white;">
+                            <option value="">Select Status</option>
+                            <option value="Employed">Employed</option>
+                            <option value="Self-Employed">Self-Employed</option>
+                            <option value="Retired">Retired</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label
+                        style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Monthly
+                        Income <span style="color: #ef4444;">*</span></label>
+                    <input type="number" @bind="monthlyIncome" placeholder="Enter monthly income"
+                        style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px;" />
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label
+                        style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Purpose
+                        <span style="color: #ef4444;">*</span></label>
+                    <textarea @bind="applicationPurpose" rows="3" placeholder="State the purpose of the loan"
+                        style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; resize: vertical;"></textarea>
+                </div>
+
+                <div
+                    style="background: #fef3c7; padding: 16px; border-radius: 10px; margin-bottom: 24px; border: 1px solid #fde68a;">
+                    <h6 style="margin: 0 0 8px 0; color: #92400e; font-size: 13px; font-weight: 700;">📋 INTEREST RATES</h6>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #78350f;">
+                        <li>Personal: 12.5% • Home: 8.5% • Auto: 9.5%</li>
+                        <li>Late Payment Penalty: 0.05% daily</li>
+                    </ul>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button @onclick="CloseApplication"
+                        style="flex: 1; padding: 14px; background: #f1f5f9; border: none; border-radius: 10px; color: #475569; font-size: 15px; font-weight: 600; cursor: pointer;">
+                        Cancel
+                    </button>
+                    <button @onclick="SubmitApplication" disabled="@isSubmitting"
+                        style="flex: 1; padding: 14px; background: linear-gradient(135deg, #059669, #10b981); border: none; border-radius: 10px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; opacity: @(isSubmitting ? "0.6" : "1");">
+                        @(isSubmitting ? "Submitting..." : "Submit Application")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Payment Modal -->
+@if (showPaymentModal && selectedLoanForPayment != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
+        @onclick="ClosePaymentModal">
+        <div style="background: white; border-radius: 20px; max-width: 500px; width: 95%; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
+            @onclick:stopPropagation>
+            <div
+                style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px 28px; border-radius: 20px 20px 0 0;">
+                <h4 style="margin: 0; font-weight: 700; font-size: 20px;">💰 Make Loan Payment</h4>
+                <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">@selectedLoanForPayment.Type - Loan
+                    #@selectedLoanForPayment.Id</p>
             </div>
 
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label class="form-label">Loan Term (months)</label>
-                <select class="form-control" @bind="applicationTerm" style="font-size: 16px; padding: 12px;">
-                    <option value="12">12 months</option>
-                    <option value="24">24 months</option>
-                    <option value="36">36 months</option>
-                    <option value="48">48 months</option>
-                    <option value="60">60 months</option>
-                </select>
-            </div>
+            <div style="padding: 28px;">
+                <div
+                    style="background: linear-gradient(135deg, #fef2f2, #fee2e2); padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #fecaca;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <span
+                                style="font-size: 12px; color: #dc2626; text-transform: uppercase; font-weight: 600;">Outstanding
+                                Balance</span>
+                            <p style="margin: 4px 0 0 0; font-weight: 700; color: #991b1b; font-size: 22px;">
+                                ₱@selectedLoanForPayment.Outstanding.ToString("N2")</p>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 12px; color: #dc2626; text-transform: uppercase; font-weight: 600;">Monthly
+                                Due</span>
+                            <p style="margin: 4px 0 0 0; font-weight: 600; color: #991b1b; font-size: 18px;">
+                                ₱@selectedLoanForPayment.MonthlyPayment.ToString("N2")</p>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="form-group" style="margin-bottom: 24px;">
-                <label class="form-label">Purpose</label>
-                <textarea class="form-control" @bind="applicationPurpose" rows="3" placeholder="State the purpose of the loan"></textarea>
-            </div>
+                <div style="margin-bottom: 20px;">
+                    <label
+                        style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Payment
+                        Amount <span style="color: #ef4444;">*</span></label>
+                    <input type="number" step="0.01" @bind="paymentAmountInput" placeholder="0.00"
+                        style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 18px; font-weight: 600;">
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button @onclick="() => paymentAmountInput = selectedLoanForPayment.MonthlyPayment"
+                            style="flex: 1; padding: 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; color: #059669; font-size: 12px; cursor: pointer;">
+                            Monthly
+                        </button>
+                        <button @onclick="() => paymentAmountInput = selectedLoanForPayment.Outstanding"
+                            style="flex: 1; padding: 8px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #dc2626; font-size: 12px; cursor: pointer;">
+                            Full Balance
+                        </button>
+                    </div>
+                </div>
 
-            <div style="display: flex; gap: 12px;">
-                <button @onclick="CloseApplication" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 16px; font-weight: 600; cursor: pointer;">
-                    Cancel
-                </button>
-                <button @onclick="SubmitApplication" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #0891b2, #0e7490); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
-                    Submit Application
-                </button>
+                <div style="display: flex; gap: 12px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                    <button @onclick="ClosePaymentModal"
+                        style="flex: 1; padding: 14px; background: #f1f5f9; border: none; border-radius: 10px; color: #475569; font-weight: 600; cursor: pointer;">
+                        Cancel
+                    </button>
+                    <button @onclick="SubmitPayment" disabled="@isSubmitting"
+                        style="flex: 1; padding: 14px; background: linear-gradient(135deg, #059669, #10b981); border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; opacity: @(isSubmitting ? "0.6" : "1");">
+                        @(isSubmitting ? "Processing..." : "✓ Confirm Payment")
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 }
 
 <style>
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
     .loan-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 8px 20px rgba(8,145,178,0.2);
+        box-shadow: 0 8px 20px rgba(5, 150, 105, 0.2);
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #059669 !important;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+    }
+
+    button:hover:not(:disabled) {
+        transform: translateY(-1px);
+    }
+
+    button:disabled {
+        cursor: not-allowed;
     }
 </style>
 
 @code {
-    private List<Loan> activeLoans = new();
+    // Tab state
+    private int activeTab = 0;
+
+    // Data lists
+    private List<LoanViewModel> activeLoans = new();
     private List<LoanProduct> loanProducts = new();
+    private List<LoanTransactionHistory> transactionHistory = new();
+
+    // Loading states
+    private bool isLoading = true;
+    private bool isLoadingHistory = true;
+    private bool isSubmitting = false;
+
+    // Alert messages
+    private string alertMessage = "";
+    private bool isError = false;
+
+    // Modal states
     private bool showApplicationModal = false;
+    private bool showPaymentModal = false;
     private LoanProduct? selectedProduct;
+    private LoanViewModel? selectedLoanForPayment;
+
+    // Application form fields
+    private string applicationLoanType = "";
     private decimal applicationAmount = 0;
     private int applicationTerm = 24;
     private string applicationPurpose = "";
-    private string successMessage = "";
-    private bool showSuccessMessage = false;
-    
-    private decimal calcAmount = 100000;
-    private decimal calcInterestRate = 5.5m;
-    private int calcTerm = 24;
+    private string employmentStatus = "";
+    private decimal monthlyIncome = 0;
+
+    // Payment form fields
+    private decimal paymentAmountInput = 0;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadCustomerLoans();
-        
         loanProducts = new List<LoanProduct>
-        {
-            new() { Name = "Personal Loan", Description = "For any personal needs", Icon = "", MaxAmount = "₱500,000", InterestRate = 5.8m },
-            new() { Name = "Home Loan", Description = "Finance your dream home", Icon = "", MaxAmount = "₱5,000,000", InterestRate = 3.5m },
-            new() { Name = "Auto Loan", Description = "Buy your dream car", Icon = "", MaxAmount = "₱2,000,000", InterestRate = 4.2m },
-            new() { Name = "Education Loan", Description = "Invest in your future", Icon = "", MaxAmount = "₱300,000", InterestRate = 3.9m },
-        };
+{
+new() { Name = "Personal Loan", Description = "For any personal needs", MaxAmount = "₱500,000", InterestRate = 12.5m },
+new() { Name = "Home Loan", Description = "Finance your dream home", MaxAmount = "₱5,000,000", InterestRate = 8.5m },
+new() { Name = "Auto Loan", Description = "Buy your dream car", MaxAmount = "₱2,000,000", InterestRate = 9.5m },
+new() { Name = "Education Loan", Description = "Invest in your future", MaxAmount = "₱300,000", InterestRate = 7.5m },
+};
+
+        await LoadCustomerLoans();
+        await LoadTransactionHistory();
     }
 
     private async Task LoadCustomerLoans()
     {
+        isLoading = true;
         try
         {
             if (!AuthService.IsAuthenticated || !AuthService.CurrentUserId.HasValue)
             {
-                activeLoans = new List<Loan>();
+                activeLoans = new List<LoanViewModel>();
                 return;
             }
 
             var userId = AuthService.CurrentUserId.Value;
-            
-            // Get customer's primary account
             var accounts = await CustomerAccountService.GetByCustomerIdAsync(userId);
+
             if (accounts.Any())
             {
                 var accountId = accounts.First().AccountId;
-                
-                // Fetch real loans from database
                 var realLoans = await LoanService.GetByAccountIdAsync(accountId);
                 activeLoans = realLoans
-                    .Where(l => l.Status != "Closed" && l.Status != "Rejected")  // Exclude closed and rejected loans
-                    .Select(l => new Loan
-                    {
-                        Id = l.LoanId.ToString(),
-                        Type = l.LoanType,
-                        Principal = l.LoanAmount,
-                        Outstanding = l.OutstandingBalance,
-                        MonthlyPayment = l.MonthlyPayment,
-                        NextDue = l.NextDueDate ?? DateTime.Now.AddMonths(1)
-                    })
-                    .ToList();
+                .Where(l => l.Status != "Closed" && l.Status != "Rejected")
+                .Select(l => new LoanViewModel
+                {
+                    Id = l.LoanId.ToString(),
+                    Type = l.LoanType,
+                    Principal = l.LoanAmount,
+                    Outstanding = l.OutstandingBalance,
+                    MonthlyPayment = l.MonthlyPayment,
+                    NextDue = l.NextDueDate ?? DateTime.Now.AddMonths(1)
+                })
+                .ToList();
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading loans: {ex.Message}");
-            activeLoans = new List<Loan>();
+            ShowAlert($"Error loading loans: {ex.Message}", true);
+            activeLoans = new List<LoanViewModel>();
         }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadTransactionHistory()
+    {
+        isLoadingHistory = true;
+        try
+        {
+            var account = await CustomerBankingService.GetPrimaryAccountForCurrentCustomerAsync();
+            if (account != null)
+            {
+                transactionHistory = await LoanProcessService.GetTransactionHistoryAsync(accountId: account.AccountId);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowAlert($"Error loading history: {ex.Message}", true);
+        }
+        finally
+        {
+            isLoadingHistory = false;
+        }
+    }
+
+    private void ShowAlert(string message, bool error = false)
+    {
+        alertMessage = message;
+        isError = error;
+        StateHasChanged();
     }
 
     private void SelectLoanProduct(LoanProduct product)
     {
         selectedProduct = product;
+        applicationLoanType = product.Name.Replace(" Loan", "");
         showApplicationModal = true;
     }
 
     private void ShowLoanApplication()
     {
+        selectedProduct = null;
+        applicationLoanType = "";
         showApplicationModal = true;
     }
 
@@ -375,98 +790,258 @@
     {
         showApplicationModal = false;
         selectedProduct = null;
+        applicationLoanType = "";
         applicationAmount = 0;
         applicationTerm = 24;
         applicationPurpose = "";
+        employmentStatus = "";
+        monthlyIncome = 0;
     }
 
     private async Task SubmitApplication()
     {
-        if (applicationAmount <= 0 || applicationTerm <= 0 || string.IsNullOrWhiteSpace(applicationPurpose))
+        if (string.IsNullOrWhiteSpace(applicationLoanType) || applicationAmount <= 0 ||
+        string.IsNullOrWhiteSpace(applicationPurpose))
         {
-            System.Diagnostics.Debug.WriteLine("Invalid loan application data");
+            ShowAlert("Please fill all required fields", true);
             return;
         }
 
+        isSubmitting = true;
         try
         {
-            if (!AuthService.IsAuthenticated || !AuthService.CurrentUserId.HasValue || selectedProduct == null)
+            var account = await CustomerBankingService.GetPrimaryAccountForCurrentCustomerAsync();
+            if (account == null)
+            {
+                ShowAlert("No account found. Please contact support.", true);
                 return;
+            }
 
-            var userId = AuthService.CurrentUserId.Value;
-            
-            // Get customer's primary account
-            var accounts = await CustomerAccountService.GetByCustomerIdAsync(userId);
-            if (!accounts.Any())
-                return;
-
-            var accountId = accounts.First().AccountId;
-            var loanType = selectedProduct.Name.Replace(" Loan", "").ToUpper();
-            
-            // Submit loan application
-            var (success, message, approvalId) = await CardApplicationService.SubmitLoanApplicationAsync(
-                loanType,
-                applicationAmount,
-                applicationTerm,
-                applicationPurpose
+            var submittedBy = AuthService.CurrentUser ?? "customer";
+            var application = await LoanProcessService.SubmitApplicationAsync(
+            accountId: account.AccountId,
+            loanType: applicationLoanType,
+            requestedAmount: applicationAmount,
+            purpose: applicationPurpose,
+            employmentStatus: employmentStatus,
+            monthlyIncome: monthlyIncome,
+            submittedBy: submittedBy
             );
 
-            if (success)
-            {
-                // Show success message
-                successMessage = $"✓ {selectedProduct.Name} application submitted successfully! Waiting for admin approval.";
-                showSuccessMessage = true;
-                
-                // Reload loans to show the new pending application
-                await LoadCustomerLoans();
-                CloseApplication();
-                StateHasChanged();
-                
-                // Hide success message after 5 seconds
-                await Task.Delay(5000);
-                showSuccessMessage = false;
-                StateHasChanged();
-            }
-            else
-            {
-                successMessage = $"✗ Error: {message}";
-                showSuccessMessage = true;
-                System.Diagnostics.Debug.WriteLine($"Error submitting loan application: {message}");
-                StateHasChanged();
-                // Don't hide error messages - let user see them
-            }
+            ShowAlert($"✓ Loan application {application.ApplicationNumber} submitted successfully! Waiting for approval.");
+            await LoadCustomerLoans();
+            await LoadTransactionHistory();
+            CloseApplication();
         }
         catch (Exception ex)
         {
-            successMessage = $"✗ Error: {ex.Message}";
-            showSuccessMessage = true;
-            System.Diagnostics.Debug.WriteLine($"Error submitting loan application: {ex.Message}");
-            StateHasChanged();
-            // Don't hide error messages - let user see them
+            ShowAlert($"Error: {ex.Message}", true);
+        }
+        finally
+        {
+            isSubmitting = false;
         }
     }
 
-    private decimal CalculateMonthlyPayment()
+    private void OpenPaymentModal(LoanViewModel loan)
     {
-        if (calcAmount <= 0 || calcTerm <= 0 || calcInterestRate <= 0) return 0;
+        selectedLoanForPayment = loan;
+        paymentAmountInput = loan.MonthlyPayment;
+        showPaymentModal = true;
+    }
+
+    private void ClosePaymentModal()
+    {
+        showPaymentModal = false;
+        selectedLoanForPayment = null;
+        paymentAmountInput = 0;
+    }
+
+    private async Task SubmitPayment()
+    {
+        if (selectedLoanForPayment == null || paymentAmountInput <= 0)
+        {
+            ShowAlert("Invalid payment amount", true);
+            return;
+        }
+
+        if (paymentAmountInput > selectedLoanForPayment.Outstanding)
+        {
+            ShowAlert("Payment amount cannot exceed outstanding balance", true);
+            return;
+        }
+
+        isSubmitting = true;
+        try
+        {
+            var account = await CustomerBankingService.GetPrimaryAccountForCurrentCustomerAsync();
+            if (account == null) return;
+
+            var loanId = int.Parse(selectedLoanForPayment.Id);
+            
+            // Get the next pending schedule
+            var schedule = await LoanPaymentService.GetNextPendingScheduleAsync(loanId);
+            if (schedule == null)
+            {
+                ShowAlert("No pending payment schedule found", true);
+                return;
+            }
+
+            // Process the payment
+            await LoanProcessService.ProcessPaymentAsync(
+                loanId: loanId,
+                scheduleId: schedule.ScheduleId,
+                paymentAmount: paymentAmountInput,
+                paymentMethod: "Cash",
+                processedBy: AuthService.CurrentUser ?? "Customer"
+            );
+
+            ShowAlert($"✓ Payment of ₱{paymentAmountInput:N2} processed successfully!");
+            await LoadCustomerLoans();
+            await LoadTransactionHistory();
+            ClosePaymentModal();
+        }
+        catch (Exception ex)
+        {
+            ShowAlert($"Error: {ex.Message}", true);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    // Transaction history helpers
+    private (string Icon, string Color, string BgColor) GetTransactionStyle(string type) => type switch
+    {
+        "APPLICATION" => ("📝", "#3b82f6", "#dbeafe"),
+        "TELLER_REVIEW" => ("👀", "#8b5cf6", "#ede9fe"),
+        "ACCOUNTANT_ASSESSMENT" => ("📊", "#f59e0b", "#fef3c7"),
+        "FM_APPROVAL" => ("✅", "#22c55e", "#dcfce7"),
+        "FM_DECLINE" => ("❌", "#ef4444", "#fee2e2"),
+        "RELEASE" => ("💰", "#10b981", "#d1fae5"),
+        "PAYMENT" => ("💵", "#059669", "#d1fae5"),
+        "FULL_PAYMENT" => ("🎉", "#22c55e", "#dcfce7"),
+        _ => ("📄", "#6b7280", "#f3f4f6")
+    };
+
+    private string GetTransactionTitle(string type) => type switch
+    {
+        "APPLICATION" => "Loan Application Submitted",
+        "TELLER_REVIEW" => "Teller Review Completed",
+        "ACCOUNTANT_ASSESSMENT" => "Accountant Assessment",
+        "FM_APPROVAL" => "Loan Approved",
+        "FM_DECLINE" => "Loan Declined",
+        "RELEASE" => "Funds Released",
+        "PAYMENT" => "Loan Payment",
+        "FULL_PAYMENT" => "Loan Fully Paid 🎉",
+        _ => "Transaction"
+    };
+
+    private bool IsDebit(string type) => type == "PAYMENT" || type == "FULL_PAYMENT";
+
+    private string GetStatusBg(string status) => status switch
+    {
+        "APPROVED" or "COMPLETED" or "RELEASED" => "#dcfce7",
+        "DECLINED" or "REJECTED" => "#fee2e2",
+        "PENDING" => "#fef3c7",
+        "ACTIVE" => "#dbeafe",
+        _ => "#f3f4f6"
+    };
+
+    private string GetStatusColor(string status) => status switch
+    {
+        "APPROVED" or "COMPLETED" or "RELEASED" => "#166534",
+        "DECLINED" or "REJECTED" => "#dc2626",
+        "PENDING" => "#92400e",
+        "ACTIVE" => "#1e40af",
+        _ => "#374151"
+    };
+
+    private async Task DownloadInvoice(LoanTransactionHistory transaction)
+    {
+        try
+        {
+            var customer = AuthService.CurrentUser ?? "Customer";
+            var html = GenerateInvoiceHtml(transaction, customer);
+            
+            var bytes = System.Text.Encoding.UTF8.GetBytes(html);
+            var base64 = Convert.ToBase64String(bytes);
+            var fileName = $"Invoice_{transaction.TransactionType}_{transaction.TransactionDate:yyyyMMdd_HHmmss}.html";
+            
+            await JS.InvokeVoidAsync("eval", $@"
+                var link = document.createElement('a');
+                link.href = 'data:text/html;base64,{base64}';
+                link.download = '{fileName}';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            ");
+        }
+        catch (Exception ex)
+        {
+            ShowAlert($"Error generating invoice: {ex.Message}", true);
+        }
+    }
+
+    private string GenerateInvoiceHtml(LoanTransactionHistory transaction, string customerName)
+    {
+        var invoiceNumber = $"INV-{transaction.TransactionDate:yyyyMMdd}-{transaction.HistoryId}";
+        var transactionTitle = GetTransactionTitle(transaction.TransactionType);
+        var loanNum = transaction.LoanId?.ToString() ?? "N/A";
+        var txnDate = transaction.TransactionDate.ToString("MMMM dd, yyyy hh:mm tt");
+        var txnStatus = transaction.Status ?? "Completed";
+        var txnDesc = transaction.Description ?? "";
+        var txnAmount = transaction.Amount.ToString("N2");
+        var genDate = DateTime.Now.ToString("MMMM dd, yyyy hh:mm tt");
+        var penaltySection = "";
+        if (transaction.PenaltyAmount > 0)
+        {
+            var penaltyAmt = transaction.PenaltyAmount?.ToString("N2") ?? "0.00";
+            penaltySection = "<div class=\"row\"><span class=\"label\">Penalty Amount</span><span class=\"value\" style=\"color: #dc2626;\">₱" + penaltyAmt + "</span></div>";
+        }
         
-        var monthlyRate = calcInterestRate / 100 / 12;
-        var payment = calcAmount * (monthlyRate * (decimal)Math.Pow((double)(1 + monthlyRate), calcTerm)) / 
-                      ((decimal)Math.Pow((double)(1 + monthlyRate), calcTerm) - 1);
-        return payment;
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("<!DOCTYPE html>");
+        sb.AppendLine("<html><head><meta charset=\"utf-8\"><title>Invoice - " + invoiceNumber + "</title>");
+        sb.AppendLine("<style>");
+        sb.AppendLine("body { font-family: Arial, sans-serif; margin: 0; padding: 40px; background: #f8fafc; }");
+        sb.AppendLine(".invoice { max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }");
+        sb.AppendLine(".header { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 30px; text-align: center; }");
+        sb.AppendLine(".header h1 { margin: 0; font-size: 24px; }");
+        sb.AppendLine(".header p { margin: 8px 0 0; opacity: 0.9; }");
+        sb.AppendLine(".content { padding: 30px; }");
+        sb.AppendLine(".row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb; }");
+        sb.AppendLine(".row:last-child { border-bottom: none; }");
+        sb.AppendLine(".label { color: #6b7280; font-size: 14px; }");
+        sb.AppendLine(".value { font-weight: 600; color: #1f2937; }");
+        sb.AppendLine(".total-row { background: #f0fdf4; margin: 20px -30px; padding: 20px 30px; border-top: 2px solid #10b981; }");
+        sb.AppendLine(".total-label { font-size: 18px; font-weight: 700; color: #065f46; }");
+        sb.AppendLine(".total-value { font-size: 24px; font-weight: 700; color: #059669; }");
+        sb.AppendLine(".footer { text-align: center; padding: 20px 30px; background: #f8fafc; font-size: 12px; color: #6b7280; }");
+        sb.AppendLine(".status { display: inline-block; padding: 4px 12px; background: #dcfce7; color: #166534; border-radius: 12px; font-size: 12px; font-weight: 600; }");
+        sb.AppendLine("@media print { body { background: white; padding: 0; } .invoice { box-shadow: none; } }");
+        sb.AppendLine("</style></head><body>");
+        sb.AppendLine("<div class=\"invoice\">");
+        sb.AppendLine("<div class=\"header\"><h1>FinanceBank</h1><p>Official Transaction Invoice</p></div>");
+        sb.AppendLine("<div class=\"content\">");
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Invoice Number</span><span class=\"value\">" + invoiceNumber + "</span></div>");
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Transaction Type</span><span class=\"value\">" + transactionTitle + "</span></div>");
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Customer Name</span><span class=\"value\">" + customerName + "</span></div>");
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Loan Number</span><span class=\"value\">" + loanNum + "</span></div>");
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Transaction Date</span><span class=\"value\">" + txnDate + "</span></div>");
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Status</span><span class=\"status\">" + txnStatus + "</span></div>");
+        sb.AppendLine(penaltySection);
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Description</span><span class=\"value\">" + txnDesc + "</span></div>");
+        sb.AppendLine("<div class=\"row total-row\"><span class=\"total-label\">Amount</span><span class=\"total-value\">₱" + txnAmount + "</span></div>");
+        sb.AppendLine("</div>");
+        sb.AppendLine("<div class=\"footer\"><p>Thank you for banking with FinanceBank!</p><p>This is an official electronic invoice - Generated on " + genDate + "</p></div>");
+        sb.AppendLine("</div></body></html>");
+        
+        return sb.ToString();
     }
 
-    private decimal CalculateTotalInterest()
-    {
-        return (CalculateMonthlyPayment() * calcTerm) - calcAmount;
-    }
-
-    private decimal CalculateTotalPayment()
-    {
-        return CalculateMonthlyPayment() * calcTerm;
-    }
-
-    public class Loan
+    public class LoanViewModel
     {
         public string Id { get; set; } = "";
         public string Type { get; set; } = "";
@@ -480,9 +1055,7 @@
     {
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
-        public string Icon { get; set; } = "";
         public string MaxAmount { get; set; } = "";
         public decimal InterestRate { get; set; }
     }
 }
-

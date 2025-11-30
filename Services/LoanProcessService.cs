@@ -19,24 +19,24 @@ public class LoanProcessService
     {
         // Stage 1: Customer submits loan request
         public const string PENDING_TELLER_REVIEW = "PENDING_TELLER_REVIEW";
-        
+
         // Stage 2: Teller reviews and forwards to Accountant
         public const string PENDING_ACCOUNTANT_REVIEW = "PENDING_ACCOUNTANT_REVIEW";
-        
+
         // Stage 3: Accountant assesses and forwards to Finance Manager
         public const string PENDING_FINANCEMANAGER_APPROVAL = "PENDING_FINANCEMANAGER_APPROVAL";
-        
+
         // Stage 4: Finance Manager approves - Ready for release
         public const string APPROVED_READY_FOR_RELEASE = "APPROVED_READY_FOR_RELEASE";
-        
+
         // Stage 5: Teller releases funds - Completed
         public const string COMPLETED_RELEASED = "COMPLETED_RELEASED";
-        
+
         // Rejection statuses
         public const string REJECTED_TELLER = "REJECTED_TELLER";
         public const string REJECTED_ACCOUNTANT = "REJECTED_ACCOUNTANT";
         public const string REJECTED_FINANCEMANAGER = "REJECTED_FINANCEMANAGER";
-        
+
         // Legacy statuses (for backward compatibility)
         public const string SUBMITTED = "SUBMITTED";
         public const string VERIFIED = "VERIFIED";
@@ -60,9 +60,9 @@ public class LoanProcessService
     /// Submit loan application - Status becomes PENDING_TELLER_REVIEW
     /// </summary>
     public async Task<LoanApplication> SubmitApplicationAsync(
-        int accountId, 
-        string loanType, 
-        decimal requestedAmount, 
+        int accountId,
+        string loanType,
+        decimal requestedAmount,
         string? purpose,
         string? employmentStatus,
         decimal? monthlyIncome,
@@ -70,21 +70,46 @@ public class LoanProcessService
     {
         try
         {
-            // Check if customer has existing unpaid loan
-            var hasExistingLoan = await _context.Loans
-                .AnyAsync(l => l.AccountId == accountId && 
-                              l.Status == "ACTIVE" && 
+            // LOAN RESTRICTION CHECK: Block application if user has existing unpaid loans
+            // 1. Check for ANY active loan with outstanding balance > 0
+            var hasUnpaidLoan = await _context.Loans
+                .AnyAsync(l => l.AccountId == accountId &&
+                              l.Status == "ACTIVE" &&
                               l.OutstandingBalance > 0);
 
-            if (hasExistingLoan)
+            if (hasUnpaidLoan)
             {
-                throw new InvalidOperationException("You have an existing unpaid loan. Please fully pay your current loan before applying for a new one.");
+                throw new InvalidOperationException("You have an existing loan that is not fully paid. Please complete all payments on your current loan before applying for a new one.");
+            }
+
+            // 2. Check for overdue loans (past due date with outstanding balance)
+            var hasOverdueLoan = await _context.Loans
+                .AnyAsync(l => l.AccountId == accountId &&
+                              (l.Status == "ACTIVE" || l.Status == "OVERDUE") &&
+                              l.OutstandingBalance > 0 &&
+                              l.NextDueDate < DateTime.Today);
+
+            if (hasOverdueLoan)
+            {
+                throw new InvalidOperationException("You have an overdue loan payment. Please settle your overdue balance before applying for a new loan.");
+            }
+
+            // 3. Check for any loan with outstanding balance > 0 (even if not active)
+            var hasAnyOutstandingBalance = await _context.Loans
+                .AnyAsync(l => l.AccountId == accountId &&
+                              l.OutstandingBalance > 0 &&
+                              l.Status != "Closed" &&
+                              l.Status != "Rejected");
+
+            if (hasAnyOutstandingBalance)
+            {
+                throw new InvalidOperationException("You still have an outstanding loan balance. Please fully pay your current loan before applying for a new one.");
             }
 
             // Also check for pending applications
             var hasPendingApplication = await _context.LoanApplications
-                .AnyAsync(a => a.AccountId == accountId && 
-                              !a.Status.Contains("REJECTED") && 
+                .AnyAsync(a => a.AccountId == accountId &&
+                              !a.Status.Contains("REJECTED") &&
                               a.Status != LoanStatus.COMPLETED_RELEASED &&
                               a.Status != "REJECTED");
 
@@ -127,8 +152,8 @@ public class LoanProcessService
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException(ex.Message.Contains("unpaid loan") || ex.Message.Contains("pending") 
-                ? ex.Message 
+            throw new InvalidOperationException(ex.Message.Contains("unpaid loan") || ex.Message.Contains("pending")
+                ? ex.Message
                 : "Failed to submit loan application", ex);
         }
     }
@@ -150,7 +175,7 @@ public class LoanProcessService
                 throw new KeyNotFoundException($"Application {applicationId} not found");
 
             // Accept both old and new statuses
-            if (application.Status != LoanStatus.PENDING_TELLER_REVIEW && 
+            if (application.Status != LoanStatus.PENDING_TELLER_REVIEW &&
                 application.Status != LoanStatus.SUBMITTED)
                 throw new InvalidOperationException("Application is not pending teller review");
 
@@ -281,7 +306,7 @@ public class LoanProcessService
                 throw new KeyNotFoundException($"Application {applicationId} not found");
 
             // Accept both old and new statuses
-            if (application.Status != LoanStatus.PENDING_ACCOUNTANT_REVIEW && 
+            if (application.Status != LoanStatus.PENDING_ACCOUNTANT_REVIEW &&
                 application.Status != LoanStatus.ENCODED)
                 throw new InvalidOperationException("Application must be pending accountant review");
 
@@ -309,7 +334,7 @@ public class LoanProcessService
             // Update application status to PENDING_FINANCEMANAGER_APPROVAL
             application.Status = LoanStatus.PENDING_FINANCEMANAGER_APPROVAL;
             _context.LoanApplications.Update(application);
-            
+
             _context.LoanAssessments.Add(assessment);
             await _context.SaveChangesAsync();
 
@@ -604,10 +629,10 @@ public class LoanProcessService
 
             // Generate payment schedule
             await GeneratePaymentScheduleAsync(
-                loan.LoanId, 
-                loan.MonthlyPayment, 
-                loan.InterestRate, 
-                loan.TermMonths, 
+                loan.LoanId,
+                loan.MonthlyPayment,
+                loan.InterestRate,
+                loan.TermMonths,
                 loan.StartDate
             );
 
@@ -908,7 +933,7 @@ public class LoanProcessService
                 accountId: loan.AccountId,
                 transactionType: isFullyPaid ? "FULL_PAYMENT" : "PAYMENT",
                 amount: paymentAmount,
-                description: isFullyPaid 
+                description: isFullyPaid
                     ? $"Loan fully paid: ₱{paymentAmount:N2} (Final payment) - {loan.LoanNumber}"
                     : $"Loan payment: ₱{paymentAmount:N2} - {loan.LoanNumber}",
                 processedBy: processedBy,
@@ -1027,8 +1052,8 @@ public class LoanProcessService
             // Check 2: No active violations in last 6 months
             var recentViolations = await _context.LoanViolations
                 .Join(_context.Loans, v => v.LoanId, l => l.LoanId, (v, l) => new { v, l })
-                .Where(x => x.l.AccountId == accountId 
-                    && !x.v.IsResolved 
+                .Where(x => x.l.AccountId == accountId
+                    && !x.v.IsResolved
                     && x.v.ViolationDate > DateTime.Now.AddMonths(-6))
                 .CountAsync();
 
@@ -1350,30 +1375,30 @@ public class LoanProcessService
         if (role == "TELLER")
         {
             // Teller sees PENDING_TELLER_REVIEW (new) + SUBMITTED/VERIFIED (legacy)
-            query = query.Where(a => 
-                a.Status == LoanStatus.PENDING_TELLER_REVIEW || 
-                a.Status == LoanStatus.SUBMITTED || 
+            query = query.Where(a =>
+                a.Status == LoanStatus.PENDING_TELLER_REVIEW ||
+                a.Status == LoanStatus.SUBMITTED ||
                 a.Status == LoanStatus.VERIFIED);
         }
         else if (role == "ACCOUNTANT")
         {
             // Accountant sees PENDING_ACCOUNTANT_REVIEW (new) + ENCODED (legacy)
-            query = query.Where(a => 
-                a.Status == LoanStatus.PENDING_ACCOUNTANT_REVIEW || 
+            query = query.Where(a =>
+                a.Status == LoanStatus.PENDING_ACCOUNTANT_REVIEW ||
                 a.Status == LoanStatus.ENCODED);
         }
         else if (role == "FINANCEMANAGER" || role == "FINANCE_MANAGER")
         {
             // Finance Manager sees PENDING_FINANCEMANAGER_APPROVAL (new) + ASSESSED (legacy)
-            query = query.Where(a => 
-                a.Status == LoanStatus.PENDING_FINANCEMANAGER_APPROVAL || 
+            query = query.Where(a =>
+                a.Status == LoanStatus.PENDING_FINANCEMANAGER_APPROVAL ||
                 a.Status == LoanStatus.ASSESSED);
         }
         else if (role == "TELLER_RELEASE")
         {
             // Teller sees approved loans ready for release
-            query = query.Where(a => 
-                a.Status == LoanStatus.APPROVED_READY_FOR_RELEASE || 
+            query = query.Where(a =>
+                a.Status == LoanStatus.APPROVED_READY_FOR_RELEASE ||
                 a.Status == LoanStatus.APPROVED);
         }
 
@@ -1417,7 +1442,7 @@ public class LoanProcessService
                 .Include(a => a.Assessment)
                 .Include(a => a.Application)
                 .FirstOrDefaultAsync(a => a.ApprovalId == approvalId);
-            
+
             if (approval == null)
                 throw new InvalidOperationException($"Approval {approvalId} not found");
 
@@ -1430,7 +1455,7 @@ public class LoanProcessService
                 var approvedAmount = approval.ApprovedAmount ?? approval.Assessment?.LoanAmount ?? 0m;
                 var approvedRate = approval.ApprovedInterestRate ?? approval.Assessment?.InterestRate ?? 0m;
                 var approvedTerm = approval.ApprovedTermMonths ?? approval.Assessment?.TermMonths ?? 12;
-                
+
                 loan = new Loan
                 {
                     LoanNumber = $"LN-{DateTime.Now:yyyyMMddHHmmss}",
@@ -1611,7 +1636,7 @@ public class LoanProcessService
 
         if (loanId.HasValue)
             query = query.Where(h => h.LoanId == loanId);
-        
+
         if (accountId.HasValue)
             query = query.Where(h => h.AccountId == accountId);
 
@@ -1652,7 +1677,7 @@ public class LoanProcessService
 
         if (paymentId.HasValue)
             query = query.Where(i => i.PaymentId == paymentId);
-        
+
         if (disbursalId.HasValue)
             query = query.Where(i => i.DisbursalId == disbursalId);
 

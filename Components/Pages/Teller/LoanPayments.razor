@@ -303,6 +303,9 @@
     private string referenceNumber = "";
     private LoanPayment? lastPayment;
 
+    // Preloaded payment schedules to avoid synchronous DB calls during render
+    private Dictionary<int, LoanPaymentSchedule?> paymentSchedulesByLoanId = new();
+
     private string modalSubtitle => currentStep == 1 ? "Step 1: Enter payment details" : "Step 2: Confirm payment";
 
     private async Task SearchAccount()
@@ -327,6 +330,25 @@
 
             activeLoans = await LoanService.GetAccountLoansAsync(selectedAccount.AccountId);
             activeLoans = activeLoans.Where(l => l.Status == "ACTIVE" && l.OutstandingBalance > 0).ToList();
+
+            // Preload all payment schedules for these loans to avoid sync DB calls during render
+            paymentSchedulesByLoanId.Clear();
+            if (activeLoans.Any())
+            {
+                var loanIds = activeLoans.Select(l => l.LoanId).ToList();
+                var schedules = await DbContext.LoanPaymentSchedules
+                    .Where(s => loanIds.Contains(s.LoanId) && s.PaymentStatus == "PENDING")
+                    .OrderBy(s => s.DueDate)
+                    .ToListAsync();
+
+                // Group by loan and take the first (next due) for each
+                foreach (var loanId in loanIds)
+                {
+                    paymentSchedulesByLoanId[loanId] = schedules
+                        .Where(s => s.LoanId == loanId)
+                        .FirstOrDefault();
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -336,10 +358,8 @@
 
     private LoanPaymentSchedule? GetNextPayment(int loanId)
     {
-        return DbContext.LoanPaymentSchedules
-            .Where(s => s.LoanId == loanId && s.PaymentStatus == "PENDING")
-            .OrderBy(s => s.DueDate)
-            .FirstOrDefault();
+        // Return from preloaded dictionary instead of querying DB synchronously
+        return paymentSchedulesByLoanId.TryGetValue(loanId, out var schedule) ? schedule : null;
     }
 
     private decimal CalculatePenalty(decimal amountDue, int daysLate)

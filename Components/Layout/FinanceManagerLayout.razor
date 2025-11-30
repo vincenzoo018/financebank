@@ -3,9 +3,6 @@
 @inject NavigationManager Navigation
 @implements IDisposable
 
-@* Import Unified Design System *@
-<link rel="stylesheet" href="css/unified-design-system.css" />
-
 <div class="sidebar-container">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -34,7 +31,7 @@
 
             <!-- Loan Approvals -->
             <div class="sidebar-section">
-                <div class="sidebar-section-title">LOAN APPROVALS</div>
+                <div class="sidebar-section-title">LOAN APPROVAL</div>
                 <a href="/finance-manager/loan-approvals"
                     class="sidebar-item @(IsActive("/finance-manager/loan-approvals"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -44,8 +41,7 @@
                     </svg>
                     <span>Approve/Decline Loans</span>
                 </a>
-                <a href="/financemanager/loan-history"
-                    class="sidebar-item @(IsActive("/financemanager/loan-history"))">
+                <a href="/financemanager/loan-history" class="sidebar-item @(IsActive("/financemanager/loan-history"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -58,21 +54,21 @@
             <!-- Finance - Finance Manager Specific -->
             <div class="sidebar-section">
                 <div class="sidebar-section-title">FINANCE</div>
-                <a href="/admin/finance/payables" class="sidebar-item @(IsActive("/admin/finance/payables"))">
+                <a href="/finance/payables" class="sidebar-item @(IsActive("/finance/payables"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 2v20M2 12h20"></path>
                     </svg>
                     <span>Accounts Payable</span>
                 </a>
-                <a href="/admin/finance/receivables" class="sidebar-item @(IsActive("/admin/finance/receivables"))">
+                <a href="/finance/receivables" class="sidebar-item @(IsActive("/finance/receivables"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
                     <span>Accounts Receivable</span>
                 </a>
-                <a href="/admin/finance/expenses" class="sidebar-item @(IsActive("/admin/finance/expenses"))">
+                <a href="/finance/expenses" class="sidebar-item @(IsActive("/finance/expenses"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="1"></circle>
@@ -80,24 +76,22 @@
                     </svg>
                     <span>Expenses</span>
                 </a>
-                <a href="/admin/finance/budget-management"
-                    class="sidebar-item @(IsActive("/admin/finance/budget-management"))">
+                <a href="/finance/budget-management" class="sidebar-item @(IsActive("/finance/budget-management"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 2v20M2 12h20"></path>
                     </svg>
                     <span>Budget Management</span>
                 </a>
-                <a href="/admin/finance/cashflow-analysis"
-                    class="sidebar-item @(IsActive("/admin/finance/cashflow-analysis"))">
+                <a href="/finance/cashflow-analysis" class="sidebar-item @(IsActive("/finance/cashflow-analysis"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
                     <span>Cashflow Analysis</span>
                 </a>
-                <a href="/admin/finance/financial-forecasting"
-                    class="sidebar-item @(IsActive("/admin/finance/financial-forecasting"))">
+                <a href="/finance/financial-forecasting"
+                    class="sidebar-item @(IsActive("/finance/financial-forecasting"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="1"></circle>
@@ -110,8 +104,7 @@
             <!-- Finance Reports -->
             <div class="sidebar-section">
                 <div class="sidebar-section-title">FINANCE REPORTS</div>
-                <a href="/admin/finance/budget-reports"
-                    class="sidebar-item @(IsActive("/admin/finance/budget-reports"))">
+                <a href="/finance/budget-reports" class="sidebar-item @(IsActive("/finance/budget-reports"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
@@ -119,8 +112,7 @@
                     </svg>
                     <span>Budget Reports</span>
                 </a>
-                <a href="/admin/finance/cashflow-reports"
-                    class="sidebar-item @(IsActive("/admin/finance/cashflow-reports"))">
+                <a href="/finance/cashflow-reports" class="sidebar-item @(IsActive("/finance/cashflow-reports"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>

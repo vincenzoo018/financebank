@@ -18,16 +18,16 @@
         <div class="card-body" style="padding: 24px;">
             <!-- Filter Tabs -->
             <div style="display: flex; gap: 12px; margin-bottom: 24px;">
-                <button class="btn @(filterStatus == "ALL" ? "btn-primary" : "btn-outline")" 
-                        @onclick="@(() => SetFilter(@"ALL"))">
+                <button class="btn @(filterStatus == "ALL" ? "btn-primary" : "btn-outline")"
+                    @onclick="@(() => SetFilter(@"ALL"))">
                     All History
                 </button>
-                <button class="btn @(filterStatus == "APPROVED" ? "btn-success" : "btn-outline")" 
-                        @onclick="@(() => SetFilter(@"APPROVED"))">
+                <button class="btn @(filterStatus == "APPROVED" ? "btn-success" : "btn-outline")"
+                    @onclick="@(() => SetFilter(@"APPROVED"))">
                     ✓ Approved
                 </button>
-                <button class="btn @(filterStatus == "DECLINED" ? "btn-danger" : "btn-outline")" 
-                        @onclick="@(() => SetFilter(@"DECLINED"))">
+                <button class="btn @(filterStatus == "DECLINED" ? "btn-danger" : "btn-outline")"
+                    @onclick="@(() => SetFilter(@"DECLINED"))">
                     ✗ Declined
                 </button>
             </div>
@@ -61,9 +61,9 @@
                                 <div style="flex: 1;">
                                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                                         <span style="background: @(isApproved ? "#dcfce7" : "#fee2e2"); 
-                                                     color: @(isApproved ? "#166534" : "#dc2626");
-                                                     padding: 4px 12px; border-radius: 20px; 
-                                                     font-size: 12px; font-weight: 700;">
+                                                             color: @(isApproved ? "#166534" : "#dc2626");
+                                                             padding: 4px 12px; border-radius: 20px; 
+                                                             font-size: 12px; font-weight: 700;">
                                             @(isApproved ? "✓ APPROVED" : "✗ DECLINED")
                                         </span>
                                         <span style="font-size: 13px; color: var(--text-gray);">
@@ -74,14 +74,17 @@
                                     <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">
                                         @customerName
                                     </h3>
-                                    
-                                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 12px;">
+
+                                    <div
+                                        style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 12px;">
                                         <div>
-                                            <span style="font-size: 12px; color: var(--text-gray); display: block;">Account</span>
+                                            <span
+                                                style="font-size: 12px; color: var(--text-gray); display: block;">Account</span>
                                             <span style="font-size: 14px; font-weight: 600;">@accountNumber</span>
                                         </div>
                                         <div>
-                                            <span style="font-size: 12px; color: var(--text-gray); display: block;">Loan Type</span>
+                                            <span style="font-size: 12px; color: var(--text-gray); display: block;">Loan
+                                                Type</span>
                                             <span style="font-size: 14px; font-weight: 600;">@loanType</span>
                                         </div>
                                         <div>
@@ -89,11 +92,13 @@
                                                 @(isApproved ? "Approved Amount" : "Requested Amount")
                                             </span>
                                             <span style="font-size: 14px; font-weight: 600; color: var(--primary-green-start);">
-                                                ₱@((approval.ApprovedAmount ?? approval.Assessment?.LoanAmount ?? 0).ToString("N2"))
+                                                ₱@((approval.ApprovedAmount ?? approval.Assessment?.LoanAmount ??
+                                                                                        0).ToString("N2"))
                                             </span>
                                         </div>
                                         <div>
-                                            <span style="font-size: 12px; color: var(--text-gray); display: block;">Processed By</span>
+                                            <span style="font-size: 12px; color: var(--text-gray); display: block;">Processed
+                                                By</span>
                                             <span style="font-size: 14px; font-weight: 600;">@approval.ApprovedBy</span>
                                         </div>
                                     </div>
@@ -102,15 +107,20 @@
                                     {
                                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
                                             <div>
-                                                <span style="font-size: 12px; color: var(--text-gray); display: block;">Interest Rate</span>
-                                                <span style="font-size: 14px; font-weight: 600;">@(approval.ApprovedInterestRate?.ToString("F2") ?? "N/A")%</span>
+                                                <span style="font-size: 12px; color: var(--text-gray); display: block;">Interest
+                                                    Rate</span>
+                                                <span
+                                                    style="font-size: 14px; font-weight: 600;">@(approval.ApprovedInterestRate?.ToString("F2")
+                                                                                            ?? "N/A")%</span>
                                             </div>
                                             <div>
                                                 <span style="font-size: 12px; color: var(--text-gray); display: block;">Term</span>
-                                                <span style="font-size: 14px; font-weight: 600;">@(approval.ApprovedTermMonths ?? 0) months</span>
+                                                <span style="font-size: 14px; font-weight: 600;">@(approval.ApprovedTermMonths ?? 0)
+                                                    months</span>
                                             </div>
                                             <div>
-                                                <span style="font-size: 12px; color: var(--text-gray); display: block;">Monthly Payment</span>
+                                                <span style="font-size: 12px; color: var(--text-gray); display: block;">Monthly
+                                                    Payment</span>
                                                 <span style="font-size: 14px; font-weight: 600;">
                                                     @if (approval.Assessment != null)
                                                     {
@@ -127,15 +137,18 @@
                                         @if (!string.IsNullOrWhiteSpace(approval.SpecialConditions))
                                         {
                                             <div style="background: #dbeafe; border-radius: 6px; padding: 12px; margin-top: 12px;">
-                                                <span style="font-size: 12px; color: #1e40af; font-weight: 600;">Special Conditions:</span>
-                                                <p style="margin: 4px 0 0; font-size: 14px; color: #1e40af;">@approval.SpecialConditions</p>
+                                                <span style="font-size: 12px; color: #1e40af; font-weight: 600;">Special
+                                                    Conditions:</span>
+                                                <p style="margin: 4px 0 0; font-size: 14px; color: #1e40af;">@approval.SpecialConditions
+                                                </p>
                                             </div>
                                         }
                                     }
                                     else
                                     {
                                         <div style="background: #fee2e2; border-radius: 6px; padding: 12px; margin-top: 12px;">
-                                            <span style="font-size: 12px; color: #dc2626; font-weight: 600;">Reason for Declination:</span>
+                                            <span style="font-size: 12px; color: #dc2626; font-weight: 600;">Reason for
+                                                Declination:</span>
                                             <p style="margin: 4px 0 0; font-size: 14px; color: #dc2626;">
                                                 @(approval.DeclinationReason ?? "No reason provided")
                                             </p>
@@ -157,19 +170,19 @@
         color: white;
         border: none;
     }
-    
+
     .btn-danger {
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         color: white;
         border: none;
     }
-    
+
     .btn-outline {
         background: transparent;
         border: 2px solid var(--border);
         color: var(--text-dark);
     }
-    
+
     .btn-outline:hover {
         border-color: var(--primary-green-start);
         color: var(--primary-green-start);

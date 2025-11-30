@@ -365,9 +365,9 @@ public class LoanTransactionHistory
     public int HistoryId { get; set; }
 
     public int? LoanId { get; set; }
-    
+
     public int? ApplicationId { get; set; }
-    
+
     public int? ApprovalId { get; set; }
 
     public int AccountId { get; set; }

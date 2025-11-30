@@ -18,7 +18,7 @@
             {
                 // Small delay to ensure services are initialized
                 await Task.Delay(100);
-                
+
                 try
                 {
                     // Try to check if user is authenticated
@@ -34,7 +34,7 @@
                             AuthService.Roles.FinanceManager => "/finance-manager/dashboard",
                             _ => "/login"
                         };
-                        
+
                         Navigation.NavigateTo(redirectPath, replace: true);
                         return;
                     }
@@ -54,7 +54,7 @@
             {
                 Console.WriteLine($"Navigation error in Home: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                
+
                 // Emergency fallback to login
                 try
                 {
@@ -70,4 +70,3 @@
         }
     }
 }
-

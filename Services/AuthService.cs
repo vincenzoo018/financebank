@@ -8,7 +8,7 @@ namespace FinanceBank.Services
     public class AuthService
     {
         private readonly IDbContextFactory<BFASDbContext>? _contextFactory;
-        
+
         public bool IsAuthenticated { get; private set; }
         public int? CurrentUserId { get; private set; }
         public string? CurrentUser { get; private set; }
@@ -18,7 +18,7 @@ namespace FinanceBank.Services
         public int? EmployeeId { get; private set; }
         public string? Department { get; private set; }
         public List<string> Permissions { get; private set; } = new();
-        
+
         // Event to notify when authentication state changes
         public event Action? OnAuthStateChanged;
 
@@ -72,7 +72,7 @@ namespace FinanceBank.Services
             {
                 // Create a new DbContext instance for this operation
                 using var context = await _contextFactory.CreateDbContextAsync();
-                
+
                 // Find user by username (include Employee data)
                 var user = await context.Users
                     .Include(u => u.Employee)
@@ -138,7 +138,7 @@ namespace FinanceBank.Services
             try
             {
                 using var context = await _contextFactory.CreateDbContextAsync();
-                
+
                 var user = await context.Users
                     .Include(u => u.Employee)
                     .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
@@ -153,7 +153,7 @@ namespace FinanceBank.Services
                 CurrentRole = user.Role;
                 FullName = user.FullName;
                 Email = user.Email;
-                
+
                 // Get employee info if user is an employee
                 if (user.Employee != null)
                 {
@@ -165,7 +165,7 @@ namespace FinanceBank.Services
                     EmployeeId = null;
                     Department = null;
                 }
-                
+
                 Permissions = GetPermissionsForRole(user.Role);
 
                 // Update last login time
@@ -183,10 +183,10 @@ namespace FinanceBank.Services
                 };
                 context.LoginHistories.Add(loginHistory);
                 await context.SaveChangesAsync();
-                
+
                 // Notify authentication state changed
                 OnAuthStateChanged?.Invoke();
-                
+
                 return true;
             }
             catch
@@ -204,7 +204,7 @@ namespace FinanceBank.Services
             CurrentRole = user.Role;
             FullName = user.FullName;
             Email = user.Email;
-            
+
             // Get employee info if user is an employee
             if (user.Employee != null)
             {
@@ -216,7 +216,7 @@ namespace FinanceBank.Services
                 EmployeeId = null;
                 Department = null;
             }
-            
+
             Permissions = GetPermissionsForRole(user.Role);
 
             if (_contextFactory != null)
@@ -224,7 +224,7 @@ namespace FinanceBank.Services
                 try
                 {
                     using var context = await _contextFactory.CreateDbContextAsync();
-                    
+
                     // Attach and update the user
                     context.Users.Attach(user);
                     user.LastLoginAt = DateTime.Now;
@@ -245,7 +245,7 @@ namespace FinanceBank.Services
                 }
                 catch { /* Ignore logging errors */ }
             }
-            
+
             // Notify authentication state changed
             OnAuthStateChanged?.Invoke();
         }
@@ -260,7 +260,7 @@ namespace FinanceBank.Services
             Department = department;
             EmployeeId = employeeId;
             Permissions = GetPermissionsForRole(role);
-            
+
             // Notify authentication state changed
             OnAuthStateChanged?.Invoke();
         }
@@ -273,7 +273,7 @@ namespace FinanceBank.Services
             try
             {
                 using var context = await _contextFactory.CreateDbContextAsync();
-                
+
                 var user = await context.Users.FirstOrDefaultAsync(u => u.Username == username);
                 if (user != null)
                 {
@@ -304,7 +304,7 @@ namespace FinanceBank.Services
             EmployeeId = null;
             Department = null;
             Permissions.Clear();
-            
+
             // Notify authentication state changed
             OnAuthStateChanged?.Invoke();
         }
@@ -397,16 +397,16 @@ namespace FinanceBank.Services
             {
                 if (routeLower.Contains("/banking/"))
                     return HasPermission(Modules.Banking);
-                
+
                 if (routeLower.Contains("/accounting/"))
                     return HasPermission(Modules.Accounting);
-                
+
                 if (routeLower.Contains("/finance/"))
                     return HasPermission(Modules.Finance);
-                
+
                 if (routeLower.Contains("/system/"))
                     return HasPermission(Modules.Reports);
-                
+
                 if (routeLower.Contains("/approvals/"))
                     return HasPermission(Modules.Approvals);
 

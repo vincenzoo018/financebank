@@ -47,7 +47,7 @@ namespace FinanceBank
 
             // Register AuthService as Singleton (persists across page navigations)
             builder.Services.AddSingleton<AuthService>();
-            
+
             // Register Role-Based Navigation Service
             builder.Services.AddScoped<RoleBasedNavigationService>();
 
@@ -73,13 +73,13 @@ namespace FinanceBank
             builder.Services.AddScoped<BankingReportService>();
             builder.Services.AddScoped<LoanManagementService>();
             builder.Services.AddScoped<CardManagementService>();
-            
+
             // Register Accounting Services
             builder.Services.AddScoped<JournalEntryService>();
             builder.Services.AddScoped<GeneralLedgerService>();
             builder.Services.AddScoped<TrialBalanceService>();
             builder.Services.AddScoped<FinancialStatementService>();
-            
+
             // Register other services
             builder.Services.AddScoped<BudgetManagementService>();
             builder.Services.AddScoped<AccountsPayableService>();
@@ -114,9 +114,12 @@ namespace FinanceBank
             builder.Services.AddScoped<LoanPaymentService>();
             builder.Services.AddScoped<LoanEligibilityService>();
 
+            // Register Teller Report Service (analytics and report generation)
+            builder.Services.AddScoped<TellerReportService>();
+
 #if DEBUG
-    		builder.Services.AddBlazorWebViewDeveloperTools();
-    		builder.Logging.AddDebug();
+            builder.Services.AddBlazorWebViewDeveloperTools();
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();

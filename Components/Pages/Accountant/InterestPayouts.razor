@@ -1,0 +1,501 @@
+@page "/accountant/interest-payouts"
+@using Microsoft.AspNetCore.Authorization
+@using FinanceBank.Services
+@using FinanceBank.Models
+@layout AccountantLayout
+@inject AccountsPayableService AccountsPayableService
+@inject JournalEntryService JournalEntryService
+@inject AuthService AuthService
+@attribute [Authorize(Roles = "Accountant")]
+
+<div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
+    <!-- Header -->
+    <div
+        style="background: linear-gradient(135deg, #a855f7, #9333ea); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div
+                style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="28" height="28" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                <h1 style="font-size: 26px; font-weight: 700; margin: 0;">💰 Interest Payouts Approval</h1>
+                <p style="margin: 6px 0 0; opacity: 0.9; font-size: 15px;">Approve and release savings interest payouts
+                    to customers</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <div
+                    style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 12px; opacity: 0.9;">Pending Approval</div>
+                    <div style="font-size: 24px; font-weight: 700;">@pendingPayouts.Count</div>
+                </div>
+                <div
+                    style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 12px; opacity: 0.9;">Total Amount</div>
+                    <div style="font-size: 24px; font-weight: 700;">₱@totalPendingAmount.ToString("N2")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div
+            style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 1px solid #6ee7b7; color: #065f46; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span style="font-weight: 500;">@successMessage</span>
+            <button @onclick="() => successMessage = string.Empty"
+                style="margin-left: auto; background: none; border: none; color: #065f46; cursor: pointer; font-size: 18px;">×</button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div
+            style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+            <span style="font-weight: 500;">@errorMessage</span>
+            <button @onclick="() => errorMessage = string.Empty"
+                style="margin-left: auto; background: none; border: none; color: #991b1b; cursor: pointer; font-size: 18px;">×</button>
+        </div>
+    }
+
+    <!-- FM Approved Payouts Table -->
+    <div
+        style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; border: 2px solid #a855f7;">
+        <div
+            style="background: linear-gradient(135deg, #fdf4ff, #f5d0fe); padding: 20px 24px; border-bottom: 1px solid #e879f9;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="margin: 0; font-weight: 700; color: #7c3aed; font-size: 18px;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" style="margin-right: 8px; vertical-align: middle;">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        FM Approved Interest Payouts - Ready for Release
+                    </h4>
+                    <p style="margin: 6px 0 0 0; color: #9333ea; font-size: 13px;">These payouts have been reviewed and
+                        approved by the Finance Manager</p>
+                </div>
+                <button @onclick="LoadPendingPayouts"
+                    style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #a855f7, #9333ea); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+                    </svg>
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <div style="padding: 24px;">
+            @if (isLoading)
+            {
+                <div style="text-align: center; padding: 48px;">
+                    <div
+                        style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #a855f7; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+                    </div>
+                    <p style="margin-top: 16px; color: #6b7280;">Loading pending payouts...</p>
+                </div>
+            }
+            else if (!pendingPayouts.Any())
+            {
+                <div style="text-align: center; padding: 48px;">
+                    <div
+                        style="width: 80px; height: 80px; background: #f0fdf4; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </div>
+                    <h4 style="margin: 0; color: #059669; font-weight: 700;">All Caught Up!</h4>
+                    <p style="margin-top: 8px; color: #6b7280;">No pending interest payouts to approve at the moment.</p>
+                </div>
+            }
+            else
+            {
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                        <thead>
+                            <tr style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
+                                <th
+                                    style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                    Bill #</th>
+                                <th
+                                    style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                    Customer</th>
+                                <th
+                                    style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                    Interest Amount</th>
+                                <th
+                                    style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                    Due Date</th>
+                                <th
+                                    style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                    FM Status</th>
+                                <th
+                                    style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                    Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var payout in pendingPayouts)
+                            {
+                                <tr style="border-bottom: 1px solid #f3e8ff;" class="table-row-hover">
+                                    <td style="padding: 16px;">
+                                        <span
+                                            style="background: linear-gradient(135deg, #f3e8ff, #e9d5ff); color: #7c3aed; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px;">
+                                            @payout.InvoiceNumber
+                                        </span>
+                                    </td>
+                                    <td style="padding: 16px;">
+                                        <div style="font-weight: 600; color: #1e293b;">@payout.VendorName</div>
+                                        <div style="font-size: 12px; color: #64748b;">@GetSavingsDetails(payout.Description)
+                                        </div>
+                                    </td>
+                                    <td style="padding: 16px; text-align: right;">
+                                        <span
+                                            style="font-weight: 700; color: #059669; font-size: 18px;">₱@payout.Amount.ToString("N2")</span>
+                                    </td>
+                                    <td style="padding: 16px; text-align: center; color: #475569;">
+                                        @payout.DueDate.ToString("MMM dd, yyyy")
+                                    </td>
+                                    <td style="padding: 16px; text-align: center;">
+                                        <span
+                                            style="background: #d1fae5; color: #065f46; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 12px;">
+                                            ✓ FM Approved
+                                        </span>
+                                    </td>
+                                    <td style="padding: 16px; text-align: center;">
+                                        <button @onclick="() => OpenReleaseModal(payout)"
+                                            style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
+                                            💳 Release Payout
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Released Payouts History -->
+    @if (releasedPayouts.Any())
+    {
+        <div
+            style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-top: 24px; border: 1px solid #e2e8f0;">
+            <div
+                style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 20px 24px; border-bottom: 1px solid #bbf7d0;">
+                <h4 style="margin: 0; font-weight: 700; color: #059669; font-size: 18px;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        style="margin-right: 8px; vertical-align: middle;">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    Released Payouts History
+                </h4>
+            </div>
+
+            <div style="padding: 24px;">
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th
+                                    style="padding: 12px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 12px; text-transform: uppercase;">
+                                    Bill #</th>
+                                <th
+                                    style="padding: 12px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 12px; text-transform: uppercase;">
+                                    Customer</th>
+                                <th
+                                    style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 12px; text-transform: uppercase;">
+                                    Amount</th>
+                                <th
+                                    style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 12px; text-transform: uppercase;">
+                                    Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var payout in releasedPayouts.Take(10))
+                            {
+                                <tr style="border-bottom: 1px solid #e2e8f0;">
+                                    <td style="padding: 14px 16px; color: #6b7280; font-size: 14px;">@payout.InvoiceNumber</td>
+                                    <td style="padding: 14px 16px; color: #1e293b; font-weight: 500;">@payout.VendorName</td>
+                                    <td style="padding: 14px 16px; text-align: right; color: #059669; font-weight: 600;">
+                                        ₱@payout.Amount.ToString("N2")</td>
+                                    <td style="padding: 14px 16px; text-align: center;">
+                                        <span
+                                            style="background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 11px;">
+                                            ✓ Paid
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Release Confirmation Modal -->
+@if (showReleaseModal && selectedPayout != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
+        @onclick="CloseReleaseModal">
+        <div style="background: white; border-radius: 20px; width: 95%; max-width: 550px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
+            @onclick:stopPropagation>
+            <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px 28px;">
+                <h4 style="margin: 0; font-weight: 700; font-size: 20px;">💳 Release Interest Payout</h4>
+                <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">Confirm payout release to customer</p>
+            </div>
+
+            <div style="padding: 28px;">
+                <div
+                    style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 24px; border-radius: 16px; border: 1px solid #bbf7d0; margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div style="background: white; padding: 16px; border-radius: 10px; text-align: center;">
+                            <span
+                                style="font-size: 12px; color: #6b7280; text-transform: uppercase; font-weight: 600;">Customer</span>
+                            <p style="margin: 8px 0 0 0; font-weight: 700; color: #1e293b; font-size: 16px;">
+                                @selectedPayout.VendorName</p>
+                        </div>
+                        <div style="background: white; padding: 16px; border-radius: 10px; text-align: center;">
+                            <span style="font-size: 12px; color: #6b7280; text-transform: uppercase; font-weight: 600;">Bill
+                                Number</span>
+                            <p style="margin: 8px 0 0 0; font-weight: 700; color: #7c3aed; font-size: 16px;">
+                                @selectedPayout.InvoiceNumber</p>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: white; padding: 20px; border-radius: 12px; margin-top: 16px; text-align: center;">
+                        <span style="font-size: 12px; color: #6b7280; text-transform: uppercase; font-weight: 600;">Amount
+                            to Release</span>
+                        <p style="margin: 8px 0 0 0; font-weight: 800; color: #059669; font-size: 32px;">
+                            ₱@selectedPayout.Amount.ToString("N2")</p>
+                    </div>
+
+                    <div style="background: white; padding: 16px; border-radius: 10px; margin-top: 16px;">
+                        <span
+                            style="font-size: 12px; color: #6b7280; text-transform: uppercase; font-weight: 600;">Details</span>
+                        <p style="margin: 8px 0 0 0; color: #4b5563; font-size: 13px;">
+                            @GetSavingsDetails(selectedPayout.Description)</p>
+                    </div>
+                </div>
+
+                <div
+                    style="background: #fef3c7; padding: 16px; border-radius: 10px; margin-bottom: 24px; border: 1px solid #fde68a;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" @bind="confirmRelease" id="confirmRelease"
+                            style="width: 20px; height: 20px; accent-color: #059669;">
+                        <label for="confirmRelease" style="font-size: 14px; color: #92400e; font-weight: 600;">
+                            I confirm that the interest payout should be released to the customer's account
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button @onclick="CloseReleaseModal"
+                        style="background: #f1f5f9; color: #475569; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                        Cancel
+                    </button>
+                    <button @onclick="ReleasePayout" disabled="@(!confirmRelease || isProcessing)"
+                        style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 12px 28px; border-radius: 10px; cursor: pointer; font-weight: 700; opacity: @(!confirmRelease || isProcessing ? "0.6" : "1"); display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        @(isProcessing ? "Processing..." : "✓ Release Payout")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .table-row-hover:hover {
+        background: #fdf4ff !important;
+    }
+</style>
+
+@code {
+    private List<AccountsPayable> pendingPayouts = new();
+    private List<AccountsPayable> releasedPayouts = new();
+    private decimal totalPendingAmount = 0;
+
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private string successMessage = "";
+    private string errorMessage = "";
+
+    // Modal states
+    private bool showReleaseModal = false;
+    private AccountsPayable? selectedPayout = null;
+    private bool confirmRelease = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPendingPayouts();
+    }
+
+    private async Task LoadPendingPayouts()
+    {
+        isLoading = true;
+        try
+        {
+            pendingPayouts = await AccountsPayableService.GetFMApprovedInterestPayoutsAsync();
+            totalPendingAmount = pendingPayouts.Sum(p => p.Amount);
+
+            // Get released payouts for history
+            var allPayables = await AccountsPayableService.GetAllAsync();
+            releasedPayouts = allPayables
+            .Where(p => p.Status == "Paid" &&
+            p.Description != null &&
+            p.Description.Contains("Savings Interest Payout"))
+            .OrderByDescending(p => p.CreatedAt)
+            .ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading payouts: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetSavingsDetails(string? description)
+    {
+        if (string.IsNullOrEmpty(description)) return "Monthly Savings Interest";
+
+        // Extract the savings details from the description
+        // Format: "Savings Interest Payout - Account: ACC-XXXXXX | Balance: ₱X,XXX.XX | Rate: 5%/month | Period: Month Year"
+        var parts = description.Split('|');
+        if (parts.Length > 1)
+        {
+            // Return a cleaned up version
+            return string.Join(" | ", parts.Take(3).Select(p => p.Trim()));
+        }
+        return description;
+    }
+
+    private void OpenReleaseModal(AccountsPayable payout)
+    {
+        selectedPayout = payout;
+        confirmRelease = false;
+        showReleaseModal = true;
+    }
+
+    private void CloseReleaseModal()
+    {
+        showReleaseModal = false;
+        selectedPayout = null;
+        confirmRelease = false;
+    }
+
+    private async Task ReleasePayout()
+    {
+        if (selectedPayout == null || !confirmRelease) return;
+
+        isProcessing = true;
+        try
+        {
+            var releasedBy = AuthService.CurrentUser ?? "Accountant";
+
+            // Release the payout
+            await AccountsPayableService.ReleaseInterestPayoutAsync(selectedPayout.PayableId, releasedBy);
+
+            // Create journal entry for the payout
+            await CreateInterestPayoutJournalEntry(selectedPayout, releasedBy);
+
+            successMessage = $"✓ Successfully released interest payout of ₱{selectedPayout.Amount:N2} to {selectedPayout.VendorName}!";
+
+            CloseReleaseModal();
+            await LoadPendingPayouts();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error releasing payout: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task CreateInterestPayoutJournalEntry(AccountsPayable payout, string releasedBy)
+    {
+        try
+        {
+            var journalEntry = new JournalEntry
+            {
+                TransactionDate = DateTime.Now,
+                Description = $"Interest Payout Released - {payout.VendorName}",
+                Reference = payout.InvoiceNumber,
+                Status = "Posted",
+                CreatedBy = releasedBy,
+                PostedBy = releasedBy,
+                PostedAt = DateTime.Now,
+                Lines = new List<JournalEntryLine>()
+            };
+
+            // Debit: Interest Payable (reduce liability)
+            journalEntry.Lines.Add(new JournalEntryLine
+            {
+                AccountCode = "2200",
+                AccountName = "Interest Payable",
+                AccountType = "Liability",
+                Description = $"Interest Payout - {payout.VendorName}",
+                DebitAmount = payout.Amount,
+                CreditAmount = 0,
+                Status = "Posted"
+            });
+
+            // Credit: Cash/Bank (reduce asset)
+            journalEntry.Lines.Add(new JournalEntryLine
+            {
+                AccountCode = "1100",
+                AccountName = "Cash in Bank",
+                AccountType = "Asset",
+                Description = $"Interest Payout - {payout.VendorName}",
+                DebitAmount = 0,
+                CreditAmount = payout.Amount,
+                Status = "Posted"
+            });
+
+            journalEntry.TotalDebit = payout.Amount;
+            journalEntry.TotalCredit = payout.Amount;
+
+            await JournalEntryService.CreateAsync(journalEntry);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Journal Entry Error: {ex.Message}");
+        }
+    }
+}

@@ -10,11 +10,13 @@ namespace FinanceBank.Services;
 public class LoanPaymentService
 {
     private readonly BFASDbContext _context;
+    private readonly AccountsReceivableService _arService;
     private const decimal DAILY_PENALTY_RATE = 0.0005m; // 0.05% daily (BPI Standard)
 
-    public LoanPaymentService(BFASDbContext context)
+    public LoanPaymentService(BFASDbContext context, AccountsReceivableService arService)
     {
         _context = context;
+        _arService = arService;
     }
 
     // =====================================================================
@@ -29,11 +31,23 @@ public class LoanPaymentService
         var futureDate = DateTime.Now.AddDays(daysAhead);
 
         return await _context.LoanPaymentSchedules
-            .Where(s => s.LoanId == loanId 
-                && s.DueDate <= futureDate 
+            .Where(s => s.LoanId == loanId
+                && s.DueDate <= futureDate
                 && (s.PaymentStatus == "PENDING" || s.PaymentStatus == "OVERDUE"))
             .OrderBy(s => s.DueDate)
             .ToListAsync();
+    }
+
+    /// <summary>
+    /// Get the next pending payment schedule for a loan
+    /// </summary>
+    public async Task<LoanPaymentSchedule?> GetNextPendingScheduleAsync(int loanId)
+    {
+        return await _context.LoanPaymentSchedules
+            .Where(s => s.LoanId == loanId
+                && (s.PaymentStatus == "PENDING" || s.PaymentStatus == "OVERDUE"))
+            .OrderBy(s => s.DueDate)
+            .FirstOrDefaultAsync();
     }
 
     /// <summary>
@@ -42,8 +56,8 @@ public class LoanPaymentService
     public async Task<List<LoanPaymentSchedule>> GetOverduePaymentsAsync(int loanId)
     {
         return await _context.LoanPaymentSchedules
-            .Where(s => s.LoanId == loanId 
-                && s.PaymentStatus == "OVERDUE" 
+            .Where(s => s.LoanId == loanId
+                && s.PaymentStatus == "OVERDUE"
                 && s.DueDate < DateTime.Now)
             .OrderBy(s => s.DueDate)
             .ToListAsync();
@@ -197,6 +211,31 @@ public class LoanPaymentService
             _context.LoanPayments.Add(payment);
             await _context.SaveChangesAsync();
 
+            // Create AccountsReceivable entry for FM review
+            try
+            {
+                // Get customer name from loan -> account -> customer
+                var customerName = await _context.Loans
+                    .Include(l => l.Account)
+                    .ThenInclude(a => a!.Customer)
+                    .Where(l => l.LoanId == loanId)
+                    .Select(l => l.Account!.Customer!.FullName)
+                    .FirstOrDefaultAsync() ?? "Unknown Customer";
+
+                await _arService.CreateFromLoanPaymentAsync(
+                    customerName,
+                    loanId,
+                    scheduleId,
+                    paymentAmount,
+                    schedule.InterestAmount,
+                    penaltyAmount,
+                    processedBy);
+            }
+            catch
+            {
+                // AR creation failure should not prevent payment from being recorded
+            }
+
             return payment;
         }
         catch (Exception ex)
@@ -281,6 +320,30 @@ public class LoanPaymentService
             _context.LoanPayments.Add(payment);
             await _context.SaveChangesAsync();
 
+            // Create AccountsReceivable entry for FM review
+            try
+            {
+                var customerName = await _context.Loans
+                    .Include(l => l.Account)
+                    .ThenInclude(a => a!.Customer)
+                    .Where(l => l.LoanId == loanId)
+                    .Select(l => l.Account!.Customer!.FullName)
+                    .FirstOrDefaultAsync() ?? "Unknown Customer";
+
+                await _arService.CreateFromLoanPaymentAsync(
+                    customerName,
+                    loanId,
+                    scheduleId,
+                    partialAmount,
+                    schedule.InterestAmount * (partialAmount / schedule.MinimumPayment), // Proportional interest
+                    penaltyAmount,
+                    processedBy);
+            }
+            catch
+            {
+                // AR creation failure should not prevent payment from being recorded
+            }
+
             return payment;
         }
         catch (Exception ex)
@@ -292,7 +355,7 @@ public class LoanPaymentService
     // =====================================================================
     // MISSED PAYMENT HANDLING
     // =====================================================================
-    
+
     /// <summary>
     /// Handle missed payment Creates violation and marks as overdue
     /// </summary>
@@ -345,7 +408,7 @@ public class LoanPaymentService
         try
         {
             var overdueSchedules = await _context.LoanPaymentSchedules
-                .Where(s => s.PaymentStatus != "PAID" 
+                .Where(s => s.PaymentStatus != "PAID"
                     && s.DueDate < DateTime.Now)
                 .ToListAsync();
 

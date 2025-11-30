@@ -1,0 +1,434 @@
+@page "/accountant/chart-of-accounts"
+@layout AccountantLayout
+@using FinanceBank.Models
+@using FinanceBank.Services
+@inject AccountingService AccountingService
+
+<!-- Page Header -->
+<div
+    style="background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Chart of Accounts</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Manage financial accounts
+                structure</p>
+        </div>
+    </div>
+</div>
+
+<!-- Action Bar -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div style="display: flex; gap: 12px;">
+        <button
+            style="background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;"
+            @onclick="ShowAddModal">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Account
+        </button>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="position: relative;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"
+                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%);">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" placeholder="Search accounts..." @bind="searchQuery" @bind:event="oninput"
+                style="padding: 10px 16px 10px 42px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; width: 280px;" />
+        </div>
+        <select @bind="filterType"
+            style="padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white;">
+            <option value="">All Types</option>
+            <option value="Asset">Asset</option>
+            <option value="Liability">Liability</option>
+            <option value="Equity">Equity</option>
+            <option value="Revenue">Revenue</option>
+            <option value="Expense">Expense</option>
+        </select>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px;">
+    <div
+        style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 12px; padding: 18px; border: 2px solid #93c5fd; text-align: center;">
+        <div style="font-size: 12px; color: #1e40af; font-weight: 600; margin-bottom: 6px;">ASSETS</div>
+        <div style="font-size: 24px; font-weight: 700; color: #1e40af;">@accounts.Count(a => a.AccountType == "Asset")
+        </div>
+    </div>
+    <div
+        style="background: linear-gradient(135deg, #fce7f3, #fbcfe8); border-radius: 12px; padding: 18px; border: 2px solid #f9a8d4; text-align: center;">
+        <div style="font-size: 12px; color: #9d174d; font-weight: 600; margin-bottom: 6px;">LIABILITIES</div>
+        <div style="font-size: 24px; font-weight: 700; color: #9d174d;">@accounts.Count(a => a.AccountType ==
+                        "Liability")</div>
+    </div>
+    <div
+        style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-radius: 12px; padding: 18px; border: 2px solid #c4b5fd; text-align: center;">
+        <div style="font-size: 12px; color: #5b21b6; font-weight: 600; margin-bottom: 6px;">EQUITY</div>
+        <div style="font-size: 24px; font-weight: 700; color: #5b21b6;">@accounts.Count(a => a.AccountType == "Equity")
+        </div>
+    </div>
+    <div
+        style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 18px; border: 2px solid #6ee7b7; text-align: center;">
+        <div style="font-size: 12px; color: #065f46; font-weight: 600; margin-bottom: 6px;">REVENUE</div>
+        <div style="font-size: 24px; font-weight: 700; color: #065f46;">@accounts.Count(a => a.AccountType == "Revenue")
+        </div>
+    </div>
+    <div
+        style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 12px; padding: 18px; border: 2px solid #fca5a5; text-align: center;">
+        <div style="font-size: 12px; color: #991b1b; font-weight: 600; margin-bottom: 6px;">EXPENSES</div>
+        <div style="font-size: 24px; font-weight: 700; color: #991b1b;">@accounts.Count(a => a.AccountType == "Expense")
+        </div>
+    </div>
+</div>
+
+<!-- Alerts -->
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div
+        style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 1px solid #6ee7b7; color: #065f46; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span style="font-weight: 500;">@successMessage</span>
+        <button @onclick="() => successMessage = string.Empty"
+            style="margin-left: auto; background: none; border: none; color: #065f46; cursor: pointer; font-size: 18px;">×</button>
+    </div>
+}
+
+<!-- Chart of Accounts Table -->
+<div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+    <div style="background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; padding: 20px 24px;">
+        <h4 style="margin: 0; font-weight: 600; font-size: 18px;">
+            📊 Account List
+        </h4>
+        <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">@FilteredAccounts.Count() accounts found</p>
+    </div>
+
+    <div style="padding: 24px;">
+        @if (isLoading)
+        {
+            <div style="text-align: center; padding: 60px;">
+                <div
+                    style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #0891b2; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+                </div>
+                <p style="margin-top: 16px; color: #6b7280;">Loading accounts...</p>
+            </div>
+        }
+        else if (!FilteredAccounts.Any())
+        {
+            <div style="text-align: center; padding: 60px;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"
+                    style="margin: 0 auto 16px;">
+                    <path
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <p style="color: #6b7280; font-size: 16px;">No accounts found</p>
+                <p style="color: #9ca3af; font-size: 14px;">Add accounts or adjust your filters</p>
+            </div>
+        }
+        else
+        {
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                <thead>
+                    <tr style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
+                        <th
+                            style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                            Code</th>
+                        <th
+                            style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                            Account Name</th>
+                        <th
+                            style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                            Type</th>
+                        <th
+                            style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                            Normal Balance</th>
+                        <th
+                            style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                            Current Balance</th>
+                        <th
+                            style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                            Status</th>
+                        <th
+                            style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                            Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var account in FilteredAccounts)
+                    {
+                        <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;">
+                            <td style="padding: 16px;">
+                                <span
+                                    style="background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-weight: 600;">@account.AccountCode</span>
+                            </td>
+                            <td style="padding: 16px;">
+                                <div style="font-weight: 600; color: #1e293b;">@account.AccountName</div>
+                                @if (!string.IsNullOrEmpty(account.Description))
+                                {
+                                    <div style="font-size: 12px; color: #64748b; margin-top: 2px;">@account.Description</div>
+                                }
+                            </td>
+                            <td style="padding: 16px;">
+                                @{
+                                    var (typeColor, typeBg) = GetAccountTypeStyle(account.AccountType);
+                                }
+                                <span
+                                    style="background: @typeBg; color: @typeColor; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">@account.AccountType</span>
+                            </td>
+                            <td style="padding: 16px;">
+                                <span
+                                    style="background: @(account.NormalBalance == "Debit" ? "#fee2e2" : "#d1fae5"); color: @(account.NormalBalance == "Debit" ? "#991b1b" : "#065f46"); padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">
+                                    @account.NormalBalance
+                                </span>
+                            </td>
+                            <td
+                                style="padding: 16px; text-align: right; font-weight: 600; font-family: monospace; color: @(account.CurrentBalance >= 0 ? "#059669" : "#dc2626");">
+                                ₱@account.CurrentBalance.ToString("N2")
+                            </td>
+                            <td style="padding: 16px; text-align: center;">
+                                @if (account.IsActive)
+                                {
+                                    <span
+                                        style="background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">Active</span>
+                                }
+                                else
+                                {
+                                    <span
+                                        style="background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">Inactive</span>
+                                }
+                            </td>
+                            <td style="padding: 16px; text-align: center;">
+                                <button
+                                    style="background: #3b82f6; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; margin-right: 4px;"
+                                    @onclick="() => EditAccount(account)">
+                                    ✏️ Edit
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<!-- Add/Edit Account Modal -->
+@if (showModal)
+{
+    <div
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div
+            style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 24px 0;">
+                @(isEditing ? "✏️ Edit Account" : "➕ Add New Account")
+            </h2>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Account Code
+                        *</label>
+                    <input type="text" @bind="editAccount.AccountCode"
+                        style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
+                        placeholder="e.g., 1000" />
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Account Name
+                        *</label>
+                    <input type="text" @bind="editAccount.AccountName"
+                        style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
+                        placeholder="e.g., Cash" />
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                <div>
+                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Account Type
+                        *</label>
+                    <select @bind="editAccount.AccountType"
+                        style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white;">
+                        <option value="">Select Type</option>
+                        <option value="Asset">Asset</option>
+                        <option value="Liability">Liability</option>
+                        <option value="Equity">Equity</option>
+                        <option value="Revenue">Revenue</option>
+                        <option value="Expense">Expense</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Normal Balance
+                        *</label>
+                    <select @bind="editAccount.NormalBalance"
+                        style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white;">
+                        <option value="Debit">Debit</option>
+                        <option value="Credit">Credit</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top: 16px;">
+                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Description</label>
+                <textarea @bind="editAccount.Description" rows="3"
+                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"
+                placeholder="Account description..."></textarea>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 16px;">
+                <input type="checkbox" @bind="editAccount.IsActive" id="isActive" />
+                <label for="isActive" style="font-weight: 500; color: #374151;">Account is Active</label>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                <button
+                    style="background: #e5e7eb; color: #374151; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;"
+                    @onclick="CloseModal">Cancel</button>
+                <button
+                    style="background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;"
+                    @onclick="SaveAccount">
+                    @(isEditing ? "Update Account" : "Add Account")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+@code {
+    private List<FinanceBank.Models.ChartOfAccounts> accounts = new();
+    private FinanceBank.Models.ChartOfAccounts editAccount = new();
+    private bool showModal = false;
+    private bool isEditing = false;
+    private bool isLoading = true;
+    private string successMessage = "";
+    private string searchQuery = "";
+    private string filterType = "";
+
+    private IEnumerable<FinanceBank.Models.ChartOfAccounts> FilteredAccounts => accounts
+    .Where(a => string.IsNullOrEmpty(searchQuery) ||
+    a.AccountName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+    a.AccountCode.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+    .Where(a => string.IsNullOrEmpty(filterType) || a.AccountType == filterType)
+    .OrderBy(a => a.AccountCode);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAccounts();
+    }
+
+    private async Task LoadAccounts()
+    {
+        isLoading = true;
+        try
+        {
+            accounts = await AccountingService.GetAllChartOfAccountsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading accounts: {ex.Message}");
+            accounts = new List<FinanceBank.Models.ChartOfAccounts>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ShowAddModal()
+    {
+        editAccount = new FinanceBank.Models.ChartOfAccounts
+        {
+            IsActive = true,
+            NormalBalance = "Debit",
+            CreatedBy = "Accountant"
+        };
+        isEditing = false;
+        showModal = true;
+    }
+
+    private void EditAccount(FinanceBank.Models.ChartOfAccounts account)
+    {
+        editAccount = new FinanceBank.Models.ChartOfAccounts
+        {
+            AccountId = account.AccountId,
+            AccountCode = account.AccountCode,
+            AccountName = account.AccountName,
+            AccountType = account.AccountType,
+            NormalBalance = account.NormalBalance,
+            Description = account.Description,
+            IsActive = account.IsActive,
+            CurrentBalance = account.CurrentBalance,
+            CreatedBy = account.CreatedBy,
+            CreatedAt = account.CreatedAt
+        };
+        isEditing = true;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        editAccount = new FinanceBank.Models.ChartOfAccounts();
+    }
+
+    private async Task SaveAccount()
+    {
+        if (string.IsNullOrWhiteSpace(editAccount.AccountCode) ||
+        string.IsNullOrWhiteSpace(editAccount.AccountName) ||
+        string.IsNullOrWhiteSpace(editAccount.AccountType))
+        {
+            return;
+        }
+
+        try
+        {
+            if (isEditing)
+            {
+                editAccount.ModifiedBy = "Accountant";
+                editAccount.ModifiedAt = DateTime.Now;
+                await AccountingService.UpdateChartOfAccountsAsync(editAccount);
+                successMessage = $"✓ Account '{editAccount.AccountName}' updated successfully!";
+            }
+            else
+            {
+                editAccount.CreatedAt = DateTime.Now;
+                await AccountingService.CreateChartOfAccountsAsync(editAccount);
+                successMessage = $"✓ Account '{editAccount.AccountName}' created successfully!";
+            }
+
+            await LoadAccounts();
+            CloseModal();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving account: {ex.Message}");
+        }
+    }
+
+    private (string color, string bg) GetAccountTypeStyle(string type) => type switch
+    {
+        "Asset" => ("#1e40af", "#dbeafe"),
+        "Liability" => ("#9d174d", "#fce7f3"),
+        "Equity" => ("#5b21b6", "#ede9fe"),
+        "Revenue" => ("#065f46", "#d1fae5"),
+        "Expense" => ("#991b1b", "#fee2e2"),
+        _ => ("#374151", "#f3f4f6")
+    };
+}

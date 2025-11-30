@@ -34,28 +34,38 @@
                 <div style="display: grid; gap: 16px;">
                     @foreach (var assessment in pendingAssessments)
                     {
-                        <div class="card" style="border: 2px solid var(--border); cursor: pointer;" @onclick="() => OpenApprovalModal(assessment)">
+                        <div class="card" style="border: 2px solid var(--border); cursor: pointer;"
+                            @onclick="() => OpenApprovalModal(assessment)">
                             <div style="display: flex; justify-content: space-between; align-items: start; gap: 20px;">
                                 <div style="flex: 1;">
                                     <h3 style="font-size: 18px; font-weight: 700; color: var(--text-dark); margin-bottom: 8px;">
                                         @assessment.Application?.ApplicationNumber
                                     </h3>
-                                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px;">
+                                    <div
+                                        style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px;">
                                         <div>
-                                            <span style="font-size: 13px; color: var(--text-gray); display: block;">Customer</span>
-                                            <span style="font-size: 15px; font-weight: 600; color: var(--text-dark);">@assessment.Account?.Customer?.FullName</span>
+                                            <span
+                                                style="font-size: 13px; color: var(--text-gray); display: block;">Customer</span>
+                                            <span
+                                                style="font-size: 15px; font-weight: 600; color: var(--text-dark);">@assessment.Account?.Customer?.FullName</span>
                                         </div>
                                         <div>
-                                            <span style="font-size: 13px; color: var(--text-gray); display: block;">Loan Type</span>
-                                            <span style="font-size: 15px; font-weight: 600; color: var(--text-dark);">@assessment.Application?.LoanType</span>
+                                            <span style="font-size: 13px; color: var(--text-gray); display: block;">Loan
+                                                Type</span>
+                                            <span
+                                                style="font-size: 15px; font-weight: 600; color: var(--text-dark);">@assessment.Application?.LoanType</span>
                                         </div>
                                         <div>
-                                            <span style="font-size: 13px; color: var(--text-gray); display: block;">Requested Amount</span>
-                                            <span style="font-size: 15px; font-weight: 600; color: var(--primary-green-start);">₱@assessment.LoanAmount.ToString("N2")</span>
+                                            <span style="font-size: 13px; color: var(--text-gray); display: block;">Requested
+                                                Amount</span>
+                                            <span
+                                                style="font-size: 15px; font-weight: 600; color: var(--primary-green-start);">₱@assessment.LoanAmount.ToString("N2")</span>
                                         </div>
                                         <div>
-                                            <span style="font-size: 13px; color: var(--text-gray); display: block;">Monthly Payment</span>
-                                            <span style="font-size: 15px; font-weight: 600; color: var(--text-dark);">₱@assessment.ComputedMonthlyPayment.ToString("N2")</span>
+                                            <span style="font-size: 13px; color: var(--text-gray); display: block;">Monthly
+                                                Payment</span>
+                                            <span
+                                                style="font-size: 15px; font-weight: 600; color: var(--text-dark);">₱@assessment.ComputedMonthlyPayment.ToString("N2")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -73,25 +83,17 @@
 
 @if (showApprovalModal && selectedAssessment != null)
 {
-    <StepModal Title="@modalTitle" 
-               Subtitle="@modalSubtitle"
-               CurrentStep="currentStep"
-               ShowSteps="true"
-               IsVisible="showApprovalModal"
-               OnClose="CloseModal"
-               OnConfirm="SubmitApproval"
-               OnStepChanged="HandleStepChanged"
-               Step1Label="Review Details"
-               Step2Label="Confirmation"
-               ConfirmButtonText="@GetConfirmButtonText()"
-               Step1Valid="true"
-               Step2Valid="true">
-        
+    <StepModal Title="@modalTitle" Subtitle="@modalSubtitle" CurrentStep="currentStep" ShowSteps="true"
+        IsVisible="showApprovalModal" OnClose="CloseModal" OnConfirm="SubmitApproval" OnStepChanged="HandleStepChanged"
+        Step1Label="Review Details" Step2Label="Confirmation" ConfirmButtonText="@GetConfirmButtonText()" Step1Valid="true"
+        Step2Valid="true">
+
         <Step1Content>
             <div class="step-section">
                 <h3 class="step-section-title">Loan Assessment Details</h3>
-                
-                <div style="background: var(--bg-lighter); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px;">
+
+                <div
+                    style="background: var(--bg-lighter); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px;">
                     <div class="summary-row">
                         <span class="summary-label">Application Number</span>
                         <span class="summary-value">@selectedAssessment.Application?.ApplicationNumber</span>
@@ -131,7 +133,7 @@
                 </div>
 
                 <h3 class="step-section-title">Approval Decision</h3>
-                
+
                 <div class="form-group">
                     <label class="form-label required">Decision</label>
                     <select class="form-control" @bind="approvalStatus">
@@ -145,29 +147,29 @@
                 {
                     <div class="form-group">
                         <label class="form-label required">Approved Amount</label>
-                        <input type="number" class="form-control" @bind="approvedAmount" step="0.01" 
-                               placeholder="Enter approved amount" />
+                        <input type="number" class="form-control" @bind="approvedAmount" step="0.01"
+                            placeholder="Enter approved amount" />
                         <span class="form-help">Assessed: ₱@selectedAssessment.LoanAmount.ToString("N2")</span>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label required">Approved Interest Rate (%)</label>
-                        <input type="number" class="form-control" @bind="approvedInterestRate" step="0.01" 
-                               placeholder="Enter interest rate" />
+                        <input type="number" class="form-control" @bind="approvedInterestRate" step="0.01"
+                            placeholder="Enter interest rate" />
                         <span class="form-help">Assessed: @selectedAssessment.InterestRate%</span>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label required">Approved Term (months)</label>
-                        <input type="number" class="form-control" @bind="approvedTermMonths" 
-                               placeholder="Enter term in months" />
+                        <input type="number" class="form-control" @bind="approvedTermMonths"
+                            placeholder="Enter term in months" />
                         <span class="form-help">Assessed: @selectedAssessment.TermMonths months</span>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Special Conditions</label>
-                        <textarea class="form-control" @bind="specialConditions" rows="3" 
-                                  placeholder="Enter any special conditions or requirements..."></textarea>
+                        <textarea class="form-control" @bind="specialConditions" rows="3"
+                            placeholder="Enter any special conditions or requirements..."></textarea>
                         <span class="form-help">Optional: Additional terms or conditions for this loan</span>
                     </div>
                 }
@@ -175,8 +177,8 @@
                 {
                     <div class="form-group">
                         <label class="form-label required">Declination Reason</label>
-                        <textarea class="form-control" @bind="declinationReason" rows="4" 
-                                  placeholder="Explain why this loan is being declined..." required></textarea>
+                        <textarea class="form-control" @bind="declinationReason" rows="4"
+                            placeholder="Explain why this loan is being declined..." required></textarea>
                         <span class="form-help">Provide detailed reason for declination</span>
                     </div>
                 }
@@ -188,10 +190,11 @@
                 <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-dark);">
                     @(approvalStatus == "APPROVED" ? "✓ Approval Confirmation" : "✗ Declination Confirmation")
                 </h3>
-                
+
                 <div class="summary-row">
                     <span class="summary-label">Decision</span>
-                    <span class="summary-value" style="color: @(approvalStatus == "APPROVED" ? "var(--success)" : "var(--danger)");">
+                    <span class="summary-value"
+                        style="color: @(approvalStatus == "APPROVED" ? "var(--success)" : "var(--danger)");">
                         @approvalStatus
                     </span>
                 </div>
@@ -235,7 +238,8 @@
                 }
             </div>
 
-            <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
+            <div
+                style="background: #fff3cd; border: 2px solid #ffc107; border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
                 <p style="margin: 0; color: #856404; font-weight: 600;">
                     ⚠️ This action cannot be undone. Please verify all information before confirming.
                 </p>
@@ -259,8 +263,8 @@
     private string specialConditions = "";
     private string declinationReason = "";
 
-    private string modalTitle => approvalStatus == "APPROVED" ? "Approve Loan Application" : 
-                                  approvalStatus == "DECLINED" ? "Decline Loan Application" : "Review Loan Application";
+    private string modalTitle => approvalStatus == "APPROVED" ? "Approve Loan Application" :
+    approvalStatus == "DECLINED" ? "Decline Loan Application" : "Review Loan Application";
     private string modalSubtitle => currentStep == 1 ? "Step 1: Review details and make decision" : "Step 2: Confirm your decision";
 
     private string GetConfirmButtonText()
@@ -381,14 +385,14 @@
                 }
 
                 await LoanService.ApproveLoanAsync(
-                    selectedAssessment.AssessmentId,
-                    selectedAssessment.ApplicationId,
-                    selectedAssessment.AccountId,
-                    approvedAmount.Value,
-                    approvedInterestRate.Value,
-                    approvedTermMonths.Value,
-                    currentUser,
-                    specialConditions
+                selectedAssessment.AssessmentId,
+                selectedAssessment.ApplicationId,
+                selectedAssessment.AccountId,
+                approvedAmount.Value,
+                approvedInterestRate.Value,
+                approvedTermMonths.Value,
+                currentUser,
+                specialConditions
                 );
                 await JS.InvokeVoidAsync("alert", "Loan approved successfully! The loan is now ready for release by the Teller.");
             }
@@ -401,11 +405,11 @@
                 }
 
                 await LoanService.DeclineLoanAsync(
-                    selectedAssessment.AssessmentId,
-                    selectedAssessment.ApplicationId,
-                    selectedAssessment.AccountId,
-                    declinationReason,
-                    currentUser
+                selectedAssessment.AssessmentId,
+                selectedAssessment.ApplicationId,
+                selectedAssessment.AccountId,
+                declinationReason,
+                currentUser
                 );
                 await JS.InvokeVoidAsync("alert", "Loan declined successfully.");
             }

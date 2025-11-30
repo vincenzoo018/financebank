@@ -122,13 +122,12 @@ GO
 -- =====================================================================
 
 -- Verify tables created
-SELECT 'LoanTransactionHistory' AS TableName, COUNT(*) AS RowCount FROM LoanTransactionHistory
-UNION ALL
-SELECT 'LoanInvoices', COUNT(*) FROM LoanInvoices;
+SELECT 'LoanTransactionHistory' AS TableName, COUNT(*) AS RecordCount FROM LoanTransactionHistory;
+SELECT 'LoanInvoices' AS TableName, COUNT(*) AS RecordCount FROM LoanInvoices;
 
--- View table structures
-EXEC sp_help 'LoanTransactionHistory';
-EXEC sp_help 'LoanInvoices';
+-- View table structures (optional - comment out if not needed)
+-- EXEC sp_help 'LoanTransactionHistory';
+-- EXEC sp_help 'LoanInvoices';
 
 PRINT '';
 PRINT '=====================================================================';

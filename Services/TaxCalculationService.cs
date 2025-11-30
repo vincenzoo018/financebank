@@ -73,7 +73,7 @@ public class TaxCalculationService
     /// Calculate transaction with fees and taxes
     /// </summary>
     public TransactionTaxBreakdown CalculateTransactionWithFees(
-        decimal amount, 
+        decimal amount,
         string transactionType,
         decimal additionalFees = 0m)
     {

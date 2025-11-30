@@ -3,9 +3,6 @@
 @inject NavigationManager Navigation
 @implements IDisposable
 
-@* Import Unified Design System *@
-<link rel="stylesheet" href="css/unified-design-system.css" />
-
 <div class="sidebar-container">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -48,8 +45,7 @@
             <!-- Accounting Operations -->
             <div class="sidebar-section">
                 <div class="sidebar-section-title">ACCOUNTING OPERATIONS</div>
-                <a href="/admin/accounting/journal-entries"
-                    class="sidebar-item @(IsActive("/admin/accounting/journal-entries"))">
+                <a href="/accounting/journal-entries" class="sidebar-item @(IsActive("/accounting/journal-entries"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -59,16 +55,14 @@
                     </svg>
                     <span>Journal Entries</span>
                 </a>
-                <a href="/admin/accounting/general-ledger"
-                    class="sidebar-item @(IsActive("/admin/accounting/general-ledger"))">
+                <a href="/accounting/general-ledger" class="sidebar-item @(IsActive("/accounting/general-ledger"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 12h18M3 6h18M3 18h18"></path>
                     </svg>
                     <span>General Ledger</span>
                 </a>
-                <a href="/admin/accounting/trial-balance"
-                    class="sidebar-item @(IsActive("/admin/accounting/trial-balance"))">
+                <a href="/accountant/trial-balance" class="sidebar-item @(IsActive("/accountant/trial-balance"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -76,8 +70,8 @@
                     </svg>
                     <span>Trial Balance</span>
                 </a>
-                <a href="/admin/accounting/financial-statements"
-                    class="sidebar-item @(IsActive("/admin/accounting/financial-statements"))">
+                <a href="/accountant/financial-statements"
+                    class="sidebar-item @(IsActive("/accountant/financial-statements"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 3h18v18H3z"></path>
@@ -85,8 +79,8 @@
                     </svg>
                     <span>Financial Statements</span>
                 </a>
-                <a href="/admin/accounting/chart-of-accounts"
-                    class="sidebar-item @(IsActive("/admin/accounting/chart-of-accounts"))">
+                <a href="/accountant/chart-of-accounts"
+                    class="sidebar-item @(IsActive("/accountant/chart-of-accounts"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path>

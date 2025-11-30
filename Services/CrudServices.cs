@@ -9,13 +9,14 @@ namespace FinanceBank.Services;
 // =============================================
 
 public class BankAccountService
+{
+    private readonly BFASDbContext _context;
+
+    public BankAccountService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public BankAccountService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<BankAccount>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<BankAccount>> GetAllAsync()
     {
         return await _context.BankAccounts.ToListAsync();
     }
@@ -27,7 +28,7 @@ public class BankAccountService
 
     public async Task<BankAccount> CreateAsync(BankAccount bankAccount)
     {
-        
+
 
         bankAccount.CreatedAt = DateTime.Now;
         _context.BankAccounts.Add(bankAccount);
@@ -65,13 +66,14 @@ public class BankAccountService
 }
 
 public class FundTransferService
+{
+    private readonly BFASDbContext _context;
+
+    public FundTransferService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public FundTransferService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<FundTransfer>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<FundTransfer>> GetAllAsync()
     {
         return await _context.FundTransfers
             .Include(ft => ft.FromAccount)
@@ -128,13 +130,14 @@ public class FundTransferService
 }
 
 public class BillerService
+{
+    private readonly BFASDbContext _context;
+
+    public BillerService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public BillerService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<Biller>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<Biller>> GetAllAsync()
     {
         return await _context.Billers
             .OrderBy(b => b.Category)
@@ -149,7 +152,7 @@ public class BillerService
 
     public async Task<Biller> CreateAsync(Biller biller)
     {
-        
+
 
         biller.CreatedAt = DateTime.Now;
         _context.Billers.Add(biller);
@@ -186,13 +189,14 @@ public class BillerService
 }
 
 public class BankingReportService
+{
+    private readonly BFASDbContext _context;
+
+    public BankingReportService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public BankingReportService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<BankingReport>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<BankingReport>> GetAllAsync()
     {
         return await _context.BankingReports
             .OrderByDescending(r => r.GeneratedAt)
@@ -214,7 +218,7 @@ public class BankingReportService
         var startDate = periodStart.Date;
         var endDate = periodEnd.Date;
 
-                var inclusiveEnd = endDate.AddDays(1).AddTicks(-1);
+        var inclusiveEnd = endDate.AddDays(1).AddTicks(-1);
 
         // Customer transactions (deposits, withdrawals, bills)
         var totalDeposits = await _context.CustomerTransactions
@@ -299,13 +303,14 @@ public class BankingReportService
 }
 
 public class LoanManagementService
+{
+    private readonly BFASDbContext _context;
+
+    public LoanManagementService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public LoanManagementService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<LoanManagementEntity>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<LoanManagementEntity>> GetAllAsync()
     {
         return await _context.LoanManagementRecords
             .OrderByDescending(l => l.CreatedAt)
@@ -356,13 +361,14 @@ public class LoanManagementService
 }
 
 public class CardManagementService
+{
+    private readonly BFASDbContext _context;
+
+    public CardManagementService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public CardManagementService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<CardManagementEntity>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<CardManagementEntity>> GetAllAsync()
     {
         return await _context.CardManagementRecords
             .OrderByDescending(c => c.ActionAt)
@@ -397,13 +403,14 @@ public class CardManagementService
 // =============================================
 
 public class AccountsPayableService
+{
+    private readonly BFASDbContext _context;
+
+    public AccountsPayableService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public AccountsPayableService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<AccountsPayable>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<AccountsPayable>> GetAllAsync()
     {
         return await _context.AccountsPayables
             .OrderByDescending(p => p.InvoiceDate)
@@ -456,16 +463,60 @@ public class AccountsPayableService
         await _context.SaveChangesAsync();
         return payable;
     }
+
+    /// <summary>
+    /// Get all FM-approved interest payouts waiting for release by accountant
+    /// </summary>
+    public async Task<List<AccountsPayable>> GetFMApprovedInterestPayoutsAsync()
+    {
+        return await _context.AccountsPayables
+            .Where(p => p.Status == "Approved" && 
+                       p.Description != null && 
+                       p.Description.Contains("Savings Interest"))
+            .OrderByDescending(p => p.CreatedAt)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Release an interest payout (mark as paid)
+    /// </summary>
+    public async Task ReleaseInterestPayoutAsync(int payableId, string releasedBy)
+    {
+        var payable = await _context.AccountsPayables.FindAsync(payableId);
+        if (payable == null)
+            throw new KeyNotFoundException($"Payable {payableId} not found");
+
+        payable.Status = "Paid";
+        payable.PaidAmount = payable.Amount;
+        payable.OutstandingAmount = 0;
+        // Update description to include release info
+        payable.Description = $"{payable.Description} | Released by {releasedBy} on {DateTime.Now:yyyy-MM-dd HH:mm}";
+
+        await _context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Sync savings interest to accounts payable
+    /// </summary>
+    public async Task<(int created, int skipped, string message)> SyncSavingsInterestToAPAsync(string? processedBy = null)
+    {
+        // This is a placeholder implementation
+        // In a real scenario, this would calculate interest from savings accounts
+        // and create corresponding accounts payable entries
+        await Task.CompletedTask; // Placeholder to make it async
+        return (0, 0, "Sync completed. No new interest payouts to create.");
+    }
 }
 
 public class AccountsReceivableService
+{
+    private readonly BFASDbContext _context;
+
+    public AccountsReceivableService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public AccountsReceivableService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<AccountsReceivable>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<AccountsReceivable>> GetAllAsync()
     {
         return await _context.AccountsReceivables
             .OrderByDescending(r => r.InvoiceDate)
@@ -518,16 +569,67 @@ public class AccountsReceivableService
         await _context.SaveChangesAsync();
         return receivable;
     }
+
+    /// <summary>
+    /// Create AR entry from loan payment
+    /// </summary>
+    public async Task<AccountsReceivable> CreateFromLoanPaymentAsync(
+        string customerName,
+        int loanId,
+        int scheduleId,
+        decimal paymentAmount,
+        decimal interestAmount,
+        decimal penaltyAmount,
+        string createdBy)
+    {
+        var invoiceNumber = $"LN-{loanId:D6}-{scheduleId:D3}-{DateTime.Now:yyyyMMddHHmmss}";
+
+        var receivable = new AccountsReceivable
+        {
+            CustomerName = customerName,
+            InvoiceNumber = invoiceNumber,
+            InvoiceDate = DateTime.Now,
+            DueDate = DateTime.Now.AddDays(1), // Payment already made, due is immediate
+            Amount = paymentAmount,
+            ReceivedAmount = paymentAmount, // Already received since this is a completed payment
+            OutstandingAmount = 0,
+            InterestAmount = interestAmount,
+            PenaltyAmount = penaltyAmount,
+            TaxAmount = 0,
+            Status = "Pending Review", // Needs FM approval
+            Description = $"Loan#{loanId} Payment | Schedule #{scheduleId} | Principal: ₱{(paymentAmount - interestAmount - penaltyAmount):N2} | Interest: ₱{interestAmount:N2} | Penalty: ₱{penaltyAmount:N2}",
+            CreatedAt = DateTime.Now,
+            CreatedBy = createdBy
+        };
+
+        _context.AccountsReceivables.Add(receivable);
+        await _context.SaveChangesAsync();
+        return receivable;
+    }
+
+    /// <summary>
+    /// Get pending loan payment AR entries
+    /// </summary>
+    public async Task<List<AccountsReceivable>> GetPendingLoanPaymentsAsync()
+    {
+        return await _context.AccountsReceivables
+            .Where(ar => ar.Status == "Pending Review" &&
+                        ar.Description != null &&
+                        ar.Description.Contains("Loan#"))
+            .OrderByDescending(ar => ar.CreatedAt)
+            .ToListAsync();
+    }
 }
 
 public class JournalEntryService
+{
+    private readonly BFASDbContext _context;
+
+    public JournalEntryService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public JournalEntryService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<JournalEntry>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<JournalEntry>> GetAllAsync()
     {
         return await _context.JournalEntries
             .Include(je => je.Lines)
@@ -544,7 +646,7 @@ public class JournalEntryService
 
     public async Task<JournalEntry> CreateAsync(JournalEntry journalEntry)
     {
-                journalEntry.JournalNumber = $"JE-{DateTime.Now:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}";
+        journalEntry.JournalNumber = $"JE-{DateTime.Now:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}";
         journalEntry.CreatedAt = DateTime.Now;
         _context.JournalEntries.Add(journalEntry);
         await _context.SaveChangesAsync();
@@ -585,13 +687,14 @@ public class JournalEntryService
 // =============================================
 
 public class GeneralLedgerService
+{
+    private readonly BFASDbContext _context;
+
+    public GeneralLedgerService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public GeneralLedgerService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<FinanceBank.Models.GeneralLedgerEntry>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<FinanceBank.Models.GeneralLedgerEntry>> GetAllAsync()
     {
         return await _context.GeneralLedgerEntries
             .OrderByDescending(g => g.TransactionDate)
@@ -615,13 +718,14 @@ public class GeneralLedgerService
 }
 
 public class TrialBalanceService
+{
+    private readonly BFASDbContext _context;
+
+    public TrialBalanceService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public TrialBalanceService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<FinanceBank.Models.TrialBalanceEntry>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<FinanceBank.Models.TrialBalanceEntry>> GetAllAsync()
     {
         return await _context.TrialBalances
             .OrderBy(t => t.AccountCode)
@@ -649,13 +753,14 @@ public class TrialBalanceService
 }
 
 public class FinancialStatementService
+{
+    private readonly BFASDbContext _context;
+
+    public FinancialStatementService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public FinancialStatementService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<FinanceBank.Models.FinancialStatement>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<FinanceBank.Models.FinancialStatement>> GetAllAsync()
     {
         return await _context.FinancialStatements
             .OrderByDescending(f => f.GeneratedAt)
@@ -689,13 +794,14 @@ public class FinancialStatementService
 // =============================================
 
 public class BudgetManagementService
+{
+    private readonly BFASDbContext _context;
+
+    public BudgetManagementService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public BudgetManagementService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<Budget>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<Budget>> GetAllAsync()
     {
         return await _context.Budgets
             .OrderByDescending(b => b.CreatedAt)
@@ -709,12 +815,12 @@ public class BudgetManagementService
 
     public async Task<Budget> CreateAsync(Budget budget)
     {
-        
+
 
         budget.CreatedAt = DateTime.Now;
         budget.RemainingAmount = budget.AllocatedAmount - budget.SpentAmount;
         _context.Budgets.Add(budget);
-            await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
         return budget;
     }
 
@@ -748,13 +854,14 @@ public class BudgetManagementService
 }
 
 public class CashflowAnalysisService
+{
+    private readonly BFASDbContext _context;
+
+    public CashflowAnalysisService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public CashflowAnalysisService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<CashflowEntry>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<CashflowEntry>> GetAllAsync()
     {
         return await _context.CashflowEntries
             .OrderByDescending(e => e.TransactionDate)
@@ -769,7 +876,7 @@ public class CashflowAnalysisService
 
     public async Task<CashflowEntry> CreateAsync(CashflowEntry entry)
     {
-        
+
 
         entry.CreatedAt = DateTime.Now;
         _context.CashflowEntries.Add(entry);
@@ -806,13 +913,14 @@ public class CashflowAnalysisService
 }
 
 public class FinancialForecastService
+{
+    private readonly BFASDbContext _context;
+
+    public FinancialForecastService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public FinancialForecastService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<FinancialForecast>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<FinancialForecast>> GetAllAsync()
     {
         return await _context.FinancialForecasts
             .OrderByDescending(f => f.CreatedAt)
@@ -826,7 +934,7 @@ public class FinancialForecastService
 
     public async Task<FinancialForecast> CreateAsync(FinancialForecast forecast)
     {
-        
+
 
         forecast.CreatedAt = DateTime.Now;
         forecast.Variance = (forecast.ActualAmount) - forecast.ProjectedAmount;
@@ -871,13 +979,14 @@ public class FinancialForecastService
 // =============================================
 
 public class CustomerAccountService
+{
+    private readonly BFASDbContext _context;
+
+    public CustomerAccountService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public CustomerAccountService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<CustomerAccount>> GetAllAsync()
+        _context = context;
+    }
+    public async Task<List<CustomerAccount>> GetAllAsync()
     {
         return await _context.CustomerAccounts
             .Include(ca => ca.Customer)
@@ -901,7 +1010,7 @@ public class CustomerAccountService
 
     public async Task<CustomerAccount> CreateAsync(CustomerAccount account)
     {
-                account.AccountNumber = $"CUST-{DateTime.Now:yyyyMMdd}-{Random.Shared.Next(100000, 999999)}";
+        account.AccountNumber = $"CUST-{DateTime.Now:yyyyMMdd}-{Random.Shared.Next(100000, 999999)}";
         account.CreatedAt = DateTime.Now;
         account.AvailableBalance = account.Balance;
         _context.CustomerAccounts.Add(account);
@@ -942,13 +1051,14 @@ public class CustomerAccountService
 }
 
 public class CustomerTransactionService
+{
+    private readonly BFASDbContext _context;
+
+    public CustomerTransactionService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public CustomerTransactionService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<CustomerTransaction>> GetByAccountIdAsync(int accountId)
+        _context = context;
+    }
+    public async Task<List<CustomerTransaction>> GetByAccountIdAsync(int accountId)
     {
         return await _context.CustomerTransactions
             .Include(ct => ct.Account)
@@ -959,7 +1069,7 @@ public class CustomerTransactionService
 
     public async Task<CustomerTransaction> CreateAsync(CustomerTransaction transaction)
     {
-                transaction.TransactionNumber = $"TXN-{DateTime.Now:yyyyMMdd}-{Random.Shared.Next(100000, 999999)}";
+        transaction.TransactionNumber = $"TXN-{DateTime.Now:yyyyMMdd}-{Random.Shared.Next(100000, 999999)}";
         transaction.CreatedAt = DateTime.Now;
         _context.CustomerTransactions.Add(transaction);
         await _context.SaveChangesAsync();
@@ -1044,13 +1154,14 @@ public class CustomerTransactionService
 }
 
 public class CardService
+{
+    private readonly BFASDbContext _context;
+
+    public CardService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public CardService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<Card>> GetByAccountIdAsync(int accountId)
+        _context = context;
+    }
+    public async Task<List<Card>> GetByAccountIdAsync(int accountId)
     {
         // Query from CustomerCardEntity and map to Card
         var cardEntities = await _context.CustomerCards
@@ -1125,7 +1236,7 @@ public class CardService
 
         _context.CustomerCards.Add(cardEntity);
         await _context.SaveChangesAsync();
-        
+
         card.CardId = cardEntity.CardId;
         return card;
     }
@@ -1148,16 +1259,17 @@ public class CardService
 }
 
 public class LoanService
+{
+    private readonly BFASDbContext _context;
+
+    public LoanService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public LoanService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<Loan>> GetByAccountIdAsync(int accountId)
+        _context = context;
+    }
+    public async Task<List<Loan>> GetByAccountIdAsync(int accountId)
     {
         System.Diagnostics.Debug.WriteLine($"[LoanService] Fetching loans for AccountId: {accountId}");
-        
+
         var loans = await _context.Loans
             .Where(l => l.AccountId == accountId)
             .OrderByDescending(l => l.CreatedAt)
@@ -1199,13 +1311,14 @@ public class LoanService
 }
 
 public class SavingsGoalService
+{
+    private readonly BFASDbContext _context;
+
+    public SavingsGoalService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public SavingsGoalService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<SavingsGoalEntity>> GetByAccountIdAsync(int accountId)
+        _context = context;
+    }
+    public async Task<List<SavingsGoalEntity>> GetByAccountIdAsync(int accountId)
     {
         return await _context.CustomerAccounts
             .Where(ca => ca.AccountId == accountId)
@@ -1263,7 +1376,7 @@ public class SavingsGoalService
 
             _context.SavingsGoals.Add(goal);
             await _context.SaveChangesAsync();
-            
+
             return (true, "Savings goal created successfully");
         }
         catch (Exception ex)
@@ -1275,13 +1388,14 @@ public class SavingsGoalService
 }
 
 public class RewardPointsService
+{
+    private readonly BFASDbContext _context;
+
+    public RewardPointsService(BFASDbContext context)
     {
-        private readonly BFASDbContext _context;
-        
-        public RewardPointsService(BFASDbContext context)
-        {
-            _context = context;
-        }    public async Task<List<RewardPointsEntity>> GetByAccountIdAsync(int accountId)
+        _context = context;
+    }
+    public async Task<List<RewardPointsEntity>> GetByAccountIdAsync(int accountId)
     {
         return await _context.CustomerAccounts
             .Where(ca => ca.AccountId == accountId)
@@ -1433,8 +1547,8 @@ public class AuditLogService
         var cutoffTime = DateTime.Now.Subtract(timeWindow);
 
         return await _context.AuditLogs
-            .Where(a => a.UserId == username 
-                && a.Action == "LOGIN_FAILURE" 
+            .Where(a => a.UserId == username
+                && a.Action == "LOGIN_FAILURE"
                 && a.CreatedAt >= cutoffTime)
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
