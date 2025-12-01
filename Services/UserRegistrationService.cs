@@ -57,10 +57,10 @@ namespace FinanceBank.Services
                 var mappedRole = role?.Trim() ?? "Customer";
 
                 // Validate role against database constraints
-                var validRoles = new[] { "SuperAdmin", "Admin", "Accountant", "FinanceManager", "Teller", "Customer" };
+                var validRoles = new[] { "SuperAdmin", "Admin", "Accountant", "FinanceManager", "Teller", "Customer", "Registrar" };
                 if (!validRoles.Contains(mappedRole))
                 {
-                    return (false, $"Invalid role: {role}. Allowed roles: SuperAdmin, Admin, Accountant, FinanceManager, Teller, Customer", "");
+                    return (false, $"Invalid role: {role}. Allowed roles: SuperAdmin, Admin, Accountant, FinanceManager, Teller, Customer, Registrar", "");
                 }
 
                 // Create new user
@@ -148,7 +148,7 @@ namespace FinanceBank.Services
                 // Check for CHECK constraint violation
                 if (errorMessage.Contains("CK_Users_Role") || errorMessage.Contains("CHECK constraint"))
                 {
-                    return (false, $"Invalid role. Allowed roles: SuperAdmin, Admin, Accountant, FinanceManager, Teller, Customer", "");
+                    return (false, $"Invalid role. Allowed roles: SuperAdmin, Admin, Accountant, FinanceManager, Teller, Customer, Registrar", "");
                 }
                 
                 return (false, $"Database error: {errorMessage}", "");

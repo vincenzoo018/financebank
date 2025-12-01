@@ -1,0 +1,330 @@
+@page "/admin/dashboard"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject AuthService AuthService
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
+@inject NavigationManager Navigation
+
+<div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #1f2937, #111827); border-radius: 16px; padding: 32px; margin-bottom: 32px; color: white;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Welcome, @(AuthService.FullName ?? "Administrator")</h1>
+                <p style="margin: 8px 0 0; font-size: 14px; opacity: 0.9;">Super Admin Dashboard - System Overview & Management</p>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <div style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 8px; font-size: 13px;">
+                    📅 @DateTime.Now.ToString("dddd, MMMM dd, yyyy")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div style="display: flex; justify-content: center; padding: 60px;">
+            <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        </div>
+        <style>
+            @@keyframes spin { to { transform: rotate(360deg); } }
+        </style>
+    }
+    else
+    {
+        <!-- Quick Stats -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 32px;">
+            <div style="background: white; border-radius: 16px; padding: 24px; border-left: 4px solid #2563eb; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div style="font-size: 13px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Total Users</div>
+                        <div style="font-size: 32px; font-weight: 700; color: #1f2937; margin-top: 8px;">@totalUsers</div>
+                        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">@activeUsers active</div>
+                    </div>
+                    <div style="width: 48px; height: 48px; background: #dbeafe; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: white; border-radius: 16px; padding: 24px; border-left: 4px solid #059669; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div style="font-size: 13px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Total Customers</div>
+                        <div style="font-size: 32px; font-weight: 700; color: #1f2937; margin-top: 8px;">@totalCustomers</div>
+                        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">With active accounts</div>
+                    </div>
+                    <div style="width: 48px; height: 48px; background: #d1fae5; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                            <circle cx="12" cy="8" r="4"></circle>
+                            <path d="M6 20c0-2.21 2.69-4 6-4s6 1.79 6 4"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: white; border-radius: 16px; padding: 24px; border-left: 4px solid #8b5cf6; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div style="font-size: 13px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Total Employees</div>
+                        <div style="font-size: 32px; font-weight: 700; color: #1f2937; margin-top: 8px;">@totalEmployees</div>
+                        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Across all departments</div>
+                    </div>
+                    <div style="width: 48px; height: 48px; background: #ede9fe; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: white; border-radius: 16px; padding: 24px; border-left: 4px solid #f59e0b; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div style="font-size: 13px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Pending Approvals</div>
+                        <div style="font-size: 32px; font-weight: 700; color: #1f2937; margin-top: 8px;">@pendingApprovals</div>
+                        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Awaiting review</div>
+                    </div>
+                    <div style="width: 48px; height: 48px; background: #fef3c7; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Summary -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+            <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+                <h3 style="font-size: 18px; font-weight: 700; margin: 0 0 20px; color: #1f2937;">💰 Financial Overview</h3>
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="display: flex; justify-content: space-between; padding: 16px; background: #f0fdf4; border-radius: 12px;">
+                        <span style="color: #065f46; font-weight: 600;">Total Deposits (Today)</span>
+                        <span style="color: #059669; font-weight: 700; font-size: 18px;">₱@totalDepositsToday.ToString("N2")</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 16px; background: #fef2f2; border-radius: 12px;">
+                        <span style="color: #991b1b; font-weight: 600;">Total Withdrawals (Today)</span>
+                        <span style="color: #dc2626; font-weight: 700; font-size: 18px;">₱@totalWithdrawalsToday.ToString("N2")</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 16px; background: #eff6ff; border-radius: 12px;">
+                        <span style="color: #1e40af; font-weight: 600;">Total Account Balance</span>
+                        <span style="color: #2563eb; font-weight: 700; font-size: 18px;">₱@totalAccountBalance.ToString("N2")</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+                <h3 style="font-size: 18px; font-weight: 700; margin: 0 0 20px; color: #1f2937;">📊 System Status</h3>
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f9fafb; border-radius: 12px;">
+                        <span style="font-weight: 600; color: #374151;">Database Status</span>
+                        <span style="padding: 6px 12px; background: #d1fae5; color: #065f46; border-radius: 999px; font-size: 12px; font-weight: 600;">🟢 Connected</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f9fafb; border-radius: 12px;">
+                        <span style="font-weight: 600; color: #374151;">Active Loans</span>
+                        <span style="padding: 6px 12px; background: #dbeafe; color: #1e40af; border-radius: 999px; font-size: 12px; font-weight: 600;">@activeLoans loans</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f9fafb; border-radius: 12px;">
+                        <span style="font-weight: 600; color: #374151;">Today's Transactions</span>
+                        <span style="padding: 6px 12px; background: #fef3c7; color: #92400e; border-radius: 999px; font-size: 12px; font-weight: 600;">@todayTransactions transactions</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb; margin-bottom: 32px;">
+            <h3 style="font-size: 18px; font-weight: 700; margin: 0 0 20px; color: #1f2937;">⚡ Quick Actions</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <a href="/admin/user-registration" style="display: flex; align-items: center; gap: 12px; padding: 16px; background: linear-gradient(135deg, #2563eb, #1e40af); border-radius: 12px; color: white; text-decoration: none; font-weight: 600; transition: transform 0.2s;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    Register New User
+                </a>
+                <a href="/admin/approvals/all-transaction-approvals" style="display: flex; align-items: center; gap: 12px; padding: 16px; background: linear-gradient(135deg, #059669, #047857); border-radius: 12px; color: white; text-decoration: none; font-weight: 600; transition: transform 0.2s;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Review Approvals
+                </a>
+                <a href="/admin/system/user-management" style="display: flex; align-items: center; gap: 12px; padding: 16px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 12px; color: white; text-decoration: none; font-weight: 600; transition: transform 0.2s;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                    </svg>
+                    Manage Users
+                </a>
+                <a href="/admin/system/audit-logs" style="display: flex; align-items: center; gap: 12px; padding: 16px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 12px; color: white; text-decoration: none; font-weight: 600; transition: transform 0.2s;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    Audit Logs
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-size: 18px; font-weight: 700; margin: 0; color: #1f2937;">📋 Recent Activity</h3>
+                <a href="/admin/system/user-activity-logs" style="color: #2563eb; font-size: 14px; font-weight: 600; text-decoration: none;">View All →</a>
+            </div>
+            
+            @if (recentActivities.Any())
+            {
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    @foreach (var activity in recentActivities.Take(5))
+                    {
+                        <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: #f9fafb; border-radius: 12px;">
+                            <div style="width: 40px; height: 40px; background: @GetActivityColor(activity.Type); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;">
+                                @GetActivityIcon(activity.Type)
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #1f2937; font-size: 14px;">@activity.Description</div>
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">@activity.User • @activity.Time.ToString("MMM dd, HH:mm")</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div style="text-align: center; padding: 40px; color: #6b7280;">
+                    No recent activity to display.
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    
+    // Stats
+    private int totalUsers = 0;
+    private int activeUsers = 0;
+    private int totalCustomers = 0;
+    private int totalEmployees = 0;
+    private int pendingApprovals = 0;
+    
+    // Financial
+    private decimal totalDepositsToday = 0;
+    private decimal totalWithdrawalsToday = 0;
+    private decimal totalAccountBalance = 0;
+    private int activeLoans = 0;
+    private int todayTransactions = 0;
+    
+    // Recent activity
+    private List<ActivityItem> recentActivities = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        isLoading = true;
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            var today = DateTime.Today;
+
+            // User counts
+            totalUsers = await context.Users.CountAsync();
+            activeUsers = await context.Users.CountAsync(u => u.IsActive);
+            totalCustomers = await context.Users.CountAsync(u => u.Role == "Customer");
+            totalEmployees = await context.Employees.CountAsync();
+
+            // Pending approvals (transactions pending approval)
+            pendingApprovals = await context.CustomerTransactions
+                .CountAsync(t => t.Status == "Pending");
+
+            // Today's financial data
+            totalDepositsToday = await context.CustomerTransactions
+                .Where(t => t.TransactionType == "Deposit" && t.CreatedAt.Date == today && t.Status == "Completed")
+                .SumAsync(t => (decimal?)t.Amount) ?? 0;
+
+            totalWithdrawalsToday = await context.CustomerTransactions
+                .Where(t => t.TransactionType == "Withdrawal" && t.CreatedAt.Date == today && t.Status == "Completed")
+                .SumAsync(t => (decimal?)t.Amount) ?? 0;
+
+            // Total balance
+            totalAccountBalance = await context.CustomerAccounts.SumAsync(a => (decimal?)a.Balance) ?? 0;
+
+            // Active loans
+            activeLoans = await context.LoanApplications
+                .CountAsync(l => l.Status == "RELEASED" || l.Status == "Approved");
+
+            // Today's transactions
+            todayTransactions = await context.CustomerTransactions
+                .CountAsync(t => t.CreatedAt.Date == today);
+
+            // Recent activities (sample from transactions)
+            var recentTxns = await context.CustomerTransactions
+                .OrderByDescending(t => t.CreatedAt)
+                .Take(5)
+                .Select(t => new { t.TransactionType, t.Amount, t.CreatedAt, t.AccountId })
+                .ToListAsync();
+
+            recentActivities = recentTxns.Select(t => new ActivityItem
+            {
+                Type = t.TransactionType ?? "Transaction",
+                Description = $"{t.TransactionType}: ₱{t.Amount:N2}",
+                User = $"Account #{t.AccountId}",
+                Time = t.CreatedAt
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading dashboard: {ex.Message}");
+            // Set defaults on error
+            recentActivities = new List<ActivityItem>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetActivityColor(string type) => type switch
+    {
+        "Deposit" => "#059669",
+        "Withdrawal" => "#dc2626",
+        "Transfer" => "#2563eb",
+        "Loan" => "#8b5cf6",
+        _ => "#6b7280"
+    };
+
+    private string GetActivityIcon(string type) => type switch
+    {
+        "Deposit" => "💰",
+        "Withdrawal" => "💸",
+        "Transfer" => "🔄",
+        "Loan" => "📋",
+        _ => "📝"
+    };
+
+    private class ActivityItem
+    {
+        public string Type { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string User { get; set; } = "";
+        public DateTime Time { get; set; }
+    }
+}

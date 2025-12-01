@@ -39,6 +39,9 @@ namespace FinanceBank.Models
 
         public int? EmployeeId_FK { get; set; }
 
+        [MaxLength(255)]
+        public string? TransferPinHash { get; set; }
+
         // Navigation properties
         public virtual ICollection<LoginHistory> LoginHistories { get; set; } = new List<LoginHistory>();
         public virtual ICollection<UserSession> UserSessions { get; set; } = new List<UserSession>();

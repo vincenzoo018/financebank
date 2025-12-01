@@ -17,10 +17,18 @@ public class PasswordHashingService
         if (string.IsNullOrWhiteSpace(plainTextPassword))
             throw new ArgumentException("Password cannot be empty", nameof(plainTextPassword));
 
-        if (plainTextPassword.Length < 12)
-            throw new ArgumentException("Password must be at least 12 characters long", nameof(plainTextPassword));
-
         return BCrypt.Net.BCrypt.HashPassword(plainTextPassword, WorkFactor);
+    }
+
+    /// <summary>
+    /// Hash a PIN (shorter than password, no length requirement)
+    /// </summary>
+    public string HashPin(string pin)
+    {
+        if (string.IsNullOrWhiteSpace(pin))
+            throw new ArgumentException("PIN cannot be empty", nameof(pin));
+
+        return BCrypt.Net.BCrypt.HashPassword(pin, WorkFactor);
     }
 
     /// <summary>

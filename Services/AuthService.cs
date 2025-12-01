@@ -28,7 +28,7 @@ namespace FinanceBank.Services
             _contextFactory = contextFactory;
         }
 
-        // 6 ROLES
+        // 7 ROLES
         public static class Roles
         {
             public const string SuperAdmin = "SuperAdmin";
@@ -37,6 +37,7 @@ namespace FinanceBank.Services
             public const string FinanceManager = "FinanceManager";
             public const string Teller = "Teller";
             public const string Customer = "Customer";
+            public const string Registrar = "Registrar";
         }
 
         // role permission nilang 5 
@@ -117,6 +118,7 @@ namespace FinanceBank.Services
                 ["accountant"] = ("accountant123", Roles.Accountant, "John Accountant", "Accounting", 2),
                 ["financemanager"] = ("financemanager123", Roles.FinanceManager, "Jane Finance", "Finance", 3),
                 ["teller"] = ("teller123", Roles.Teller, "Anna Teller", "Teller", 4),
+                ["registrar"] = ("registrar123", Roles.Registrar, "Maria Registrar", "Registration", 5),
                 ["customer"] = ("customer123", Roles.Customer, "Pedro Garcia", null, null)
             };
 
@@ -357,6 +359,10 @@ namespace FinanceBank.Services
                     Modules.Dashboard, Modules.Transactions, Modules.Accounts,
                     Modules.Loans, Modules.Cards, Modules.Bills, Modules.Settings
                 },
+                Roles.Registrar => new List<string>
+                {
+                    Modules.Dashboard, Modules.Users, Modules.Accounts
+                },
                 _ => new List<string>()
             };
         }
@@ -371,6 +377,7 @@ namespace FinanceBank.Services
                 Roles.FinanceManager => "Finance Manager",
                 Roles.Teller => "Teller",
                 Roles.Customer => "Customer",
+                Roles.Registrar => "Registrar",
                 _ => role ?? "Unknown Role"
             };
         }
@@ -391,6 +398,10 @@ namespace FinanceBank.Services
             // Customer routes
             if (routeLower.Contains("/customer/"))
                 return CurrentRole == Roles.Customer;
+
+            // Registrar routes
+            if (routeLower.Contains("/registrar/"))
+                return CurrentRole == Roles.Registrar;
 
             // Admin routes - check specific modules
             if (routeLower.Contains("/admin/"))
