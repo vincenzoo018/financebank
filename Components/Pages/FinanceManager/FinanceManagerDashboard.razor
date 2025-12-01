@@ -1,252 +1,621 @@
 @page "/finance-manager/dashboard"
 @layout FinanceManagerLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject AuthService AuthService
+@inject BFASDbContext DbContext
+@inject IJSRuntime JS
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Header with Filter -->
-    <div
-        style="background: linear-gradient(135deg, #3b82f6, #1e40af); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="background: linear-gradient(135deg, #3b82f6, #1e40af); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
             <div>
-                <h1 style="font-size: 24px; font-weight: 700; margin: 0;">Operations Dashboard</h1>
-                <p style="margin: 8px 0 0; font-size: 14px; opacity: 0.9;">Financial operations & approvals overview</p>
+                <h1 style="font-size: 24px; font-weight: 700; margin: 0;">Finance Manager Dashboard</h1>
+                <p style="margin: 8px 0 0; font-size: 14px; opacity: 0.9;">Real-time financial operations & transaction analytics</p>
             </div>
-            <div style="display: flex; gap: 8px;">
-                <button @onclick='() => selectedPeriod = "day"'
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button @onclick='() => SetPeriod("day")'
                     style="padding: 8px 16px; background: @(selectedPeriod == "day" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "day" ? "#1e40af" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Day</button>
-                <button @onclick='() => selectedPeriod = "week"'
+                <button @onclick='() => SetPeriod("week")'
                     style="padding: 8px 16px; background: @(selectedPeriod == "week" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "week" ? "#1e40af" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Week</button>
-                <button @onclick='() => selectedPeriod = "month"'
+                <button @onclick='() => SetPeriod("month")'
                     style="padding: 8px 16px; background: @(selectedPeriod == "month" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "month" ? "#1e40af" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Month</button>
+                <button @onclick="OpenReportModal" 
+                    style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.2); border: 2px solid white; padding: 8px 16px; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; margin-left: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download Report
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
-        <div style="background: white; border-radius: 12px; padding: 20px; border: 2px solid #dbeafe;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div
-                    style="width: 40px; height: 40px; background: #dbeafe; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    <svg width="20" height="20" fill="none" stroke="#1e40af" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M12 2v20m10-10H2"></path>
-                    </svg>
-                </div>
-                <div>
-                    <div style="font-size: 12px; color: #6b7280;">Pending Approvals</div>
-                    <div style="font-size: 24px; font-weight: 700; color: #1e40af;">24</div>
-                </div>
+    @if (isLoading)
+    {
+        <div style="display: flex; justify-content: center; padding: 60px;">
+            <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        </div>
+    }
+    else
+    {
+        <!-- Stats Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
+            <div style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #059669; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div style="font-size: 12px; color: #6b7280; font-weight: 600;">TOTAL DEPOSITS</div>
+                <div style="font-size: 24px; font-weight: 700; color: #059669; margin-top: 8px;">₱@totalDeposits.ToString("N2")</div>
+                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">@depositCount transactions</div>
             </div>
-            <div style="font-size: 11px; color: #1e40af;">8 high priority</div>
+            <div style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #dc2626; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div style="font-size: 12px; color: #6b7280; font-weight: 600;">TOTAL WITHDRAWALS</div>
+                <div style="font-size: 24px; font-weight: 700; color: #dc2626; margin-top: 8px;">₱@totalWithdrawals.ToString("N2")</div>
+                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">@withdrawalCount transactions</div>
+            </div>
+            <div style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #3b82f6; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div style="font-size: 12px; color: #6b7280; font-weight: 600;">LOAN PAYMENTS</div>
+                <div style="font-size: 24px; font-weight: 700; color: #3b82f6; margin-top: 8px;">₱@totalLoanPayments.ToString("N2")</div>
+                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">@loanPaymentCount payments</div>
+            </div>
+            <div style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #f59e0b; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div style="font-size: 12px; color: #6b7280; font-weight: 600;">LOAN DISBURSEMENTS</div>
+                <div style="font-size: 24px; font-weight: 700; color: #f59e0b; margin-top: 8px;">₱@totalDisbursements.ToString("N2")</div>
+                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">@disbursementCount releases</div>
+            </div>
         </div>
 
-        <div style="background: white; border-radius: 12px; padding: 20px; border: 2px solid #dbeafe;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div
-                    style="width: 40px; height: 40px; background: #dbeafe; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    <svg width="20" height="20" fill="none" stroke="#1e40af" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <div style="font-size: 12px; color: #6b7280;">Approved This Period</div>
-                    <div style="font-size: 24px; font-weight: 700; color: #1e40af;">₱8.5M</div>
-                </div>
-            </div>
-            <div style="font-size: 11px; color: #1e40af;">42 transactions</div>
-        </div>
-
-        <div style="background: white; border-radius: 12px; padding: 20px; border: 2px solid #dbeafe;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div
-                    style="width: 40px; height: 40px; background: #dbeafe; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    <svg width="20" height="20" fill="none" stroke="#1e40af" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M5 13l4 4L19 7"></path>
-                    </svg>
-                </div>
-                <div>
-                    <div style="font-size: 12px; color: #6b7280;">Total Budget</div>
-                    <div style="font-size: 24px; font-weight: 700; color: #1e40af;">₱25.0M</div>
+        <!-- Cash Flow Summary -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+            <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+                <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">💰 Cash Flow Analysis</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #f0fdf4; border-radius: 8px;">
+                        <span style="color: #065f46; font-weight: 600;">Cash Inflows</span>
+                        <span style="color: #059669; font-weight: 700;">₱@((totalDeposits + totalLoanPayments).ToString("N2"))</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #fef2f2; border-radius: 8px;">
+                        <span style="color: #991b1b; font-weight: 600;">Cash Outflows</span>
+                        <span style="color: #dc2626; font-weight: 700;">₱@((totalWithdrawals + totalDisbursements).ToString("N2"))</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 16px; background: linear-gradient(135deg, @(netCashFlow >= 0 ? "#059669" : "#dc2626"), @(netCashFlow >= 0 ? "#10b981" : "#ef4444")); border-radius: 10px; color: white;">
+                        <span style="font-weight: 600;">Net Cash Flow</span>
+                        <span style="font-weight: 700; font-size: 18px;">₱@netCashFlow.ToString("N2")</span>
+                    </div>
                 </div>
             </div>
-            <div style="font-size: 11px; color: #1e40af;">68% utilized</div>
-        </div>
-
-        <div style="background: white; border-radius: 12px; padding: 20px; border: 2px solid #fee2e2;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div
-                    style="width: 40px; height: 40px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    <svg width="20" height="20" fill="none" stroke="#dc2626" stroke-width="2">
-                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <div>
-                    <div style="font-size: 12px; color: #6b7280;">Exceptions</div>
-                    <div style="font-size: 24px; font-weight: 700; color: #dc2626;">2</div>
+            <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+                <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">📊 Performance Metrics</h3>
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="padding: 16px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 12px;">
+                        <div style="font-size: 12px; color: #1e40af; font-weight: 600;">Total Transactions</div>
+                        <div style="font-size: 28px; font-weight: 700; margin-top: 4px; color: #1e40af;">@allTransactions.Count</div>
+                    </div>
+                    <div style="padding: 16px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px;">
+                        <div style="font-size: 12px; color: #065f46; font-weight: 600;">Total Volume</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #065f46; margin-top: 4px;">₱@((totalDeposits + totalWithdrawals + totalLoanPayments + totalDisbursements).ToString("N2"))</div>
+                    </div>
                 </div>
             </div>
-            <div style="font-size: 11px; color: #dc2626;">Requires action</div>
         </div>
-    </div>
 
-    <!-- Charts Row -->
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px;">
-        <!-- Approval Trend -->
+        <!-- All Transactions Table -->
         <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="font-size: 16px; font-weight: 700; margin: 0;">Approvals vs Amount This Week</h3>
-                <div style="display: flex; gap: 16px;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <div style="width: 10px; height: 10px; background: #3b82f6; border-radius: 2px;"></div>
-                        <span style="font-size: 11px; color: #6b7280;">Count</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <div style="width: 10px; height: 10px; background: #10b981; border-radius: 2px;"></div>
-                        <span style="font-size: 11px; color: #6b7280;">Amount (M)</span>
-                    </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                <h3 style="font-size: 18px; font-weight: 700; margin: 0;">📋 All Transactions</h3>
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <!-- Type Filter -->
+                    <select @bind="filterType" @bind:after="ApplyFilters" style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        <option value="">All Types</option>
+                        <option value="Deposit">Deposits</option>
+                        <option value="Withdrawal">Withdrawals</option>
+                        <option value="Loan Payment">Loan Payments</option>
+                        <option value="Loan Release">Loan Releases</option>
+                    </select>
+                    <!-- Sort -->
+                    <select @bind="sortBy" @bind:after="ApplyFilters" style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        <option value="date_desc">Date (Newest)</option>
+                        <option value="date_asc">Date (Oldest)</option>
+                        <option value="amount_desc">Amount (High-Low)</option>
+                        <option value="amount_asc">Amount (Low-High)</option>
+                        <option value="type">Transaction Type</option>
+                    </select>
+                    <!-- Search -->
+                    <input type="text" placeholder="Search..." @bind="searchQuery" @bind:event="oninput" @bind:after="ApplyFilters"
+                        style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; width: 200px;" />
                 </div>
             </div>
-            <div
-                style="display: flex; align-items: flex-end; gap: 8px; height: 200px; padding-bottom: 20px; border-bottom: 2px solid #e5e7eb;">
-                @foreach (var data in weeklyData)
-                {
-                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                        <div style="display: flex; gap: 4px; align-items: flex-end; width: 100%; justify-content: center;">
-                            <div
-                                style="width: 40%; background: linear-gradient(180deg, #3b82f6, #1e40af); border-radius: 6px 6px 0 0; height: @(data.Value * 10)px; min-height: 15px;">
-                            </div>
-                            <div
-                                style="width: 40%; background: linear-gradient(180deg, #10b981, #059669); border-radius: 6px 6px 0 0; height: @(data.Amount * 15)px; min-height: 15px;">
-                            </div>
-                        </div>
-                        <div style="font-size: 11px; color: #6b7280; font-weight: 600;">@data.Label</div>
-                        <div style="font-size: 10px; color: #3b82f6; font-weight: 600;">@data.Value</div>
-                    </div>
-                }
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 16px;">
-                <div style="text-align: center; padding: 12px; background: #f0f9ff; border-radius: 8px;">
-                    <div style="font-size: 11px; color: #6b7280;">Total Approved</div>
-                    <div style="font-size: 18px; font-weight: 700; color: #1e40af;">54</div>
-                </div>
-                <div style="text-align: center; padding: 12px; background: #f0fdf4; border-radius: 8px;">
-                    <div style="font-size: 11px; color: #6b7280;">Total Amount</div>
-                    <div style="font-size: 18px; font-weight: 700; color: #059669;">₱8.5M</div>
-                </div>
-                <div style="text-align: center; padding: 12px; background: #fef3c7; border-radius: 8px;">
-                    <div style="font-size: 11px; color: #6b7280;">Avg Amount</div>
-                    <div style="font-size: 18px; font-weight: 700; color: #d97706;">₱157K</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Finance Performance -->
-        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px;">Performance Metrics</h3>
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-                <div style="padding: 12px; background: #f9fafb; border-radius: 8px;">
-                    <div style="font-size: 12px; color: #6b7280;">Approval Rate</div>
-                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
-                        <div style="flex: 1; height: 10px; background: #e5e7eb; border-radius: 5px; overflow: hidden;">
-                            <div
-                                style="width: 87%; height: 100%; background: linear-gradient(90deg, #3b82f6, #1e40af);">
-                            </div>
-                        </div>
-                        <span style="font-size: 16px; font-weight: 700; color: #1e40af;">87%</span>
-                    </div>
-                </div>
-                <div style="padding: 12px; background: #f9fafb; border-radius: 8px;">
-                    <div style="font-size: 12px; color: #6b7280;">Processing Speed</div>
-                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
-                        <div style="flex: 1; height: 10px; background: #e5e7eb; border-radius: 5px; overflow: hidden;">
-                            <div
-                                style="width: 92%; height: 100%; background: linear-gradient(90deg, #10b981, #059669);">
-                            </div>
-                        </div>
-                        <span style="font-size: 16px; font-weight: 700; color: #059669;">92%</span>
-                    </div>
-                </div>
-                <div style="padding: 16px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 12px;">
-                    <div style="font-size: 12px; color: #1e40af; font-weight: 600;">Avg. Approval Time</div>
-                    <div style="font-size: 28px; font-weight: 700; margin-top: 4px; color: #1e40af;">4.2h</div>
-                    <div style="font-size: 11px; color: #1e40af; margin-top: 4px;">↓ 15% from last week</div>
-                </div>
-                <div style="padding: 16px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px;">
-                    <div style="font-size: 12px; color: #065f46; font-weight: 600;">Budget Compliance</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #065f46; margin-top: 4px;">Excellent</div>
-                    <div style="font-size: 11px; color: #065f46; margin-top: 4px;">Within 5% variance</div>
-                </div>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                            <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">DATE</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">REFERENCE</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">TYPE</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">CUSTOMER</th>
+                            <th style="padding: 12px; text-align: right; font-size: 12px; color: #6b7280; font-weight: 600;">AMOUNT</th>
+                            <th style="padding: 12px; text-align: center; font-size: 12px; color: #6b7280; font-weight: 600;">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (filteredTransactions.Any())
+                        {
+                            @foreach (var txn in filteredTransactions.Take(50))
+                            {
+                                var style = GetTransactionStyle(txn.Type);
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 12px; font-size: 13px; color: #374151;">@txn.Date.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td style="padding: 12px; font-size: 13px; color: #374151; font-weight: 600;">@txn.Reference</td>
+                                    <td style="padding: 12px;">
+                                        <span style="display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: @style.BgColor; color: @style.TextColor;">
+                                            @txn.Type
+                                        </span>
+                                    </td>
+                                    <td style="padding: 12px; font-size: 13px; color: #374151;">@txn.CustomerName</td>
+                                    <td style="padding: 12px; text-align: right; font-size: 13px; font-weight: 700; color: @style.TextColor;">@style.Prefix₱@txn.Amount.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <span style="display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: @(txn.Status == "Completed" || txn.Status == "RELEASED" ? "#d1fae5" : "#fef3c7"); color: @(txn.Status == "Completed" || txn.Status == "RELEASED" ? "#065f46" : "#92400e");">
+                                            @txn.Status
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" style="padding: 40px; text-align: center; color: #6b7280;">
+                                    No transactions found for the selected period.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-        </div>
-    </div>
-
-    <!-- Recent Approvals -->
-    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Recent Finance Operations</h3>
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-            @foreach (var activity in recentActivities)
+            @if (filteredTransactions.Count > 50)
             {
-                <div
-                    style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f9fafb; border-radius: 8px;">
-                    <div
-                        style="width: 32px; height: 32px; background: @activity.Color; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <svg width="16" height="16" fill="none" stroke="white" stroke-width="2">
-                            <path d="@activity.Icon" />
-                        </svg>
-                    </div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; font-size: 14px;">@activity.Title</div>
-                        <div style="font-size: 12px; color: #6b7280;">@activity.Description</div>
-                    </div>
-                    <div style="font-size: 11px; color: #9ca3af;">@activity.Time</div>
+                <div style="text-align: center; padding: 16px; color: #6b7280; font-size: 13px;">
+                    Showing 50 of @filteredTransactions.Count transactions. Download report for complete list.
                 </div>
             }
         </div>
-    </div>
+    }
 </div>
 
+<!-- Report Download Modal -->
+@if (showReportModal)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseReportModal">
+        <div style="background: white; border-radius: 20px; max-width: 500px; width: 95%; box-shadow: 0 25px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation>
+            <div style="background: linear-gradient(135deg, #3b82f6, #1e40af); color: white; padding: 24px 28px; border-radius: 20px 20px 0 0;">
+                <h4 style="margin: 0; font-weight: 700; font-size: 20px;">📊 Generate Finance Report</h4>
+                <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">Download comprehensive transaction report</p>
+            </div>
+
+            <div style="padding: 28px;">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Report Period</label>
+                    <select @bind="reportPeriod" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                        <option value="day">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+
+                @if (reportPeriod == "custom")
+                {
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 4px;">Start Date</label>
+                            <input type="date" @bind="reportStartDate" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 4px;">End Date</label>
+                            <input type="date" @bind="reportEndDate" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;" />
+                        </div>
+                    </div>
+                }
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Export Format</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <label style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid @(reportFormat == "pdf" ? "#3b82f6" : "#e5e7eb"); border-radius: 12px; cursor: pointer; background: @(reportFormat == "pdf" ? "#eff6ff" : "white");">
+                            <input type="radio" name="format" value="pdf" checked="@(reportFormat == "pdf")" @onchange='() => reportFormat = "pdf"' style="display: none;" />
+                            <div style="font-size: 24px;">📄</div>
+                            <div>
+                                <div style="font-weight: 600; color: #1f2937;">PDF Report</div>
+                                <div style="font-size: 12px; color: #6b7280;">Formatted for printing</div>
+                            </div>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid @(reportFormat == "excel" ? "#3b82f6" : "#e5e7eb"); border-radius: 12px; cursor: pointer; background: @(reportFormat == "excel" ? "#eff6ff" : "white");">
+                            <input type="radio" name="format" value="excel" checked="@(reportFormat == "excel")" @onchange='() => reportFormat = "excel"' style="display: none;" />
+                            <div style="font-size: 24px;">📊</div>
+                            <div>
+                                <div style="font-weight: 600; color: #1f2937;">Excel (CSV)</div>
+                                <div style="font-size: 12px; color: #6b7280;">For data analysis</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button @onclick="CloseReportModal" style="flex: 1; padding: 14px; background: #f3f4f6; color: #374151; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                        Cancel
+                    </button>
+                    <button @onclick="DownloadReport" disabled="@isDownloading" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #3b82f6, #1e40af); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        @if (isDownloading)
+                        {
+                            <span>Generating...</span>
+                        }
+                        else
+                        {
+                            <span>Download Report</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
 @code {
+    private bool isLoading = true;
     private string selectedPeriod = "week";
+    
+    // Transaction data
+    private List<TransactionRecord> allTransactions = new();
+    private List<TransactionRecord> filteredTransactions = new();
+    
+    // Summary data
+    private decimal totalDeposits = 0;
+    private decimal totalWithdrawals = 0;
+    private decimal totalLoanPayments = 0;
+    private decimal totalDisbursements = 0;
+    private decimal netCashFlow = 0;
+    private int depositCount = 0;
+    private int withdrawalCount = 0;
+    private int loanPaymentCount = 0;
+    private int disbursementCount = 0;
+    
+    // Filters
+    private string filterType = "";
+    private string sortBy = "date_desc";
+    private string searchQuery = "";
+    
+    // Report Modal
+    private bool showReportModal = false;
+    private string reportPeriod = "week";
+    private string reportFormat = "pdf";
+    private DateTime reportStartDate = DateTime.Today.AddDays(-7);
+    private DateTime reportEndDate = DateTime.Today;
+    private bool isDownloading = false;
 
-    private List<ChartData> weeklyData = new()
-{
-new() { Label = "Mon", Value = 8, Amount = 10 },
-new() { Label = "Tue", Value = 12, Amount = 8 },
-new() { Label = "Wed", Value = 6, Amount = 5 },
-new() { Label = "Thu", Value = 15, Amount = 12 },
-new() { Label = "Fri", Value = 10, Amount = 9 },
-new() { Label = "Sat", Value = 2, Amount = 2 },
-new() { Label = "Sun", Value = 1, Amount = 1 }
-};
-
-    private List<Activity> recentActivities = new()
-{
-new() { Title = "Loan Approved", Description = "₱500,000 Personal Loan - Juan Dela Cruz", Time = "10 min ago", Color =
-"#3b82f6", Icon = "M9 12l2 2 4-4" },
-new() { Title = "Payment Processed", Description = "₱250,000 Installment Collection", Time = "25 min ago", Color =
-"#10b981", Icon = "M5 13l4 4L19 7" },
-new() { Title = "Finance Report Approved", Description = "Monthly Financial Statement Validated", Time = "1 hour ago",
-Color = "#f59e0b", Icon = "M9 12h6m-6 4h6" },
-new() { Title = "Budget Allocation", Description = "Q1 Operating Expenses - ₱3.2M", Time = "2 hours ago", Color =
-"#6366f1", Icon = "M7 7h10M7 12h10M7 17h10" }
-};
-
-    private class ChartData
+    protected override async Task OnInitializedAsync()
     {
-        public string Label { get; set; } = "";
-        public int Value { get; set; }
-        public int Amount { get; set; }
+        await LoadData();
     }
 
-    private class Activity
+    private async Task LoadData()
     {
-        public string Title { get; set; } = "";
-        public string Description { get; set; } = "";
-        public string Time { get; set; } = "";
-        public string Color { get; set; } = "";
-        public string Icon { get; set; } = "";
+        isLoading = true;
+        try
+        {
+            var (start, end) = GetDateRange(selectedPeriod);
+            
+            allTransactions.Clear();
+            
+            // Load Customer Transactions (Deposits & Withdrawals)
+            var customerTransactions = await DbContext.CustomerTransactions
+                .Include(t => t.Account)
+                .ThenInclude(a => a.Customer)
+                .Where(t => t.CreatedAt >= start && t.CreatedAt <= end)
+                .ToListAsync();
+
+            foreach (var t in customerTransactions)
+            {
+                allTransactions.Add(new TransactionRecord
+                {
+                    Date = t.CreatedAt,
+                    Reference = t.Reference ?? t.TransactionNumber ?? $"TXN-{t.TransactionId}",
+                    Type = t.TransactionType,
+                    CustomerName = t.Account?.Customer?.FullName ?? "N/A",
+                    Amount = t.Amount,
+                    Status = t.Status ?? "Completed"
+                });
+            }
+
+            // Load Loan Payments
+            var loanPayments = await DbContext.LoanPayments
+                .Include(p => p.Loan)
+                .ThenInclude(l => l.Account)
+                .ThenInclude(a => a.Customer)
+                .Where(p => p.PaymentDate >= start && p.PaymentDate <= end)
+                .ToListAsync();
+
+            foreach (var p in loanPayments)
+            {
+                allTransactions.Add(new TransactionRecord
+                {
+                    Date = p.PaymentDate,
+                    Reference = p.Reference ?? $"LPAY-{p.PaymentId:D6}",
+                    Type = "Loan Payment",
+                    CustomerName = p.Loan?.Account?.Customer?.FullName ?? "N/A",
+                    Amount = p.PaymentAmount,
+                    Status = "Completed"
+                });
+            }
+
+            // Load Loan Disbursements
+            var loanDisbursements = await DbContext.LoanDisbursals
+                .Include(d => d.Loan)
+                .ThenInclude(l => l.Account)
+                .ThenInclude(a => a.Customer)
+                .Where(d => d.DisbursalDate >= start && d.DisbursalDate <= end)
+                .ToListAsync();
+
+            foreach (var d in loanDisbursements)
+            {
+                allTransactions.Add(new TransactionRecord
+                {
+                    Date = d.DisbursalDate,
+                    Reference = d.Reference ?? $"LREL-{d.DisbursalId:D6}",
+                    Type = "Loan Release",
+                    CustomerName = d.Loan?.Account?.Customer?.FullName ?? "N/A",
+                    Amount = d.DisbursalAmount,
+                    Status = d.DisbursalStatus ?? "RELEASED"
+                });
+            }
+
+            // Calculate summaries
+            var deposits = customerTransactions.Where(t => t.TransactionType == "Deposit").ToList();
+            var withdrawals = customerTransactions.Where(t => t.TransactionType == "Withdrawal").ToList();
+            
+            totalDeposits = deposits.Sum(t => t.Amount);
+            depositCount = deposits.Count;
+            totalWithdrawals = withdrawals.Sum(t => t.Amount);
+            withdrawalCount = withdrawals.Count;
+            totalLoanPayments = loanPayments.Sum(p => p.PaymentAmount);
+            loanPaymentCount = loanPayments.Count;
+            totalDisbursements = loanDisbursements.Sum(d => d.DisbursalAmount);
+            disbursementCount = loanDisbursements.Count;
+            netCashFlow = (totalDeposits + totalLoanPayments) - (totalWithdrawals + totalDisbursements);
+
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SetPeriod(string period)
+    {
+        selectedPeriod = period;
+        await LoadData();
+    }
+
+    private void ApplyFilters()
+    {
+        var result = allTransactions.AsEnumerable();
+        
+        // Filter by type
+        if (!string.IsNullOrEmpty(filterType))
+        {
+            result = result.Where(t => t.Type == filterType);
+        }
+        
+        // Search
+        if (!string.IsNullOrEmpty(searchQuery))
+        {
+            var query = searchQuery.ToLower();
+            result = result.Where(t => 
+                t.Reference.ToLower().Contains(query) ||
+                t.CustomerName.ToLower().Contains(query) ||
+                t.Type.ToLower().Contains(query));
+        }
+        
+        // Sort
+        result = sortBy switch
+        {
+            "date_asc" => result.OrderBy(t => t.Date),
+            "amount_desc" => result.OrderByDescending(t => t.Amount),
+            "amount_asc" => result.OrderBy(t => t.Amount),
+            "type" => result.OrderBy(t => t.Type).ThenByDescending(t => t.Date),
+            _ => result.OrderByDescending(t => t.Date)
+        };
+        
+        filteredTransactions = result.ToList();
+    }
+
+    private (DateTime start, DateTime end) GetDateRange(string period)
+    {
+        return period switch
+        {
+            "day" => (DateTime.Today, DateTime.Today.AddDays(1).AddSeconds(-1)),
+            "week" => (DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek), DateTime.Today.AddDays(1).AddSeconds(-1)),
+            "month" => (new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1), DateTime.Today.AddDays(1).AddSeconds(-1)),
+            _ => (DateTime.Today.AddDays(-7), DateTime.Today.AddDays(1).AddSeconds(-1))
+        };
+    }
+
+    private (string BgColor, string TextColor, string Prefix) GetTransactionStyle(string type)
+    {
+        return type switch
+        {
+            "Deposit" => ("#d1fae5", "#065f46", "+"),
+            "Withdrawal" => ("#fee2e2", "#991b1b", "-"),
+            "Loan Payment" => ("#dbeafe", "#1e40af", "+"),
+            "Loan Release" => ("#fef3c7", "#92400e", "-"),
+            _ => ("#f3f4f6", "#374151", "")
+        };
+    }
+
+    private void OpenReportModal()
+    {
+        reportPeriod = selectedPeriod;
+        showReportModal = true;
+    }
+
+    private void CloseReportModal()
+    {
+        showReportModal = false;
+    }
+
+    private async Task DownloadReport()
+    {
+        isDownloading = true;
+        try
+        {
+            var (start, end) = reportPeriod == "custom" 
+                ? (reportStartDate, reportEndDate.AddDays(1).AddSeconds(-1))
+                : GetDateRange(reportPeriod);
+
+            if (reportFormat == "excel")
+            {
+                await DownloadCsvReport(start, end);
+            }
+            else
+            {
+                await DownloadPdfReport(start, end);
+            }
+
+            CloseReportModal();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error generating report: {ex.Message}");
+        }
+        finally
+        {
+            isDownloading = false;
+        }
+    }
+
+    private async Task DownloadCsvReport(DateTime start, DateTime end)
+    {
+        var sb = new System.Text.StringBuilder();
+        
+        sb.AppendLine("FINANCEBANK - FINANCE MANAGER REPORT");
+        sb.AppendLine($"Report Period: {start:yyyy-MM-dd} to {end:yyyy-MM-dd}");
+        sb.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        sb.AppendLine();
+        
+        sb.AppendLine("=== SUMMARY ===");
+        sb.AppendLine($"Total Deposits,{depositCount},₱{totalDeposits:N2}");
+        sb.AppendLine($"Total Withdrawals,{withdrawalCount},₱{totalWithdrawals:N2}");
+        sb.AppendLine($"Loan Payments,{loanPaymentCount},₱{totalLoanPayments:N2}");
+        sb.AppendLine($"Loan Disbursements,{disbursementCount},₱{totalDisbursements:N2}");
+        sb.AppendLine($"Net Cash Flow,,₱{netCashFlow:N2}");
+        sb.AppendLine();
+        
+        sb.AppendLine("=== TRANSACTIONS ===");
+        sb.AppendLine("Date,Reference,Type,Customer,Amount,Status");
+        
+        foreach (var txn in filteredTransactions)
+        {
+            sb.AppendLine($"{txn.Date:yyyy-MM-dd HH:mm},{txn.Reference},{txn.Type},{txn.CustomerName},₱{txn.Amount:N2},{txn.Status}");
+        }
+        
+        var fileName = $"FinanceReport_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
+        await DownloadFile(fileName, sb.ToString(), "text/csv");
+    }
+
+    private async Task DownloadPdfReport(DateTime start, DateTime end)
+    {
+        var sb = new System.Text.StringBuilder();
+        
+        sb.Append("<!DOCTYPE html><html><head><meta charset='utf-8'><title>Finance Manager Report</title>");
+        sb.Append("<style>");
+        sb.Append("body{font-family:Arial,sans-serif;margin:40px;color:#333}");
+        sb.Append(".header{background:linear-gradient(135deg,#3b82f6,#1e40af);color:white;padding:20px;border-radius:10px;margin-bottom:30px}");
+        sb.Append(".header h1{margin:0;font-size:24px}.header p{margin:5px 0 0;opacity:0.9}");
+        sb.Append(".summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:30px}");
+        sb.Append(".summary-card{background:#f8fafc;border-radius:10px;padding:15px;border-left:4px solid #3b82f6}");
+        sb.Append(".summary-card.green{border-left-color:#059669}.summary-card.red{border-left-color:#dc2626}");
+        sb.Append(".summary-card.yellow{border-left-color:#f59e0b}");
+        sb.Append(".summary-card h3{margin:0;font-size:12px;color:#6b7280;text-transform:uppercase}");
+        sb.Append(".summary-card .value{font-size:20px;font-weight:700;color:#1f2937;margin-top:5px}");
+        sb.Append("table{width:100%;border-collapse:collapse;font-size:12px;margin-top:20px}");
+        sb.Append("th{background:#f8fafc;padding:12px;text-align:left;font-weight:600;color:#374151;border-bottom:2px solid #e5e7eb}");
+        sb.Append("td{padding:10px 12px;border-bottom:1px solid #e5e7eb}");
+        sb.Append(".deposit{color:#059669}.withdrawal{color:#dc2626}.loan-payment{color:#1e40af}.loan-release{color:#92400e}");
+        sb.Append(".footer{margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;font-size:11px;color:#6b7280;text-align:center}");
+        sb.Append("@media print{body{margin:20px}}");
+        sb.Append("</style></head><body>");
+        
+        sb.Append($"<div class='header'><h1>📊 Finance Manager Report</h1>");
+        sb.Append($"<p>Report Period: {start:MMMM dd, yyyy} - {end:MMMM dd, yyyy}</p>");
+        sb.Append($"<p>Generated: {DateTime.Now:MMMM dd, yyyy HH:mm:ss}</p></div>");
+        
+        sb.Append("<div class='summary-grid'>");
+        sb.Append($"<div class='summary-card green'><h3>Total Deposits</h3><div class='value'>₱{totalDeposits:N2}</div><div>{depositCount} transactions</div></div>");
+        sb.Append($"<div class='summary-card red'><h3>Total Withdrawals</h3><div class='value'>₱{totalWithdrawals:N2}</div><div>{withdrawalCount} transactions</div></div>");
+        sb.Append($"<div class='summary-card'><h3>Loan Payments</h3><div class='value'>₱{totalLoanPayments:N2}</div><div>{loanPaymentCount} payments</div></div>");
+        sb.Append($"<div class='summary-card yellow'><h3>Loan Disbursements</h3><div class='value'>₱{totalDisbursements:N2}</div><div>{disbursementCount} releases</div></div>");
+        sb.Append("</div>");
+        
+        var netColor = netCashFlow >= 0 ? "#059669" : "#dc2626";
+        var netBg = netCashFlow >= 0 ? "#d1fae5" : "#fee2e2";
+        sb.Append($"<div style='background:{netBg};padding:16px;border-radius:10px;margin-bottom:20px'>");
+        sb.Append($"<strong>Net Cash Flow:</strong> <span style='font-size:20px;font-weight:700;color:{netColor}'>₱{netCashFlow:N2}</span></div>");
+        
+        sb.Append("<h2>Transaction Details</h2>");
+        sb.Append("<table><thead><tr><th>Date</th><th>Reference</th><th>Type</th><th>Customer</th><th style='text-align:right'>Amount</th><th>Status</th></tr></thead><tbody>");
+        
+        foreach (var txn in filteredTransactions)
+        {
+            var colorClass = txn.Type switch
+            {
+                "Deposit" => "deposit",
+                "Withdrawal" => "withdrawal",
+                "Loan Payment" => "loan-payment",
+                "Loan Release" => "loan-release",
+                _ => ""
+            };
+            sb.Append($"<tr><td>{txn.Date:yyyy-MM-dd HH:mm}</td><td>{txn.Reference}</td><td class='{colorClass}'>{txn.Type}</td><td>{txn.CustomerName}</td><td style='text-align:right' class='{colorClass}'>₱{txn.Amount:N2}</td><td>{txn.Status}</td></tr>");
+        }
+        
+        sb.Append("</tbody></table>");
+        sb.Append($"<div class='footer'>Generated by FinanceBank Finance Manager System • Total Records: {filteredTransactions.Count}</div>");
+        sb.Append("</body></html>");
+        
+        var fileName = $"FinanceReport_{start:yyyyMMdd}_{end:yyyyMMdd}.html";
+        await DownloadFile(fileName, sb.ToString(), "text/html");
+    }
+
+    private async Task DownloadFile(string fileName, string content, string mimeType)
+    {
+        var bytes = System.Text.Encoding.UTF8.GetBytes(content);
+        var base64 = Convert.ToBase64String(bytes);
+        await JS.InvokeVoidAsync("eval", $@"
+            var link = document.createElement('a');
+            link.href = 'data:{mimeType};base64,{base64}';
+            link.download = '{fileName}';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        ");
+    }
+
+    private class TransactionRecord
+    {
+        public DateTime Date { get; set; }
+        public string Reference { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string Status { get; set; } = "";
     }
 }

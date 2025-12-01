@@ -1,0 +1,640 @@
+@page "/finance/cashflow-reports"
+@layout FinanceManagerLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using FinanceBank.Data
+@using Microsoft.EntityFrameworkCore
+@using System.Text
+@inject FinanceService FinanceService
+@inject AuthService AuthService
+@inject BFASDbContext DbContext
+@inject IJSRuntime JS
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+            </div>
+            <div>
+                <h1 style="font-size: 28px; font-weight: 700; color: white; margin: 0;">Cashflow Reports</h1>
+                <p style="color: rgba(255,255,255,0.8); margin: 4px 0 0 0;">Generate comprehensive cashflow analysis reports</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Configuration -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb; margin-bottom: 24px;">
+    <h2 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 20px 0;">📊 Report Configuration</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
+        <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Report Period</label>
+            <select @bind="reportPeriod" @bind:after="LoadReportData" class="form-control">
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="quarter">This Quarter</option>
+                <option value="year">This Year</option>
+                <option value="custom">Custom Range</option>
+            </select>
+        </div>
+        
+        @if (reportPeriod == "custom")
+        {
+            <div>
+                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Start Date</label>
+                <input type="date" @bind="startDate" class="form-control" />
+            </div>
+            <div>
+                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">End Date</label>
+                <input type="date" @bind="endDate" class="form-control" />
+            </div>
+        }
+        
+        <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Report Type</label>
+            <select @bind="reportType" class="form-control">
+                <option value="summary">Summary Report</option>
+                <option value="detailed">Detailed Transactions</option>
+                <option value="category">Category Breakdown</option>
+            </select>
+        </div>
+        
+        <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Report Format</label>
+            <select @bind="reportFormat" class="form-control">
+                <option value="pdf">PDF Document</option>
+                <option value="csv">Excel (CSV)</option>
+            </select>
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 12px;">
+        <button @onclick="GenerateReport" disabled="@isGenerating" style="padding: 12px 24px; background: linear-gradient(135deg, #0891b2, #0e7490); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            @if (isGenerating)
+            {
+                <div class="spinner"></div>
+                <span>Generating...</span>
+            }
+            else
+            {
+                <span>📥 Generate & Download Report</span>
+            }
+        </button>
+        <button @onclick="PreviewReport" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+            👁️ Preview Report
+        </button>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div style="background: #d1fae5; border: 2px solid #6ee7b7; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #047857;">
+        ✅ @successMessage
+    </div>
+}
+
+<!-- Report Preview -->
+@if (showPreview)
+{
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
+        <div style="background: linear-gradient(135deg, #0891b2, #0e7490); color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Cashflow Report Preview</h2>
+            <span style="font-size: 14px; opacity: 0.9;">@GetPeriodLabel()</span>
+        </div>
+        
+        <div style="padding: 24px;">
+            <!-- Summary Cards -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+                <div style="background: #f0fdf4; border-radius: 12px; padding: 16px; text-align: center;">
+                    <div style="font-size: 12px; color: #047857; font-weight: 600; margin-bottom: 4px;">Total Inflows</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #047857;">₱@totalInflows.ToString("N2")</div>
+                </div>
+                <div style="background: #fee2e2; border-radius: 12px; padding: 16px; text-align: center;">
+                    <div style="font-size: 12px; color: #dc2626; font-weight: 600; margin-bottom: 4px;">Total Outflows</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #dc2626;">₱@totalOutflows.ToString("N2")</div>
+                </div>
+                <div style="background: @(netCashflow >= 0 ? "#dbeafe" : "#fef3c7"); border-radius: 12px; padding: 16px; text-align: center;">
+                    <div style="font-size: 12px; color: @(netCashflow >= 0 ? "#1e40af" : "#92400e"); font-weight: 600; margin-bottom: 4px;">Net Cashflow</div>
+                    <div style="font-size: 20px; font-weight: 700; color: @(netCashflow >= 0 ? "#1e40af" : "#92400e");">@(netCashflow >= 0 ? "+" : "")₱@netCashflow.ToString("N2")</div>
+                </div>
+                <div style="background: #f3e8ff; border-radius: 12px; padding: 16px; text-align: center;">
+                    <div style="font-size: 12px; color: #6d28d9; font-weight: 600; margin-bottom: 4px;">Transaction Count</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #6d28d9;">@transactionCount</div>
+                </div>
+            </div>
+            
+            <!-- Category Breakdown -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                <div style="background: #f9fafb; border-radius: 12px; padding: 20px;">
+                    <h3 style="font-size: 14px; font-weight: 600; color: #047857; margin: 0 0 16px 0;">📈 Inflows by Category</h3>
+                    @foreach (var cat in inflowsByCategory)
+                    {
+                        var percentage = totalInflows > 0 ? (cat.Value / totalInflows * 100) : 0;
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span style="font-size: 13px; color: #374151;">@cat.Key</span>
+                                    <span style="font-size: 13px; font-weight: 600; color: #047857;">₱@cat.Value.ToString("N2")</span>
+                                </div>
+                                <div style="width: 100%; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden;">
+                                    <div style="width: @percentage%; height: 100%; background: #10b981; border-radius: 3px;"></div>
+                                </div>
+                            </div>
+                            <span style="font-size: 12px; color: #6b7280; min-width: 40px;">@percentage.ToString("N0")%</span>
+                        </div>
+                    }
+                </div>
+                
+                <div style="background: #f9fafb; border-radius: 12px; padding: 20px;">
+                    <h3 style="font-size: 14px; font-weight: 600; color: #dc2626; margin: 0 0 16px 0;">📉 Outflows by Category</h3>
+                    @foreach (var cat in outflowsByCategory)
+                    {
+                        var percentage = totalOutflows > 0 ? (cat.Value / totalOutflows * 100) : 0;
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span style="font-size: 13px; color: #374151;">@cat.Key</span>
+                                    <span style="font-size: 13px; font-weight: 600; color: #dc2626;">₱@cat.Value.ToString("N2")</span>
+                                </div>
+                                <div style="width: 100%; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden;">
+                                    <div style="width: @percentage%; height: 100%; background: #ef4444; border-radius: 3px;"></div>
+                                </div>
+                            </div>
+                            <span style="font-size: 12px; color: #6b7280; min-width: 40px;">@percentage.ToString("N0")%</span>
+                        </div>
+                    }
+                </div>
+            </div>
+            
+            <!-- Daily Breakdown Table -->
+            @if (dailyBreakdown.Any())
+            {
+                <h3 style="font-size: 16px; font-weight: 600; color: #111827; margin: 0 0 16px 0;">Daily Breakdown</h3>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f9fafb;">
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Date</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #047857; border-bottom: 2px solid #e5e7eb;">Inflows</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #dc2626; border-bottom: 2px solid #e5e7eb;">Outflows</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Net</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Transactions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var day in dailyBreakdown.OrderByDescending(d => d.Date))
+                            {
+                                var dayNet = day.Inflows - day.Outflows;
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 12px; font-weight: 500;">@day.Date.ToString("ddd, MMM dd yyyy")</td>
+                                    <td style="padding: 12px; text-align: right; color: #047857;">+₱@day.Inflows.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: right; color: #dc2626;">-₱@day.Outflows.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: @(dayNet >= 0 ? "#047857" : "#dc2626");">
+                                        @(dayNet >= 0 ? "+" : "")₱@dayNet.ToString("N2")
+                                    </td>
+                                    <td style="padding: 12px; text-align: center;">@day.TransactionCount</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: #f9fafb; font-weight: 700;">
+                                <td style="padding: 12px;">TOTAL</td>
+                                <td style="padding: 12px; text-align: right; color: #047857;">+₱@totalInflows.ToString("N2")</td>
+                                <td style="padding: 12px; text-align: right; color: #dc2626;">-₱@totalOutflows.ToString("N2")</td>
+                                <td style="padding: 12px; text-align: right; color: @(netCashflow >= 0 ? "#047857" : "#dc2626");">
+                                    @(netCashflow >= 0 ? "+" : "")₱@netCashflow.ToString("N2")
+                                </td>
+                                <td style="padding: 12px; text-align: center;">@transactionCount</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Quick Stats from Current Data -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+    <h2 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 20px 0;">📈 Cash Position Insights</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+        <div style="padding: 20px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; border-left: 4px solid #10b981;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <span style="font-size: 24px;">💰</span>
+                <div>
+                    <div style="font-weight: 600; color: #047857;">Strong Inflow Categories</div>
+                    <div style="font-size: 13px; color: #065f46;">Customer Deposits, Loan Payments</div>
+                </div>
+            </div>
+            <p style="font-size: 12px; color: #065f46; margin: 0;">These categories consistently contribute to positive cash flow.</p>
+        </div>
+        
+        <div style="padding: 20px; background: linear-gradient(135deg, #fef2f2, #fecaca); border-radius: 12px; border-left: 4px solid #ef4444;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <span style="font-size: 24px;">📊</span>
+                <div>
+                    <div style="font-weight: 600; color: #dc2626;">Major Outflow Categories</div>
+                    <div style="font-size: 13px; color: #991b1b;">Loan Disbursements, Withdrawals</div>
+                </div>
+            </div>
+            <p style="font-size: 12px; color: #991b1b; margin: 0;">Monitor these categories closely for liquidity management.</p>
+        </div>
+        
+        <div style="padding: 20px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 12px; border-left: 4px solid #3b82f6;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <span style="font-size: 24px;">💡</span>
+                <div>
+                    <div style="font-weight: 600; color: #1e40af;">Report Recommendation</div>
+                    <div style="font-size: 13px; color: #1e3a8a;">Weekly cashflow monitoring</div>
+                </div>
+            </div>
+            <p style="font-size: 12px; color: #1e3a8a; margin: 0;">Generate weekly reports to track trends and forecast needs.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+@code {
+    private string reportPeriod = "month";
+    private DateTime startDate = DateTime.Today.AddMonths(-1);
+    private DateTime endDate = DateTime.Today;
+    private string reportType = "summary";
+    private string reportFormat = "pdf";
+    
+    private bool isGenerating = false;
+    private bool showPreview = false;
+    private string successMessage = "";
+    
+    // Report data
+    private decimal totalInflows = 0;
+    private decimal totalOutflows = 0;
+    private decimal netCashflow => totalInflows - totalOutflows;
+    private int transactionCount = 0;
+    
+    private Dictionary<string, decimal> inflowsByCategory = new();
+    private Dictionary<string, decimal> outflowsByCategory = new();
+    private List<DailyBreakdownItem> dailyBreakdown = new();
+    private List<CashflowTransactionItem> allTransactions = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReportData();
+    }
+    
+    private async Task LoadReportData()
+    {
+        try
+        {
+            var (start, end) = GetDateRange();
+            
+            // Get customer transactions
+            var transactions = await DbContext.CustomerTransactions
+                .Where(t => t.CreatedAt >= start && t.CreatedAt <= end.AddDays(1))
+                .ToListAsync();
+            
+            // Get loan payments (inflows)
+            var loanPayments = await DbContext.LoanPayments
+                .Where(p => p.PaymentDate >= start && p.PaymentDate <= end.AddDays(1))
+                .ToListAsync();
+            
+            // Get loan disbursals (outflows)
+            var disbursals = await DbContext.LoanDisbursals
+                .Where(d => d.DisbursalDate >= start && d.DisbursalDate <= end.AddDays(1) && d.DisbursalStatus == "RELEASED")
+                .ToListAsync();
+            
+            // Build transaction list
+            allTransactions.Clear();
+            
+            foreach (var txn in transactions)
+            {
+                allTransactions.Add(new CashflowTransactionItem
+                {
+                    Date = txn.CreatedAt,
+                    Type = txn.TransactionType,
+                    Category = txn.TransactionType,
+                    Amount = txn.Amount,
+                    Reference = txn.Reference ?? ""
+                });
+            }
+            
+            foreach (var payment in loanPayments)
+            {
+                allTransactions.Add(new CashflowTransactionItem
+                {
+                    Date = payment.PaymentDate,
+                    Type = "Inflow",
+                    Category = "Loan Payment",
+                    Amount = payment.PaymentAmount,
+                    Reference = payment.Reference ?? ""
+                });
+            }
+            
+            foreach (var disbursal in disbursals)
+            {
+                allTransactions.Add(new CashflowTransactionItem
+                {
+                    Date = disbursal.DisbursalDate,
+                    Type = "Outflow",
+                    Category = "Loan Disbursal",
+                    Amount = disbursal.DisbursalAmount,
+                    Reference = disbursal.Reference ?? ""
+                });
+            }
+            
+            // Calculate totals
+            totalInflows = 0;
+            totalOutflows = 0;
+            inflowsByCategory.Clear();
+            outflowsByCategory.Clear();
+            
+            foreach (var txn in allTransactions)
+            {
+                if (txn.Type == "Deposit" || txn.Type == "Inflow" || txn.Category == "Loan Payment")
+                {
+                    totalInflows += txn.Amount;
+                    if (!inflowsByCategory.ContainsKey(txn.Category))
+                        inflowsByCategory[txn.Category] = 0;
+                    inflowsByCategory[txn.Category] += txn.Amount;
+                }
+                else
+                {
+                    totalOutflows += txn.Amount;
+                    if (!outflowsByCategory.ContainsKey(txn.Category))
+                        outflowsByCategory[txn.Category] = 0;
+                    outflowsByCategory[txn.Category] += txn.Amount;
+                }
+            }
+            
+            transactionCount = allTransactions.Count;
+            
+            // Calculate daily breakdown
+            dailyBreakdown = allTransactions
+                .GroupBy(t => t.Date.Date)
+                .Select(g => new DailyBreakdownItem
+                {
+                    Date = g.Key,
+                    Inflows = g.Where(t => t.Type == "Deposit" || t.Type == "Inflow" || t.Category == "Loan Payment").Sum(t => t.Amount),
+                    Outflows = g.Where(t => t.Type != "Deposit" && t.Type != "Inflow" && t.Category != "Loan Payment").Sum(t => t.Amount),
+                    TransactionCount = g.Count()
+                })
+                .OrderByDescending(d => d.Date)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error loading report data: " + ex.Message);
+        }
+    }
+    
+    private (DateTime start, DateTime end) GetDateRange()
+    {
+        var today = DateTime.Today;
+        return reportPeriod switch
+        {
+            "today" => (today, today),
+            "week" => (today.AddDays(-(int)today.DayOfWeek), today),
+            "month" => (new DateTime(today.Year, today.Month, 1), today),
+            "quarter" => (new DateTime(today.Year, ((today.Month - 1) / 3) * 3 + 1, 1), today),
+            "year" => (new DateTime(today.Year, 1, 1), today),
+            "custom" => (startDate, endDate),
+            _ => (today.AddMonths(-1), today)
+        };
+    }
+    
+    private string GetPeriodLabel()
+    {
+        var (start, end) = GetDateRange();
+        return start.ToString("MMM dd, yyyy") + " - " + end.ToString("MMM dd, yyyy");
+    }
+    
+    private async Task PreviewReport()
+    {
+        await LoadReportData();
+        showPreview = true;
+    }
+    
+    private async Task GenerateReport()
+    {
+        try
+        {
+            isGenerating = true;
+            StateHasChanged();
+            
+            await LoadReportData();
+            
+            if (reportFormat == "csv")
+            {
+                await GenerateCsvReport();
+            }
+            else
+            {
+                await GeneratePdfReport();
+            }
+            
+            successMessage = "Report generated and downloaded successfully!";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error generating report: " + ex.Message);
+        }
+        finally
+        {
+            isGenerating = false;
+            StateHasChanged();
+        }
+    }
+    
+    private async Task GenerateCsvReport()
+    {
+        var sb = new StringBuilder();
+        
+        sb.AppendLine("Cashflow Analysis Report");
+        sb.AppendLine("Period: " + GetPeriodLabel());
+        sb.AppendLine("Generated: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+        sb.AppendLine("Generated By: " + AuthService.CurrentUser);
+        sb.AppendLine();
+        
+        sb.AppendLine("SUMMARY");
+        sb.AppendLine("Total Inflows," + totalInflows.ToString("N2"));
+        sb.AppendLine("Total Outflows," + totalOutflows.ToString("N2"));
+        sb.AppendLine("Net Cashflow," + netCashflow.ToString("N2"));
+        sb.AppendLine("Transaction Count," + transactionCount);
+        sb.AppendLine();
+        
+        sb.AppendLine("INFLOWS BY CATEGORY");
+        sb.AppendLine("Category,Amount");
+        foreach (var cat in inflowsByCategory)
+        {
+            sb.AppendLine(cat.Key + "," + cat.Value.ToString("N2"));
+        }
+        sb.AppendLine();
+        
+        sb.AppendLine("OUTFLOWS BY CATEGORY");
+        sb.AppendLine("Category,Amount");
+        foreach (var cat in outflowsByCategory)
+        {
+            sb.AppendLine(cat.Key + "," + cat.Value.ToString("N2"));
+        }
+        sb.AppendLine();
+        
+        if (reportType == "detailed")
+        {
+            sb.AppendLine("TRANSACTION DETAILS");
+            sb.AppendLine("Date,Type,Category,Amount,Reference");
+            foreach (var txn in allTransactions.OrderByDescending(t => t.Date))
+            {
+                sb.AppendLine(string.Format("{0},{1},{2},{3},\"{4}\"",
+                    txn.Date.ToString("yyyy-MM-dd HH:mm"),
+                    txn.Type,
+                    txn.Category,
+                    txn.Amount.ToString("N2"),
+                    txn.Reference));
+            }
+        }
+        
+        var content = sb.ToString();
+        var fileName = "Cashflow_Report_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".csv";
+        
+        await DownloadFile(content, fileName, "text/csv");
+    }
+    
+    private async Task GeneratePdfReport()
+    {
+        var sb = new StringBuilder();
+        
+        sb.Append("<!DOCTYPE html><html><head><meta charset='utf-8'><title>Cashflow Report</title>");
+        sb.Append("<style>");
+        sb.Append("body{font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:40px;background:#fff;color:#111;}");
+        sb.Append(".header{text-align:center;margin-bottom:40px;padding-bottom:20px;border-bottom:3px solid #0891b2;}");
+        sb.Append(".header h1{color:#0e7490;margin:0 0 8px 0;font-size:28px;}");
+        sb.Append(".header p{color:#6b7280;margin:0;font-size:14px;}");
+        sb.Append(".summary{display:flex;justify-content:space-around;margin-bottom:40px;}");
+        sb.Append(".summary-card{text-align:center;padding:20px;background:#f9fafb;border-radius:12px;min-width:140px;}");
+        sb.Append(".summary-card .label{font-size:12px;color:#6b7280;margin-bottom:4px;}");
+        sb.Append(".summary-card .value{font-size:22px;font-weight:700;}");
+        sb.Append(".green{color:#047857;}.red{color:#dc2626;}.blue{color:#1e40af;}");
+        sb.Append(".section{margin-bottom:30px;}");
+        sb.Append(".section h2{font-size:16px;color:#111;margin:0 0 16px 0;padding-bottom:8px;border-bottom:2px solid #e5e7eb;}");
+        sb.Append("table{width:100%;border-collapse:collapse;}");
+        sb.Append("th{background:#0891b2;color:white;padding:10px;text-align:left;font-size:12px;}");
+        sb.Append("td{padding:8px 10px;border-bottom:1px solid #e5e7eb;font-size:12px;}");
+        sb.Append("tr:nth-child(even){background:#f9fafb;}");
+        sb.Append(".right{text-align:right;}.center{text-align:center;}");
+        sb.Append(".footer{margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;text-align:center;color:#6b7280;font-size:12px;}");
+        sb.Append("</style></head><body>");
+        
+        sb.Append("<div class='header'>");
+        sb.Append("<h1>Cashflow Analysis Report</h1>");
+        sb.Append("<p>Period: " + GetPeriodLabel() + "</p>");
+        sb.Append("</div>");
+        
+        sb.Append("<div class='summary'>");
+        sb.Append("<div class='summary-card'><div class='label'>Total Inflows</div><div class='value green'>P" + totalInflows.ToString("N2") + "</div></div>");
+        sb.Append("<div class='summary-card'><div class='label'>Total Outflows</div><div class='value red'>P" + totalOutflows.ToString("N2") + "</div></div>");
+        var netClass = netCashflow >= 0 ? "green" : "red";
+        var netSign = netCashflow >= 0 ? "+" : "";
+        sb.Append("<div class='summary-card'><div class='label'>Net Cashflow</div><div class='value " + netClass + "'>" + netSign + "P" + netCashflow.ToString("N2") + "</div></div>");
+        sb.Append("<div class='summary-card'><div class='label'>Transactions</div><div class='value blue'>" + transactionCount + "</div></div>");
+        sb.Append("</div>");
+        
+        // Inflows section
+        sb.Append("<div class='section'><h2>Inflows by Category</h2>");
+        foreach (var cat in inflowsByCategory.OrderByDescending(c => c.Value))
+        {
+            var pct = totalInflows > 0 ? (cat.Value / totalInflows * 100) : 0;
+            sb.Append("<div style='margin-bottom:8px;'><span>" + cat.Key + "</span><span style='float:right;color:#047857;font-weight:600;'>P" + cat.Value.ToString("N2") + " (" + pct.ToString("N0") + "%)</span></div>");
+        }
+        sb.Append("</div>");
+        
+        // Outflows section
+        sb.Append("<div class='section'><h2>Outflows by Category</h2>");
+        foreach (var cat in outflowsByCategory.OrderByDescending(c => c.Value))
+        {
+            var pct = totalOutflows > 0 ? (cat.Value / totalOutflows * 100) : 0;
+            sb.Append("<div style='margin-bottom:8px;'><span>" + cat.Key + "</span><span style='float:right;color:#dc2626;font-weight:600;'>P" + cat.Value.ToString("N2") + " (" + pct.ToString("N0") + "%)</span></div>");
+        }
+        sb.Append("</div>");
+        
+        // Daily breakdown
+        sb.Append("<div class='section'><h2>Daily Breakdown</h2>");
+        sb.Append("<table><thead><tr><th>Date</th><th class='right'>Inflows</th><th class='right'>Outflows</th><th class='right'>Net</th><th class='center'>Count</th></tr></thead><tbody>");
+        
+        foreach (var day in dailyBreakdown.OrderByDescending(d => d.Date).Take(14))
+        {
+            var dayNet = day.Inflows - day.Outflows;
+            var dayNetColor = dayNet >= 0 ? "#047857" : "#dc2626";
+            var dayNetSign = dayNet >= 0 ? "+" : "";
+            
+            sb.Append("<tr>");
+            sb.Append("<td>" + day.Date.ToString("ddd, MMM dd") + "</td>");
+            sb.Append("<td class='right' style='color:#047857;'>+P" + day.Inflows.ToString("N2") + "</td>");
+            sb.Append("<td class='right' style='color:#dc2626;'>-P" + day.Outflows.ToString("N2") + "</td>");
+            sb.Append("<td class='right' style='color:" + dayNetColor + ";font-weight:600;'>" + dayNetSign + "P" + dayNet.ToString("N2") + "</td>");
+            sb.Append("<td class='center'>" + day.TransactionCount + "</td>");
+            sb.Append("</tr>");
+        }
+        
+        sb.Append("</tbody></table></div>");
+        
+        sb.Append("<div class='footer'>");
+        sb.Append("<p>Generated on " + DateTime.Now.ToString("MMMM dd, yyyy") + " at " + DateTime.Now.ToString("hh:mm tt") + " by " + AuthService.CurrentUser + "</p>");
+        sb.Append("<p>FinanceBank Cashflow Management System</p>");
+        sb.Append("</div>");
+        
+        sb.Append("</body></html>");
+        
+        var content = sb.ToString();
+        var fileName = "Cashflow_Report_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".html";
+        
+        await DownloadFile(content, fileName, "text/html");
+    }
+    
+    private async Task DownloadFile(string content, string fileName, string mimeType)
+    {
+        var bytes = System.Text.Encoding.UTF8.GetBytes(content);
+        var base64 = Convert.ToBase64String(bytes);
+        
+        await JS.InvokeVoidAsync("eval", 
+            "var link = document.createElement('a');" +
+            "link.href = 'data:" + mimeType + ";base64," + base64 + "';" +
+            "link.download = '" + fileName + "';" +
+            "document.body.appendChild(link);" +
+            "link.click();" +
+            "document.body.removeChild(link);");
+    }
+    
+    private class CashflowTransactionItem
+    {
+        public DateTime Date { get; set; }
+        public string Type { get; set; } = "";
+        public string Category { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string Reference { get; set; } = "";
+    }
+    
+    private class DailyBreakdownItem
+    {
+        public DateTime Date { get; set; }
+        public decimal Inflows { get; set; }
+        public decimal Outflows { get; set; }
+        public int TransactionCount { get; set; }
+    }
+}

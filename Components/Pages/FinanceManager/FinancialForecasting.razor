@@ -1,0 +1,614 @@
+@page "/finance/financial-forecasting"
+@layout FinanceManagerLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject FinanceService FinanceService
+@inject AuthService AuthService
+@inject BFASDbContext DbContext
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
+                <polyline points="7.5 19.79 7.5 14.6 3 12"></polyline>
+                <polyline points="21 12 16.5 14.6 16.5 19.79"></polyline>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 28px; font-weight: 700; color: white; margin: 0;">Financial Forecasting</h1>
+            <p style="color: rgba(255,255,255,0.8); margin: 4px 0 0 0;">Create projections and analyze variance based on historical data</p>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 24px;">
+    <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 16px; padding: 24px; border: 2px solid #93c5fd;">
+        <div style="font-size: 13px; color: #1e40af; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">📊 Total Projected</div>
+        <div style="font-size: 28px; font-weight: 700; color: #1e40af;">₱@totalProjected.ToString("N2")</div>
+        <div style="font-size: 12px; color: #3b82f6; margin-top: 4px;">@activeForecasts.Count active forecasts</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 16px; padding: 24px; border: 2px solid #6ee7b7;">
+        <div style="font-size: 13px; color: #047857; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">✓ Total Actual</div>
+        <div style="font-size: 28px; font-weight: 700; color: #047857;">₱@totalActual.ToString("N2")</div>
+        <div style="font-size: 12px; color: #059669; margin-top: 4px;">Realized amounts</div>
+    </div>
+    <div style="background: linear-gradient(135deg, @(overallVariance >= 0 ? "#fef3c7, #fde68a" : "#fee2e2, #fecaca")); border-radius: 16px; padding: 24px; border: 2px solid @(overallVariance >= 0 ? "#fcd34d" : "#fca5a5");">
+        <div style="font-size: 13px; color: @(overallVariance >= 0 ? "#92400e" : "#b91c1c"); font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">📈 Avg Variance</div>
+        <div style="font-size: 28px; font-weight: 700; color: @(overallVariance >= 0 ? "#92400e" : "#b91c1c");">@overallVariance.ToString("N1")%</div>
+        <div style="font-size: 12px; color: @(overallVariance >= 0 ? "#b45309" : "#dc2626"); margin-top: 4px;">@(overallVariance >= 0 ? "Above projections" : "Below projections")</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #f3e8ff, #e9d5ff); border-radius: 16px; padding: 24px; border: 2px solid #c4b5fd;">
+        <div style="font-size: 13px; color: #6d28d9; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">🎯 Accuracy Rate</div>
+        <div style="font-size: 28px; font-weight: 700; color: #6d28d9;">@accuracyRate.ToString("N1")%</div>
+        <div style="font-size: 12px; color: #7c3aed; margin-top: 4px;">Within 10% variance</div>
+    </div>
+</div>
+
+<!-- Action Bar -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <select @bind="filterType" class="form-control" style="width: 180px;">
+            <option value="">All Types</option>
+            <option value="Revenue">Revenue</option>
+            <option value="Expense">Expense</option>
+            <option value="Cashflow">Cashflow</option>
+            <option value="Loan Portfolio">Loan Portfolio</option>
+            <option value="Deposits">Deposits</option>
+        </select>
+        <button @onclick="GenerateAutoForecast" style="padding: 10px 20px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+            🔮 Auto-Generate Forecast
+        </button>
+    </div>
+    <button class="btn btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600;" @onclick="ShowAddModal">
+        + Create Forecast
+    </button>
+</div>
+
+<!-- Alerts -->
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div style="background: #d1fae5; border: 2px solid #6ee7b7; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #047857;">
+        ✅ @successMessage
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div style="background: #fee2e2; border: 2px solid #fca5a5; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #b91c1c;">
+        ❌ @errorMessage
+    </div>
+}
+
+<!-- Forecasts Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 24px;">
+    @foreach (var forecast in FilteredForecasts)
+    {
+        var varianceColor = forecast.Variance >= 0 ? "#059669" : "#dc2626";
+        var varianceBg = forecast.Variance >= 0 ? "#d1fae5" : "#fee2e2";
+        var progress = forecast.ProjectedAmount > 0 ? Math.Min((forecast.ActualAmount / forecast.ProjectedAmount) * 100, 150) : 0;
+        
+        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                <div>
+                    <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 4px 0;">@forecast.ForecastName</h3>
+                    <span style="font-size: 12px; padding: 4px 10px; border-radius: 20px; background: @GetTypeBg(forecast.ForecastType); color: @GetTypeColor(forecast.ForecastType); font-weight: 600;">@forecast.ForecastType</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button @onclick="() => EditForecast(forecast)" style="padding: 6px 10px; background: #f3f4f6; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">Edit</button>
+                    <button @onclick="() => UpdateActual(forecast)" style="padding: 6px 10px; background: #dbeafe; color: #1e40af; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">Update</button>
+                </div>
+            </div>
+            
+            <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <div>
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Projected</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #3b82f6;">₱@forecast.ProjectedAmount.ToString("N2")</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Actual</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #111827;">₱@forecast.ActualAmount.ToString("N2")</div>
+                    </div>
+                </div>
+                
+                <div style="width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                    <div style="width: @(Math.Min(progress, 100))%; height: 100%; background: @(progress > 100 ? "#10b981" : progress > 80 ? "#3b82f6" : "#f59e0b"); border-radius: 4px; transition: width 0.3s;"></div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 12px; color: #6b7280;">@progress.ToString("N1")% achieved</span>
+                    <span style="font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 12px; background: @varianceBg; color: @varianceColor;">
+                        @(forecast.Variance >= 0 ? "+" : "")@forecast.Variance.ToString("N1")% variance
+                    </span>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #6b7280;">
+                <span>📅 @forecast.PeriodStart.ToString("MMM dd") - @forecast.PeriodEnd.ToString("MMM dd, yyyy")</span>
+                <span>By: @(forecast.CreatedBy ?? "System")</span>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(forecast.Assumptions))
+            {
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+                    <div style="font-size: 11px; color: #6b7280; text-transform: uppercase; margin-bottom: 4px;">Assumptions</div>
+                    <div style="font-size: 12px; color: #374151;">@(forecast.Assumptions.Length > 100 ? forecast.Assumptions.Substring(0, 100) + "..." : forecast.Assumptions)</div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@if (!FilteredForecasts.Any())
+{
+    <div style="background: white; border-radius: 16px; padding: 60px; text-align: center; border: 1px solid #e5e7eb;">
+        <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+        <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0 0 8px 0;">No Forecasts Found</h3>
+        <p style="color: #6b7280; margin: 0 0 20px 0;">Create your first financial forecast or use auto-generate based on historical data.</p>
+        <button @onclick="ShowAddModal" style="padding: 12px 24px; background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+            Create Forecast
+        </button>
+    </div>
+}
+
+<!-- Historical Comparison -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb; margin-top: 24px;">
+    <h2 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 20px 0;">📈 Historical Data (Last 6 Months)</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
+        @foreach (var month in historicalData)
+        {
+            <div style="background: #f9fafb; border-radius: 12px; padding: 16px; text-align: center;">
+                <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">@month.Month</div>
+                <div style="font-size: 11px; color: #059669; margin-bottom: 4px;">Deposits: ₱@month.Deposits.ToString("N0")</div>
+                <div style="font-size: 11px; color: #dc2626; margin-bottom: 4px;">Withdrawals: ₱@month.Withdrawals.ToString("N0")</div>
+                <div style="font-size: 11px; color: #3b82f6;">Loans: ₱@month.LoanDisbursements.ToString("N0")</div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Add/Edit Forecast Modal -->
+@if (showModal)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);" @onclick="CloseModal">
+        <div style="background: white; border-radius: 20px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.25);" @onclick:stopPropagation>
+            <div style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); padding: 24px; color: white;">
+                <h2 style="margin: 0; font-size: 20px; font-weight: 700;">@(isEditing ? "Edit Forecast" : "Create New Forecast")</h2>
+            </div>
+            
+            <div style="padding: 24px;">
+                <div style="display: grid; gap: 20px;">
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Forecast Name *</label>
+                        <input type="text" @bind="editForecast.ForecastName" class="form-control" placeholder="e.g., Q1 2025 Revenue Projection" />
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Forecast Type *</label>
+                        <select @bind="editForecast.ForecastType" class="form-control">
+                            <option value="">Select Type</option>
+                            <option value="Revenue">Revenue</option>
+                            <option value="Expense">Expense</option>
+                            <option value="Cashflow">Cashflow</option>
+                            <option value="Loan Portfolio">Loan Portfolio</option>
+                            <option value="Deposits">Deposits</option>
+                        </select>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Period Start *</label>
+                            <input type="date" @bind="editForecast.PeriodStart" class="form-control" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Period End *</label>
+                            <input type="date" @bind="editForecast.PeriodEnd" class="form-control" />
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Projected Amount *</label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6b7280;">₱</span>
+                            <input type="number" @bind="editForecast.ProjectedAmount" class="form-control" style="padding-left: 30px;" placeholder="0.00" step="0.01" />
+                        </div>
+                    </div>
+                    
+                    @if (isEditing)
+                    {
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Actual Amount</label>
+                            <div style="position: relative;">
+                                <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6b7280;">₱</span>
+                                <input type="number" @bind="editForecast.ActualAmount" class="form-control" style="padding-left: 30px;" placeholder="0.00" step="0.01" />
+                            </div>
+                        </div>
+                    }
+                    
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Assumptions & Notes</label>
+                        <textarea @bind="editForecast.Assumptions" class="form-control" rows="3" placeholder="Describe the basis for this projection..."></textarea>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button @onclick="SaveForecast" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                        @(isEditing ? "Update Forecast" : "Create Forecast")
+                    </button>
+                    <button @onclick="CloseModal" style="padding: 14px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Update Actual Modal -->
+@if (showUpdateModal && selectedForecast != null)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);" @onclick="CloseUpdateModal">
+        <div style="background: white; border-radius: 20px; width: 90%; max-width: 450px; box-shadow: 0 25px 50px rgba(0,0,0,0.25);" @onclick:stopPropagation>
+            <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 24px; color: white;">
+                <h2 style="margin: 0; font-size: 20px; font-weight: 700;">Update Actual Amount</h2>
+                <p style="margin: 4px 0 0 0; opacity: 0.9; font-size: 14px;">@selectedForecast.ForecastName</p>
+            </div>
+            
+            <div style="padding: 24px;">
+                <div style="background: #f3f4f6; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #6b7280;">Projected:</span>
+                        <span style="font-weight: 600;">₱@selectedForecast.ProjectedAmount.ToString("N2")</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #6b7280;">Current Actual:</span>
+                        <span style="font-weight: 600;">₱@selectedForecast.ActualAmount.ToString("N2")</span>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">New Actual Amount</label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6b7280;">₱</span>
+                        <input type="number" @bind="newActualAmount" class="form-control" style="padding-left: 30px;" placeholder="0.00" step="0.01" />
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px;">
+                    <button @onclick="SaveActualAmount" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                        Update Actual
+                    </button>
+                    <button @onclick="CloseUpdateModal" style="padding: 14px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+@code {
+    private List<FinancialForecast> forecasts = new();
+    private List<FinancialForecast> activeForecasts => forecasts.Where(f => f.PeriodEnd >= DateTime.Today.AddMonths(-3)).ToList();
+    private FinancialForecast editForecast = new();
+    private FinancialForecast? selectedForecast;
+    
+    private bool showModal = false;
+    private bool showUpdateModal = false;
+    private bool isEditing = false;
+    
+    private string successMessage = "";
+    private string errorMessage = "";
+    private string filterType = "";
+    
+    private decimal newActualAmount = 0;
+    
+    // Metrics
+    private decimal totalProjected => activeForecasts.Sum(f => f.ProjectedAmount);
+    private decimal totalActual => activeForecasts.Sum(f => f.ActualAmount);
+    private decimal overallVariance => activeForecasts.Any() ? activeForecasts.Average(f => f.Variance) : 0;
+    private decimal accuracyRate => activeForecasts.Any() ? 
+        (decimal)activeForecasts.Count(f => Math.Abs(f.Variance) <= 10) / activeForecasts.Count * 100 : 0;
+    
+    private List<MonthlyHistorical> historicalData = new();
+    
+    private IEnumerable<FinancialForecast> FilteredForecasts => forecasts
+        .Where(f => string.IsNullOrEmpty(filterType) || f.ForecastType == filterType)
+        .OrderByDescending(f => f.CreatedAt);
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadForecasts();
+        await LoadHistoricalData();
+    }
+    
+    private async Task LoadForecasts()
+    {
+        try
+        {
+            forecasts = await FinanceService.GetAllFinancialForecastsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading forecasts: {ex.Message}";
+        }
+    }
+    
+    private async Task LoadHistoricalData()
+    {
+        try
+        {
+            historicalData = new List<MonthlyHistorical>();
+            
+            for (int i = 5; i >= 0; i--)
+            {
+                var monthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(-i);
+                var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+                
+                var deposits = await DbContext.CustomerTransactions
+                    .Where(t => t.TransactionType == "Deposit" && t.CreatedAt >= monthStart && t.CreatedAt <= monthEnd)
+                    .SumAsync(t => t.Amount);
+                
+                var withdrawals = await DbContext.CustomerTransactions
+                    .Where(t => t.TransactionType == "Withdrawal" && t.CreatedAt >= monthStart && t.CreatedAt <= monthEnd)
+                    .SumAsync(t => t.Amount);
+                
+                var loanDisbursements = await DbContext.LoanDisbursals
+                    .Where(d => d.DisbursalDate >= monthStart && d.DisbursalDate <= monthEnd)
+                    .SumAsync(d => d.DisbursalAmount);
+                
+                historicalData.Add(new MonthlyHistorical
+                {
+                    Month = monthStart.ToString("MMM yyyy"),
+                    Deposits = deposits,
+                    Withdrawals = withdrawals,
+                    LoanDisbursements = loanDisbursements
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading historical data: {ex.Message}");
+        }
+    }
+    
+    private void ShowAddModal()
+    {
+        editForecast = new FinancialForecast
+        {
+            PeriodStart = DateTime.Today,
+            PeriodEnd = DateTime.Today.AddMonths(1),
+            CreatedBy = AuthService.CurrentUser
+        };
+        isEditing = false;
+        showModal = true;
+        ClearMessages();
+    }
+    
+    private void EditForecast(FinancialForecast forecast)
+    {
+        editForecast = new FinancialForecast
+        {
+            ForecastId = forecast.ForecastId,
+            ForecastName = forecast.ForecastName,
+            ForecastType = forecast.ForecastType,
+            PeriodStart = forecast.PeriodStart,
+            PeriodEnd = forecast.PeriodEnd,
+            ProjectedAmount = forecast.ProjectedAmount,
+            ActualAmount = forecast.ActualAmount,
+            Variance = forecast.Variance,
+            Assumptions = forecast.Assumptions,
+            CreatedAt = forecast.CreatedAt,
+            CreatedBy = forecast.CreatedBy
+        };
+        isEditing = true;
+        showModal = true;
+        ClearMessages();
+    }
+    
+    private async Task SaveForecast()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(editForecast.ForecastName) ||
+                string.IsNullOrWhiteSpace(editForecast.ForecastType) ||
+                editForecast.ProjectedAmount <= 0)
+            {
+                errorMessage = "Please fill in all required fields.";
+                return;
+            }
+            
+            // Calculate variance
+            if (editForecast.ProjectedAmount > 0)
+            {
+                editForecast.Variance = ((editForecast.ActualAmount - editForecast.ProjectedAmount) / editForecast.ProjectedAmount) * 100;
+            }
+            
+            if (isEditing)
+            {
+                await FinanceService.UpdateFinancialForecastAsync(editForecast);
+                successMessage = "Forecast updated successfully!";
+            }
+            else
+            {
+                editForecast.CreatedAt = DateTime.Now;
+                await FinanceService.CreateFinancialForecastAsync(editForecast);
+                successMessage = "Forecast created successfully!";
+            }
+            
+            await LoadForecasts();
+            CloseModal();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error saving forecast: {ex.Message}";
+        }
+    }
+    
+    private void UpdateActual(FinancialForecast forecast)
+    {
+        selectedForecast = forecast;
+        newActualAmount = forecast.ActualAmount;
+        showUpdateModal = true;
+        ClearMessages();
+    }
+    
+    private async Task SaveActualAmount()
+    {
+        if (selectedForecast == null) return;
+        
+        try
+        {
+            var forecast = await FinanceService.GetFinancialForecastByIdAsync(selectedForecast.ForecastId);
+            if (forecast != null)
+            {
+                forecast.ActualAmount = newActualAmount;
+                if (forecast.ProjectedAmount > 0)
+                {
+                    forecast.Variance = ((forecast.ActualAmount - forecast.ProjectedAmount) / forecast.ProjectedAmount) * 100;
+                }
+                await FinanceService.UpdateFinancialForecastAsync(forecast);
+                successMessage = "Actual amount updated successfully!";
+                await LoadForecasts();
+                CloseUpdateModal();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating actual: {ex.Message}";
+        }
+    }
+    
+    private async Task GenerateAutoForecast()
+    {
+        try
+        {
+            // Generate forecasts based on historical data
+            if (historicalData.Count < 3)
+            {
+                errorMessage = "Not enough historical data. Need at least 3 months of data.";
+                return;
+            }
+            
+            var avgDeposits = historicalData.Average(h => h.Deposits);
+            var avgWithdrawals = historicalData.Average(h => h.Withdrawals);
+            var avgLoans = historicalData.Average(h => h.LoanDisbursements);
+            
+            var nextMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1);
+            var endOfNextMonth = nextMonth.AddMonths(1).AddDays(-1);
+            
+            // Create deposit forecast
+            var depositForecast = new FinancialForecast
+            {
+                ForecastName = $"Deposits Forecast - {nextMonth:MMM yyyy}",
+                ForecastType = "Deposits",
+                PeriodStart = nextMonth,
+                PeriodEnd = endOfNextMonth,
+                ProjectedAmount = avgDeposits * 1.05m, // 5% growth assumption
+                Assumptions = $"Based on 6-month average of ₱{avgDeposits:N2} with 5% growth assumption",
+                CreatedAt = DateTime.Now,
+                CreatedBy = AuthService.CurrentUser
+            };
+            await FinanceService.CreateFinancialForecastAsync(depositForecast);
+            
+            // Create loan portfolio forecast
+            var loanForecast = new FinancialForecast
+            {
+                ForecastName = $"Loan Disbursements - {nextMonth:MMM yyyy}",
+                ForecastType = "Loan Portfolio",
+                PeriodStart = nextMonth,
+                PeriodEnd = endOfNextMonth,
+                ProjectedAmount = avgLoans * 1.1m, // 10% growth assumption
+                Assumptions = $"Based on 6-month average of ₱{avgLoans:N2} with 10% growth target",
+                CreatedAt = DateTime.Now,
+                CreatedBy = AuthService.CurrentUser
+            };
+            await FinanceService.CreateFinancialForecastAsync(loanForecast);
+            
+            // Create cashflow forecast
+            var cashflowForecast = new FinancialForecast
+            {
+                ForecastName = $"Net Cashflow - {nextMonth:MMM yyyy}",
+                ForecastType = "Cashflow",
+                PeriodStart = nextMonth,
+                PeriodEnd = endOfNextMonth,
+                ProjectedAmount = (avgDeposits * 1.05m) - (avgWithdrawals * 0.95m),
+                Assumptions = "Projected deposits minus projected withdrawals",
+                CreatedAt = DateTime.Now,
+                CreatedBy = AuthService.CurrentUser
+            };
+            await FinanceService.CreateFinancialForecastAsync(cashflowForecast);
+            
+            successMessage = $"Auto-generated 3 forecasts for {nextMonth:MMMM yyyy}!";
+            await LoadForecasts();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error generating forecasts: {ex.Message}";
+        }
+    }
+    
+    private void CloseModal()
+    {
+        showModal = false;
+        editForecast = new();
+    }
+    
+    private void CloseUpdateModal()
+    {
+        showUpdateModal = false;
+        selectedForecast = null;
+    }
+    
+    private void ClearMessages()
+    {
+        successMessage = "";
+        errorMessage = "";
+    }
+    
+    private string GetTypeBg(string type)
+    {
+        return type switch
+        {
+            "Revenue" => "#d1fae5",
+            "Expense" => "#fee2e2",
+            "Cashflow" => "#dbeafe",
+            "Loan Portfolio" => "#fef3c7",
+            "Deposits" => "#f3e8ff",
+            _ => "#f3f4f6"
+        };
+    }
+    
+    private string GetTypeColor(string type)
+    {
+        return type switch
+        {
+            "Revenue" => "#047857",
+            "Expense" => "#dc2626",
+            "Cashflow" => "#1e40af",
+            "Loan Portfolio" => "#92400e",
+            "Deposits" => "#6d28d9",
+            _ => "#374151"
+        };
+    }
+    
+    private class MonthlyHistorical
+    {
+        public string Month { get; set; } = "";
+        public decimal Deposits { get; set; }
+        public decimal Withdrawals { get; set; }
+        public decimal LoanDisbursements { get; set; }
+    }
+}

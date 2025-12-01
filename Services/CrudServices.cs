@@ -470,8 +470,8 @@ public class AccountsPayableService
     public async Task<List<AccountsPayable>> GetFMApprovedInterestPayoutsAsync()
     {
         return await _context.AccountsPayables
-            .Where(p => p.Status == "Approved" && 
-                       p.Description != null && 
+            .Where(p => p.Status == "Approved" &&
+                       p.Description != null &&
                        p.Description.Contains("Savings Interest"))
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
