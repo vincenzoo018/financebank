@@ -629,12 +629,261 @@ public class JournalEntryService
     {
         _context = context;
     }
+
+    /// <summary>
+    /// Get all journal entries including auto-generated ones from real transactions
+    /// </summary>
     public async Task<List<JournalEntry>> GetAllAsync()
     {
-        return await _context.JournalEntries
+        // Get manually created journal entries
+        var manualEntries = await _context.JournalEntries
             .Include(je => je.Lines)
             .OrderByDescending(je => je.CreatedAt)
             .ToListAsync();
+
+        return manualEntries;
+    }
+
+    /// <summary>
+    /// Get all journal entries with auto-generated entries from CustomerTransactions, LoanPayments, LoanDisbursals
+    /// </summary>
+    public async Task<List<JournalEntry>> GetAllWithTransactionsAsync()
+    {
+        var entries = new List<JournalEntry>();
+
+        try
+        {
+            // Get manual journal entries
+            var manualEntries = await _context.JournalEntries
+                .Include(je => je.Lines)
+                .OrderByDescending(je => je.CreatedAt)
+                .ToListAsync();
+            entries.AddRange(manualEntries);
+
+            // Auto-generate journal entries from CustomerTransactions (Deposits, Withdrawals, Transfers)
+            var customerTransactions = await _context.CustomerTransactions
+                .Include(t => t.Account)
+                .ThenInclude(a => a!.Customer)
+                .Where(t => t.Status == "Completed")
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
+
+            foreach (var txn in customerTransactions)
+            {
+                try
+                {
+                    var journalEntry = CreateJournalFromTransaction(txn);
+                    if (journalEntry != null)
+                        entries.Add(journalEntry);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error creating journal from transaction {txn.TransactionId}: {ex.Message}");
+                }
+            }
+
+            // Auto-generate journal entries from Loan Payments
+            var loanPayments = await _context.LoanPayments
+                .Include(p => p.Loan)
+                .Include(p => p.PaymentSchedule)
+                .OrderByDescending(p => p.PaymentDate)
+                .ToListAsync();
+
+            foreach (var payment in loanPayments)
+            {
+                try
+                {
+                    var journalEntry = CreateJournalFromLoanPayment(payment);
+                    if (journalEntry != null)
+                        entries.Add(journalEntry);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error creating journal from loan payment {payment.PaymentId}: {ex.Message}");
+                }
+            }
+
+            // Auto-generate journal entries from Loan Disbursals
+            var loanDisbursals = await _context.LoanDisbursals
+                .Include(d => d.Loan)
+                .Where(d => d.DisbursalStatus == "Completed")
+                .OrderByDescending(d => d.DisbursalDate)
+                .ToListAsync();
+
+            foreach (var disbursal in loanDisbursals)
+            {
+                try
+                {
+                    var journalEntry = CreateJournalFromLoanDisbursal(disbursal);
+                    if (journalEntry != null)
+                        entries.Add(journalEntry);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error creating journal from disbursal {disbursal.DisbursalId}: {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error in GetAllWithTransactionsAsync: {ex.Message}");
+            throw; // Re-throw so the caller can see the error
+        }
+
+        return entries.OrderByDescending(e => e.TransactionDate).ThenByDescending(e => e.CreatedAt).ToList();
+    }
+
+    /// <summary>
+    /// Create journal entry from customer transaction (Deposit, Withdrawal, Transfer)
+    /// </summary>
+    private JournalEntry? CreateJournalFromTransaction(CustomerTransaction txn)
+    {
+        var customerName = txn.Account?.Customer?.FullName ?? $"Account #{txn.AccountId}";
+        var accountNumber = txn.Account?.AccountNumber ?? "";
+
+        var entry = new JournalEntry
+        {
+            JournalId = -txn.TransactionId, // Negative ID for auto-generated
+            JournalNumber = $"AUTO-TXN-{txn.TransactionNumber}",
+            TransactionDate = txn.ProcessedAt ?? txn.CreatedAt,
+            Description = $"{txn.TransactionType}: {customerName} ({accountNumber}) - {txn.Description}",
+            Reference = txn.TransactionNumber,
+            Status = "Posted",
+            CreatedAt = txn.CreatedAt,
+            CreatedBy = "System",
+            PostedAt = txn.ProcessedAt,
+            PostedBy = "System",
+            Lines = new List<JournalEntryLine>()
+        };
+
+        switch (txn.TransactionType.ToUpper())
+        {
+            case "DEPOSIT":
+                // Debit: Cash on Hand, Credit: Customer Deposits
+                entry.TotalDebit = txn.Amount;
+                entry.TotalCredit = txn.Amount;
+                entry.Lines.Add(new JournalEntryLine { AccountCode = "1010", AccountName = "Cash on Hand", DebitAmount = txn.Amount, CreditAmount = 0, Description = $"Cash received - {customerName}" });
+                entry.Lines.Add(new JournalEntryLine { AccountCode = "2010", AccountName = "Customer Deposits", DebitAmount = 0, CreditAmount = txn.Amount, Description = $"Deposit liability - {customerName}" });
+                break;
+
+            case "WITHDRAWAL":
+                // Debit: Customer Deposits, Credit: Cash on Hand
+                entry.TotalDebit = txn.Amount;
+                entry.TotalCredit = txn.Amount;
+                entry.Lines.Add(new JournalEntryLine { AccountCode = "2010", AccountName = "Customer Deposits", DebitAmount = txn.Amount, CreditAmount = 0, Description = $"Withdrawal - {customerName}" });
+                entry.Lines.Add(new JournalEntryLine { AccountCode = "1010", AccountName = "Cash on Hand", DebitAmount = 0, CreditAmount = txn.Amount, Description = $"Cash disbursed - {customerName}" });
+                break;
+
+            case "TRANSFER":
+                // Internal transfer - Debit: Sender's liability, Credit: Receiver's liability
+                entry.TotalDebit = txn.Amount;
+                entry.TotalCredit = txn.Amount;
+                entry.Lines.Add(new JournalEntryLine { AccountCode = "2010", AccountName = "Customer Deposits (Sender)", DebitAmount = txn.Amount, CreditAmount = 0, Description = $"Transfer out - {customerName}" });
+                entry.Lines.Add(new JournalEntryLine { AccountCode = "2010", AccountName = "Customer Deposits (Receiver)", DebitAmount = 0, CreditAmount = txn.Amount, Description = $"Transfer in - {txn.ToAccountName}" });
+                if (txn.Fee > 0)
+                {
+                    entry.TotalDebit += txn.Fee;
+                    entry.TotalCredit += txn.Fee;
+                    entry.Lines.Add(new JournalEntryLine { AccountCode = "2010", AccountName = "Customer Deposits", DebitAmount = txn.Fee, CreditAmount = 0, Description = $"Transfer fee charged" });
+                    entry.Lines.Add(new JournalEntryLine { AccountCode = "4020", AccountName = "Service Fee Income", DebitAmount = 0, CreditAmount = txn.Fee, Description = $"Transfer fee income" });
+                }
+                break;
+
+            case "BILLS":
+            case "BILLSPAYMENT":
+                // Debit: Customer Deposits, Credit: Cash/Due to Biller
+                entry.TotalDebit = txn.Amount;
+                entry.TotalCredit = txn.Amount;
+                entry.Lines.Add(new JournalEntryLine { AccountCode = "2010", AccountName = "Customer Deposits", DebitAmount = txn.Amount, CreditAmount = 0, Description = $"Bills payment - {txn.BillerName}" });
+                entry.Lines.Add(new JournalEntryLine { AccountCode = "1010", AccountName = "Cash on Hand", DebitAmount = 0, CreditAmount = txn.Amount, Description = $"Cash paid to biller - {txn.BillerName}" });
+                break;
+
+            default:
+                return null;
+        }
+
+        return entry;
+    }
+
+    /// <summary>
+    /// Create journal entry from loan payment
+    /// </summary>
+    private JournalEntry? CreateJournalFromLoanPayment(LoanPayment payment)
+    {
+        var loanNumber = payment.Loan?.LoanNumber ?? $"Loan #{payment.LoanId}";
+
+        // Get interest from payment schedule if available
+        var interestAmount = payment.PaymentSchedule?.InterestAmount ?? 0;
+        var principalAmount = payment.PaymentSchedule?.PrincipalAmount ?? (payment.PaymentAmount - payment.PenaltyPaid);
+
+        var entry = new JournalEntry
+        {
+            JournalId = -(100000 + payment.PaymentId), // Negative ID for auto-generated
+            JournalNumber = $"AUTO-LP-{payment.PaymentId:D6}",
+            TransactionDate = payment.PaymentDate,
+            Description = $"Loan Payment: {loanNumber} - Principal: ₱{principalAmount:N2}, Interest: ₱{interestAmount:N2}, Penalty: ₱{payment.PenaltyPaid:N2}",
+            Reference = $"LP-{payment.PaymentId:D6}",
+            Status = "Posted",
+            CreatedAt = payment.PaymentDate,
+            CreatedBy = "System",
+            PostedAt = payment.PaymentDate,
+            PostedBy = "System",
+            Lines = new List<JournalEntryLine>()
+        };
+
+        // Debit: Cash on Hand
+        entry.Lines.Add(new JournalEntryLine { AccountCode = "1010", AccountName = "Cash on Hand", DebitAmount = payment.PaymentAmount, CreditAmount = 0, Description = $"Cash received - Loan payment" });
+
+        // Credit: Loans Receivable (Principal)
+        if (principalAmount > 0)
+            entry.Lines.Add(new JournalEntryLine { AccountCode = "1110", AccountName = "Loans Receivable", DebitAmount = 0, CreditAmount = principalAmount, Description = $"Principal collection - {loanNumber}" });
+
+        // Credit: Interest Income
+        if (interestAmount > 0)
+            entry.Lines.Add(new JournalEntryLine { AccountCode = "4010", AccountName = "Interest Income", DebitAmount = 0, CreditAmount = interestAmount, Description = $"Interest collection - {loanNumber}" });
+
+        // Credit: Penalty Income
+        if (payment.PenaltyPaid > 0)
+            entry.Lines.Add(new JournalEntryLine { AccountCode = "4030", AccountName = "Penalty Income", DebitAmount = 0, CreditAmount = payment.PenaltyPaid, Description = $"Penalty collection - {loanNumber}" });
+
+        entry.TotalDebit = payment.PaymentAmount;
+        entry.TotalCredit = payment.PaymentAmount;
+
+        return entry;
+    }
+
+    /// <summary>
+    /// Create journal entry from loan disbursal
+    /// </summary>
+    private JournalEntry? CreateJournalFromLoanDisbursal(LoanDisbursal disbursal)
+    {
+        var loanNumber = disbursal.Loan?.LoanNumber ?? $"Loan #{disbursal.LoanId}";
+
+        var entry = new JournalEntry
+        {
+            JournalId = -(200000 + disbursal.DisbursalId), // Negative ID for auto-generated
+            JournalNumber = $"AUTO-LD-{disbursal.DisbursalId:D6}",
+            TransactionDate = disbursal.DisbursalDate,
+            Description = $"Loan Disbursal: {loanNumber} - Amount: ₱{disbursal.DisbursalAmount:N2} to {disbursal.DisbursedTo}",
+            Reference = disbursal.Reference ?? $"LD-{disbursal.DisbursalId:D6}",
+            Status = "Posted",
+            CreatedAt = disbursal.DisbursalDate,
+            CreatedBy = disbursal.ProcessedBy,
+            PostedAt = disbursal.DisbursalDate,
+            PostedBy = disbursal.ProcessedBy,
+            Lines = new List<JournalEntryLine>()
+        };
+
+        // Debit: Loans Receivable
+        entry.Lines.Add(new JournalEntryLine { AccountCode = "1110", AccountName = "Loans Receivable", DebitAmount = disbursal.DisbursalAmount, CreditAmount = 0, Description = $"Loan released - {loanNumber}" });
+
+        // Credit: Cash on Hand
+        entry.Lines.Add(new JournalEntryLine { AccountCode = "1010", AccountName = "Cash on Hand", DebitAmount = 0, CreditAmount = disbursal.DisbursalAmount, Description = $"Cash disbursed for loan - {loanNumber}" });
+
+        entry.TotalDebit = disbursal.DisbursalAmount;
+        entry.TotalCredit = disbursal.DisbursalAmount;
+
+        return entry;
     }
 
     public async Task<JournalEntry?> GetByIdAsync(int id)
@@ -672,13 +921,38 @@ public class JournalEntryService
         return true;
     }
 
-    private List<JournalEntry> GetMockData()
+    /// <summary>
+    /// Get transaction summary statistics
+    /// </summary>
+    public async Task<(int TotalDeposits, decimal DepositAmount, int TotalWithdrawals, decimal WithdrawalAmount, int TotalLoanPayments, decimal LoanPaymentAmount, int TotalLoanDisbursals, decimal LoanDisbursalAmount)> GetTransactionStatsAsync(DateTime? fromDate = null, DateTime? toDate = null)
     {
-        return new List<JournalEntry>
-        {
-            new() { JournalId = 1, JournalNumber = "JE-20241115-001", TransactionDate = DateTime.Today, Description = "Monthly expense accrual", Reference = "REF-001", TotalDebit = 50000.00m, TotalCredit = 50000.00m, Status = "Draft", CreatedAt = DateTime.Now.AddHours(-3), CreatedBy = "accountant" },
-            new() { JournalId = 2, JournalNumber = "JE-20241115-002", TransactionDate = DateTime.Today, Description = "Revenue recognition", Reference = "REF-002", TotalDebit = 75000.00m, TotalCredit = 75000.00m, Status = "Posted", CreatedAt = DateTime.Now.AddHours(-2), CreatedBy = "accountant", PostedBy = "admin", PostedAt = DateTime.Now.AddHours(-1) }
-        };
+        var from = fromDate ?? DateTime.MinValue;
+        var to = toDate ?? DateTime.MaxValue;
+
+        var transactions = await _context.CustomerTransactions
+            .Where(t => t.Status == "Completed")
+            .ToListAsync();
+
+        var deposits = transactions.Where(t => t.TransactionType.ToUpper() == "DEPOSIT").ToList();
+        var withdrawals = transactions.Where(t => t.TransactionType.ToUpper() == "WITHDRAWAL").ToList();
+
+        var loanPayments = await _context.LoanPayments
+            .ToListAsync();
+
+        var loanDisbursals = await _context.LoanDisbursals
+            .Where(d => d.DisbursalStatus == "Completed")
+            .ToListAsync();
+
+        return (
+            deposits.Count,
+            deposits.Sum(d => d.Amount),
+            withdrawals.Count,
+            withdrawals.Sum(w => w.Amount),
+            loanPayments.Count,
+            loanPayments.Sum(p => p.PaymentAmount),
+            loanDisbursals.Count,
+            loanDisbursals.Sum(d => d.DisbursalAmount)
+        );
     }
 }
 
@@ -694,12 +968,322 @@ public class GeneralLedgerService
     {
         _context = context;
     }
+
+    /// <summary>
+    /// Get all general ledger entries from real transactions
+    /// </summary>
     public async Task<List<FinanceBank.Models.GeneralLedgerEntry>> GetAllAsync()
     {
-        return await _context.GeneralLedgerEntries
-            .OrderByDescending(g => g.TransactionDate)
-            .ThenByDescending(g => g.CreatedAt)
+        var entries = new List<FinanceBank.Models.GeneralLedgerEntry>();
+
+        // Get customer transactions
+        var transactions = await _context.CustomerTransactions
+            .Include(t => t.Account)
+            .Where(t => t.Status == "Completed")
+            .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
+
+        foreach (var txn in transactions)
+        {
+            var glEntries = CreateGLEntriesFromTransaction(txn);
+            entries.AddRange(glEntries);
+        }
+
+        // Get loan payments
+        var loanPayments = await _context.LoanPayments
+            .Include(p => p.Loan)
+            .OrderByDescending(p => p.PaymentDate)
+            .ToListAsync();
+
+        foreach (var payment in loanPayments)
+        {
+            var glEntries = CreateGLEntriesFromLoanPayment(payment);
+            entries.AddRange(glEntries);
+        }
+
+        // Get loan disbursals
+        var disbursals = await _context.LoanDisbursals
+            .Include(d => d.Loan)
+            .Where(d => d.DisbursalStatus == "Completed")
+            .OrderByDescending(d => d.DisbursalDate)
+            .ToListAsync();
+
+        foreach (var disbursal in disbursals)
+        {
+            var glEntries = CreateGLEntriesFromLoanDisbursal(disbursal);
+            entries.AddRange(glEntries);
+        }
+
+        // Calculate running balances per account
+        var accountGroups = entries.GroupBy(e => e.AccountCode).ToList();
+        foreach (var group in accountGroups)
+        {
+            decimal runningBalance = 0;
+            foreach (var entry in group.OrderBy(e => e.TransactionDate).ThenBy(e => e.CreatedAt))
+            {
+                runningBalance += entry.DebitAmount - entry.CreditAmount;
+                entry.Balance = runningBalance;
+            }
+        }
+
+        return entries.OrderByDescending(e => e.TransactionDate).ThenByDescending(e => e.CreatedAt).ToList();
+    }
+
+    /// <summary>
+    /// Get GL entries by account code
+    /// </summary>
+    public async Task<List<FinanceBank.Models.GeneralLedgerEntry>> GetByAccountAsync(string accountCode, DateTime? fromDate = null, DateTime? toDate = null)
+    {
+        var allEntries = await GetAllAsync();
+        var filtered = allEntries.Where(e => e.AccountCode == accountCode);
+
+        if (fromDate.HasValue)
+            filtered = filtered.Where(e => e.TransactionDate >= fromDate.Value);
+        if (toDate.HasValue)
+            filtered = filtered.Where(e => e.TransactionDate <= toDate.Value);
+
+        return filtered.OrderBy(e => e.TransactionDate).ToList();
+    }
+
+    /// <summary>
+    /// Get account balances summary
+    /// </summary>
+    public async Task<List<(string AccountCode, string AccountName, string AccountType, decimal Balance)>> GetAccountBalancesAsync()
+    {
+        var allEntries = await GetAllAsync();
+        var balances = allEntries
+            .GroupBy(e => new { e.AccountCode, e.AccountName, e.AccountType })
+            .Select(g => (
+                AccountCode: g.Key.AccountCode,
+                AccountName: g.Key.AccountName,
+                AccountType: g.Key.AccountType,
+                Balance: g.Sum(e => e.DebitAmount) - g.Sum(e => e.CreditAmount)
+            ))
+            .OrderBy(b => b.AccountCode)
+            .ToList();
+
+        return balances;
+    }
+
+    private List<FinanceBank.Models.GeneralLedgerEntry> CreateGLEntriesFromTransaction(CustomerTransaction txn)
+    {
+        var entries = new List<FinanceBank.Models.GeneralLedgerEntry>();
+        var customerName = txn.Account?.Customer?.FullName ?? $"Account #{txn.AccountId}";
+        var date = txn.ProcessedAt ?? txn.CreatedAt;
+
+        switch (txn.TransactionType.ToUpper())
+        {
+            case "DEPOSIT":
+                entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+                {
+                    EntryNumber = $"GL-DEP-{txn.TransactionId}",
+                    AccountCode = "1010",
+                    AccountName = "Cash on Hand",
+                    AccountType = "Asset",
+                    TransactionDate = date,
+                    Reference = txn.TransactionNumber,
+                    Description = $"Deposit - {customerName}",
+                    DebitAmount = txn.Amount,
+                    CreditAmount = 0,
+                    CreatedAt = txn.CreatedAt
+                });
+                entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+                {
+                    EntryNumber = $"GL-DEP-{txn.TransactionId}",
+                    AccountCode = "2010",
+                    AccountName = "Customer Deposits",
+                    AccountType = "Liability",
+                    TransactionDate = date,
+                    Reference = txn.TransactionNumber,
+                    Description = $"Deposit liability - {customerName}",
+                    DebitAmount = 0,
+                    CreditAmount = txn.Amount,
+                    CreatedAt = txn.CreatedAt
+                });
+                break;
+
+            case "WITHDRAWAL":
+                entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+                {
+                    EntryNumber = $"GL-WD-{txn.TransactionId}",
+                    AccountCode = "2010",
+                    AccountName = "Customer Deposits",
+                    AccountType = "Liability",
+                    TransactionDate = date,
+                    Reference = txn.TransactionNumber,
+                    Description = $"Withdrawal - {customerName}",
+                    DebitAmount = txn.Amount,
+                    CreditAmount = 0,
+                    CreatedAt = txn.CreatedAt
+                });
+                entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+                {
+                    EntryNumber = $"GL-WD-{txn.TransactionId}",
+                    AccountCode = "1010",
+                    AccountName = "Cash on Hand",
+                    AccountType = "Asset",
+                    TransactionDate = date,
+                    Reference = txn.TransactionNumber,
+                    Description = $"Cash disbursed - {customerName}",
+                    DebitAmount = 0,
+                    CreditAmount = txn.Amount,
+                    CreatedAt = txn.CreatedAt
+                });
+                break;
+
+            case "TRANSFER":
+                if (txn.Fee > 0)
+                {
+                    entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+                    {
+                        EntryNumber = $"GL-TF-{txn.TransactionId}",
+                        AccountCode = "2010",
+                        AccountName = "Customer Deposits",
+                        AccountType = "Liability",
+                        TransactionDate = date,
+                        Reference = txn.TransactionNumber,
+                        Description = $"Transfer fee - {customerName}",
+                        DebitAmount = txn.Fee,
+                        CreditAmount = 0,
+                        CreatedAt = txn.CreatedAt
+                    });
+                    entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+                    {
+                        EntryNumber = $"GL-TF-{txn.TransactionId}",
+                        AccountCode = "4020",
+                        AccountName = "Service Fee Income",
+                        AccountType = "Revenue",
+                        TransactionDate = date,
+                        Reference = txn.TransactionNumber,
+                        Description = $"Transfer fee income",
+                        DebitAmount = 0,
+                        CreditAmount = txn.Fee,
+                        CreatedAt = txn.CreatedAt
+                    });
+                }
+                break;
+        }
+
+        return entries;
+    }
+
+    private List<FinanceBank.Models.GeneralLedgerEntry> CreateGLEntriesFromLoanPayment(LoanPayment payment)
+    {
+        var entries = new List<FinanceBank.Models.GeneralLedgerEntry>();
+        var loanNumber = payment.Loan?.LoanNumber ?? $"Loan #{payment.LoanId}";
+
+        // Get interest from payment schedule if available
+        var interestAmount = payment.PaymentSchedule?.InterestAmount ?? 0;
+        var principalAmount = payment.PaymentSchedule?.PrincipalAmount ?? (payment.PaymentAmount - payment.PenaltyPaid);
+
+        // Debit Cash
+        entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+        {
+            EntryNumber = $"GL-LP-{payment.PaymentId}",
+            AccountCode = "1010",
+            AccountName = "Cash on Hand",
+            AccountType = "Asset",
+            TransactionDate = payment.PaymentDate,
+            Reference = $"LP-{payment.PaymentId}",
+            Description = $"Loan payment received - {loanNumber}",
+            DebitAmount = payment.PaymentAmount,
+            CreditAmount = 0,
+            CreatedAt = payment.PaymentDate
+        });
+
+        // Credit Loans Receivable (Principal)
+        if (principalAmount > 0)
+        {
+            entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+            {
+                EntryNumber = $"GL-LP-{payment.PaymentId}",
+                AccountCode = "1110",
+                AccountName = "Loans Receivable",
+                AccountType = "Asset",
+                TransactionDate = payment.PaymentDate,
+                Reference = $"LP-{payment.PaymentId}",
+                Description = $"Principal collected - {loanNumber}",
+                DebitAmount = 0,
+                CreditAmount = principalAmount,
+                CreatedAt = payment.PaymentDate
+            });
+        }
+
+        // Credit Interest Income
+        if (interestAmount > 0)
+        {
+            entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+            {
+                EntryNumber = $"GL-LP-{payment.PaymentId}",
+                AccountCode = "4010",
+                AccountName = "Interest Income",
+                AccountType = "Revenue",
+                TransactionDate = payment.PaymentDate,
+                Reference = $"LP-{payment.PaymentId}",
+                Description = $"Interest income - {loanNumber}",
+                DebitAmount = 0,
+                CreditAmount = interestAmount,
+                CreatedAt = payment.PaymentDate
+            });
+        }
+
+        // Credit Penalty Income
+        if (payment.PenaltyPaid > 0)
+        {
+            entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+            {
+                EntryNumber = $"GL-LP-{payment.PaymentId}",
+                AccountCode = "4030",
+                AccountName = "Penalty Income",
+                AccountType = "Revenue",
+                TransactionDate = payment.PaymentDate,
+                Reference = $"LP-{payment.PaymentId}",
+                Description = $"Penalty income - {loanNumber}",
+                DebitAmount = 0,
+                CreditAmount = payment.PenaltyPaid,
+                CreatedAt = payment.PaymentDate
+            });
+        }
+
+        return entries;
+    }
+
+    private List<FinanceBank.Models.GeneralLedgerEntry> CreateGLEntriesFromLoanDisbursal(LoanDisbursal disbursal)
+    {
+        var entries = new List<FinanceBank.Models.GeneralLedgerEntry>();
+        var loanNumber = disbursal.Loan?.LoanNumber ?? $"Loan #{disbursal.LoanId}";
+
+        // Debit Loans Receivable
+        entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+        {
+            EntryNumber = $"GL-LD-{disbursal.DisbursalId}",
+            AccountCode = "1110",
+            AccountName = "Loans Receivable",
+            AccountType = "Asset",
+            TransactionDate = disbursal.DisbursalDate,
+            Reference = disbursal.Reference ?? $"LD-{disbursal.DisbursalId}",
+            Description = $"Loan released - {loanNumber}",
+            DebitAmount = disbursal.DisbursalAmount,
+            CreditAmount = 0,
+            CreatedAt = disbursal.DisbursalDate
+        });
+
+        // Credit Cash
+        entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+        {
+            EntryNumber = $"GL-LD-{disbursal.DisbursalId}",
+            AccountCode = "1010",
+            AccountName = "Cash on Hand",
+            AccountType = "Asset",
+            TransactionDate = disbursal.DisbursalDate,
+            Reference = disbursal.Reference ?? $"LD-{disbursal.DisbursalId}",
+            Description = $"Cash disbursed for loan - {loanNumber}",
+            DebitAmount = 0,
+            CreditAmount = disbursal.DisbursalAmount,
+            CreatedAt = disbursal.DisbursalDate
+        });
+
+        return entries;
     }
 
     public async Task<FinanceBank.Models.GeneralLedgerEntry?> GetByIdAsync(int id)
@@ -720,16 +1304,88 @@ public class GeneralLedgerService
 public class TrialBalanceService
 {
     private readonly BFASDbContext _context;
+    private readonly GeneralLedgerService _glService;
 
     public TrialBalanceService(BFASDbContext context)
     {
         _context = context;
+        _glService = new GeneralLedgerService(context);
     }
+
+    /// <summary>
+    /// Get trial balance computed from real transaction data
+    /// </summary>
     public async Task<List<FinanceBank.Models.TrialBalanceEntry>> GetAllAsync()
     {
-        return await _context.TrialBalances
+        // Get all GL entries and compute balances
+        var glEntries = await _glService.GetAllAsync();
+
+        // Group by account and compute totals
+        var accountGroups = glEntries
+            .GroupBy(e => new { e.AccountCode, e.AccountName, e.AccountType })
+            .Select(g => new FinanceBank.Models.TrialBalanceEntry
+            {
+                TrialBalanceId = g.Key.AccountCode.GetHashCode(),
+                AccountCode = g.Key.AccountCode,
+                AccountName = g.Key.AccountName,
+                AccountType = g.Key.AccountType,
+                DebitBalance = g.Sum(e => e.DebitAmount),
+                CreditBalance = g.Sum(e => e.CreditAmount),
+                AsOfDate = DateTime.Today,
+                CreatedAt = DateTime.Now
+            })
             .OrderBy(t => t.AccountCode)
-            .ToListAsync();
+            .ToList();
+
+        // Adjust balances based on normal balance (Assets/Expenses = Debit, Liabilities/Equity/Revenue = Credit)
+        foreach (var entry in accountGroups)
+        {
+            var netBalance = entry.DebitBalance - entry.CreditBalance;
+
+            if (entry.AccountType == "Asset" || entry.AccountType == "Expense")
+            {
+                // Normal debit balance
+                if (netBalance >= 0)
+                {
+                    entry.DebitBalance = netBalance;
+                    entry.CreditBalance = 0;
+                }
+                else
+                {
+                    entry.DebitBalance = 0;
+                    entry.CreditBalance = Math.Abs(netBalance);
+                }
+            }
+            else // Liability, Equity, Revenue
+            {
+                // Normal credit balance
+                if (netBalance <= 0)
+                {
+                    entry.CreditBalance = Math.Abs(netBalance);
+                    entry.DebitBalance = 0;
+                }
+                else
+                {
+                    entry.CreditBalance = 0;
+                    entry.DebitBalance = netBalance;
+                }
+            }
+        }
+
+        return accountGroups;
+    }
+
+    /// <summary>
+    /// Generate trial balance for a specific date range
+    /// </summary>
+    public async Task<List<FinanceBank.Models.TrialBalanceEntry>> GenerateAsync(DateTime asOfDate)
+    {
+        var entries = await GetAllAsync();
+        foreach (var entry in entries)
+        {
+            entry.AsOfDate = asOfDate;
+        }
+        return entries;
     }
 
     public async Task<FinanceBank.Models.TrialBalanceEntry?> GetByIdAsync(int id)
@@ -747,19 +1403,31 @@ public class TrialBalanceService
 
     public async Task<(decimal TotalDebit, decimal TotalCredit)> GetTotalsAsync()
     {
-        var entries = await _context.TrialBalances.ToListAsync();
+        var entries = await GetAllAsync();
         return (entries.Sum(t => t.DebitBalance), entries.Sum(t => t.CreditBalance));
+    }
+
+    /// <summary>
+    /// Check if trial balance is balanced (Debits = Credits)
+    /// </summary>
+    public async Task<bool> IsBalancedAsync()
+    {
+        var (debit, credit) = await GetTotalsAsync();
+        return Math.Abs(debit - credit) < 0.01m;
     }
 }
 
 public class FinancialStatementService
 {
     private readonly BFASDbContext _context;
+    private readonly GeneralLedgerService _glService;
 
     public FinancialStatementService(BFASDbContext context)
     {
         _context = context;
+        _glService = new GeneralLedgerService(context);
     }
+
     public async Task<List<FinanceBank.Models.FinancialStatement>> GetAllAsync()
     {
         return await _context.FinancialStatements
@@ -786,6 +1454,185 @@ public class FinancialStatementService
             .Where(f => f.StatementType == statementType)
             .OrderByDescending(f => f.GeneratedAt)
             .ToListAsync();
+    }
+
+    /// <summary>
+    /// Generate Income Statement from real transaction data
+    /// </summary>
+    public async Task<FinanceBank.Models.FinancialStatement> GenerateIncomeStatementAsync(DateTime periodStart, DateTime periodEnd, string generatedBy)
+    {
+        var glEntries = await _glService.GetAllAsync();
+        var periodEntries = glEntries.Where(e => e.TransactionDate >= periodStart && e.TransactionDate <= periodEnd).ToList();
+
+        // Calculate Revenue (Credit balances in Revenue accounts)
+        var revenues = periodEntries.Where(e => e.AccountType == "Revenue")
+            .GroupBy(e => e.AccountName)
+            .Select(g => new { Account = g.Key, Amount = g.Sum(e => e.CreditAmount) - g.Sum(e => e.DebitAmount) })
+            .ToList();
+
+        // Calculate Expenses (Debit balances in Expense accounts)
+        var expenses = periodEntries.Where(e => e.AccountType == "Expense")
+            .GroupBy(e => e.AccountName)
+            .Select(g => new { Account = g.Key, Amount = g.Sum(e => e.DebitAmount) - g.Sum(e => e.CreditAmount) })
+            .ToList();
+
+        var totalRevenue = revenues.Sum(r => r.Amount);
+        var totalExpenses = expenses.Sum(e => e.Amount);
+        var netIncome = totalRevenue - totalExpenses;
+
+        var statement = new FinanceBank.Models.FinancialStatement
+        {
+            StatementType = "IncomeStatement",
+            PeriodStart = periodStart,
+            PeriodEnd = periodEnd,
+            TotalRevenue = totalRevenue,
+            TotalExpenses = totalExpenses,
+            NetIncome = netIncome,
+            Data = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                Revenues = revenues,
+                Expenses = expenses,
+                TotalRevenue = totalRevenue,
+                TotalExpenses = totalExpenses,
+                NetIncome = netIncome
+            }),
+            GeneratedAt = DateTime.Now,
+            GeneratedBy = generatedBy,
+            Status = "Final"
+        };
+
+        _context.FinancialStatements.Add(statement);
+        await _context.SaveChangesAsync();
+        return statement;
+    }
+
+    /// <summary>
+    /// Generate Balance Sheet from real transaction data
+    /// </summary>
+    public async Task<FinanceBank.Models.FinancialStatement> GenerateBalanceSheetAsync(DateTime asOfDate, string generatedBy)
+    {
+        var glEntries = await _glService.GetAllAsync();
+        var periodEntries = glEntries.Where(e => e.TransactionDate <= asOfDate).ToList();
+
+        // Assets
+        var assets = periodEntries.Where(e => e.AccountType == "Asset")
+            .GroupBy(e => e.AccountName)
+            .Select(g => new { Account = g.Key, Balance = g.Sum(e => e.DebitAmount) - g.Sum(e => e.CreditAmount) })
+            .Where(a => a.Balance != 0)
+            .ToList();
+
+        // Liabilities
+        var liabilities = periodEntries.Where(e => e.AccountType == "Liability")
+            .GroupBy(e => e.AccountName)
+            .Select(g => new { Account = g.Key, Balance = g.Sum(e => e.CreditAmount) - g.Sum(e => e.DebitAmount) })
+            .Where(l => l.Balance != 0)
+            .ToList();
+
+        // Equity (including retained earnings from Revenue - Expenses)
+        var equity = periodEntries.Where(e => e.AccountType == "Equity")
+            .GroupBy(e => e.AccountName)
+            .Select(g => new { Account = g.Key, Balance = g.Sum(e => e.CreditAmount) - g.Sum(e => e.DebitAmount) })
+            .ToList();
+
+        var totalAssets = assets.Sum(a => a.Balance);
+        var totalLiabilities = liabilities.Sum(l => l.Balance);
+        var totalEquity = equity.Sum(e => e.Balance);
+
+        // Add retained earnings (Net Income = Revenue - Expenses)
+        var revenueTotal = periodEntries.Where(e => e.AccountType == "Revenue").Sum(e => e.CreditAmount - e.DebitAmount);
+        var expenseTotal = periodEntries.Where(e => e.AccountType == "Expense").Sum(e => e.DebitAmount - e.CreditAmount);
+        var retainedEarnings = revenueTotal - expenseTotal;
+        totalEquity += retainedEarnings;
+
+        var statement = new FinanceBank.Models.FinancialStatement
+        {
+            StatementType = "BalanceSheet",
+            PeriodStart = asOfDate,
+            PeriodEnd = asOfDate,
+            TotalAssets = totalAssets,
+            TotalLiabilities = totalLiabilities,
+            TotalEquity = totalEquity,
+            Data = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                Assets = assets,
+                Liabilities = liabilities,
+                Equity = equity,
+                RetainedEarnings = retainedEarnings,
+                TotalAssets = totalAssets,
+                TotalLiabilities = totalLiabilities,
+                TotalEquity = totalEquity
+            }),
+            GeneratedAt = DateTime.Now,
+            GeneratedBy = generatedBy,
+            Status = "Final"
+        };
+
+        _context.FinancialStatements.Add(statement);
+        await _context.SaveChangesAsync();
+        return statement;
+    }
+
+    /// <summary>
+    /// Generate Cash Flow Statement from real transaction data
+    /// </summary>
+    public async Task<FinanceBank.Models.FinancialStatement> GenerateCashFlowAsync(DateTime periodStart, DateTime periodEnd, string generatedBy)
+    {
+        // Get customer transactions for cash flow
+        var transactions = await _context.CustomerTransactions
+            .Where(t => t.Status == "Completed" && t.CreatedAt >= periodStart && t.CreatedAt <= periodEnd)
+            .ToListAsync();
+
+        var loanPayments = await _context.LoanPayments
+            .Where(p => p.PaymentDate >= periodStart && p.PaymentDate <= periodEnd)
+            .ToListAsync();
+
+        var loanDisbursals = await _context.LoanDisbursals
+            .Where(d => d.DisbursalStatus == "Completed" && d.DisbursalDate >= periodStart && d.DisbursalDate <= periodEnd)
+            .ToListAsync();
+
+        // Operating Activities
+        var deposits = transactions.Where(t => t.TransactionType.ToUpper() == "DEPOSIT").Sum(t => t.Amount);
+        var withdrawals = transactions.Where(t => t.TransactionType.ToUpper() == "WITHDRAWAL").Sum(t => t.Amount);
+        var fees = transactions.Sum(t => t.Fee);
+        var loanPaymentTotal = loanPayments.Sum(p => p.PaymentAmount);
+
+        // Financing Activities
+        var loanDisbursalTotal = loanDisbursals.Sum(d => d.DisbursalAmount);
+
+        var netCashFromOperating = deposits - withdrawals + fees + loanPaymentTotal;
+        var netCashFromFinancing = -loanDisbursalTotal;
+        var netCashChange = netCashFromOperating + netCashFromFinancing;
+
+        var statement = new FinanceBank.Models.FinancialStatement
+        {
+            StatementType = "CashFlow",
+            PeriodStart = periodStart,
+            PeriodEnd = periodEnd,
+            Data = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                OperatingActivities = new
+                {
+                    CustomerDeposits = deposits,
+                    CustomerWithdrawals = -withdrawals,
+                    ServiceFees = fees,
+                    LoanPaymentsReceived = loanPaymentTotal,
+                    NetCashFromOperating = netCashFromOperating
+                },
+                FinancingActivities = new
+                {
+                    LoanDisbursements = -loanDisbursalTotal,
+                    NetCashFromFinancing = netCashFromFinancing
+                },
+                NetCashChange = netCashChange
+            }),
+            GeneratedAt = DateTime.Now,
+            GeneratedBy = generatedBy,
+            Status = "Final"
+        };
+
+        _context.FinancialStatements.Add(statement);
+        await _context.SaveChangesAsync();
+        return statement;
     }
 }
 

@@ -256,25 +256,35 @@
         if (string.IsNullOrWhiteSpace(selectedStatement))
             return;
 
-        var newStatement = new FinanceBank.Models.FinancialStatement
-        {
-            StatementType = selectedStatement,
-            PeriodStart = genStmt_PeriodStart,
-            PeriodEnd = genStmt_PeriodEnd,
-            GeneratedBy = "Accountant",
-            Data = "{}"
-        };
-
+        isLoading = true;
         try
         {
-            await FinancialStatementService.CreateAsync(newStatement);
+            // Generate statement from real transaction data
+            switch (selectedStatement)
+            {
+                case "IncomeStatement":
+                    await FinancialStatementService.GenerateIncomeStatementAsync(genStmt_PeriodStart, genStmt_PeriodEnd, "Accountant");
+                    break;
+                case "BalanceSheet":
+                    await FinancialStatementService.GenerateBalanceSheetAsync(genStmt_PeriodEnd, "Accountant");
+                    break;
+                case "CashFlow":
+                    await FinancialStatementService.GenerateCashFlowAsync(genStmt_PeriodStart, genStmt_PeriodEnd, "Accountant");
+                    break;
+            }
+
             await LoadStatements();
             CloseStatementModal();
-            successMessage = $"✓ {FormatStatementType(selectedStatement)} generated successfully!";
+            successMessage = $"✓ {FormatStatementType(selectedStatement)} generated from real transaction data!";
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error generating statement: {ex.Message}");
+            successMessage = $"Error generating statement: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 

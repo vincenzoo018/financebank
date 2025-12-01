@@ -154,8 +154,6 @@ public class JournalEntry
     [Required, MaxLength(50)]
     public string JournalNumber { get; set; } = "";
 
-    public DateTime JournalDate { get; set; } = DateTime.Now;
-
     public DateTime TransactionDate { get; set; }
 
     [Required, MaxLength(500)]
@@ -163,12 +161,6 @@ public class JournalEntry
 
     [MaxLength(100)]
     public string? Reference { get; set; }
-
-    [MaxLength(50)]
-    public string? Department { get; set; }
-
-    [MaxLength(50)]
-    public string? CostCenter { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal TotalDebit { get; set; } = 0;
@@ -178,11 +170,6 @@ public class JournalEntry
 
     [Required, MaxLength(50)]
     public string Status { get; set; } = "Draft"; // Draft, Posted, Reversed
-
-    [MaxLength(50)]
-    public string? ReversalStatus { get; set; } // Reversing, Reversed
-
-    public int? ReversedJournalId { get; set; } // References original entry if this is a reversal
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
@@ -194,16 +181,8 @@ public class JournalEntry
     [MaxLength(50)]
     public string? PostedBy { get; set; }
 
-    [MaxLength(50)]
-    public string? ModifiedBy { get; set; }
-
-    public DateTime? ModifiedAt { get; set; }
-
     // Navigation
     public virtual ICollection<JournalEntryLine> Lines { get; set; } = new List<JournalEntryLine>();
-
-    [ForeignKey("ReversedJournalId")]
-    public virtual JournalEntry? ReversedEntry { get; set; }
 }
 
 [Table("JournalEntryLines")]
@@ -221,9 +200,6 @@ public class JournalEntryLine
     [Required, MaxLength(100)]
     public string AccountName { get; set; } = "";
 
-    [Required, MaxLength(50)]
-    public string AccountType { get; set; } = ""; // Asset, Liability, Equity, Revenue, Expense
-
     [MaxLength(500)]
     public string? Description { get; set; }
 
@@ -232,17 +208,6 @@ public class JournalEntryLine
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal CreditAmount { get; set; } = 0;
-
-    [MaxLength(50)]
-    public string? Department { get; set; }
-
-    [MaxLength(50)]
-    public string? CostCenter { get; set; }
-
-    [Required, MaxLength(50)]
-    public string Status { get; set; } = "Pending"; // Pending, Posted, Reversed
-
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     // Navigation
     [ForeignKey("JournalId")]

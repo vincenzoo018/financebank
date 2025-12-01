@@ -240,12 +240,6 @@ namespace FinanceBank.Data
 
                 entity.Property(e => e.Status).HasDefaultValue("Draft");
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
-
-                // Self-referencing for reversals
-                entity.HasOne(e => e.ReversedEntry)
-                    .WithMany()
-                    .HasForeignKey(e => e.ReversedJournalId)
-                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             // Configure JournalEntryLine entity
@@ -254,9 +248,6 @@ namespace FinanceBank.Data
                 entity.HasKey(e => e.LineId);
                 entity.HasIndex(e => e.JournalId);
                 entity.HasIndex(e => e.AccountCode);
-
-                entity.Property(e => e.Status).HasDefaultValue("Pending");
-                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
 
                 entity.HasOne(e => e.Journal)
                     .WithMany(j => j.Lines)

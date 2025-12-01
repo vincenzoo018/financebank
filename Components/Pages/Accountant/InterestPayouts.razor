@@ -469,11 +469,9 @@
             {
                 AccountCode = "2200",
                 AccountName = "Interest Payable",
-                AccountType = "Liability",
                 Description = $"Interest Payout - {payout.VendorName}",
                 DebitAmount = payout.Amount,
-                CreditAmount = 0,
-                Status = "Posted"
+                CreditAmount = 0
             });
 
             // Credit: Cash/Bank (reduce asset)
@@ -481,11 +479,9 @@
             {
                 AccountCode = "1100",
                 AccountName = "Cash in Bank",
-                AccountType = "Asset",
                 Description = $"Interest Payout - {payout.VendorName}",
                 DebitAmount = 0,
-                CreditAmount = payout.Amount,
-                Status = "Posted"
+                CreditAmount = payout.Amount
             });
 
             journalEntry.TotalDebit = payout.Amount;
