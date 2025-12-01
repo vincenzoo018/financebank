@@ -28,6 +28,17 @@
                     <span>Dashboard</span>
                 </a>
             </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">APPROVALS</div>
+                <a href="/accountant/all-approvals" class="sidebar-item @(IsActive("/accountant/all-approvals"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>All Approvals</span>
+                </a>
+            </div>
 
 
 
@@ -111,6 +122,9 @@
                     <span>Clearance Certificate</span>
                 </a>
             </div>
+
+            <!-- Approvals Section -->
+            
         </div>
 
         <div class="sidebar-footer"></div>
@@ -176,7 +190,7 @@
         if (string.IsNullOrEmpty(name)) return "AC";
         var parts = name.Split(' ');
         return parts.Length >= 2
-        ? $"{parts[0][0]}{parts[1][0]}".ToUpper()
+                ? $"{parts[0][0]}{parts[1][0]}".ToUpper()
         : $"{parts[0][0]}".ToUpper();
     }
 
@@ -189,6 +203,7 @@
     {
         var path = Navigation.Uri;
         if (path.Contains("/accountant/dashboard")) return "Accountant Dashboard";
+        if (path.Contains("/accountant/all-approvals")) return "All Approvals";
         if (path.Contains("/dashboard")) return "Dashboard";
         if (path.Contains("/journal-entries")) return "Journal Entries";
         if (path.Contains("/general-ledger")) return "General Ledger";

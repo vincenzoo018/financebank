@@ -851,37 +851,38 @@ public class FinancialStatement
     public DateTime PeriodStart { get; set; }
     public DateTime PeriodEnd { get; set; }
 
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal TotalAssets { get; set; } = 0;
-
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal TotalLiabilities { get; set; } = 0;
-
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal TotalEquity { get; set; } = 0;
-
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal TotalRevenue { get; set; } = 0;
-
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal TotalExpenses { get; set; } = 0;
-
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal NetIncome { get; set; } = 0;
-
-    [Column(TypeName = "nvarchar(max)")]
-    public string? Data { get; set; } // JSON detailed data
-
-    [MaxLength(500)]
-    public string? Notes { get; set; }
+    [Column("StatementData", TypeName = "nvarchar(max)")]
+    public string? StatementData { get; set; } // JSON detailed data
 
     public DateTime GeneratedAt { get; set; } = DateTime.Now;
 
-    [MaxLength(50)]
-    public string? GeneratedBy { get; set; }
-
     [Required, MaxLength(50)]
-    public string Status { get; set; } = "Draft"; // Draft, Final, Archived
+    public string GeneratedBy { get; set; } = "";
+
+    // NotMapped properties for computed values from StatementData JSON
+    [NotMapped]
+    public decimal TotalAssets { get; set; } = 0;
+
+    [NotMapped]
+    public decimal TotalLiabilities { get; set; } = 0;
+
+    [NotMapped]
+    public decimal TotalEquity { get; set; } = 0;
+
+    [NotMapped]
+    public decimal TotalRevenue { get; set; } = 0;
+
+    [NotMapped]
+    public decimal TotalExpenses { get; set; } = 0;
+
+    [NotMapped]
+    public decimal NetIncome { get; set; } = 0;
+
+    [NotMapped]
+    public string? Notes { get; set; }
+
+    [NotMapped]
+    public string Status { get; set; } = "Final";
 }
 
 // =============================================

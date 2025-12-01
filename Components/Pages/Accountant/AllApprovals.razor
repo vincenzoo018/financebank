@@ -1,0 +1,975 @@
+@page "/accountant/all-approvals"
+@layout AccountantLayout
+@using FinanceBank.Data
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject BFASDbContext DbContext
+@inject LoanProcessService LoanProcessService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<!-- Toast Notification -->
+@if (showToast)
+{
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease-out;">
+        <div
+            style="background: linear-gradient(135deg, @(toastType == "success" ? "#059669, #10b981" : "#dc2626, #ef4444")); color: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; min-width: 300px;">
+            @if (toastType == "success")
+            {
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            }
+            else
+            {
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+            }
+            <span style="font-weight: 500;">@toastMessage</span>
+            <button @onclick="() => showToast = false"
+                style="background: none; border: none; color: white; cursor: pointer; margin-left: auto; font-size: 18px;">×</button>
+        </div>
+    </div>
+}
+
+<!-- Page Header -->
+<div
+    style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="28" height="28" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 26px; font-weight: 700; color: white; margin: 0;">All Approvals</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Review and process pending
+                approvals from Teller and Finance Manager</p>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px;">
+    <div
+        style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #f59e0b;">
+        <div style="font-size: 13px; color: #92400e; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">⏳
+            Pending</div>
+        <div style="font-size: 32px; font-weight: 700; color: #f59e0b;">@pendingCount</div>
+    </div>
+    <div
+        style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #059669;">
+        <div style="font-size: 13px; color: #065f46; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">✓
+            Approved</div>
+        <div style="font-size: 32px; font-weight: 700; color: #059669;">@approvedCount</div>
+    </div>
+    <div
+        style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #dc2626;">
+        <div style="font-size: 13px; color: #991b1b; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">✗
+            Declined</div>
+        <div style="font-size: 32px; font-weight: 700; color: #dc2626;">@declinedCount</div>
+    </div>
+    <div
+        style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6;">
+        <div style="font-size: 13px; color: #1e40af; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
+            📋 Total</div>
+        <div style="font-size: 32px; font-weight: 700; color: #3b82f6;">@totalCount</div>
+    </div>
+</div>
+
+<!-- Tab Navigation -->
+<div
+    style="display: flex; gap: 8px; margin-bottom: 24px; background: white; padding: 8px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <button @onclick='() => SetActiveTab("pending")'
+        style="flex: 1; padding: 14px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; @(activeTab == "pending" ? "background: linear-gradient(135deg, #059669, #10b981); color: white;" : "background: transparent; color: #64748b;")">
+        ⏳ Pending Approvals
+    </button>
+    <button @onclick='() => SetActiveTab("history")'
+        style="flex: 1; padding: 14px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; @(activeTab == "history" ? "background: linear-gradient(135deg, #059669, #10b981); color: white;" : "background: transparent; color: #64748b;")">
+        📜 Approval History
+    </button>
+</div>
+
+<!-- Filter Bar -->
+<div
+    style="background: white; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; gap: 16px; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-weight: 600; color: #374151;">Filter by Type:</span>
+        <select @bind="filterType"
+            style="padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; min-width: 180px;">
+            <option value="">All Types</option>
+            <option value="LoanApplication">Loan Applications</option>
+            <option value="LoanAssessment">Loan Assessments</option>
+            <option value="Transaction">Transactions</option>
+            <option value="Transfer">Transfers</option>
+        </select>
+    </div>
+    <button @onclick="LoadData"
+        style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path>
+        </svg>
+        Refresh
+    </button>
+</div>
+
+@if (activeTab == "pending")
+{
+    <!-- Pending Approvals Table -->
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 20px 24px;">
+            <h4 style="margin: 0; font-weight: 600; font-size: 18px;">⏳ Pending Approvals</h4>
+            <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">Items requiring your review and approval</p>
+        </div>
+
+        <div style="padding: 24px;">
+            @if (isLoading)
+            {
+                <div style="text-align: center; padding: 60px;">
+                    <div
+                        style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+                    </div>
+                    <p style="margin-top: 16px; color: #6b7280;">Loading pending approvals...</p>
+                </div>
+            }
+            else if (!filteredPendingItems.Any())
+            {
+                <div style="text-align: center; padding: 60px;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"
+                        style="margin: 0 auto 16px;">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p style="color: #6b7280; font-size: 16px;">No pending approvals</p>
+                    <p style="color: #9ca3af; font-size: 14px;">All items have been processed</p>
+                </div>
+            }
+            else
+            {
+                <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                Type</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                Reference</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                Customer</th>
+                            <th
+                                style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                Amount</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                From</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                Date</th>
+                            <th
+                                style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in filteredPendingItems)
+                        {
+                            <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;"
+                                onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                <td style="padding: 16px;">
+                                    <span
+                                        style="background: @GetTypeBadgeColor(item.Type); color: white; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 12px;">
+                                        @GetTypeIcon(item.Type) @item.Type
+                                    </span>
+                                </td>
+                                <td style="padding: 16px; font-weight: 600; color: #1e293b;">@item.Reference</td>
+                                <td style="padding: 16px; color: #475569;">@item.CustomerName</td>
+                                <td style="padding: 16px; text-align: right; font-weight: 600; color: #059669;">
+                                    ₱@item.Amount.ToString("N2")</td>
+                                <td style="padding: 16px;">
+                                    <span
+                                        style="background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                                        @item.SubmittedBy
+                                    </span>
+                                </td>
+                                <td style="padding: 16px; font-size: 14px; color: #64748b;">@item.SubmittedAt.ToString("MMM dd, yyyy")</td>
+                                <td style="padding: 16px; text-align: center;">
+                                    <button @onclick="() => OpenReviewModal(item)"
+                                        style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; margin-right: 8px;">
+                                        👁️ Review
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <!-- Approval History Table -->
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 20px 24px;">
+            <h4 style="margin: 0; font-weight: 600; font-size: 18px;">📜 Approval History</h4>
+            <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">Previously processed approvals and decisions</p>
+        </div>
+
+        <div style="padding: 24px;">
+            @if (isLoading)
+            {
+                <div style="text-align: center; padding: 60px;">
+                    <div
+                        style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+                    </div>
+                    <p style="margin-top: 16px; color: #6b7280;">Loading history...</p>
+                </div>
+            }
+            else if (!filteredHistoryItems.Any())
+            {
+                <div style="text-align: center; padding: 60px;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"
+                        style="margin: 0 auto 16px;">
+                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p style="color: #6b7280; font-size: 16px;">No approval history</p>
+                    <p style="color: #9ca3af; font-size: 14px;">Processed items will appear here</p>
+                </div>
+            }
+            else
+            {
+                <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                Type</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                Reference</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                Customer</th>
+                            <th
+                                style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                Amount</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                Status</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                Processed By</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in filteredHistoryItems)
+                        {
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 16px;">
+                                    <span
+                                        style="background: @GetTypeBadgeColor(item.Type); color: white; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 12px;">
+                                        @GetTypeIcon(item.Type) @item.Type
+                                    </span>
+                                </td>
+                                <td style="padding: 16px; font-weight: 600; color: #1e293b;">@item.Reference</td>
+                                <td style="padding: 16px; color: #475569;">@item.CustomerName</td>
+                                <td style="padding: 16px; text-align: right; font-weight: 600; color: #059669;">
+                                    ₱@item.Amount.ToString("N2")</td>
+                                <td style="padding: 16px;">
+                                    <span
+                                        style="background: @(item.Status == "Approved" ? "#d1fae5" : "#fee2e2"); color: @(item.Status == "Approved" ? "#065f46" : "#991b1b"); padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 12px;">
+                                        @(item.Status == "Approved" ? "✓" : "✗") @item.Status
+                                    </span>
+                                </td>
+                                <td style="padding: 16px; color: #475569;">@item.ProcessedBy</td>
+                                <td style="padding: 16px; font-size: 14px; color: #64748b;">@item.ProcessedAt?.ToString("MMM dd, yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+}
+
+<!-- Review Modal with Step Confirmation -->
+@if (showReviewModal && selectedItem != null)
+{
+    <div
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div
+            style="background: white; border-radius: 20px; padding: 0; max-width: 600px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.3); overflow: hidden;">
+            <!-- Modal Header -->
+            <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px 32px;">
+                <h2 style="font-size: 22px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 12px;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Review Approval Request
+                </h2>
+                <p style="margin: 8px 0 0 0; opacity: 0.9;">@selectedItem.Type - @selectedItem.Reference</p>
+            </div>
+
+            <!-- Step Indicator -->
+            <div style="padding: 24px 32px 0; background: #f8fafc;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    @for (int i = 1; i <= 3; i++)
+                    {
+                        var step = i;
+                        <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
+                            <div
+                                style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; @(currentStep >= step ? "background: linear-gradient(135deg, #059669, #10b981); color: white;" : "background: #e5e7eb; color: #9ca3af;")">
+                                @if (currentStep > step)
+                                {
+                                    <span>✓</span>
+                                }
+                                else
+                                {
+                                    <span>@step</span>
+                                }
+                            </div>
+                            <span
+                                style="font-size: 12px; color: @(currentStep >= step ? "#059669" : "#9ca3af"); margin-top: 8px; font-weight: 600;">
+                                @GetStepTitle(step)
+                            </span>
+                        </div>
+                        @if (i < 3)
+                        {
+                            <div
+                                style="flex: 0.5; height: 3px; background: @(currentStep > i ? "#059669" : "#e5e7eb"); margin: 0 8px;">
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Modal Content -->
+            <div style="padding: 24px 32px;">
+                @if (currentStep == 1)
+                {
+                    <!-- Step 1: Review Details -->
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 16px 0; color: #374151; font-size: 16px; font-weight: 600;">📋 Request Details
+                        </h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <span style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Type</span>
+                                <p style="margin: 4px 0 0 0; font-weight: 600; color: #1e293b;">@selectedItem.Type</p>
+                            </div>
+                            <div>
+                                <span style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Reference</span>
+                                <p style="margin: 4px 0 0 0; font-weight: 600; color: #1e293b;">@selectedItem.Reference</p>
+                            </div>
+                            <div>
+                                <span style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Customer</span>
+                                <p style="margin: 4px 0 0 0; font-weight: 600; color: #1e293b;">@selectedItem.CustomerName</p>
+                            </div>
+                            <div>
+                                <span style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Amount</span>
+                                <p style="margin: 4px 0 0 0; font-weight: 700; color: #059669; font-size: 18px;">
+                                    ₱@selectedItem.Amount.ToString("N2")</p>
+                            </div>
+                            <div>
+                                <span style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Submitted By</span>
+                                <p style="margin: 4px 0 0 0; font-weight: 600; color: #1e293b;">@selectedItem.SubmittedBy</p>
+                            </div>
+                            <div>
+                                <span style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Date</span>
+                                <p style="margin: 4px 0 0 0; font-weight: 600; color: #1e293b;">
+                                    @selectedItem.SubmittedAt.ToString("MMM dd, yyyy HH:mm")</p>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(selectedItem.Description))
+                        {
+                            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                                <span style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Description</span>
+                                <p style="margin: 4px 0 0 0; color: #475569;">@selectedItem.Description</p>
+                            </div>
+                        }
+                    </div>
+                }
+                else if (currentStep == 2)
+                {
+                    <!-- Step 2: Decision -->
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 16px 0; color: #374151; font-size: 16px; font-weight: 600;">⚖️ Make Your Decision
+                        </h4>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                            <button @onclick='() => approvalDecision = "Approved"'
+                                style="padding: 20px; border: 3px solid @(approvalDecision == "Approved" ? "#059669" : "#e5e7eb"); border-radius: 12px; background: @(approvalDecision == "Approved" ? "#d1fae5" : "white"); cursor: pointer; transition: all 0.2s;">
+                                <div style="font-size: 32px; margin-bottom: 8px;">✓</div>
+                                <div style="font-weight: 700; color: #059669; font-size: 16px;">APPROVE</div>
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Accept this request</div>
+                            </button>
+                            <button @onclick='() => approvalDecision = "Declined"'
+                                style="padding: 20px; border: 3px solid @(approvalDecision == "Declined" ? "#dc2626" : "#e5e7eb"); border-radius: 12px; background: @(approvalDecision == "Declined" ? "#fee2e2" : "white"); cursor: pointer; transition: all 0.2s;">
+                                <div style="font-size: 32px; margin-bottom: 8px;">✗</div>
+                                <div style="font-weight: 700; color: #dc2626; font-size: 16px;">DECLINE</div>
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Reject this request</div>
+                            </button>
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Notes / Reason
+                                (Optional)</label>
+                            <textarea @bind="approvalNotes" rows="3"
+                                placeholder="Enter any notes or reason for your decision..."
+                                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; resize: none;"></textarea>
+                        </div>
+                    </div>
+                }
+                else if (currentStep == 3)
+                {
+                    <!-- Step 3: Confirmation -->
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="font-size: 64px; margin-bottom: 16px;">
+                            @(approvalDecision == "Approved" ? "✅" : "❌")
+                        </div>
+                        <h3 style="margin: 0 0 8px 0; color: #1e293b; font-size: 20px;">Confirm Your Decision</h3>
+                        <p style="color: #6b7280; margin-bottom: 24px;">You are about to <strong
+                                style="color: @(approvalDecision == "Approved" ? "#059669" : "#dc2626");">@approvalDecision?.ToUpper()</strong>
+                            this request.</p>
+
+                        <div
+                            style="background: #f8fafc; border-radius: 12px; padding: 16px; text-align: left; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: #6b7280;">Reference:</span>
+                                <span style="font-weight: 600;">@selectedItem.Reference</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: #6b7280;">Amount:</span>
+                                <span style="font-weight: 600; color: #059669;">₱@selectedItem.Amount.ToString("N2")</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #6b7280;">Decision:</span>
+                                <span
+                                    style="font-weight: 600; color: @(approvalDecision == "Approved" ? "#059669" : "#dc2626");">@approvalDecision</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(approvalNotes))
+                            {
+                                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+                                    <span style="color: #6b7280; display: block; margin-bottom: 4px;">Notes:</span>
+                                    <span style="color: #475569;">@approvalNotes</span>
+                                </div>
+                            }
+                        </div>
+
+                        <p style="font-size: 13px; color: #f59e0b; background: #fef3c7; padding: 12px; border-radius: 8px;">
+                            ⚠️ This action cannot be undone. Please verify before confirming.
+                        </p>
+                    </div>
+                }
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="padding: 20px 32px 24px; background: #f8fafc; display: flex; justify-content: space-between;">
+                <button @onclick="CloseReviewModal"
+                    style="background: #e5e7eb; color: #374151; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <div style="display: flex; gap: 12px;">
+                    @if (currentStep > 1)
+                    {
+                        <button @onclick="PreviousStep"
+                            style="background: white; color: #374151; padding: 12px 24px; border: 2px solid #e5e7eb; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                            ← Back
+                        </button>
+                    }
+                    @if (currentStep < 3)
+                    {
+                        <button @onclick="NextStep" disabled="@(!CanProceedToNextStep())"
+                            style="background: @(CanProceedToNextStep() ? "linear-gradient(135deg, #059669, #10b981)" : "#e5e7eb"); color: @(CanProceedToNextStep() ? "white" : "#9ca3af"); padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: @(CanProceedToNextStep() ? "pointer" : "not-allowed");">
+                            Next →
+                        </button>
+                    }
+                    else
+                    {
+                        <button @onclick="SubmitDecision" disabled="@isProcessing"
+                            style="background: @(approvalDecision == "Approved" ? "linear-gradient(135deg, #059669, #10b981)" : "linear-gradient(135deg, #dc2626, #ef4444)"); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                            @if (isProcessing)
+                            {
+                                <span>Processing...</span>
+                            }
+                            else
+                            {
+                                <span>✓ Confirm @approvalDecision</span>
+                            }
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+@code {
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private string activeTab = "pending";
+    private string filterType = "";
+
+    // Toast
+    private bool showToast = false;
+    private string toastMessage = "";
+    private string toastType = "success";
+
+    // Stats
+    private int pendingCount = 0;
+    private int approvedCount = 0;
+    private int declinedCount = 0;
+    private int totalCount = 0;
+
+    // Data
+    private List<ApprovalItem> pendingItems = new();
+    private List<ApprovalItem> historyItems = new();
+    private List<ApprovalItem> filteredPendingItems => string.IsNullOrEmpty(filterType)
+    ? pendingItems
+    : pendingItems.Where(x => x.Type == filterType).ToList();
+    private List<ApprovalItem> filteredHistoryItems => string.IsNullOrEmpty(filterType)
+    ? historyItems
+    : historyItems.Where(x => x.Type == filterType).ToList();
+
+    // Modal
+    private bool showReviewModal = false;
+    private ApprovalItem? selectedItem;
+    private int currentStep = 1;
+    private string? approvalDecision;
+    private string approvalNotes = "";
+
+    private class ApprovalItem
+    {
+        public int Id { get; set; }
+        public string Type { get; set; } = "";
+        public string Reference { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string SubmittedBy { get; set; } = "";
+        public DateTime SubmittedAt { get; set; }
+        public string Status { get; set; } = "Pending";
+        public string? ProcessedBy { get; set; }
+        public DateTime? ProcessedAt { get; set; }
+        public string? Description { get; set; }
+        public string? Notes { get; set; }
+        // For tracking source
+        public string SourceType { get; set; } = ""; // LoanApplication, LoanAssessment, Transaction, etc.
+        public int SourceId { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            pendingItems.Clear();
+            historyItems.Clear();
+
+            // Load Loan Applications pending for Accountant review
+            var loanApps = await DbContext.LoanApplications
+            .Include(a => a.Account)
+            .ThenInclude(a => a!.Customer)
+            .Where(a => a.Status == "PENDING_ACCOUNTANT_REVIEW" || a.Status == "ENCODED" || a.Status == "VERIFIED")
+            .OrderByDescending(a => a.ApplicationDate)
+            .ToListAsync();
+
+            foreach (var app in loanApps)
+            {
+                pendingItems.Add(new ApprovalItem
+                {
+                    Id = app.ApplicationId,
+                    Type = "LoanApplication",
+                    Reference = app.ApplicationNumber,
+                    CustomerName = app.Account?.Customer?.FullName ?? "Unknown",
+                    Amount = app.RequestedAmount,
+                    SubmittedBy = app.SubmittedBy,
+                    SubmittedAt = app.ApplicationDate,
+                    Status = "Pending",
+                    Description = $"{app.LoanType} - {app.Purpose}",
+                    SourceType = "LoanApplication",
+                    SourceId = app.ApplicationId
+                });
+            }
+
+            // Load Loan Assessments pending approval
+            var assessments = await DbContext.LoanAssessments
+            .Include(a => a.Application)
+            .ThenInclude(app => app!.Account)
+            .ThenInclude(acc => acc!.Customer)
+            .Where(a => a.AssessmentStatus == "ASSESSED" || a.AssessmentStatus == "FORWARDED")
+            .OrderByDescending(a => a.AssessmentDate)
+            .ToListAsync();
+
+            foreach (var assessment in assessments)
+            {
+                pendingItems.Add(new ApprovalItem
+                {
+                    Id = assessment.AssessmentId,
+                    Type = "LoanAssessment",
+                    Reference = assessment.Application?.ApplicationNumber ?? $"ASS-{assessment.AssessmentId}",
+                    CustomerName = assessment.Application?.Account?.Customer?.FullName ?? "Unknown",
+                    Amount = assessment.LoanAmount,
+                    SubmittedBy = assessment.AssessedBy,
+                    SubmittedAt = assessment.AssessmentDate,
+                    Status = "Pending",
+                    Description = $"Term: {assessment.TermMonths} months @ {assessment.InterestRate}% - Monthly: ₱{assessment.ComputedMonthlyPayment:N2}",
+                    SourceType = "LoanAssessment",
+                    SourceId = assessment.AssessmentId
+                });
+            }
+
+            // Load Transactions pending approval
+            var transactions = await DbContext.CustomerTransactions
+            .Include(t => t.Account)
+            .ThenInclude(a => a!.Customer)
+            .Include(t => t.ProcessedByEmployee)
+            .Where(t => t.Status == "Pending" || t.Status == "PendingApproval")
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync();
+
+            foreach (var trans in transactions)
+            {
+                var processedByName = trans.ProcessedByEmployee != null
+                                    ? $"{trans.ProcessedByEmployee.FirstName} {trans.ProcessedByEmployee.LastName}"
+                : "System";
+                pendingItems.Add(new ApprovalItem
+                {
+                    Id = trans.TransactionId,
+                    Type = "Transaction",
+                    Reference = trans.TransactionNumber,
+                    CustomerName = trans.Account?.Customer?.FullName ?? "Unknown",
+                    Amount = trans.Amount,
+                    SubmittedBy = processedByName,
+                    SubmittedAt = trans.CreatedAt,
+                    Status = "Pending",
+                    Description = $"{trans.TransactionType} - {trans.Description}",
+                    SourceType = "Transaction",
+                    SourceId = trans.TransactionId
+                });
+            }
+
+            // Load Fund Transfers pending approval
+            var transfers = await DbContext.FundTransfers
+            .Include(t => t.FromAccount)
+            .Where(t => t.Status == "Pending" || t.Status == "PendingApproval")
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync();
+
+            foreach (var trans in transfers)
+            {
+                pendingItems.Add(new ApprovalItem
+                {
+                    Id = trans.TransferId,
+                    Type = "Transfer",
+                    Reference = trans.TransferNumber,
+                    CustomerName = trans.FromAccount?.AccountName ?? "Unknown",
+                    Amount = trans.Amount,
+                    SubmittedBy = trans.ProcessedBy ?? "System",
+                    SubmittedAt = trans.CreatedAt,
+                    Status = "Pending",
+                    Description = trans.Description,
+                    SourceType = "Transfer",
+                    SourceId = trans.TransferId
+                });
+            }
+
+            // Load History - Approved/Declined Loan Approvals
+            var loanApprovals = await DbContext.LoanApprovals
+            .Include(a => a.Application)
+            .ThenInclude(app => app!.Account)
+            .ThenInclude(acc => acc!.Customer)
+            .OrderByDescending(a => a.ApprovalDate)
+            .Take(50)
+            .ToListAsync();
+
+            foreach (var approval in loanApprovals)
+            {
+                historyItems.Add(new ApprovalItem
+                {
+                    Id = approval.ApprovalId,
+                    Type = "LoanApproval",
+                    Reference = approval.Application?.ApplicationNumber ?? $"APR-{approval.ApprovalId}",
+                    CustomerName = approval.Application?.Account?.Customer?.FullName ?? "Unknown",
+                    Amount = approval.ApprovedAmount ?? approval.Application?.RequestedAmount ?? 0,
+                    SubmittedBy = approval.ApprovedBy,
+                    SubmittedAt = approval.ApprovalDate,
+                    Status = approval.ApprovalStatus == "APPROVED" ? "Approved" : "Declined",
+                    ProcessedBy = approval.ApprovedBy,
+                    ProcessedAt = approval.ApprovalDate,
+                    Notes = approval.DeclinationReason ?? approval.SpecialConditions,
+                    SourceType = "LoanApproval",
+                    SourceId = approval.ApprovalId
+                });
+            }
+
+            // Load History - Completed Transactions
+            var completedTrans = await DbContext.CustomerTransactions
+            .Include(t => t.Account)
+            .ThenInclude(a => a!.Customer)
+            .Include(t => t.ProcessedByEmployee)
+            .Where(t => t.Status == "Completed" || t.Status == "Approved" || t.Status == "Rejected")
+            .OrderByDescending(t => t.CreatedAt)
+            .Take(50)
+            .ToListAsync();
+
+            foreach (var trans in completedTrans)
+            {
+                var processedByName = trans.ProcessedByEmployee != null
+                                    ? $"{trans.ProcessedByEmployee.FirstName} {trans.ProcessedByEmployee.LastName}"
+                : "System";
+                historyItems.Add(new ApprovalItem
+                {
+                    Id = trans.TransactionId,
+                    Type = "Transaction",
+                    Reference = trans.TransactionNumber,
+                    CustomerName = trans.Account?.Customer?.FullName ?? "Unknown",
+                    Amount = trans.Amount,
+                    SubmittedBy = processedByName,
+                    SubmittedAt = trans.CreatedAt,
+                    Status = trans.Status == "Rejected" ? "Declined" : "Approved",
+                    ProcessedBy = processedByName,
+                    ProcessedAt = trans.ProcessedAt ?? trans.CreatedAt,
+                    Description = trans.Description,
+                    SourceType = "Transaction",
+                    SourceId = trans.TransactionId
+                });
+            }
+
+            // Calculate statistics
+            pendingCount = pendingItems.Count;
+            approvedCount = historyItems.Count(x => x.Status == "Approved");
+            declinedCount = historyItems.Count(x => x.Status == "Declined");
+            totalCount = pendingCount + approvedCount + declinedCount;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+            ShowToast($"Error loading data: {ex.Message}", "error");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private void OpenReviewModal(ApprovalItem item)
+    {
+        selectedItem = item;
+        currentStep = 1;
+        approvalDecision = null;
+        approvalNotes = "";
+        showReviewModal = true;
+    }
+
+    private void CloseReviewModal()
+    {
+        showReviewModal = false;
+        selectedItem = null;
+        currentStep = 1;
+        approvalDecision = null;
+        approvalNotes = "";
+    }
+
+    private void NextStep()
+    {
+        if (currentStep < 3 && CanProceedToNextStep())
+            currentStep++;
+    }
+
+    private void PreviousStep()
+    {
+        if (currentStep > 1)
+            currentStep--;
+    }
+
+    private bool CanProceedToNextStep()
+    {
+        return currentStep switch
+        {
+            1 => true, // Can always proceed from review
+            2 => !string.IsNullOrEmpty(approvalDecision), // Must select decision
+            _ => true
+        };
+    }
+
+    private string GetStepTitle(int step) => step switch
+    {
+        1 => "Review",
+        2 => "Decision",
+        3 => "Confirm",
+        _ => ""
+    };
+
+    private async Task SubmitDecision()
+    {
+        if (selectedItem == null || string.IsNullOrEmpty(approvalDecision))
+            return;
+
+        isProcessing = true;
+        try
+        {
+            var currentUser = AuthService.CurrentUser ?? "Accountant";
+            var isApproved = approvalDecision == "Approved";
+
+            // Process based on source type
+            switch (selectedItem.SourceType)
+            {
+                case "LoanApplication":
+                    var loanApp = await DbContext.LoanApplications.FindAsync(selectedItem.SourceId);
+                    if (loanApp != null)
+                    {
+                        if (isApproved)
+                        {
+                            loanApp.Status = "PENDING_FINANCEMANAGER_APPROVAL";
+                        }
+                        else
+                        {
+                            loanApp.Status = "REJECTED";
+                            loanApp.RejectionReason = approvalNotes;
+                            loanApp.RejectedAt = DateTime.Now;
+                            loanApp.RejectedBy = currentUser;
+                        }
+                        await DbContext.SaveChangesAsync();
+                    }
+                    break;
+
+                case "LoanAssessment":
+                    var assessment = await DbContext.LoanAssessments.FindAsync(selectedItem.SourceId);
+                    if (assessment != null)
+                    {
+                        if (isApproved)
+                        {
+                            assessment.AssessmentStatus = "APPROVED";
+                            // Create loan approval record
+                            var approval = new LoanApproval
+                            {
+                                AssessmentId = assessment.AssessmentId,
+                                ApplicationId = assessment.ApplicationId,
+                                AccountId = assessment.AccountId,
+                                ApprovalStatus = "APPROVED",
+                                ApprovalDate = DateTime.Now,
+                                ApprovedBy = currentUser,
+                                ApprovedAmount = assessment.LoanAmount,
+                                ApprovedInterestRate = assessment.InterestRate,
+                                ApprovedTermMonths = assessment.TermMonths,
+                                SpecialConditions = approvalNotes
+                            };
+                            DbContext.LoanApprovals.Add(approval);
+                        }
+                        else
+                        {
+                            assessment.AssessmentStatus = "DECLINED";
+                        }
+                        await DbContext.SaveChangesAsync();
+                    }
+                    break;
+
+                case "Transaction":
+                    var trans = await DbContext.CustomerTransactions.FindAsync(selectedItem.SourceId);
+                    if (trans != null)
+                    {
+                        trans.Status = isApproved ? "Completed" : "Rejected";
+                        trans.ProcessedAt = DateTime.Now;
+                        await DbContext.SaveChangesAsync();
+                    }
+                    break;
+
+                case "Transfer":
+                    var transfer = await DbContext.FundTransfers.FindAsync(selectedItem.SourceId);
+                    if (transfer != null)
+                    {
+                        transfer.Status = isApproved ? "Completed" : "Rejected";
+                        transfer.ProcessedAt = DateTime.Now;
+                        await DbContext.SaveChangesAsync();
+                    }
+                    break;
+            }
+
+            CloseReviewModal();
+            ShowToast($"Request {approvalDecision?.ToLower()} successfully!", "success");
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing decision: {ex.Message}");
+            ShowToast($"Error: {ex.Message}", "error");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ShowToast(string message, string type)
+    {
+        toastMessage = message;
+        toastType = type;
+        showToast = true;
+        _ = HideToastAfterDelay();
+    }
+
+    private async Task HideToastAfterDelay()
+    {
+        await Task.Delay(4000);
+        showToast = false;
+        StateHasChanged();
+    }
+
+    private string GetTypeBadgeColor(string type) => type switch
+    {
+        "LoanApplication" => "#7c3aed",
+        "LoanAssessment" => "#2563eb",
+        "LoanApproval" => "#059669",
+        "Transaction" => "#d97706",
+        "Transfer" => "#0891b2",
+        _ => "#6b7280"
+    };
+
+    private string GetTypeIcon(string type) => type switch
+    {
+        "LoanApplication" => "📋",
+        "LoanAssessment" => "📊",
+        "LoanApproval" => "✓",
+        "Transaction" => "💳",
+        "Transfer" => "🔄",
+        _ => "📄"
+    };
+}

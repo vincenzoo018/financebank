@@ -1485,10 +1485,7 @@ public class FinancialStatementService
             StatementType = "IncomeStatement",
             PeriodStart = periodStart,
             PeriodEnd = periodEnd,
-            TotalRevenue = totalRevenue,
-            TotalExpenses = totalExpenses,
-            NetIncome = netIncome,
-            Data = System.Text.Json.JsonSerializer.Serialize(new
+            StatementData = System.Text.Json.JsonSerializer.Serialize(new
             {
                 Revenues = revenues,
                 Expenses = expenses,
@@ -1497,8 +1494,7 @@ public class FinancialStatementService
                 NetIncome = netIncome
             }),
             GeneratedAt = DateTime.Now,
-            GeneratedBy = generatedBy,
-            Status = "Final"
+            GeneratedBy = generatedBy
         };
 
         _context.FinancialStatements.Add(statement);
@@ -1549,10 +1545,7 @@ public class FinancialStatementService
             StatementType = "BalanceSheet",
             PeriodStart = asOfDate,
             PeriodEnd = asOfDate,
-            TotalAssets = totalAssets,
-            TotalLiabilities = totalLiabilities,
-            TotalEquity = totalEquity,
-            Data = System.Text.Json.JsonSerializer.Serialize(new
+            StatementData = System.Text.Json.JsonSerializer.Serialize(new
             {
                 Assets = assets,
                 Liabilities = liabilities,
@@ -1563,8 +1556,7 @@ public class FinancialStatementService
                 TotalEquity = totalEquity
             }),
             GeneratedAt = DateTime.Now,
-            GeneratedBy = generatedBy,
-            Status = "Final"
+            GeneratedBy = generatedBy
         };
 
         _context.FinancialStatements.Add(statement);
@@ -1608,7 +1600,7 @@ public class FinancialStatementService
             StatementType = "CashFlow",
             PeriodStart = periodStart,
             PeriodEnd = periodEnd,
-            Data = System.Text.Json.JsonSerializer.Serialize(new
+            StatementData = System.Text.Json.JsonSerializer.Serialize(new
             {
                 OperatingActivities = new
                 {
@@ -1626,8 +1618,7 @@ public class FinancialStatementService
                 NetCashChange = netCashChange
             }),
             GeneratedAt = DateTime.Now,
-            GeneratedBy = generatedBy,
-            Status = "Final"
+            GeneratedBy = generatedBy
         };
 
         _context.FinancialStatements.Add(statement);
