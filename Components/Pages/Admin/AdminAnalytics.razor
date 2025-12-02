@@ -1,0 +1,288 @@
+@page "/admin/analytics"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1>
+            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+            </svg>
+            Reports & Analytics
+        </h1>
+        <p class="page-subtitle">View comprehensive reports and analytics across all operations</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-label">Total Transactions Today</div>
+                <div class="stat-value">@totalTransactionsToday</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-label">Active Loans</div>
+                <div class="stat-value">@activeLoans</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-label">Total Customers</div>
+                <div class="stat-value">@totalCustomers</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-label">Revenue This Month</div>
+                <div class="stat-value" style="color: #10b981;">₱@revenueThisMonth.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="reports-grid" style="margin-top: 24px;">
+        <div class="admin-card">
+            <div class="card-header">
+                <h3>Quick Reports</h3>
+            </div>
+            <div class="card-body">
+                <div class="report-links">
+                    <a href="/admin/teller/daily-report" class="report-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        Teller Daily Report
+                    </a>
+                    <a href="/admin/accountant/transaction-reports" class="report-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
+                            <polyline points="17 6 23 6 23 12"></polyline>
+                        </svg>
+                        Transaction Reports
+                    </a>
+                    <a href="/admin/accountant/financial-statements" class="report-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        Financial Statements
+                    </a>
+                    <a href="/admin/finance-mgr/budget-reports" class="report-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                            <line x1="9" y1="9" x2="15" y2="9"></line>
+                            <line x1="9" y1="15" x2="15" y2="15"></line>
+                        </svg>
+                        Budget Reports
+                    </a>
+                    <a href="/admin/finance-mgr/cashflow-reports" class="report-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                        Cashflow Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <div class="card-header">
+                <h3>Recent Activity</h3>
+            </div>
+            <div class="card-body">
+                <ul class="activity-list">
+                    @foreach (var activity in recentActivities)
+                    {
+                        <li>
+                            <div class="activity-icon" style="background: @activity.Color;">
+                                @((MarkupString)activity.Icon)
+                            </div>
+                            <div class="activity-content">
+                                <span class="activity-text">@activity.Description</span>
+                                <span class="activity-time">@activity.Time</span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3>Monthly Overview</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>This Month</th>
+                        <th>Last Month</th>
+                        <th>Change</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Deposits</td>
+                        <td>₱5,250,000</td>
+                        <td>₱4,800,000</td>
+                        <td><span class="badge badge-success">+9.4%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Withdrawals</td>
+                        <td>₱3,100,000</td>
+                        <td>₱2,950,000</td>
+                        <td><span class="badge badge-warning">+5.1%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Loan Disbursements</td>
+                        <td>₱2,500,000</td>
+                        <td>₱2,100,000</td>
+                        <td><span class="badge badge-success">+19.0%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Loan Collections</td>
+                        <td>₱1,850,000</td>
+                        <td>₱1,700,000</td>
+                        <td><span class="badge badge-success">+8.8%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Interest Income</td>
+                        <td>₱320,000</td>
+                        <td>₱290,000</td>
+                        <td><span class="badge badge-success">+10.3%</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .stat-label {
+        font-size: 0.9em;
+        color: #6b7280;
+        margin-bottom: 8px;
+    }
+    .stat-value {
+        font-size: 2em;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    .reports-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    .report-links {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .report-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: #f8fafc;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #1f2937;
+        transition: background 0.2s;
+    }
+    .report-link:hover {
+        background: #e2e8f0;
+    }
+    .report-link svg {
+        width: 20px;
+        height: 20px;
+        color: #6b7280;
+    }
+    .activity-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .activity-list li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .activity-list li:last-child {
+        border-bottom: none;
+    }
+    .activity-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .activity-icon svg {
+        width: 18px;
+        height: 18px;
+        color: white;
+    }
+    .activity-content {
+        flex: 1;
+    }
+    .activity-text {
+        display: block;
+        font-size: 0.9em;
+    }
+    .activity-time {
+        display: block;
+        font-size: 0.8em;
+        color: #9ca3af;
+    }
+</style>
+
+@code {
+    private int totalTransactionsToday = 156;
+    private int activeLoans = 423;
+    private int totalCustomers = 2847;
+    private decimal revenueThisMonth = 1250000;
+
+    private List<ActivityItem> recentActivities = new()
+    {
+        new() { Description = "Loan disbursement processed", Time = "5 min ago", Icon = "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><line x1='12' y1='1' x2='12' y2='23'></line><path d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'></path></svg>", Color = "#10b981" },
+        new() { Description = "New customer registered", Time = "12 min ago", Icon = "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'></path><circle cx='8.5' cy='7' r='4'></circle></svg>", Color = "#3b82f6" },
+        new() { Description = "Deposit of ₱50,000 processed", Time = "25 min ago", Icon = "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><line x1='12' y1='5' x2='12' y2='19'></line><polyline points='19 12 12 19 5 12'></polyline></svg>", Color = "#10b981" },
+        new() { Description = "Loan application submitted", Time = "1 hour ago", Icon = "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'></path><polyline points='14 2 14 8 20 8'></polyline></svg>", Color = "#f59e0b" }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private class ActivityItem
+    {
+        public string Description { get; set; } = "";
+        public string Time { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string Color { get; set; } = "";
+    }
+}

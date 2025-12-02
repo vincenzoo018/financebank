@@ -1,0 +1,355 @@
+@page "/admin/teller/reports"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject TellerBankingService TellerBankingService
+@inject BFASDbContext DbContext
+@using Microsoft.EntityFrameworkCore
+
+<!-- Header with Gradient -->
+<div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 16px; padding: 32px; margin-bottom: 32px; color: white;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <svg width="40" height="40" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        <div>
+            <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Teller Reports (Admin)</h1>
+            <p style="margin: 4px 0 0; opacity: 0.9; font-size: 14px;">View comprehensive teller transaction reports - SuperAdmin Access</p>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Notice -->
+<div style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 24px;">📊</span>
+        <div>
+            <p style="margin: 0; font-weight: 600; color: #1e40af;">Administrative Report Access</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #1e40af;">You have access to all teller transaction data across the organization.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 32px;">
+    <!-- Today's Deposits -->
+    <div style="background: white; border-radius: 12px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <span style="font-size: 24px;">💰</span>
+            <span style="background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600;">TODAY</span>
+        </div>
+        <p style="margin: 0 0 4px; font-size: 13px; color: #6b7280;">Total Deposits</p>
+        <p style="margin: 0; font-size: 24px; font-weight: 700; color: #059669;">₱@todayDeposits.ToString("N2")</p>
+        <p style="margin: 8px 0 0; font-size: 12px; color: #6b7280;">@depositCount transactions</p>
+    </div>
+
+    <!-- Today's Withdrawals -->
+    <div style="background: white; border-radius: 12px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <span style="font-size: 24px;">💸</span>
+            <span style="background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600;">TODAY</span>
+        </div>
+        <p style="margin: 0 0 4px; font-size: 13px; color: #6b7280;">Total Withdrawals</p>
+        <p style="margin: 0; font-size: 24px; font-weight: 700; color: #dc2626;">₱@todayWithdrawals.ToString("N2")</p>
+        <p style="margin: 8px 0 0; font-size: 12px; color: #6b7280;">@withdrawalCount transactions</p>
+    </div>
+
+    <!-- Net Cash Flow -->
+    <div style="background: white; border-radius: 12px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <span style="font-size: 24px;">📈</span>
+            <span style="background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600;">NET</span>
+        </div>
+        <p style="margin: 0 0 4px; font-size: 13px; color: #6b7280;">Net Cash Flow</p>
+        <p style="margin: 0; font-size: 24px; font-weight: 700; color: @(netCashFlow >= 0 ? "#059669" : "#dc2626");">@(netCashFlow >= 0 ? "+" : "")₱@netCashFlow.ToString("N2")</p>
+        <p style="margin: 8px 0 0; font-size: 12px; color: #6b7280;">deposits - withdrawals</p>
+    </div>
+
+    <!-- Total Transactions -->
+    <div style="background: white; border-radius: 12px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <span style="font-size: 24px;">📋</span>
+            <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600;">ALL</span>
+        </div>
+        <p style="margin: 0 0 4px; font-size: 13px; color: #6b7280;">Total Transactions</p>
+        <p style="margin: 0; font-size: 24px; font-weight: 700; color: #1f2937;">@(depositCount + withdrawalCount)</p>
+        <p style="margin: 8px 0 0; font-size: 12px; color: #6b7280;">processed today</p>
+    </div>
+</div>
+
+<!-- Filter and Export Section -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb; margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; gap: 16px; align-items: center;">
+            <div>
+                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Date From</label>
+                <input type="date" style="padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
+                       @bind="dateFrom" />
+            </div>
+            <div>
+                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Date To</label>
+                <input type="date" style="padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
+                       @bind="dateTo" />
+            </div>
+            <div>
+                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Type</label>
+                <select style="padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" @bind="filterType">
+                    <option value="">All Types</option>
+                    <option value="Deposit">Deposits</option>
+                    <option value="Withdrawal">Withdrawals</option>
+                </select>
+            </div>
+            <div style="align-self: flex-end;">
+                <button type="button" style="background: #3b82f6; color: white; padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;" @onclick="ApplyFilters">
+                    🔍 Apply Filters
+                </button>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px;">
+            <button type="button" style="background: #059669; color: white; padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;" @onclick="ExportToExcel">
+                📊 Export Excel
+            </button>
+            <button type="button" style="background: #dc2626; color: white; padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;" @onclick="ExportToPDF">
+                📄 Export PDF
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+    <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1f2937;">Transaction History</h3>
+    
+    @if (isLoading)
+    {
+        <div style="padding: 40px; text-align: center; color: #6b7280;">
+            <p>Loading transactions...</p>
+        </div>
+    }
+    else if (transactions.Any())
+    {
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e5e7eb; background: #f9fafb;">
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">DATE/TIME</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">ACCOUNT #</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">CUSTOMER</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">TYPE</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">AMOUNT</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">PROCESSED BY</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var trans in transactions.Take(50))
+                    {
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 14px 12px; font-size: 13px; color: #6b7280;">@trans.Time.ToString("MM/dd/yyyy HH:mm")</td>
+                            <td style="padding: 14px 12px; font-weight: 600;">@trans.AccountNumber</td>
+                            <td style="padding: 14px 12px;">@trans.CustomerName</td>
+                            <td style="padding: 14px 12px;">
+                                <span style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; 
+                                             background: @(trans.Type == "Deposit" ? "#d1fae5" : "#fee2e2"); 
+                                             color: @(trans.Type == "Deposit" ? "#065f46" : "#991b1b");">
+                                    @trans.Type
+                                </span>
+                            </td>
+                            <td style="padding: 14px 12px; font-weight: 600; color: @(trans.Type == "Deposit" ? "#059669" : "#dc2626");">
+                                @(trans.Type == "Deposit" ? "+" : "-")₱@trans.Amount.ToString("N2")
+                            </td>
+                            <td style="padding: 14px 12px; font-size: 13px; color: #6b7280;">Teller</td>
+                            <td style="padding: 14px 12px;">
+                                <span style="padding: 4px 10px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                                    Completed
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+        @if (transactions.Count > 50)
+        {
+            <div style="margin-top: 16px; text-align: center; color: #6b7280; font-size: 14px;">
+                Showing 50 of @transactions.Count transactions. Export to see all records.
+            </div>
+        }
+    }
+    else
+    {
+        <div style="padding: 40px; text-align: center; color: #6b7280;">
+            <p style="margin: 0; font-size: 14px;">No transactions found for the selected filters.</p>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private decimal todayDeposits = 0;
+    private decimal todayWithdrawals = 0;
+    private decimal netCashFlow = 0;
+    private int depositCount = 0;
+    private int withdrawalCount = 0;
+    
+    private DateTime dateFrom = DateTime.Today;
+    private DateTime dateTo = DateTime.Today;
+    private string filterType = "";
+    
+    private List<TransactionRecord> transactions = new();
+    
+    private class TransactionRecord
+    {
+        public string AccountNumber { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public string Type { get; set; } = "";
+        public decimal Amount { get; set; }
+        public DateTime Time { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            var todayTransactions = await TellerBankingService.GetTodayTransactionsAsync();
+            
+            transactions = todayTransactions.Select(t => new TransactionRecord
+            {
+                AccountNumber = t.AccountNumber,
+                CustomerName = t.CustomerName,
+                Type = t.Type,
+                Amount = t.Amount,
+                Time = t.Time
+            }).OrderByDescending(t => t.Time).ToList();
+            
+            var deposits = transactions.Where(t => t.Type == "Deposit").ToList();
+            var withdrawals = transactions.Where(t => t.Type == "Withdrawal").ToList();
+            
+            todayDeposits = deposits.Sum(t => t.Amount);
+            todayWithdrawals = withdrawals.Sum(t => t.Amount);
+            netCashFlow = todayDeposits - todayWithdrawals;
+            depositCount = deposits.Count;
+            withdrawalCount = withdrawals.Count;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        isLoading = true;
+        try
+        {
+            var allTransactions = await TellerBankingService.GetTodayTransactionsAsync();
+            
+            var filtered = allTransactions.Where(t => 
+                t.Time.Date >= dateFrom.Date && 
+                t.Time.Date <= dateTo.Date);
+            
+            if (!string.IsNullOrEmpty(filterType))
+            {
+                filtered = filtered.Where(t => t.Type == filterType);
+            }
+            
+            transactions = filtered.Select(t => new TransactionRecord
+            {
+                AccountNumber = t.AccountNumber,
+                CustomerName = t.CustomerName,
+                Type = t.Type,
+                Amount = t.Amount,
+                Time = t.Time
+            }).OrderByDescending(t => t.Time).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error applying filters: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ExportToExcel()
+    {
+        var content = "Date,Time,Account Number,Customer,Type,Amount,Status\n";
+        foreach (var trans in transactions)
+        {
+            content += $"{trans.Time:yyyy-MM-dd},{trans.Time:HH:mm:ss},{trans.AccountNumber},{trans.CustomerName},{trans.Type},{trans.Amount:N2},Completed\n";
+        }
+        
+        // In a real implementation, this would trigger a file download
+        Console.WriteLine("Excel export triggered");
+        // Could use JS interop to trigger download
+    }
+
+    private void ExportToPDF()
+    {
+        var content = $@"
+========================================================
+           TELLER TRANSACTION REPORT                   
+              FinanceBank System                       
+========================================================
+
+Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
+Generated By: {AuthService.CurrentUser} (SuperAdmin)
+
+Report Period: {dateFrom:yyyy-MM-dd} to {dateTo:yyyy-MM-dd}
+
+========================================================
+                     SUMMARY                           
+========================================================
+
+Total Deposits:    ₱{todayDeposits:N2} ({depositCount} transactions)
+Total Withdrawals: ₱{todayWithdrawals:N2} ({withdrawalCount} transactions)
+Net Cash Flow:     ₱{netCashFlow:N2}
+
+========================================================
+                 TRANSACTIONS                          
+========================================================
+
+";
+        foreach (var trans in transactions.Take(100))
+        {
+            content += $"{trans.Time:yyyy-MM-dd HH:mm} | {trans.AccountNumber} | {trans.Type}: ₱{trans.Amount:N2}\n";
+        }
+        
+        content += @"
+========================================================
+              END OF REPORT                            
+========================================================
+";
+
+        // Open in notepad for now
+        var printWindow = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = "notepad.exe",
+            Arguments = "-",
+            UseShellExecute = false,
+            RedirectStandardInput = true,
+            CreateNoWindow = true
+        });
+
+        if (printWindow != null)
+        {
+            printWindow.StandardInput.WriteLine(content);
+            printWindow.StandardInput.Close();
+        }
+    }
+}

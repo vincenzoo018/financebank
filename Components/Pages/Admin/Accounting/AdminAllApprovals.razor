@@ -1,0 +1,417 @@
+@page "/admin/accountant/all-approvals"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page accountant-page">
+    <div class="page-header">
+        <h1>
+            <span class="role-badge accountant">Accountant</span>
+            All Approvals
+        </h1>
+        <p class="page-subtitle">Review and approve all pending accounting requests</p>
+    </div>
+
+    <!-- Admin Action Reason -->
+    <div class="admin-action-card">
+        <div class="alert alert-warning">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <span>You are accessing Accountant functions as SuperAdmin. All actions are logged.</span>
+        </div>
+        <div class="form-group">
+            <label for="adminReason">Reason for Admin Action (Required)</label>
+            <textarea id="adminReason" @bind="adminActionReason" class="form-control" 
+                placeholder="Document why you are performing this action as admin..." rows="2"></textarea>
+        </div>
+    </div>
+
+    <div class="approval-stats" style="margin-top: 24px;">
+        <div class="stat-card">
+            <div class="stat-value">@pendingCount</div>
+            <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value urgent">@urgentCount</div>
+            <div class="stat-label">Urgent</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value approved">@approvedTodayCount</div>
+            <div class="stat-label">Approved Today</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value rejected">@rejectedTodayCount</div>
+            <div class="stat-label">Rejected Today</div>
+        </div>
+    </div>
+
+    <div class="approval-tabs" style="margin-top: 24px;">
+        <button class="tab-btn @(activeCategory == "all" ? "active" : "")" @onclick='() => activeCategory = "all"'>
+            All
+            <span class="badge">@allApprovals.Count</span>
+        </button>
+        <button class="tab-btn @(activeCategory == "journal" ? "active" : "")" @onclick='() => activeCategory = "journal"'>
+            Journal Entries
+            <span class="badge">@allApprovals.Count(a => a.Category == "Journal Entry")</span>
+        </button>
+        <button class="tab-btn @(activeCategory == "adjustment" ? "active" : "")" @onclick='() => activeCategory = "adjustment"'>
+            Adjustments
+            <span class="badge">@allApprovals.Count(a => a.Category == "Adjustment")</span>
+        </button>
+        <button class="tab-btn @(activeCategory == "reversal" ? "active" : "")" @onclick='() => activeCategory = "reversal"'>
+            Reversals
+            <span class="badge">@allApprovals.Count(a => a.Category == "Reversal")</span>
+        </button>
+        <button class="tab-btn @(activeCategory == "writeoff" ? "active" : "")" @onclick='() => activeCategory = "writeoff"'>
+            Write-offs
+            <span class="badge">@allApprovals.Count(a => a.Category == "Write-off")</span>
+        </button>
+    </div>
+
+    <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3>Pending Approvals</h3>
+            <div class="header-actions">
+                <select class="form-select" @bind="priorityFilter" style="width: 150px;">
+                    <option value="">All Priorities</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="high">High</option>
+                    <option value="normal">Normal</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-body">
+            @foreach (var approval in GetFilteredApprovals())
+            {
+                <div class="approval-card @(approval.Priority.ToLower())">
+                    <div class="approval-header">
+                        <div class="approval-title">
+                            <span class="category-badge">@approval.Category</span>
+                            <strong>@approval.Reference</strong>
+                            @if (approval.Priority == "Urgent")
+                            {
+                                <span class="priority-badge urgent">URGENT</span>
+                            }
+                        </div>
+                        <div class="approval-date">
+                            @approval.SubmittedDate.ToString("MMM dd, yyyy HH:mm")
+                        </div>
+                    </div>
+                    
+                    <div class="approval-content">
+                        <p class="description">@approval.Description</p>
+                        <div class="approval-details">
+                            <div class="detail-item">
+                                <span class="label">Amount:</span>
+                                <span class="value">₱@approval.Amount.ToString("N2")</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Requested By:</span>
+                                <span class="value">@approval.RequestedBy</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Department:</span>
+                                <span class="value">@approval.Department</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="approval-footer">
+                        <div class="footer-info">
+                            @if (!string.IsNullOrEmpty(approval.Notes))
+                            {
+                                <span class="notes"><strong>Notes:</strong> @approval.Notes</span>
+                            }
+                        </div>
+                        <div class="approval-actions">
+                            <button class="btn btn-outline" @onclick="() => ViewDetails(approval)">
+                                View Details
+                            </button>
+                            <button class="btn btn-danger" @onclick="() => RejectApproval(approval)"
+                                disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                                Reject
+                            </button>
+                            <button class="btn btn-success" @onclick="() => ApproveItem(approval)"
+                                disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Approve
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (!GetFilteredApprovals().Any())
+            {
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px;">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <p>No pending approvals in this category</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .accountant-page .role-badge.accountant {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    }
+    .approval-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+    .stat-card {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .stat-value {
+        font-size: 2.5em;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    .stat-value.urgent { color: #ef4444; }
+    .stat-value.approved { color: #10b981; }
+    .stat-value.rejected { color: #f59e0b; }
+    .stat-label {
+        font-size: 0.9em;
+        color: #6b7280;
+        margin-top: 4px;
+    }
+    .approval-tabs {
+        display: flex;
+        gap: 8px;
+        background: white;
+        padding: 8px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        flex-wrap: wrap;
+    }
+    .tab-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        color: #6b7280;
+        transition: all 0.2s;
+    }
+    .tab-btn:hover {
+        background: #f3f4f6;
+    }
+    .tab-btn.active {
+        background: #8b5cf6;
+        color: white;
+    }
+    .tab-btn .badge {
+        background: rgba(0,0,0,0.1);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8em;
+    }
+    .tab-btn.active .badge {
+        background: rgba(255,255,255,0.3);
+    }
+    .header-actions {
+        display: flex;
+        gap: 12px;
+    }
+    .approval-card {
+        padding: 20px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        background: white;
+    }
+    .approval-card.urgent {
+        border-left: 4px solid #ef4444;
+        background: #fef2f2;
+    }
+    .approval-card.high {
+        border-left: 4px solid #f59e0b;
+    }
+    .approval-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .approval-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .category-badge {
+        padding: 4px 10px;
+        background: #e0e7ff;
+        color: #4f46e5;
+        border-radius: 6px;
+        font-size: 0.8em;
+    }
+    .priority-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.7em;
+        font-weight: 600;
+    }
+    .priority-badge.urgent {
+        background: #fef2f2;
+        color: #dc2626;
+        animation: pulse 2s infinite;
+    }
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+    .approval-date {
+        font-size: 0.85em;
+        color: #6b7280;
+    }
+    .description {
+        color: #374151;
+        margin-bottom: 16px;
+    }
+    .approval-details {
+        display: flex;
+        gap: 24px;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+    .detail-item .label {
+        color: #6b7280;
+        margin-right: 8px;
+    }
+    .detail-item .value {
+        font-weight: 600;
+    }
+    .approval-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
+    }
+    .footer-info .notes {
+        font-size: 0.9em;
+        color: #6b7280;
+    }
+    .approval-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 60px;
+        color: #9ca3af;
+    }
+    .empty-state svg {
+        margin-bottom: 16px;
+        color: #10b981;
+    }
+</style>
+
+@code {
+    private string adminActionReason = "";
+    private string activeCategory = "all";
+    private string priorityFilter = "";
+
+    private int pendingCount = 12;
+    private int urgentCount = 3;
+    private int approvedTodayCount = 8;
+    private int rejectedTodayCount = 2;
+
+    private List<ApprovalItem> allApprovals = new()
+    {
+        new() { Reference = "JE-2024-0145", Category = "Journal Entry", Description = "Monthly depreciation entry for fixed assets", Amount = 125000, RequestedBy = "Accounting Staff", Department = "Accounting", Priority = "Normal", SubmittedDate = DateTime.Now.AddHours(-2) },
+        new() { Reference = "ADJ-2024-0032", Category = "Adjustment", Description = "Bank reconciliation adjustment for uncleared checks", Amount = 45000, RequestedBy = "Senior Accountant", Department = "Finance", Priority = "High", SubmittedDate = DateTime.Now.AddHours(-4), Notes = "Requires verification with bank statement" },
+        new() { Reference = "REV-2024-0018", Category = "Reversal", Description = "Reverse erroneous posting to wrong account", Amount = 85000, RequestedBy = "Accounting Staff", Department = "Accounting", Priority = "Urgent", SubmittedDate = DateTime.Now.AddHours(-1), Notes = "Affects customer account - time sensitive" },
+        new() { Reference = "WO-2024-0005", Category = "Write-off", Description = "Bad debt write-off for uncollectible loan", Amount = 250000, RequestedBy = "Credit Analyst", Department = "Credit", Priority = "Normal", SubmittedDate = DateTime.Now.AddDays(-1), Notes = "Customer declared bankruptcy" },
+        new() { Reference = "JE-2024-0146", Category = "Journal Entry", Description = "Accrual entry for interest income", Amount = 68000, RequestedBy = "Accounting Staff", Department = "Accounting", Priority = "Normal", SubmittedDate = DateTime.Now.AddHours(-3) }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private List<ApprovalItem> GetFilteredApprovals()
+    {
+        var filtered = allApprovals.AsEnumerable();
+
+        if (activeCategory != "all")
+        {
+            filtered = activeCategory switch
+            {
+                "journal" => filtered.Where(a => a.Category == "Journal Entry"),
+                "adjustment" => filtered.Where(a => a.Category == "Adjustment"),
+                "reversal" => filtered.Where(a => a.Category == "Reversal"),
+                "writeoff" => filtered.Where(a => a.Category == "Write-off"),
+                _ => filtered
+            };
+        }
+
+        if (!string.IsNullOrEmpty(priorityFilter))
+        {
+            filtered = filtered.Where(a => a.Priority.ToLower() == priorityFilter);
+        }
+
+        return filtered.OrderByDescending(a => a.Priority == "Urgent")
+                       .ThenByDescending(a => a.Priority == "High")
+                       .ThenByDescending(a => a.SubmittedDate)
+                       .ToList();
+    }
+
+    private void ViewDetails(ApprovalItem item) { }
+    
+    private void ApproveItem(ApprovalItem item)
+    {
+        if (string.IsNullOrWhiteSpace(adminActionReason)) return;
+        allApprovals.Remove(item);
+        approvedTodayCount++;
+        pendingCount--;
+        if (item.Priority == "Urgent") urgentCount--;
+    }
+
+    private void RejectApproval(ApprovalItem item)
+    {
+        if (string.IsNullOrWhiteSpace(adminActionReason)) return;
+        allApprovals.Remove(item);
+        rejectedTodayCount++;
+        pendingCount--;
+        if (item.Priority == "Urgent") urgentCount--;
+    }
+
+    private class ApprovalItem
+    {
+        public string Reference { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string Description { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string RequestedBy { get; set; } = "";
+        public string Department { get; set; } = "";
+        public string Priority { get; set; } = "";
+        public DateTime SubmittedDate { get; set; }
+        public string Notes { get; set; } = "";
+    }
+}

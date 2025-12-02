@@ -1,0 +1,458 @@
+@page "/admin/finance-mgr/cashflow-reports"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page finance-mgr-page">
+    <div class="page-header">
+        <h1>
+            <span class="role-badge finance">Finance Mgr</span>
+            Cashflow Reports
+        </h1>
+        <p class="page-subtitle">Monitor cash inflows, outflows, and liquidity</p>
+    </div>
+
+    <!-- Admin Action Reason -->
+    <div class="admin-action-card">
+        <div class="alert alert-warning">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <span>You are accessing Finance Manager functions as SuperAdmin. All actions are logged.</span>
+        </div>
+        <div class="form-group">
+            <label for="adminReason">Reason for Admin Action (Required)</label>
+            <textarea id="adminReason" @bind="adminActionReason" class="form-control" 
+                placeholder="Document why you are performing this action as admin..." rows="2"></textarea>
+        </div>
+    </div>
+
+    <div class="report-controls" style="margin-top: 24px;">
+        <div class="control-group">
+            <label>Period</label>
+            <select class="form-select" @bind="selectedPeriod">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>From</label>
+            <input type="date" class="form-control" @bind="fromDate" />
+        </div>
+        <div class="control-group">
+            <label>To</label>
+            <input type="date" class="form-control" @bind="toDate" />
+        </div>
+        <button class="btn btn-primary" @onclick="GenerateReport">Generate</button>
+        <button class="btn btn-outline" @onclick="ExportReport">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export
+        </button>
+    </div>
+
+    <div class="cashflow-summary" style="margin-top: 24px;">
+        <div class="summary-card inflow">
+            <div class="summary-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px;">
+                    <line x1="12" y1="19" x2="12" y2="5"></line>
+                    <polyline points="5 12 12 5 19 12"></polyline>
+                </svg>
+            </div>
+            <div class="summary-content">
+                <div class="summary-label">Total Inflows</div>
+                <div class="summary-value">₱@totalInflows.ToString("N0")</div>
+                <div class="summary-change positive">+12.5% vs last period</div>
+            </div>
+        </div>
+        <div class="summary-card outflow">
+            <div class="summary-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px;">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <polyline points="19 12 12 19 5 12"></polyline>
+                </svg>
+            </div>
+            <div class="summary-content">
+                <div class="summary-label">Total Outflows</div>
+                <div class="summary-value">₱@totalOutflows.ToString("N0")</div>
+                <div class="summary-change negative">+8.2% vs last period</div>
+            </div>
+        </div>
+        <div class="summary-card net">
+            <div class="summary-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px;">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+            </div>
+            <div class="summary-content">
+                <div class="summary-label">Net Cashflow</div>
+                <div class="summary-value">₱@netCashflow.ToString("N0")</div>
+                <div class="summary-change @(netCashflow >= 0 ? "positive" : "negative")">
+                    @(netCashflow >= 0 ? "Positive" : "Negative") Position
+                </div>
+            </div>
+        </div>
+        <div class="summary-card balance">
+            <div class="summary-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px;">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+            </div>
+            <div class="summary-content">
+                <div class="summary-label">Ending Balance</div>
+                <div class="summary-value">₱@endingBalance.ToString("N0")</div>
+                <div class="summary-change">As of today</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3>Cashflow Statement</h3>
+        </div>
+        <div class="card-body">
+            <div class="statement-section">
+                <h4 class="section-title inflow-title">Cash Inflows</h4>
+                <table class="statement-table">
+                    @foreach (var item in inflowItems)
+                    {
+                        <tr>
+                            <td>@item.Description</td>
+                            <td class="amount">₱@item.Amount.ToString("N2")</td>
+                        </tr>
+                    }
+                    <tr class="subtotal">
+                        <td><strong>Total Inflows</strong></td>
+                        <td class="amount"><strong>₱@totalInflows.ToString("N2")</strong></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="statement-section">
+                <h4 class="section-title outflow-title">Cash Outflows</h4>
+                <table class="statement-table">
+                    @foreach (var item in outflowItems)
+                    {
+                        <tr>
+                            <td>@item.Description</td>
+                            <td class="amount negative">₱@item.Amount.ToString("N2")</td>
+                        </tr>
+                    }
+                    <tr class="subtotal">
+                        <td><strong>Total Outflows</strong></td>
+                        <td class="amount negative"><strong>₱@totalOutflows.ToString("N2")</strong></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="statement-section net-section">
+                <table class="statement-table">
+                    <tr class="net-total">
+                        <td><strong>Net Cash Flow</strong></td>
+                        <td class="amount @(netCashflow >= 0 ? "positive" : "negative")">
+                            <strong>₱@netCashflow.ToString("N2")</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Beginning Balance</td>
+                        <td class="amount">₱@beginningBalance.ToString("N2")</td>
+                    </tr>
+                    <tr class="ending-balance">
+                        <td><strong>Ending Balance</strong></td>
+                        <td class="amount"><strong>₱@endingBalance.ToString("N2")</strong></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="reports-grid" style="margin-top: 24px;">
+        <div class="admin-card">
+            <div class="card-header">
+                <h3>Daily Cashflow Trend</h3>
+            </div>
+            <div class="card-body">
+                <div class="trend-chart">
+                    @foreach (var day in dailyTrend)
+                    {
+                        <div class="trend-column">
+                            <div class="bar-container">
+                                @if (day.NetFlow >= 0)
+                                {
+                                    <div class="bar positive" style="height: @(Math.Abs(day.NetFlow) / 5000)px;"></div>
+                                }
+                                else
+                                {
+                                    <div class="bar negative" style="height: @(Math.Abs(day.NetFlow) / 5000)px;"></div>
+                                }
+                            </div>
+                            <span class="day-label">@day.Day</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <div class="card-header">
+                <h3>Liquidity Ratios</h3>
+            </div>
+            <div class="card-body">
+                <div class="ratio-list">
+                    <div class="ratio-item">
+                        <div class="ratio-info">
+                            <span class="ratio-name">Current Ratio</span>
+                            <span class="ratio-desc">Current Assets / Current Liabilities</span>
+                        </div>
+                        <div class="ratio-value good">2.15</div>
+                    </div>
+                    <div class="ratio-item">
+                        <div class="ratio-info">
+                            <span class="ratio-name">Quick Ratio</span>
+                            <span class="ratio-desc">(Current Assets - Inventory) / Current Liabilities</span>
+                        </div>
+                        <div class="ratio-value good">1.85</div>
+                    </div>
+                    <div class="ratio-item">
+                        <div class="ratio-info">
+                            <span class="ratio-name">Cash Ratio</span>
+                            <span class="ratio-desc">Cash / Current Liabilities</span>
+                        </div>
+                        <div class="ratio-value moderate">0.75</div>
+                    </div>
+                    <div class="ratio-item">
+                        <div class="ratio-info">
+                            <span class="ratio-name">Operating Cash Flow Ratio</span>
+                            <span class="ratio-desc">Operating Cash Flow / Current Liabilities</span>
+                        </div>
+                        <div class="ratio-value good">1.25</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .finance-mgr-page .role-badge.finance {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+    .report-controls {
+        display: flex;
+        gap: 16px;
+        align-items: flex-end;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .control-group label {
+        font-size: 0.85em;
+        color: #6b7280;
+    }
+    .cashflow-summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+    .summary-card {
+        display: flex;
+        gap: 16px;
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .summary-card.inflow .summary-icon { color: #10b981; }
+    .summary-card.outflow .summary-icon { color: #ef4444; }
+    .summary-card.net .summary-icon { color: #3b82f6; }
+    .summary-card.balance .summary-icon { color: #8b5cf6; }
+    .summary-label {
+        font-size: 0.85em;
+        color: #6b7280;
+    }
+    .summary-value {
+        font-size: 1.5em;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    .summary-change {
+        font-size: 0.8em;
+        margin-top: 4px;
+    }
+    .summary-change.positive { color: #10b981; }
+    .summary-change.negative { color: #ef4444; }
+    .statement-section {
+        margin-bottom: 24px;
+    }
+    .section-title {
+        font-size: 1em;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid;
+    }
+    .inflow-title { border-color: #10b981; color: #10b981; }
+    .outflow-title { border-color: #ef4444; color: #ef4444; }
+    .statement-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .statement-table td {
+        padding: 10px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .statement-table .amount {
+        text-align: right;
+        font-family: monospace;
+        font-size: 1em;
+    }
+    .statement-table .amount.negative { color: #ef4444; }
+    .statement-table .amount.positive { color: #10b981; }
+    .subtotal, .net-total, .ending-balance {
+        background: #f8fafc;
+    }
+    .net-section {
+        background: #f0f9ff;
+        padding: 16px;
+        border-radius: 8px;
+        margin-top: 24px;
+    }
+    .reports-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    .trend-chart {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        height: 150px;
+        padding: 20px 0;
+    }
+    .trend-column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    .bar-container {
+        height: 100px;
+        display: flex;
+        align-items: flex-end;
+    }
+    .bar {
+        width: 24px;
+        border-radius: 4px 4px 0 0;
+    }
+    .bar.positive { background: #10b981; }
+    .bar.negative { background: #ef4444; }
+    .day-label {
+        font-size: 0.75em;
+        color: #6b7280;
+    }
+    .ratio-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .ratio-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+    .ratio-name {
+        font-weight: 600;
+        display: block;
+    }
+    .ratio-desc {
+        font-size: 0.8em;
+        color: #6b7280;
+    }
+    .ratio-value {
+        font-size: 1.5em;
+        font-weight: 700;
+    }
+    .ratio-value.good { color: #10b981; }
+    .ratio-value.moderate { color: #f59e0b; }
+    .ratio-value.poor { color: #ef4444; }
+</style>
+
+@code {
+    private string adminActionReason = "";
+    private string selectedPeriod = "monthly";
+    private DateTime fromDate = DateTime.Now.AddMonths(-1);
+    private DateTime toDate = DateTime.Now;
+
+    private decimal totalInflows = 5250000;
+    private decimal totalOutflows = 3850000;
+    private decimal netCashflow = 1400000;
+    private decimal beginningBalance = 8500000;
+    private decimal endingBalance = 9900000;
+
+    private List<CashflowItem> inflowItems = new()
+    {
+        new() { Description = "Customer Deposits", Amount = 2500000 },
+        new() { Description = "Loan Repayments", Amount = 1850000 },
+        new() { Description = "Interest Income", Amount = 450000 },
+        new() { Description = "Service Fees", Amount = 250000 },
+        new() { Description = "Other Income", Amount = 200000 }
+    };
+
+    private List<CashflowItem> outflowItems = new()
+    {
+        new() { Description = "Customer Withdrawals", Amount = 1800000 },
+        new() { Description = "Loan Disbursements", Amount = 1200000 },
+        new() { Description = "Operating Expenses", Amount = 450000 },
+        new() { Description = "Salaries & Benefits", Amount = 350000 },
+        new() { Description = "Other Expenses", Amount = 50000 }
+    };
+
+    private List<DailyFlow> dailyTrend = new()
+    {
+        new() { Day = "Mon", NetFlow = 125000 },
+        new() { Day = "Tue", NetFlow = -45000 },
+        new() { Day = "Wed", NetFlow = 280000 },
+        new() { Day = "Thu", NetFlow = 95000 },
+        new() { Day = "Fri", NetFlow = -120000 },
+        new() { Day = "Sat", NetFlow = 180000 },
+        new() { Day = "Sun", NetFlow = 50000 }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private void GenerateReport() { }
+    private void ExportReport() { }
+
+    private class CashflowItem
+    {
+        public string Description { get; set; } = "";
+        public decimal Amount { get; set; }
+    }
+
+    private class DailyFlow
+    {
+        public string Day { get; set; } = "";
+        public decimal NetFlow { get; set; }
+    }
+}

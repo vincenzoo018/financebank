@@ -1,5 +1,5 @@
-@page "/teller/cash-summary"
-@layout TellerLayout
+@page "/admin/teller/cash-summary"
+@layout AdminLayout
 @using FinanceBank.Services
 @using FinanceBank.Models
 @using Microsoft.EntityFrameworkCore
@@ -17,8 +17,8 @@
                 </svg>
             </div>
             <div>
-                <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Cash Summary</h1>
-                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Cash position and denomination breakdown</p>
+                <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Cash Summary (Admin)</h1>
+                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Cash position and denomination - SuperAdmin Access</p>
             </div>
         </div>
         <div style="display: flex; gap: 12px;">
@@ -30,6 +30,17 @@
                 </svg>
                 Print
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Notice -->
+<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 24px;">⚠️</span>
+        <div>
+            <p style="margin: 0; font-weight: 600; color: #92400e;">Administrative Access</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #a16207;">You are viewing and managing cash summary as SuperAdmin</p>
         </div>
     </div>
 </div>

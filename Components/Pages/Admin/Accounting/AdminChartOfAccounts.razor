@@ -1,0 +1,205 @@
+@page "/admin/accountant/chart-of-accounts"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 style="color: #8b5cf6;">
+            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Chart of Accounts (Admin)
+        </h1>
+        <p class="page-subtitle">Manage the complete chart of accounts</p>
+    </div>
+
+    <div class="admin-card">
+        <div class="card-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Account List</h3>
+                <button class="btn btn-primary" @onclick="ShowAddModal">
+                    <svg style="width: 16px; height: 16px; margin-right: 8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add Account
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Account Code</th>
+                        <th>Account Name</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Normal Balance</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var account in accounts)
+                    {
+                        <tr>
+                            <td><strong>@account.Code</strong></td>
+                            <td>@account.Name</td>
+                            <td><span class="badge @GetTypeClass(account.Type)">@account.Type</span></td>
+                            <td>@account.Category</td>
+                            <td>@account.NormalBalance</td>
+                            <td><span class="badge @(account.IsActive ? "badge-success" : "badge-secondary")">@(account.IsActive ? "Active" : "Inactive")</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info" @onclick="() => ShowEditModal(account)">Edit</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h4>@(isEditing ? "Edit" : "Add") Account</h4>
+                <button class="close-btn" @onclick="CloseModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Admin Reason <span class="required">*</span></label>
+                    <textarea @bind="adminReason" class="form-control" rows="2" 
+                        placeholder="Enter reason for this action..."></textarea>
+                </div>
+                <hr />
+                
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label>Account Code</label>
+                        <input type="text" @bind="editAccount.Code" class="form-control" />
+                    </div>
+                    <div class="form-group col-md-8">
+                        <label>Account Name</label>
+                        <input type="text" @bind="editAccount.Name" class="form-control" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>Type</label>
+                        <select @bind="editAccount.Type" class="form-control">
+                            <option value="Asset">Asset</option>
+                            <option value="Liability">Liability</option>
+                            <option value="Equity">Equity</option>
+                            <option value="Revenue">Revenue</option>
+                            <option value="Expense">Expense</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Category</label>
+                        <input type="text" @bind="editAccount.Category" class="form-control" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" @bind="editAccount.IsActive" /> Active
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn btn-primary" @onclick="SaveAccount">Save</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool showModal = false;
+    private bool isEditing = false;
+    private string adminReason = "";
+    private AccountItem editAccount = new();
+
+    private List<AccountItem> accounts = new()
+    {
+        new() { Code = "1000", Name = "Cash on Hand", Type = "Asset", Category = "Current Assets", NormalBalance = "Debit", IsActive = true },
+        new() { Code = "1100", Name = "Cash in Bank", Type = "Asset", Category = "Current Assets", NormalBalance = "Debit", IsActive = true },
+        new() { Code = "1200", Name = "Accounts Receivable", Type = "Asset", Category = "Current Assets", NormalBalance = "Debit", IsActive = true },
+        new() { Code = "2000", Name = "Accounts Payable", Type = "Liability", Category = "Current Liabilities", NormalBalance = "Credit", IsActive = true },
+        new() { Code = "3000", Name = "Common Stock", Type = "Equity", Category = "Shareholders Equity", NormalBalance = "Credit", IsActive = true },
+        new() { Code = "4000", Name = "Interest Income", Type = "Revenue", Category = "Operating Revenue", NormalBalance = "Credit", IsActive = true },
+        new() { Code = "5000", Name = "Salaries Expense", Type = "Expense", Category = "Operating Expenses", NormalBalance = "Debit", IsActive = true }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        {
+            Navigation.NavigateTo("/admin/dashboard");
+        }
+    }
+
+    private void ShowAddModal()
+    {
+        isEditing = false;
+        editAccount = new AccountItem { IsActive = true };
+        showModal = true;
+    }
+
+    private void ShowEditModal(AccountItem account)
+    {
+        isEditing = true;
+        editAccount = new AccountItem
+        {
+            Code = account.Code,
+            Name = account.Name,
+            Type = account.Type,
+            Category = account.Category,
+            NormalBalance = account.NormalBalance,
+            IsActive = account.IsActive
+        };
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        adminReason = "";
+    }
+
+    private void SaveAccount()
+    {
+        if (string.IsNullOrWhiteSpace(adminReason)) return;
+        
+        if (!isEditing)
+        {
+            editAccount.NormalBalance = editAccount.Type is "Asset" or "Expense" ? "Debit" : "Credit";
+            accounts.Add(editAccount);
+        }
+        CloseModal();
+    }
+
+    private string GetTypeClass(string type) => type switch
+    {
+        "Asset" => "badge-info",
+        "Liability" => "badge-warning",
+        "Equity" => "badge-primary",
+        "Revenue" => "badge-success",
+        "Expense" => "badge-danger",
+        _ => "badge-secondary"
+    };
+
+    private class AccountItem
+    {
+        public string Code { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Type { get; set; } = "Asset";
+        public string Category { get; set; } = "";
+        public string NormalBalance { get; set; } = "Debit";
+        public bool IsActive { get; set; } = true;
+    }
+}

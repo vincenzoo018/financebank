@@ -1,0 +1,241 @@
+@page "/admin/finance-mgr/cashflow-analysis"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 style="color: #f59e0b;">
+            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+            </svg>
+            Cashflow Analysis (Admin)
+        </h1>
+        <p class="page-subtitle">Analyze and monitor cash flow patterns</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card" style="border-left: 4px solid #10b981;">
+            <div class="stat-icon" style="background: #d1fae5;">
+                <svg style="color: #10b981;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <polyline points="19 12 12 19 5 12"></polyline>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total Inflows</div>
+                <div class="stat-value" style="color: #10b981;">₱@totalInflows.ToString("N2")</div>
+            </div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid #ef4444;">
+            <div class="stat-icon" style="background: #fee2e2;">
+                <svg style="color: #ef4444;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="19" x2="12" y2="5"></line>
+                    <polyline points="5 12 12 5 19 12"></polyline>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total Outflows</div>
+                <div class="stat-value" style="color: #ef4444;">₱@totalOutflows.ToString("N2")</div>
+            </div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid #3b82f6;">
+            <div class="stat-icon" style="background: #dbeafe;">
+                <svg style="color: #3b82f6;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Net Cash Flow</div>
+                <div class="stat-value" style="color: @(netCashFlow >= 0 ? "#10b981" : "#ef4444");">₱@netCashFlow.ToString("N2")</div>
+            </div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid #8b5cf6;">
+            <div class="stat-icon" style="background: #ede9fe;">
+                <svg style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Cash Balance</div>
+                <div class="stat-value" style="color: #8b5cf6;">₱@cashBalance.ToString("N2")</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Cashflow by Category</h3>
+                <select @bind="selectedPeriod" class="form-control" style="width: 200px;">
+                    <option value="ThisMonth">This Month</option>
+                    <option value="LastMonth">Last Month</option>
+                    <option value="ThisQuarter">This Quarter</option>
+                    <option value="ThisYear">This Year</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Inflows</th>
+                        <th>Outflows</th>
+                        <th>Net</th>
+                        <th>% of Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var cat in cashflowCategories)
+                    {
+                        <tr>
+                            <td><strong>@cat.Category</strong></td>
+                            <td style="color: #10b981;">₱@cat.Inflows.ToString("N2")</td>
+                            <td style="color: #ef4444;">₱@cat.Outflows.ToString("N2")</td>
+                            <td style="color: @(cat.Net >= 0 ? "#10b981" : "#ef4444");">₱@cat.Net.ToString("N2")</td>
+                            <td>@cat.Percentage.ToString("F1")%</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr style="font-weight: 700; background: #f8fafc;">
+                        <td>TOTAL</td>
+                        <td style="color: #10b981;">₱@totalInflows.ToString("N2")</td>
+                        <td style="color: #ef4444;">₱@totalOutflows.ToString("N2")</td>
+                        <td style="color: @(netCashFlow >= 0 ? "#10b981" : "#ef4444");">₱@netCashFlow.ToString("N2")</td>
+                        <td>100%</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3>Recent Cashflow Transactions</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var txn in recentTransactions)
+                    {
+                        <tr>
+                            <td>@txn.Date.ToString("MMM dd, yyyy")</td>
+                            <td>@txn.Description</td>
+                            <td>@txn.Category</td>
+                            <td><span class="badge @(txn.IsInflow ? "badge-success" : "badge-danger")">@(txn.IsInflow ? "Inflow" : "Outflow")</span></td>
+                            <td style="color: @(txn.IsInflow ? "#10b981" : "#ef4444");">
+                                @(txn.IsInflow ? "+" : "-")₱@txn.Amount.ToString("N2")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .stat-icon svg {
+        width: 24px;
+        height: 24px;
+    }
+    .stat-label {
+        font-size: 0.85em;
+        color: #6b7280;
+    }
+    .stat-value {
+        font-size: 1.5em;
+        font-weight: 700;
+    }
+</style>
+
+@code {
+    private decimal totalInflows = 2500000;
+    private decimal totalOutflows = 1800000;
+    private decimal netCashFlow => totalInflows - totalOutflows;
+    private decimal cashBalance = 5200000;
+    private string selectedPeriod = "ThisMonth";
+
+    private List<CashflowCategory> cashflowCategories = new()
+    {
+        new() { Category = "Operating Activities", Inflows = 1800000, Outflows = 1200000 },
+        new() { Category = "Investing Activities", Inflows = 200000, Outflows = 400000 },
+        new() { Category = "Financing Activities", Inflows = 500000, Outflows = 200000 }
+    };
+
+    private List<CashflowTransaction> recentTransactions = new()
+    {
+        new() { Date = DateTime.Today, Description = "Customer Loan Payments", Category = "Operating", IsInflow = true, Amount = 150000 },
+        new() { Date = DateTime.Today, Description = "Salary Disbursement", Category = "Operating", IsInflow = false, Amount = 450000 },
+        new() { Date = DateTime.Today.AddDays(-1), Description = "Interest Income", Category = "Operating", IsInflow = true, Amount = 85000 },
+        new() { Date = DateTime.Today.AddDays(-2), Description = "Equipment Purchase", Category = "Investing", IsInflow = false, Amount = 250000 }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        {
+            Navigation.NavigateTo("/admin/dashboard");
+        }
+        
+        // Calculate percentages
+        var total = cashflowCategories.Sum(c => Math.Abs(c.Inflows) + Math.Abs(c.Outflows));
+        foreach (var cat in cashflowCategories)
+        {
+            cat.Percentage = total > 0 ? ((Math.Abs(cat.Inflows) + Math.Abs(cat.Outflows)) / total) * 100 : 0;
+        }
+    }
+
+    private class CashflowCategory
+    {
+        public string Category { get; set; } = "";
+        public decimal Inflows { get; set; }
+        public decimal Outflows { get; set; }
+        public decimal Net => Inflows - Outflows;
+        public decimal Percentage { get; set; }
+    }
+
+    private class CashflowTransaction
+    {
+        public DateTime Date { get; set; }
+        public string Description { get; set; } = "";
+        public string Category { get; set; } = "";
+        public bool IsInflow { get; set; }
+        public decimal Amount { get; set; }
+    }
+}

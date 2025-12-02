@@ -1,0 +1,264 @@
+@page "/admin/accountant/loan-recording"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 style="color: #8b5cf6;">
+            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                <path d="M16 4v4M8 4v4"></path>
+            </svg>
+            Loan Recording (Admin)
+        </h1>
+        <p class="page-subtitle">Record loan transactions in the accounting system</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert @(isError ? "alert-danger" : "alert-success")">@message</div>
+    }
+
+    <div class="admin-card">
+        <div class="card-header">
+            <h3>Pending Loan Recordings</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Loan ID</th>
+                        <th>Customer</th>
+                        <th>Type</th>
+                        <th>Principal</th>
+                        <th>Interest</th>
+                        <th>Transaction</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var loan in pendingRecordings)
+                    {
+                        <tr>
+                            <td><strong>@loan.LoanId</strong></td>
+                            <td>@loan.CustomerName</td>
+                            <td>@loan.LoanType</td>
+                            <td>₱@loan.Principal.ToString("N2")</td>
+                            <td>₱@loan.Interest.ToString("N2")</td>
+                            <td><span class="badge @GetTransactionClass(loan.TransactionType)">@loan.TransactionType</span></td>
+                            <td>@loan.Date.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" @onclick="() => ShowRecordModal(loan)">Record</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3>Recently Recorded</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Journal Entry</th>
+                        <th>Loan ID</th>
+                        <th>Transaction</th>
+                        <th>Amount</th>
+                        <th>Recorded Date</th>
+                        <th>Recorded By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var record in recentRecords)
+                    {
+                        <tr>
+                            <td><strong>@record.JournalEntry</strong></td>
+                            <td>@record.LoanId</td>
+                            <td>@record.TransactionType</td>
+                            <td>₱@record.Amount.ToString("N2")</td>
+                            <td>@record.RecordedDate.ToString("MMM dd, yyyy HH:mm")</td>
+                            <td>@record.RecordedBy</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation style="max-width: 700px;">
+            <div class="modal-header">
+                <h4>Record Loan Transaction - @selectedLoan?.LoanId</h4>
+                <button class="close-btn" @onclick="CloseModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Admin Reason <span class="required">*</span></label>
+                    <textarea @bind="adminReason" class="form-control" rows="2" 
+                        placeholder="Enter reason for this recording..."></textarea>
+                </div>
+                <hr />
+                
+                <h5>Journal Entry Preview</h5>
+                <div class="journal-preview" style="background: #f5f3ff; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                    <p><strong>@selectedLoan?.TransactionType</strong> - @selectedLoan?.LoanId</p>
+                    <table class="table table-bordered" style="margin-bottom: 0;">
+                        <thead>
+                            <tr>
+                                <th>Account</th>
+                                <th>Debit</th>
+                                <th>Credit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (selectedLoan?.TransactionType == "Disbursement")
+                            {
+                                <tr>
+                                    <td>Loans Receivable</td>
+                                    <td>₱@selectedLoan?.Principal.ToString("N2")</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Cash in Bank</td>
+                                    <td></td>
+                                    <td>₱@selectedLoan?.Principal.ToString("N2")</td>
+                                </tr>
+                            }
+                            else if (selectedLoan?.TransactionType == "Payment")
+                            {
+                                <tr>
+                                    <td>Cash in Bank</td>
+                                    <td>₱@((selectedLoan?.Principal ?? 0) + (selectedLoan?.Interest ?? 0)).ToString("N2")</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Loans Receivable</td>
+                                    <td></td>
+                                    <td>₱@selectedLoan?.Principal.ToString("N2")</td>
+                                </tr>
+                                <tr>
+                                    <td>Interest Income</td>
+                                    <td></td>
+                                    <td>₱@selectedLoan?.Interest.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea @bind="notes" class="form-control" rows="2" placeholder="Additional notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn btn-primary" @onclick="RecordTransaction">Record Entry</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool showModal = false;
+    private LoanRecord? selectedLoan;
+    private string adminReason = "";
+    private string notes = "";
+    private string message = "";
+    private bool isError = false;
+
+    private List<LoanRecord> pendingRecordings = new()
+    {
+        new() { LoanId = "LN-2024001", CustomerName = "Juan Dela Cruz", LoanType = "Personal", Principal = 50000, Interest = 0, TransactionType = "Disbursement", Date = DateTime.Today },
+        new() { LoanId = "LN-2024002", CustomerName = "Maria Santos", LoanType = "Home", Principal = 8000, Interest = 750, TransactionType = "Payment", Date = DateTime.Today }
+    };
+
+    private List<RecordedEntry> recentRecords = new()
+    {
+        new() { JournalEntry = "JE-2024-0150", LoanId = "LN-2023050", TransactionType = "Payment", Amount = 5000, RecordedDate = DateTime.Now.AddDays(-1), RecordedBy = "Accountant1" }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        {
+            Navigation.NavigateTo("/admin/dashboard");
+        }
+    }
+
+    private void ShowRecordModal(LoanRecord loan)
+    {
+        selectedLoan = loan;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        selectedLoan = null;
+        adminReason = "";
+        notes = "";
+    }
+
+    private void RecordTransaction()
+    {
+        if (string.IsNullOrWhiteSpace(adminReason)) return;
+        
+        if (selectedLoan != null)
+        {
+            var newEntry = new RecordedEntry
+            {
+                JournalEntry = $"JE-{DateTime.Now:yyyy}-{DateTime.Now.Ticks % 10000:D4}",
+                LoanId = selectedLoan.LoanId,
+                TransactionType = selectedLoan.TransactionType,
+                Amount = selectedLoan.Principal + selectedLoan.Interest,
+                RecordedDate = DateTime.Now,
+                RecordedBy = AuthService.FullName ?? "Admin"
+            };
+            recentRecords.Insert(0, newEntry);
+            pendingRecordings.Remove(selectedLoan);
+            
+            message = $"Journal entry {newEntry.JournalEntry} recorded successfully!";
+            isError = false;
+        }
+        CloseModal();
+    }
+
+    private string GetTransactionClass(string type) => type switch
+    {
+        "Disbursement" => "badge-info",
+        "Payment" => "badge-success",
+        _ => "badge-secondary"
+    };
+
+    private class LoanRecord
+    {
+        public string LoanId { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public string LoanType { get; set; } = "";
+        public decimal Principal { get; set; }
+        public decimal Interest { get; set; }
+        public string TransactionType { get; set; } = "";
+        public DateTime Date { get; set; }
+    }
+
+    private class RecordedEntry
+    {
+        public string JournalEntry { get; set; } = "";
+        public string LoanId { get; set; } = "";
+        public string TransactionType { get; set; } = "";
+        public decimal Amount { get; set; }
+        public DateTime RecordedDate { get; set; }
+        public string RecordedBy { get; set; } = "";
+    }
+}

@@ -1,0 +1,170 @@
+@page "/admin/teller/customer-accounts"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 style="color: #10b981;">
+            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+            </svg>
+            Customer Accounts (Admin)
+        </h1>
+        <p class="page-subtitle">View and manage customer accounts with admin privileges</p>
+    </div>
+
+    <div class="admin-card">
+        <div class="card-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Customer Account List</h3>
+                <div class="search-box">
+                    <input type="text" @bind="searchTerm" @bind:event="oninput" class="form-control" placeholder="Search by name or account..." />
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Account Number</th>
+                        <th>Customer Name</th>
+                        <th>Account Type</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var account in FilteredAccounts)
+                    {
+                        <tr>
+                            <td><strong>@account.AccountNumber</strong></td>
+                            <td>@account.CustomerName</td>
+                            <td>@account.AccountType</td>
+                            <td style="color: #10b981; font-weight: 600;">₱@account.Balance.ToString("N2")</td>
+                            <td><span class="badge @GetStatusClass(account.Status)">@account.Status</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info" @onclick="() => ViewAccountDetails(account.AccountNumber)">View</button>
+                                <button class="btn btn-sm btn-warning" @onclick="() => ShowEditModal(account)">Edit</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (showEditModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h4>Edit Account - @selectedAccount?.AccountNumber</h4>
+                <button class="close-btn" @onclick="CloseModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Admin Reason <span class="required">*</span></label>
+                    <textarea @bind="adminReason" class="form-control" rows="2" 
+                        placeholder="Enter reason for this admin action..."></textarea>
+                </div>
+                <hr />
+                <div class="form-group">
+                    <label>Account Status</label>
+                    <select @bind="editStatus" class="form-control">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Frozen">Frozen</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn btn-primary" @onclick="SaveAccountChanges">Save Changes</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string searchTerm = "";
+    private bool showEditModal = false;
+    private AccountInfo? selectedAccount;
+    private string adminReason = "";
+    private string editStatus = "Active";
+
+    private List<AccountInfo> accounts = new()
+    {
+        new() { AccountNumber = "SA-001234", CustomerName = "Juan Dela Cruz", AccountType = "Savings", Balance = 25000, Status = "Active" },
+        new() { AccountNumber = "CA-005678", CustomerName = "Maria Santos", AccountType = "Checking", Balance = 15000, Status = "Active" },
+        new() { AccountNumber = "SA-009876", CustomerName = "Pedro Garcia", AccountType = "Savings", Balance = 8500, Status = "Inactive" },
+        new() { AccountNumber = "CA-001111", CustomerName = "Ana Reyes", AccountType = "Checking", Balance = 42000, Status = "Active" }
+    };
+
+    private IEnumerable<AccountInfo> FilteredAccounts => string.IsNullOrWhiteSpace(searchTerm) 
+        ? accounts 
+        : accounts.Where(a => 
+            a.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
+            a.AccountNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        {
+            Navigation.NavigateTo("/admin/dashboard");
+        }
+    }
+
+    private void ViewAccountDetails(string accountNumber)
+    {
+        Navigation.NavigateTo($"/admin/teller/account-inquiry?account={accountNumber}");
+    }
+
+    private void ShowEditModal(AccountInfo account)
+    {
+        selectedAccount = account;
+        editStatus = account.Status;
+        showEditModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showEditModal = false;
+        selectedAccount = null;
+        adminReason = "";
+    }
+
+    private void SaveAccountChanges()
+    {
+        if (string.IsNullOrWhiteSpace(adminReason))
+        {
+            return;
+        }
+        
+        if (selectedAccount != null)
+        {
+            selectedAccount.Status = editStatus;
+        }
+        CloseModal();
+    }
+
+    private string GetStatusClass(string status) => status switch
+    {
+        "Active" => "badge-success",
+        "Inactive" => "badge-secondary",
+        "Frozen" => "badge-danger",
+        _ => "badge-secondary"
+    };
+
+    private class AccountInfo
+    {
+        public string AccountNumber { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public string AccountType { get; set; } = "";
+        public decimal Balance { get; set; }
+        public string Status { get; set; } = "";
+    }
+}

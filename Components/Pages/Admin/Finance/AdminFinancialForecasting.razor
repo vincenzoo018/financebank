@@ -1,0 +1,199 @@
+@page "/admin/finance-mgr/financial-forecasting"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 style="color: #f59e0b;">
+            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3v18h18"></path>
+                <path d="M18 17V9"></path>
+                <path d="M13 17V5"></path>
+                <path d="M8 17v-3"></path>
+            </svg>
+            Financial Forecasting (Admin)
+        </h1>
+        <p class="page-subtitle">View financial projections and forecasts</p>
+    </div>
+
+    <div class="admin-card">
+        <div class="card-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Revenue Forecast</h3>
+                <select @bind="forecastPeriod" class="form-control" style="width: 200px;">
+                    <option value="3">Next 3 Months</option>
+                    <option value="6">Next 6 Months</option>
+                    <option value="12">Next 12 Months</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Period</th>
+                        <th>Projected Revenue</th>
+                        <th>Projected Expenses</th>
+                        <th>Net Income</th>
+                        <th>Growth %</th>
+                        <th>Confidence</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var forecast in forecasts.Take(forecastPeriod))
+                    {
+                        <tr>
+                            <td><strong>@forecast.Period</strong></td>
+                            <td style="color: #10b981;">₱@forecast.Revenue.ToString("N2")</td>
+                            <td style="color: #ef4444;">₱@forecast.Expenses.ToString("N2")</td>
+                            <td style="color: @(forecast.NetIncome >= 0 ? "#10b981" : "#ef4444");">₱@forecast.NetIncome.ToString("N2")</td>
+                            <td>
+                                <span class="badge @(forecast.GrowthRate >= 0 ? "badge-success" : "badge-danger")">
+                                    @(forecast.GrowthRate >= 0 ? "+" : "")@forecast.GrowthRate.ToString("F1")%
+                                </span>
+                            </td>
+                            <td>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill" style="width: @forecast.Confidence%; background: @GetConfidenceColor(forecast.Confidence);"></div>
+                                </div>
+                                <span style="font-size: 0.85em;">@forecast.Confidence%</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row" style="margin-top: 24px;">
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h3>Key Assumptions</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="assumptions-list">
+                        <li>
+                            <strong>Loan Growth Rate:</strong> 5% per month
+                            <span class="text-muted">(based on historical trend)</span>
+                        </li>
+                        <li>
+                            <strong>Interest Rate:</strong> 12% average
+                            <span class="text-muted">(current market rate)</span>
+                        </li>
+                        <li>
+                            <strong>Default Rate:</strong> 2.5% estimated
+                            <span class="text-muted">(industry standard)</span>
+                        </li>
+                        <li>
+                            <strong>Operating Expense Growth:</strong> 3% per month
+                            <span class="text-muted">(adjusted for inflation)</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h3>Scenario Analysis</h3>
+                </div>
+                <div class="card-body">
+                    <div class="scenario-card" style="background: #d1fae5; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+                        <strong style="color: #065f46;">Optimistic Scenario</strong>
+                        <p style="margin: 8px 0 0 0; color: #065f46;">Net Income: ₱3,200,000 (+15% from base)</p>
+                    </div>
+                    <div class="scenario-card" style="background: #fef3c7; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+                        <strong style="color: #92400e;">Base Scenario</strong>
+                        <p style="margin: 8px 0 0 0; color: #92400e;">Net Income: ₱2,780,000 (Current projection)</p>
+                    </div>
+                    <div class="scenario-card" style="background: #fee2e2; padding: 16px; border-radius: 8px;">
+                        <strong style="color: #991b1b;">Pessimistic Scenario</strong>
+                        <p style="margin: 8px 0 0 0; color: #991b1b;">Net Income: ₱2,100,000 (-25% from base)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .confidence-bar {
+        width: 100px;
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 4px;
+        overflow: hidden;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .confidence-fill {
+        height: 100%;
+        border-radius: 4px;
+    }
+    .assumptions-list {
+        list-style: none;
+        padding: 0;
+    }
+    .assumptions-list li {
+        padding: 12px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .assumptions-list li:last-child {
+        border-bottom: none;
+    }
+    .row {
+        display: flex;
+        gap: 24px;
+    }
+    .col-md-6 {
+        flex: 1;
+    }
+</style>
+
+@code {
+    private int forecastPeriod = 6;
+
+    private List<ForecastItem> forecasts = new()
+    {
+        new() { Period = "January 2025", Revenue = 2800000, Expenses = 2100000, GrowthRate = 5.2m, Confidence = 90 },
+        new() { Period = "February 2025", Revenue = 2940000, Expenses = 2163000, GrowthRate = 5.0m, Confidence = 85 },
+        new() { Period = "March 2025", Revenue = 3087000, Expenses = 2228000, GrowthRate = 5.0m, Confidence = 80 },
+        new() { Period = "April 2025", Revenue = 3241000, Expenses = 2295000, GrowthRate = 5.0m, Confidence = 75 },
+        new() { Period = "May 2025", Revenue = 3403000, Expenses = 2364000, GrowthRate = 5.0m, Confidence = 70 },
+        new() { Period = "June 2025", Revenue = 3573000, Expenses = 2435000, GrowthRate = 5.0m, Confidence = 65 },
+        new() { Period = "July 2025", Revenue = 3752000, Expenses = 2508000, GrowthRate = 5.0m, Confidence = 60 },
+        new() { Period = "August 2025", Revenue = 3940000, Expenses = 2583000, GrowthRate = 5.0m, Confidence = 55 },
+        new() { Period = "September 2025", Revenue = 4137000, Expenses = 2661000, GrowthRate = 5.0m, Confidence = 50 },
+        new() { Period = "October 2025", Revenue = 4344000, Expenses = 2741000, GrowthRate = 5.0m, Confidence = 45 },
+        new() { Period = "November 2025", Revenue = 4561000, Expenses = 2823000, GrowthRate = 5.0m, Confidence = 40 },
+        new() { Period = "December 2025", Revenue = 4789000, Expenses = 2908000, GrowthRate = 5.0m, Confidence = 35 }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        {
+            Navigation.NavigateTo("/admin/dashboard");
+        }
+    }
+
+    private string GetConfidenceColor(int confidence) => confidence switch
+    {
+        >= 80 => "#10b981",
+        >= 60 => "#f59e0b",
+        >= 40 => "#f97316",
+        _ => "#ef4444"
+    };
+
+    private class ForecastItem
+    {
+        public string Period { get; set; } = "";
+        public decimal Revenue { get; set; }
+        public decimal Expenses { get; set; }
+        public decimal NetIncome => Revenue - Expenses;
+        public decimal GrowthRate { get; set; }
+        public int Confidence { get; set; }
+    }
+}

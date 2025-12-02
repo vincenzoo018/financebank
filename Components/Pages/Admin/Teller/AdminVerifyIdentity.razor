@@ -1,0 +1,200 @@
+@page "/admin/teller/verify-identity"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 style="color: #10b981;">
+            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            Verify Identity (Admin)
+        </h1>
+        <p class="page-subtitle">Verify customer identity for loan applications</p>
+    </div>
+
+    <div class="admin-card">
+        <div class="card-header">
+            <h3>Pending Verifications</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Application ID</th>
+                        <th>Customer Name</th>
+                        <th>Loan Type</th>
+                        <th>Amount</th>
+                        <th>Documents</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var app in pendingVerifications)
+                    {
+                        <tr>
+                            <td><strong>@app.ApplicationId</strong></td>
+                            <td>@app.CustomerName</td>
+                            <td>@app.LoanType</td>
+                            <td>₱@app.Amount.ToString("N2")</td>
+                            <td>
+                                <span class="badge @(app.DocumentsComplete ? "badge-success" : "badge-warning")">
+                                    @(app.DocumentsComplete ? "Complete" : "Incomplete")
+                                </span>
+                            </td>
+                            <td><span class="badge badge-warning">Pending</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" @onclick="() => ShowVerificationModal(app)">Verify</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation style="max-width: 600px;">
+            <div class="modal-header">
+                <h4>Identity Verification - @selectedApp?.ApplicationId</h4>
+                <button class="close-btn" @onclick="CloseModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Admin Reason <span class="required">*</span></label>
+                    <textarea @bind="adminReason" class="form-control" rows="2" 
+                        placeholder="Enter reason for this verification..."></textarea>
+                </div>
+                <hr />
+                
+                <h5>Document Checklist</h5>
+                <div class="checklist">
+                    <label class="checkbox-item">
+                        <input type="checkbox" @bind="validId1" /> Valid Government ID (Primary)
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" @bind="validId2" /> Valid Government ID (Secondary)
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" @bind="proofOfIncome" /> Proof of Income
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" @bind="proofOfBilling" /> Proof of Billing Address
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" @bind="photoMatch" /> Photo Matches Customer
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" @bind="signatureMatch" /> Signature Verified
+                    </label>
+                </div>
+                
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Verification Notes</label>
+                    <textarea @bind="verificationNotes" class="form-control" rows="3" 
+                        placeholder="Additional notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" @onclick="RejectVerification">Reject</button>
+                <button class="btn btn-success" @onclick="ApproveVerification">Approve Verification</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .checklist {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+    }
+    .checkbox-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+    }
+</style>
+
+@code {
+    private bool showModal = false;
+    private VerificationItem? selectedApp;
+    private string adminReason = "";
+    private string verificationNotes = "";
+    private bool validId1, validId2, proofOfIncome, proofOfBilling, photoMatch, signatureMatch;
+
+    private List<VerificationItem> pendingVerifications = new()
+    {
+        new() { ApplicationId = "LA-2024001", CustomerName = "Juan Dela Cruz", LoanType = "Personal", Amount = 50000, DocumentsComplete = true },
+        new() { ApplicationId = "LA-2024002", CustomerName = "Maria Santos", LoanType = "Home", Amount = 500000, DocumentsComplete = true },
+        new() { ApplicationId = "LA-2024003", CustomerName = "Pedro Garcia", LoanType = "Auto", Amount = 200000, DocumentsComplete = false }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        {
+            Navigation.NavigateTo("/admin/dashboard");
+        }
+    }
+
+    private void ShowVerificationModal(VerificationItem app)
+    {
+        selectedApp = app;
+        showModal = true;
+        ResetChecklist();
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        selectedApp = null;
+        adminReason = "";
+        verificationNotes = "";
+    }
+
+    private void ResetChecklist()
+    {
+        validId1 = validId2 = proofOfIncome = proofOfBilling = photoMatch = signatureMatch = false;
+    }
+
+    private void ApproveVerification()
+    {
+        if (string.IsNullOrWhiteSpace(adminReason)) return;
+        if (selectedApp != null)
+        {
+            pendingVerifications.Remove(selectedApp);
+        }
+        CloseModal();
+    }
+
+    private void RejectVerification()
+    {
+        if (string.IsNullOrWhiteSpace(adminReason)) return;
+        if (selectedApp != null)
+        {
+            pendingVerifications.Remove(selectedApp);
+        }
+        CloseModal();
+    }
+
+    private class VerificationItem
+    {
+        public string ApplicationId { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public string LoanType { get; set; } = "";
+        public decimal Amount { get; set; }
+        public bool DocumentsComplete { get; set; }
+    }
+}

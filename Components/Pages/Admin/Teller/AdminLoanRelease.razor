@@ -1,0 +1,270 @@
+@page "/admin/teller/loan-release"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 style="color: #10b981;">
+            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Loan Release (Admin)
+        </h1>
+        <p class="page-subtitle">Mark fully paid loans as released and generate clearance</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert @(isError ? "alert-danger" : "alert-success")">@message</div>
+    }
+
+    <div class="admin-card">
+        <div class="card-header">
+            <h3>Loans Ready for Release</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Contract No</th>
+                        <th>Customer</th>
+                        <th>Loan Type</th>
+                        <th>Original Amount</th>
+                        <th>Total Paid</th>
+                        <th>Date Completed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var loan in loansForRelease)
+                    {
+                        <tr>
+                            <td><strong>@loan.ContractNo</strong></td>
+                            <td>@loan.CustomerName</td>
+                            <td>@loan.LoanType</td>
+                            <td>₱@loan.OriginalAmount.ToString("N2")</td>
+                            <td style="color: #10b981;">₱@loan.TotalPaid.ToString("N2")</td>
+                            <td>@loan.DateCompleted.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <button class="btn btn-sm btn-success" @onclick="() => ShowReleaseModal(loan)">
+                                    Release Loan
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    @if (!loansForRelease.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">No loans pending release</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3>Recently Released Loans</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Contract No</th>
+                        <th>Customer</th>
+                        <th>Loan Type</th>
+                        <th>Amount</th>
+                        <th>Release Date</th>
+                        <th>Released By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var loan in releasedLoans)
+                    {
+                        <tr>
+                            <td>@loan.ContractNo</td>
+                            <td>@loan.CustomerName</td>
+                            <td>@loan.LoanType</td>
+                            <td>₱@loan.OriginalAmount.ToString("N2")</td>
+                            <td>@loan.ReleaseDate?.ToString("MMM dd, yyyy")</td>
+                            <td>@loan.ReleasedBy</td>
+                            <td>
+                                <button class="btn btn-sm btn-info" @onclick="() => PrintClearance(loan)">
+                                    Print Clearance
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation style="max-width: 600px;">
+            <div class="modal-header">
+                <h4>Release Loan - @selectedLoan?.ContractNo</h4>
+                <button class="close-btn" @onclick="CloseModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Admin Reason <span class="required">*</span></label>
+                    <textarea @bind="adminReason" class="form-control" rows="2" 
+                        placeholder="Enter reason for releasing this loan..."></textarea>
+                </div>
+                <hr />
+                
+                <div class="release-summary" style="background: #f0fdf4; padding: 20px; border-radius: 8px;">
+                    <h5 style="color: #10b981; margin-bottom: 16px;">
+                        <svg style="width: 20px; height: 20px; margin-right: 8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Loan Completion Summary
+                    </h5>
+                    <table class="table table-bordered" style="margin-bottom: 0;">
+                        <tr>
+                            <td>Customer Name</td>
+                            <td><strong>@selectedLoan?.CustomerName</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Loan Type</td>
+                            <td>@selectedLoan?.LoanType</td>
+                        </tr>
+                        <tr>
+                            <td>Original Loan Amount</td>
+                            <td>₱@selectedLoan?.OriginalAmount.ToString("N2")</td>
+                        </tr>
+                        <tr>
+                            <td>Total Amount Paid</td>
+                            <td style="color: #10b981; font-weight: 600;">₱@selectedLoan?.TotalPaid.ToString("N2")</td>
+                        </tr>
+                        <tr>
+                            <td>Completion Date</td>
+                            <td>@selectedLoan?.DateCompleted.ToString("MMMM dd, yyyy")</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Collateral Return (if applicable)</label>
+                    <select @bind="collateralAction" class="form-control">
+                        <option value="None">No Collateral</option>
+                        <option value="Return">Return Collateral to Customer</option>
+                        <option value="Pending">Collateral Pending Verification</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" @bind="confirmRelease" />
+                        I confirm that all payments have been verified and the loan is fully settled
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn btn-success" @onclick="ReleaseLoan" disabled="@(!confirmRelease)">
+                    <svg style="width: 16px; height: 16px; margin-right: 8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Release Loan
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+    }
+</style>
+
+@code {
+    private bool showModal = false;
+    private LoanItem? selectedLoan;
+    private string adminReason = "";
+    private string collateralAction = "None";
+    private bool confirmRelease = false;
+    private string message = "";
+    private bool isError = false;
+
+    private List<LoanItem> loansForRelease = new()
+    {
+        new() { ContractNo = "LN-20230601-001", CustomerName = "Ana Reyes", LoanType = "Personal", OriginalAmount = 50000, TotalPaid = 56000, DateCompleted = DateTime.Today.AddDays(-2) },
+        new() { ContractNo = "LN-20220815-002", CustomerName = "Carlos Cruz", LoanType = "Auto", OriginalAmount = 300000, TotalPaid = 336000, DateCompleted = DateTime.Today.AddDays(-1) }
+    };
+
+    private List<LoanItem> releasedLoans = new()
+    {
+        new() { ContractNo = "LN-20220101-001", CustomerName = "Maria Santos", LoanType = "Home", OriginalAmount = 500000, ReleaseDate = DateTime.Today.AddDays(-10), ReleasedBy = "Admin" }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        {
+            Navigation.NavigateTo("/admin/dashboard");
+        }
+    }
+
+    private void ShowReleaseModal(LoanItem loan)
+    {
+        selectedLoan = loan;
+        showModal = true;
+        confirmRelease = false;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        selectedLoan = null;
+        adminReason = "";
+        confirmRelease = false;
+    }
+
+    private void ReleaseLoan()
+    {
+        if (string.IsNullOrWhiteSpace(adminReason) || !confirmRelease) return;
+        
+        if (selectedLoan != null)
+        {
+            selectedLoan.ReleaseDate = DateTime.Now;
+            selectedLoan.ReleasedBy = AuthService.FullName ?? "Admin";
+            releasedLoans.Insert(0, selectedLoan);
+            loansForRelease.Remove(selectedLoan);
+            
+            message = $"Loan {selectedLoan.ContractNo} has been successfully released!";
+            isError = false;
+        }
+        CloseModal();
+    }
+
+    private void PrintClearance(LoanItem loan)
+    {
+        // Trigger print of clearance certificate
+        message = $"Clearance certificate for {loan.ContractNo} is ready to print.";
+        isError = false;
+    }
+
+    private class LoanItem
+    {
+        public string ContractNo { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public string LoanType { get; set; } = "";
+        public decimal OriginalAmount { get; set; }
+        public decimal TotalPaid { get; set; }
+        public DateTime DateCompleted { get; set; }
+        public DateTime? ReleaseDate { get; set; }
+        public string ReleasedBy { get; set; } = "";
+    }
+}

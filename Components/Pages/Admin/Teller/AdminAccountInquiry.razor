@@ -1,0 +1,230 @@
+@page "/admin/teller/account-inquiry"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 style="color: #10b981;">
+            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            Account Inquiry (Admin)
+        </h1>
+        <p class="page-subtitle">Search and view detailed account information</p>
+    </div>
+
+    <div class="admin-card">
+        <div class="card-header">
+            <h3>Search Account</h3>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label>Reason for Admin Inquiry <span class="required">*</span></label>
+                <textarea @bind="adminReason" class="form-control" rows="2" 
+                    placeholder="Enter reason for this inquiry..."></textarea>
+            </div>
+            <hr />
+            <div class="form-row">
+                <div class="form-group col-md-8">
+                    <label>Account Number or Customer Name</label>
+                    <input type="text" @bind="searchQuery" class="form-control" placeholder="Enter account number or customer name..." />
+                </div>
+                <div class="form-group col-md-4" style="display: flex; align-items: flex-end;">
+                    <button class="btn btn-primary" @onclick="SearchAccount" style="width: 100%;">
+                        <svg style="width: 16px; height: 16px; margin-right: 8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        Search
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (accountFound)
+    {
+        <div class="admin-card" style="margin-top: 24px;">
+            <div class="card-header">
+                <h3>Account Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="account-details-grid">
+                    <div class="detail-item">
+                        <label>Account Number</label>
+                        <span>@accountDetails.AccountNumber</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Customer Name</label>
+                        <span>@accountDetails.CustomerName</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Account Type</label>
+                        <span>@accountDetails.AccountType</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Current Balance</label>
+                        <span style="color: #10b981; font-size: 1.5em; font-weight: 700;">₱@accountDetails.Balance.ToString("N2")</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Status</label>
+                        <span class="badge @GetStatusClass(accountDetails.Status)">@accountDetails.Status</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Date Opened</label>
+                        <span>@accountDetails.DateOpened.ToString("MMMM dd, yyyy")</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Last Transaction</label>
+                        <span>@accountDetails.LastTransaction.ToString("MMM dd, yyyy HH:mm")</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Branch</label>
+                        <span>@accountDetails.Branch</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-card" style="margin-top: 24px;">
+            <div class="card-header">
+                <h3>Recent Transactions</h3>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Balance After</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var txn in recentTransactions)
+                        {
+                            <tr>
+                                <td>@txn.Date.ToString("MMM dd, yyyy HH:mm")</td>
+                                <td>@txn.Type</td>
+                                <td>@txn.Description</td>
+                                <td class="@(txn.Amount > 0 ? "text-success" : "text-danger")">
+                                    @(txn.Amount > 0 ? "+" : "")₱@Math.Abs(txn.Amount).ToString("N2")
+                                </td>
+                                <td>₱@txn.BalanceAfter.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .account-details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 24px;
+    }
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .detail-item label {
+        font-size: 0.85em;
+        color: #6b7280;
+        font-weight: 500;
+    }
+    .detail-item span {
+        font-size: 1em;
+        color: #1f2937;
+        font-weight: 600;
+    }
+</style>
+
+@code {
+    private string searchQuery = "";
+    private string adminReason = "";
+    private bool accountFound = false;
+    private AccountDetails accountDetails = new();
+    private List<TransactionInfo> recentTransactions = new();
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        {
+            Navigation.NavigateTo("/admin/dashboard");
+        }
+
+        // Check for query parameter
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var accountParam = query["account"];
+        if (!string.IsNullOrEmpty(accountParam))
+        {
+            searchQuery = accountParam;
+            SearchAccount();
+        }
+    }
+
+    private void SearchAccount()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery)) return;
+
+        // Mock data - in real app, fetch from service
+        accountDetails = new AccountDetails
+        {
+            AccountNumber = "SA-001234",
+            CustomerName = "Juan Dela Cruz",
+            AccountType = "Savings Account",
+            Balance = 25000,
+            Status = "Active",
+            DateOpened = DateTime.Now.AddYears(-2),
+            LastTransaction = DateTime.Now.AddDays(-1),
+            Branch = "Main Branch"
+        };
+
+        recentTransactions = new List<TransactionInfo>
+        {
+            new() { Date = DateTime.Now.AddDays(-1), Type = "Deposit", Description = "Cash Deposit", Amount = 5000, BalanceAfter = 25000 },
+            new() { Date = DateTime.Now.AddDays(-3), Type = "Withdrawal", Description = "ATM Withdrawal", Amount = -2000, BalanceAfter = 20000 },
+            new() { Date = DateTime.Now.AddDays(-5), Type = "Transfer", Description = "Fund Transfer to SA-005678", Amount = -1500, BalanceAfter = 22000 },
+            new() { Date = DateTime.Now.AddDays(-7), Type = "Deposit", Description = "Salary Credit", Amount = 15000, BalanceAfter = 23500 }
+        };
+
+        accountFound = true;
+    }
+
+    private string GetStatusClass(string status) => status switch
+    {
+        "Active" => "badge-success",
+        "Inactive" => "badge-secondary",
+        "Frozen" => "badge-danger",
+        _ => "badge-secondary"
+    };
+
+    private class AccountDetails
+    {
+        public string AccountNumber { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public string AccountType { get; set; } = "";
+        public decimal Balance { get; set; }
+        public string Status { get; set; } = "";
+        public DateTime DateOpened { get; set; }
+        public DateTime LastTransaction { get; set; }
+        public string Branch { get; set; } = "";
+    }
+
+    private class TransactionInfo
+    {
+        public DateTime Date { get; set; }
+        public string Type { get; set; } = "";
+        public string Description { get; set; } = "";
+        public decimal Amount { get; set; }
+        public decimal BalanceAfter { get; set; }
+    }
+}

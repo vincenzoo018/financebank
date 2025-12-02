@@ -1,0 +1,377 @@
+@page "/admin/teller/daily-report"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page teller-page">
+    <div class="page-header">
+        <h1>
+            <span class="role-badge teller">Teller</span>
+            Daily Report
+        </h1>
+        <p class="page-subtitle">View and generate daily teller transaction reports</p>
+    </div>
+
+    <!-- Admin Action Reason -->
+    <div class="admin-action-card">
+        <div class="alert alert-warning">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <span>You are accessing Teller functions as SuperAdmin. All actions are logged.</span>
+        </div>
+        <div class="form-group">
+            <label for="adminReason">Reason for Admin Action (Required)</label>
+            <textarea id="adminReason" @bind="adminActionReason" class="form-control" 
+                placeholder="Document why you are performing this action as admin..." rows="2"></textarea>
+        </div>
+    </div>
+
+    <div class="report-controls" style="margin-top: 24px;">
+        <div class="control-group">
+            <label>Report Date</label>
+            <input type="date" class="form-control" @bind="reportDate" />
+        </div>
+        <div class="control-group">
+            <label>Teller</label>
+            <select class="form-select" @bind="selectedTeller">
+                <option value="">All Tellers</option>
+                <option value="teller1">Teller 1 - Juan Dela Cruz</option>
+                <option value="teller2">Teller 2 - Maria Santos</option>
+                <option value="teller3">Teller 3 - Pedro Reyes</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" @onclick="GenerateReport">Generate Report</button>
+        <button class="btn btn-outline" @onclick="PrintReport">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>
+            Print
+        </button>
+        <button class="btn btn-outline" @onclick="ExportReport">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export
+        </button>
+    </div>
+
+    <div class="report-summary" style="margin-top: 24px;">
+        <div class="summary-card">
+            <div class="summary-label">Total Deposits</div>
+            <div class="summary-value deposits">₱@totalDeposits.ToString("N0")</div>
+            <div class="summary-count">@depositCount transactions</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Total Withdrawals</div>
+            <div class="summary-value withdrawals">₱@totalWithdrawals.ToString("N0")</div>
+            <div class="summary-count">@withdrawalCount transactions</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Total Transfers</div>
+            <div class="summary-value transfers">₱@totalTransfers.ToString("N0")</div>
+            <div class="summary-count">@transferCount transactions</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Net Cash Position</div>
+            <div class="summary-value @(netCash >= 0 ? "positive" : "negative")">₱@netCash.ToString("N0")</div>
+            <div class="summary-count">End of Day</div>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3>Transaction Details</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Reference</th>
+                        <th>Type</th>
+                        <th>Customer</th>
+                        <th>Account</th>
+                        <th>Amount</th>
+                        <th>Teller</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var tx in transactions)
+                    {
+                        <tr>
+                            <td>@tx.Time.ToString("HH:mm:ss")</td>
+                            <td><strong>@tx.Reference</strong></td>
+                            <td>
+                                <span class="tx-type @tx.Type.ToLower()">@tx.Type</span>
+                            </td>
+                            <td>@tx.CustomerName</td>
+                            <td>@tx.AccountNumber</td>
+                            <td class="@GetAmountClass(tx.Type)">
+                                @GetAmountPrefix(tx.Type)₱@tx.Amount.ToString("N2")
+                            </td>
+                            <td>@tx.TellerName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="reports-grid" style="margin-top: 24px;">
+        <div class="admin-card">
+            <div class="card-header">
+                <h3>Hourly Distribution</h3>
+            </div>
+            <div class="card-body">
+                <div class="hourly-chart">
+                    @foreach (var hour in hourlyData)
+                    {
+                        <div class="hour-bar">
+                            <div class="bar" style="height: @(hour.Count * 8)px;"></div>
+                            <span class="hour-label">@hour.Hour</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <div class="card-header">
+                <h3>Cash Denomination</h3>
+            </div>
+            <div class="card-body">
+                <table class="denomination-table">
+                    <thead>
+                        <tr>
+                            <th>Denomination</th>
+                            <th>Count</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var denom in denominations)
+                        {
+                            <tr>
+                                <td>₱@denom.Value.ToString("N0")</td>
+                                <td>@denom.Count</td>
+                                <td>₱@(denom.Value * denom.Count).ToString("N0")</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2"><strong>Total</strong></td>
+                            <td><strong>₱@denominations.Sum(d => d.Value * d.Count).ToString("N0")</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .teller-page .role-badge.teller {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+    .report-controls {
+        display: flex;
+        gap: 16px;
+        align-items: flex-end;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .control-group label {
+        font-size: 0.85em;
+        color: #6b7280;
+    }
+    .report-summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+    .summary-card {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .summary-label {
+        font-size: 0.9em;
+        color: #6b7280;
+        margin-bottom: 8px;
+    }
+    .summary-value {
+        font-size: 1.8em;
+        font-weight: 700;
+    }
+    .summary-value.deposits { color: #10b981; }
+    .summary-value.withdrawals { color: #ef4444; }
+    .summary-value.transfers { color: #3b82f6; }
+    .summary-value.positive { color: #10b981; }
+    .summary-value.negative { color: #ef4444; }
+    .summary-count {
+        font-size: 0.85em;
+        color: #9ca3af;
+        margin-top: 4px;
+    }
+    .tx-type {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.8em;
+    }
+    .tx-type.deposit { background: #dcfce7; color: #166534; }
+    .tx-type.withdrawal { background: #fee2e2; color: #991b1b; }
+    .tx-type.transfer { background: #dbeafe; color: #1e40af; }
+    .amount-deposit { color: #10b981; }
+    .amount-withdrawal { color: #ef4444; }
+    .amount-transfer { color: #3b82f6; }
+    .reports-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    .hourly-chart {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        height: 150px;
+        padding: 20px 0;
+    }
+    .hour-bar {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    .hour-bar .bar {
+        width: 24px;
+        background: #10b981;
+        border-radius: 4px 4px 0 0;
+        min-height: 4px;
+    }
+    .hour-label {
+        font-size: 0.75em;
+        color: #6b7280;
+    }
+    .denomination-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .denomination-table th, .denomination-table td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .denomination-table tfoot td {
+        background: #f8fafc;
+    }
+</style>
+
+@code {
+    private string adminActionReason = "";
+    private DateTime reportDate = DateTime.Today;
+    private string selectedTeller = "";
+
+    private decimal totalDeposits = 1250000;
+    private int depositCount = 45;
+    private decimal totalWithdrawals = 850000;
+    private int withdrawalCount = 32;
+    private decimal totalTransfers = 350000;
+    private int transferCount = 18;
+    private decimal netCash = 400000;
+
+    private List<TransactionItem> transactions = new()
+    {
+        new() { Time = DateTime.Today.AddHours(9).AddMinutes(15), Reference = "DEP-2024-0001", Type = "Deposit", CustomerName = "Juan Dela Cruz", AccountNumber = "SAV-001234", Amount = 50000, TellerName = "Teller 1" },
+        new() { Time = DateTime.Today.AddHours(9).AddMinutes(32), Reference = "WDR-2024-0001", Type = "Withdrawal", CustomerName = "Maria Santos", AccountNumber = "SAV-002345", Amount = 25000, TellerName = "Teller 2" },
+        new() { Time = DateTime.Today.AddHours(10).AddMinutes(5), Reference = "TRF-2024-0001", Type = "Transfer", CustomerName = "Pedro Reyes", AccountNumber = "SAV-003456", Amount = 15000, TellerName = "Teller 1" },
+        new() { Time = DateTime.Today.AddHours(10).AddMinutes(45), Reference = "DEP-2024-0002", Type = "Deposit", CustomerName = "Ana Garcia", AccountNumber = "SAV-004567", Amount = 100000, TellerName = "Teller 3" },
+        new() { Time = DateTime.Today.AddHours(11).AddMinutes(20), Reference = "WDR-2024-0002", Type = "Withdrawal", CustomerName = "Jose Rizal", AccountNumber = "SAV-005678", Amount = 35000, TellerName = "Teller 2" }
+    };
+
+    private List<HourlyData> hourlyData = new()
+    {
+        new() { Hour = "9AM", Count = 8 },
+        new() { Hour = "10AM", Count = 12 },
+        new() { Hour = "11AM", Count = 15 },
+        new() { Hour = "12PM", Count = 6 },
+        new() { Hour = "1PM", Count = 10 },
+        new() { Hour = "2PM", Count = 14 },
+        new() { Hour = "3PM", Count = 18 },
+        new() { Hour = "4PM", Count = 12 }
+    };
+
+    private List<Denomination> denominations = new()
+    {
+        new() { Value = 1000, Count = 250 },
+        new() { Value = 500, Count = 180 },
+        new() { Value = 200, Count = 95 },
+        new() { Value = 100, Count = 150 },
+        new() { Value = 50, Count = 80 },
+        new() { Value = 20, Count = 120 }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private string GetAmountClass(string type) => type switch
+    {
+        "Deposit" => "amount-deposit",
+        "Withdrawal" => "amount-withdrawal",
+        "Transfer" => "amount-transfer",
+        _ => ""
+    };
+
+    private string GetAmountPrefix(string type) => type switch
+    {
+        "Deposit" => "+",
+        "Withdrawal" => "-",
+        _ => ""
+    };
+
+    private void GenerateReport() { }
+    private void PrintReport() { }
+    private void ExportReport() { }
+
+    private class TransactionItem
+    {
+        public DateTime Time { get; set; }
+        public string Reference { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public string AccountNumber { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string TellerName { get; set; } = "";
+    }
+
+    private class HourlyData
+    {
+        public string Hour { get; set; } = "";
+        public int Count { get; set; }
+    }
+
+    private class Denomination
+    {
+        public int Value { get; set; }
+        public int Count { get; set; }
+    }
+}

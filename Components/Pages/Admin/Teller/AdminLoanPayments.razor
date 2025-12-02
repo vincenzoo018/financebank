@@ -1,0 +1,248 @@
+@page "/admin/teller/loan-payments"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 style="color: #10b981;">
+            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+            Loan Payments (Admin)
+        </h1>
+        <p class="page-subtitle">Process loan payment collections</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert @(isError ? "alert-danger" : "alert-success")">@message</div>
+    }
+
+    <div class="admin-card">
+        <div class="card-header">
+            <h3>Record Loan Payment</h3>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label>Admin Reason <span class="required">*</span></label>
+                <textarea @bind="adminReason" class="form-control" rows="2" 
+                    placeholder="Enter reason for processing this payment..."></textarea>
+            </div>
+            <hr />
+            
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label>Contract Number</label>
+                    <input type="text" @bind="contractNumber" class="form-control" placeholder="Enter contract number" />
+                </div>
+                <div class="form-group col-md-4">
+                    <label>Payment Amount</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₱</span>
+                        <input type="number" @bind="paymentAmount" class="form-control" step="0.01" />
+                    </div>
+                </div>
+                <div class="form-group col-md-4">
+                    <label>Payment Method</label>
+                    <select @bind="paymentMethod" class="form-control">
+                        <option value="Cash">Cash</option>
+                        <option value="Check">Check</option>
+                        <option value="BankTransfer">Bank Transfer</option>
+                        <option value="AutoDebit">Auto Debit</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label>Reference Number</label>
+                    <input type="text" @bind="referenceNumber" class="form-control" placeholder="Payment reference" />
+                </div>
+                <div class="form-group col-md-6">
+                    <label>Remarks</label>
+                    <input type="text" @bind="remarks" class="form-control" placeholder="Optional remarks" />
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button class="btn btn-primary" @onclick="ProcessPayment">
+                    <svg style="width: 16px; height: 16px; margin-right: 8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Process Payment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3>Due Payments Today</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Contract No</th>
+                        <th>Customer</th>
+                        <th>Due Amount</th>
+                        <th>Due Date</th>
+                        <th>Outstanding Balance</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var due in duePayments)
+                    {
+                        <tr class="@(due.IsOverdue ? "table-danger" : "")">
+                            <td><strong>@due.ContractNo</strong></td>
+                            <td>@due.CustomerName</td>
+                            <td>₱@due.DueAmount.ToString("N2")</td>
+                            <td>@due.DueDate.ToString("MMM dd, yyyy")</td>
+                            <td>₱@due.OutstandingBalance.ToString("N2")</td>
+                            <td>
+                                <span class="badge @(due.IsOverdue ? "badge-danger" : "badge-warning")">
+                                    @(due.IsOverdue ? "Overdue" : "Due Today")
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-success" @onclick="() => QuickPay(due)">Quick Pay</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3>Recent Payments</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Contract No</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Processed By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var payment in recentPayments)
+                    {
+                        <tr>
+                            <td>@payment.PaymentDate.ToString("MMM dd, yyyy HH:mm")</td>
+                            <td>@payment.ContractNo</td>
+                            <td>@payment.CustomerName</td>
+                            <td style="color: #10b981;">₱@payment.Amount.ToString("N2")</td>
+                            <td>@payment.Method</td>
+                            <td>@payment.ProcessedBy</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string adminReason = "";
+    private string contractNumber = "";
+    private decimal paymentAmount = 0;
+    private string paymentMethod = "Cash";
+    private string referenceNumber = "";
+    private string remarks = "";
+    private string message = "";
+    private bool isError = false;
+
+    private List<DuePayment> duePayments = new()
+    {
+        new() { ContractNo = "LN-20240101-001", CustomerName = "Juan Dela Cruz", DueAmount = 4440.78m, DueDate = DateTime.Today, OutstandingBalance = 45000, IsOverdue = false },
+        new() { ContractNo = "LN-20231215-003", CustomerName = "Pedro Garcia", DueAmount = 3500, DueDate = DateTime.Today.AddDays(-5), OutstandingBalance = 85000, IsOverdue = true }
+    };
+
+    private List<PaymentRecord> recentPayments = new()
+    {
+        new() { PaymentDate = DateTime.Now.AddHours(-3), ContractNo = "LN-20240101-002", CustomerName = "Maria Santos", Amount = 9561.20m, Method = "Cash", ProcessedBy = "Teller1" },
+        new() { PaymentDate = DateTime.Now.AddDays(-1), ContractNo = "LN-20240101-001", CustomerName = "Juan Dela Cruz", Amount = 4440.78m, Method = "BankTransfer", ProcessedBy = "Admin" }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        {
+            Navigation.NavigateTo("/admin/dashboard");
+        }
+    }
+
+    private void ProcessPayment()
+    {
+        if (string.IsNullOrWhiteSpace(adminReason))
+        {
+            message = "Admin reason is required.";
+            isError = true;
+            return;
+        }
+        
+        if (string.IsNullOrWhiteSpace(contractNumber) || paymentAmount <= 0)
+        {
+            message = "Please enter contract number and valid payment amount.";
+            isError = true;
+            return;
+        }
+
+        recentPayments.Insert(0, new PaymentRecord
+        {
+            PaymentDate = DateTime.Now,
+            ContractNo = contractNumber,
+            CustomerName = "Customer",
+            Amount = paymentAmount,
+            Method = paymentMethod,
+            ProcessedBy = AuthService.FullName ?? "Admin"
+        });
+
+        message = $"Payment of ₱{paymentAmount:N2} for {contractNumber} processed successfully!";
+        isError = false;
+        
+        // Reset form
+        contractNumber = "";
+        paymentAmount = 0;
+        referenceNumber = "";
+        remarks = "";
+        adminReason = "";
+    }
+
+    private void QuickPay(DuePayment due)
+    {
+        contractNumber = due.ContractNo;
+        paymentAmount = due.DueAmount;
+        referenceNumber = $"QP-{DateTime.Now:yyyyMMddHHmmss}";
+    }
+
+    private class DuePayment
+    {
+        public string ContractNo { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public decimal DueAmount { get; set; }
+        public DateTime DueDate { get; set; }
+        public decimal OutstandingBalance { get; set; }
+        public bool IsOverdue { get; set; }
+    }
+
+    private class PaymentRecord
+    {
+        public DateTime PaymentDate { get; set; }
+        public string ContractNo { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string Method { get; set; } = "";
+        public string ProcessedBy { get; set; } = "";
+    }
+}

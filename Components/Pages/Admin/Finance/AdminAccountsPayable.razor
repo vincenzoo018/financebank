@@ -1,0 +1,258 @@
+@page "/admin/finance-mgr/accounts-payable"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page finance-mgr-page">
+    <div class="page-header">
+        <h1>
+            <span class="role-badge finance">Finance Mgr</span>
+            Accounts Payable
+        </h1>
+        <p class="page-subtitle">Manage and process accounts payable transactions</p>
+    </div>
+
+    <!-- Admin Action Reason -->
+    <div class="admin-action-card">
+        <div class="alert alert-warning">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <span>You are accessing Finance Manager functions as SuperAdmin. All actions are logged.</span>
+        </div>
+        <div class="form-group">
+            <label for="adminReason">Reason for Admin Action (Required)</label>
+            <textarea id="adminReason" @bind="adminActionReason" class="form-control" 
+                placeholder="Document why you are performing this action as admin..." rows="2"></textarea>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3>Payable Transactions</h3>
+            <button class="btn btn-primary" @onclick="NewPayable">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                New Payable
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-filters">
+                <div class="filter-group">
+                    <input type="text" class="form-control" placeholder="Search vendor or invoice..." @bind="searchQuery" />
+                </div>
+                <div class="filter-group">
+                    <select class="form-select" @bind="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="paid">Paid</option>
+                        <option value="overdue">Overdue</option>
+                    </select>
+                </div>
+            </div>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Vendor</th>
+                        <th>Amount</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var payable in payables)
+                    {
+                        <tr>
+                            <td><strong>@payable.InvoiceNumber</strong></td>
+                            <td>@payable.VendorName</td>
+                            <td>₱@payable.Amount.ToString("N2")</td>
+                            <td>@payable.DueDate.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <span class="badge @GetStatusBadgeClass(payable.Status)">@payable.Status</span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-outline" @onclick="() => ViewDetails(payable)" title="View">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                    </button>
+                                    @if (payable.Status == "Pending")
+                                    {
+                                        <button class="btn btn-sm btn-primary" @onclick="() => ApprovePayable(payable)" title="Approve">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                        </button>
+                                    }
+                                    @if (payable.Status == "Approved")
+                                    {
+                                        <button class="btn btn-sm btn-success" @onclick="() => ProcessPayment(payable)" title="Process Payment">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                            </svg>
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="summary-cards" style="margin-top: 24px;">
+        <div class="summary-card">
+            <h4>Total Pending</h4>
+            <div class="amount">₱@totalPending.ToString("N2")</div>
+        </div>
+        <div class="summary-card">
+            <h4>Due This Week</h4>
+            <div class="amount warning">₱@dueThisWeek.ToString("N2")</div>
+        </div>
+        <div class="summary-card">
+            <h4>Overdue</h4>
+            <div class="amount danger">₱@overdue.ToString("N2")</div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .finance-mgr-page .role-badge.finance {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+    .table-filters {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+    .filter-group {
+        flex: 1;
+        max-width: 300px;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+    .btn-sm {
+        padding: 4px 8px;
+        font-size: 0.85em;
+    }
+    .btn-outline {
+        background: transparent;
+        border: 1px solid #d1d5db;
+    }
+    .btn-outline:hover {
+        background: #f3f4f6;
+    }
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    .summary-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .summary-card h4 {
+        font-size: 0.9em;
+        color: #6b7280;
+        margin-bottom: 8px;
+    }
+    .summary-card .amount {
+        font-size: 1.8em;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    .summary-card .amount.warning {
+        color: #f59e0b;
+    }
+    .summary-card .amount.danger {
+        color: #ef4444;
+    }
+</style>
+
+@code {
+    private string adminActionReason = "";
+    private string searchQuery = "";
+    private string statusFilter = "";
+    
+    private decimal totalPending = 450000.00m;
+    private decimal dueThisWeek = 125000.00m;
+    private decimal overdue = 35000.00m;
+
+    private List<PayableItem> payables = new()
+    {
+        new() { InvoiceNumber = "INV-2024-001", VendorName = "Office Supplies Co.", Amount = 25000, DueDate = DateTime.Now.AddDays(7), Status = "Pending" },
+        new() { InvoiceNumber = "INV-2024-002", VendorName = "IT Solutions Inc.", Amount = 85000, DueDate = DateTime.Now.AddDays(14), Status = "Approved" },
+        new() { InvoiceNumber = "INV-2024-003", VendorName = "Security Services", Amount = 45000, DueDate = DateTime.Now.AddDays(-3), Status = "Overdue" },
+        new() { InvoiceNumber = "INV-2024-004", VendorName = "Utilities Provider", Amount = 32000, DueDate = DateTime.Now.AddDays(5), Status = "Pending" },
+        new() { InvoiceNumber = "INV-2024-005", VendorName = "Maintenance Corp.", Amount = 18000, DueDate = DateTime.Now.AddDays(-1), Status = "Paid" }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private string GetStatusBadgeClass(string status) => status switch
+    {
+        "Pending" => "badge-warning",
+        "Approved" => "badge-info",
+        "Paid" => "badge-success",
+        "Overdue" => "badge-danger",
+        _ => "badge-secondary"
+    };
+
+    private void NewPayable()
+    {
+        // TODO: Open new payable modal
+    }
+
+    private void ViewDetails(PayableItem payable)
+    {
+        // TODO: View payable details
+    }
+
+    private void ApprovePayable(PayableItem payable)
+    {
+        if (string.IsNullOrWhiteSpace(adminActionReason))
+        {
+            return;
+        }
+        payable.Status = "Approved";
+    }
+
+    private void ProcessPayment(PayableItem payable)
+    {
+        if (string.IsNullOrWhiteSpace(adminActionReason))
+        {
+            return;
+        }
+        payable.Status = "Paid";
+    }
+
+    private class PayableItem
+    {
+        public string InvoiceNumber { get; set; } = "";
+        public string VendorName { get; set; } = "";
+        public decimal Amount { get; set; }
+        public DateTime DueDate { get; set; }
+        public string Status { get; set; } = "";
+    }
+}

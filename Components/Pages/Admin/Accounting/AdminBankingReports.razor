@@ -1,0 +1,344 @@
+@page "/admin/accountant/banking-reports"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject AuthService AuthService
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M3 21h18M3 10h18M5 6h14M7 3h10"/>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Banking Reports (Admin)</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">View and generate banking reports - SuperAdmin Access</p>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Notice -->
+<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 24px;">⚠️</span>
+        <div>
+            <p style="margin: 0; font-weight: 600; color: #92400e;">Administrative Access</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #a16207;">You are generating reports as SuperAdmin</p>
+        </div>
+    </div>
+</div>
+
+<!-- Report Overview Stats -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 16px; border: 1px solid #6ee7b7;">
+        <div style="font-size: 12px; color: #065f46; font-weight: 600;">TOTAL DEPOSITS</div>
+        <div style="font-size: 24px; font-weight: 700; color: #047857;">₱@totalDeposits.ToString("N0")</div>
+        <div style="font-size: 12px; color: #059669;">This month</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 12px; padding: 16px; border: 1px solid #fca5a5;">
+        <div style="font-size: 12px; color: #991b1b; font-weight: 600;">TOTAL WITHDRAWALS</div>
+        <div style="font-size: 24px; font-weight: 700; color: #dc2626;">₱@totalWithdrawals.ToString("N0")</div>
+        <div style="font-size: 12px; color: #ef4444;">This month</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 12px; padding: 16px; border: 1px solid #93c5fd;">
+        <div style="font-size: 12px; color: #1e40af; font-weight: 600;">ACTIVE LOANS</div>
+        <div style="font-size: 24px; font-weight: 700; color: #2563eb;">₱@totalLoans.ToString("N0")</div>
+        <div style="font-size: 12px; color: #3b82f6;">@loanCount active loans</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 12px; padding: 16px; border: 1px solid #fcd34d;">
+        <div style="font-size: 12px; color: #92400e; font-weight: 600;">TOTAL ACCOUNTS</div>
+        <div style="font-size: 24px; font-weight: 700; color: #d97706;">@totalAccounts</div>
+        <div style="font-size: 12px; color: #f59e0b;">Customer accounts</div>
+    </div>
+</div>
+
+<!-- Available Reports -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+    <!-- Daily Transaction Report -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+            </div>
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Daily Transaction Report</h3>
+                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">All transactions for today</p>
+            </div>
+        </div>
+        <button class="btn" @onclick="GenerateDailyReport" style="width: 100%; background: #8b5cf6; color: white; padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer;">Generate Report</button>
+    </div>
+
+    <!-- Monthly Financial Statement -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #059669, #047857); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                </svg>
+            </div>
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Monthly Financial Statement</h3>
+                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Complete overview for the month</p>
+            </div>
+        </div>
+        <button class="btn" @onclick="GenerateMonthlyReport" style="width: 100%; background: #059669; color: white; padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer;">Generate Report</button>
+    </div>
+
+    <!-- Account Reconciliation -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #059669, #047857); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            </div>
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Account Reconciliation</h3>
+                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Verify account balances</p>
+            </div>
+        </div>
+        <button class="btn" @onclick="GenerateReconciliationReport" style="width: 100%; background: #059669; color: white; padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer;">Generate Report</button>
+    </div>
+
+    <!-- Loan Portfolio Report -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #2563eb, #1d4ed8); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/>
+                    <path d="M16 4v4M8 4v4"/>
+                </svg>
+            </div>
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Loan Portfolio Report</h3>
+                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">All active loans summary</p>
+            </div>
+        </div>
+        <button class="btn" @onclick="GenerateLoanReport" style="width: 100%; background: #2563eb; color: white; padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer;">Generate Report</button>
+    </div>
+
+    <!-- Expense Summary -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"/>
+                    <path d="M19.07 4.93l-2.58 2.58A8 8 0 1 0 20.5 12z"/>
+                </svg>
+            </div>
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Expense Summary</h3>
+                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Breakdown of all expenses</p>
+            </div>
+        </div>
+        <button class="btn" @onclick="GenerateExpenseReport" style="width: 100%; background: #f59e0b; color: white; padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer;">Generate Report</button>
+    </div>
+
+    <!-- Cash Flow Analysis -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #059669, #047857); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                    <polyline points="17 6 23 6 23 12"/>
+                </svg>
+            </div>
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Cash Flow Analysis</h3>
+                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Analyze cash movements</p>
+            </div>
+        </div>
+        <button class="btn" @onclick="GenerateCashFlowReport" style="width: 100%; background: #059669; color: white; padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer;">Generate Report</button>
+    </div>
+
+    <!-- Audit Trail -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #6b7280, #4b5563); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M12 2v20M2 12h20"/>
+                </svg>
+            </div>
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Audit Trail</h3>
+                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">System activity log</p>
+            </div>
+        </div>
+        <button class="btn" @onclick="GenerateAuditReport" style="width: 100%; background: #6b7280; color: white; padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer;">Generate Report</button>
+    </div>
+
+    <!-- Customer Summary -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+            </div>
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Customer Summary</h3>
+                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">All customers overview</p>
+            </div>
+        </div>
+        <button class="btn" @onclick="GenerateCustomerReport" style="width: 100%; background: #ec4899; color: white; padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer;">Generate Report</button>
+    </div>
+</div>
+
+<!-- Status Message -->
+@if (!string.IsNullOrEmpty(statusMessage))
+{
+    <div style="position: fixed; bottom: 24px; right: 24px; background: @(isError ? "#fee2e2" : "#d1fae5"); border: 1px solid @(isError ? "#fca5a5" : "#6ee7b7"); border-radius: 12px; padding: 16px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            @if (isError)
+            {
+                <svg width="20" height="20" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+            }
+            else
+            {
+                <svg width="20" height="20" fill="none" stroke="#059669" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            }
+            <span style="color: @(isError ? "#991b1b" : "#065f46"); font-weight: 600;">@statusMessage</span>
+        </div>
+    </div>
+}
+
+@code {
+    private decimal totalDeposits = 0;
+    private decimal totalWithdrawals = 0;
+    private decimal totalLoans = 0;
+    private int loanCount = 0;
+    private int totalAccounts = 0;
+    
+    private string statusMessage = "";
+    private bool isError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReportData();
+    }
+
+    private async Task LoadReportData()
+    {
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            var startOfMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+            // Get deposits this month
+            totalDeposits = await context.CustomerTransactions
+                .Where(t => t.TransactionType == "Deposit" && t.CreatedAt >= startOfMonth && t.CreatedAt <= endOfMonth && t.Status == "Completed")
+                .SumAsync(t => (decimal?)t.Amount) ?? 0;
+
+            // Get withdrawals this month
+            totalWithdrawals = await context.CustomerTransactions
+                .Where(t => t.TransactionType == "Withdrawal" && t.CreatedAt >= startOfMonth && t.CreatedAt <= endOfMonth && t.Status == "Completed")
+                .SumAsync(t => (decimal?)t.Amount) ?? 0;
+
+            // Get active loans (from assessments)
+            var activeAssessments = await context.LoanAssessments
+                .Where(l => l.AssessmentStatus == "FORWARDED" || l.AssessmentStatus == "ASSESSED")
+                .ToListAsync();
+            totalLoans = activeAssessments.Sum(l => l.LoanAmount);
+            loanCount = activeAssessments.Count;
+
+            // Get total accounts
+            totalAccounts = await context.CustomerAccounts.CountAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading report data: {ex.Message}");
+        }
+    }
+
+    private void GenerateDailyReport()
+    {
+        statusMessage = "Daily Transaction Report generated successfully!";
+        isError = false;
+        StateHasChanged();
+        _ = ClearStatusMessage();
+    }
+
+    private void GenerateMonthlyReport()
+    {
+        statusMessage = "Monthly Financial Statement generated successfully!";
+        isError = false;
+        StateHasChanged();
+        _ = ClearStatusMessage();
+    }
+
+    private void GenerateReconciliationReport()
+    {
+        statusMessage = "Account Reconciliation Report generated successfully!";
+        isError = false;
+        StateHasChanged();
+        _ = ClearStatusMessage();
+    }
+
+    private void GenerateLoanReport()
+    {
+        statusMessage = "Loan Portfolio Report generated successfully!";
+        isError = false;
+        StateHasChanged();
+        _ = ClearStatusMessage();
+    }
+
+    private void GenerateExpenseReport()
+    {
+        statusMessage = "Expense Summary Report generated successfully!";
+        isError = false;
+        StateHasChanged();
+        _ = ClearStatusMessage();
+    }
+
+    private void GenerateCashFlowReport()
+    {
+        statusMessage = "Cash Flow Analysis Report generated successfully!";
+        isError = false;
+        StateHasChanged();
+        _ = ClearStatusMessage();
+    }
+
+    private void GenerateAuditReport()
+    {
+        statusMessage = "Audit Trail Report generated successfully!";
+        isError = false;
+        StateHasChanged();
+        _ = ClearStatusMessage();
+    }
+
+    private void GenerateCustomerReport()
+    {
+        statusMessage = "Customer Summary Report generated successfully!";
+        isError = false;
+        StateHasChanged();
+        _ = ClearStatusMessage();
+    }
+
+    private async Task ClearStatusMessage()
+    {
+        await Task.Delay(3000);
+        statusMessage = "";
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,219 @@
+@page "/admin/teller/contract-preparation"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 style="color: #10b981;">
+            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            Contract Preparation (Admin)
+        </h1>
+        <p class="page-subtitle">Prepare loan contracts for approved applications</p>
+    </div>
+
+    <div class="admin-card">
+        <div class="card-header">
+            <h3>Approved Loans Pending Contract</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Application ID</th>
+                        <th>Customer</th>
+                        <th>Loan Type</th>
+                        <th>Approved Amount</th>
+                        <th>Term</th>
+                        <th>Interest Rate</th>
+                        <th>Monthly Payment</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var loan in approvedLoans)
+                    {
+                        <tr>
+                            <td><strong>@loan.ApplicationId</strong></td>
+                            <td>@loan.CustomerName</td>
+                            <td>@loan.LoanType</td>
+                            <td>₱@loan.ApprovedAmount.ToString("N2")</td>
+                            <td>@loan.Term months</td>
+                            <td>@loan.InterestRate%</td>
+                            <td>₱@loan.MonthlyPayment.ToString("N2")</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" @onclick="() => PrepareContract(loan)">Prepare Contract</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation style="max-width: 800px;">
+            <div class="modal-header">
+                <h4>Prepare Contract - @selectedLoan?.ApplicationId</h4>
+                <button class="close-btn" @onclick="CloseModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Admin Reason <span class="required">*</span></label>
+                    <textarea @bind="adminReason" class="form-control" rows="2" 
+                        placeholder="Enter reason for preparing this contract..."></textarea>
+                </div>
+                <hr />
+                
+                <div class="contract-preview" style="background: #f8fafc; padding: 24px; border-radius: 8px;">
+                    <h4 style="text-align: center;">LOAN AGREEMENT</h4>
+                    <p style="text-align: center; margin-bottom: 24px;">Contract No: LN-@DateTime.Now.ToString("yyyyMMdd")-@selectedLoan?.ApplicationId</p>
+                    
+                    <div class="contract-section">
+                        <h5>PARTIES</h5>
+                        <p><strong>Lender:</strong> FINSYS Finance Corporation</p>
+                        <p><strong>Borrower:</strong> @selectedLoan?.CustomerName</p>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <h5>LOAN TERMS</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <td>Principal Amount</td>
+                                <td>₱@selectedLoan?.ApprovedAmount.ToString("N2")</td>
+                            </tr>
+                            <tr>
+                                <td>Interest Rate</td>
+                                <td>@selectedLoan?.InterestRate% per annum</td>
+                            </tr>
+                            <tr>
+                                <td>Loan Term</td>
+                                <td>@selectedLoan?.Term months</td>
+                            </tr>
+                            <tr>
+                                <td>Monthly Payment</td>
+                                <td>₱@selectedLoan?.MonthlyPayment.ToString("N2")</td>
+                            </tr>
+                            <tr>
+                                <td>Total Interest</td>
+                                <td>₱@(((selectedLoan?.MonthlyPayment ?? 0) * (selectedLoan?.Term ?? 1)) - (selectedLoan?.ApprovedAmount ?? 0)).ToString("N2")</td>
+                            </tr>
+                            <tr>
+                                <td>Total Amount Due</td>
+                                <td>₱@((selectedLoan?.MonthlyPayment ?? 0) * (selectedLoan?.Term ?? 1)).ToString("N2")</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <h5>TERMS AND CONDITIONS</h5>
+                        <ol>
+                            <li>The Borrower agrees to repay the loan in equal monthly installments.</li>
+                            <li>Late payments will incur a penalty of 3% of the monthly payment.</li>
+                            <li>The Borrower may prepay the loan without penalty.</li>
+                            <li>This agreement is governed by Philippine laws.</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 16px;">
+                    <label class="checkbox-item">
+                        <input type="checkbox" @bind="termsReviewed" />
+                        I have reviewed and verified all contract terms
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn btn-info" @onclick="PrintContract">Print Preview</button>
+                <button class="btn btn-success" @onclick="GenerateContract" disabled="@(!termsReviewed)">Generate Contract</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .contract-section {
+        margin-bottom: 20px;
+    }
+    .contract-section h5 {
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+    }
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+    }
+</style>
+
+@code {
+    private bool showModal = false;
+    private LoanItem? selectedLoan;
+    private string adminReason = "";
+    private bool termsReviewed = false;
+
+    private List<LoanItem> approvedLoans = new()
+    {
+        new() { ApplicationId = "LA-2024001", CustomerName = "Juan Dela Cruz", LoanType = "Personal", ApprovedAmount = 50000, Term = 12, InterestRate = 12, MonthlyPayment = 4440.78m },
+        new() { ApplicationId = "LA-2024002", CustomerName = "Maria Santos", LoanType = "Home", ApprovedAmount = 450000, Term = 60, InterestRate = 10, MonthlyPayment = 9561.20m }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        {
+            Navigation.NavigateTo("/admin/dashboard");
+        }
+    }
+
+    private void PrepareContract(LoanItem loan)
+    {
+        selectedLoan = loan;
+        showModal = true;
+        termsReviewed = false;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        selectedLoan = null;
+        adminReason = "";
+    }
+
+    private void PrintContract()
+    {
+        // Trigger print preview
+    }
+
+    private void GenerateContract()
+    {
+        if (string.IsNullOrWhiteSpace(adminReason) || !termsReviewed) return;
+        if (selectedLoan != null)
+        {
+            approvedLoans.Remove(selectedLoan);
+        }
+        CloseModal();
+    }
+
+    private class LoanItem
+    {
+        public string ApplicationId { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public string LoanType { get; set; } = "";
+        public decimal ApprovedAmount { get; set; }
+        public int Term { get; set; }
+        public decimal InterestRate { get; set; }
+        public decimal MonthlyPayment { get; set; }
+    }
+}

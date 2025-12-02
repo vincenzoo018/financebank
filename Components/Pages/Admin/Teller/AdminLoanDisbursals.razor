@@ -1,0 +1,229 @@
+@page "/admin/teller/loan-disbursals"
+@layout AdminLayout
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 style="color: #10b981;">
+            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Loan Disbursals (Admin)
+        </h1>
+        <p class="page-subtitle">Process loan disbursements to customer accounts</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert @(isError ? "alert-danger" : "alert-success")">@message</div>
+    }
+
+    <div class="admin-card">
+        <div class="card-header">
+            <h3>Pending Disbursals</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Contract No</th>
+                        <th>Customer</th>
+                        <th>Disbursal Amount</th>
+                        <th>Account Number</th>
+                        <th>Contract Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var disbursal in pendingDisbursals)
+                    {
+                        <tr>
+                            <td><strong>@disbursal.ContractNo</strong></td>
+                            <td>@disbursal.CustomerName</td>
+                            <td style="color: #10b981; font-weight: 600;">₱@disbursal.Amount.ToString("N2")</td>
+                            <td>@disbursal.AccountNumber</td>
+                            <td>@disbursal.ContractDate.ToString("MMM dd, yyyy")</td>
+                            <td><span class="badge badge-warning">Pending Disbursal</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-success" @onclick="() => ShowDisbursalModal(disbursal)">Disburse</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3>Recent Disbursals</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Contract No</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Disbursed Date</th>
+                        <th>Processed By</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var disbursal in completedDisbursals)
+                    {
+                        <tr>
+                            <td>@disbursal.ContractNo</td>
+                            <td>@disbursal.CustomerName</td>
+                            <td>₱@disbursal.Amount.ToString("N2")</td>
+                            <td>@disbursal.DisbursedDate?.ToString("MMM dd, yyyy HH:mm")</td>
+                            <td>@disbursal.ProcessedBy</td>
+                            <td><span class="badge badge-success">Disbursed</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h4>Process Disbursal - @selectedDisbursal?.ContractNo</h4>
+                <button class="close-btn" @onclick="CloseModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Admin Reason <span class="required">*</span></label>
+                    <textarea @bind="adminReason" class="form-control" rows="2" 
+                        placeholder="Enter reason for processing this disbursal..."></textarea>
+                </div>
+                <hr />
+                
+                <div class="disbursal-summary" style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin-bottom: 16px;">
+                    <h5 style="color: #10b981;">Disbursal Summary</h5>
+                    <table class="table table-bordered">
+                        <tr>
+                            <td>Customer Name</td>
+                            <td><strong>@selectedDisbursal?.CustomerName</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Account Number</td>
+                            <td><strong>@selectedDisbursal?.AccountNumber</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Disbursal Amount</td>
+                            <td style="color: #10b981; font-size: 1.2em;"><strong>₱@selectedDisbursal?.Amount.ToString("N2")</strong></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="form-group">
+                    <label>Disbursal Method</label>
+                    <select @bind="disbursalMethod" class="form-control">
+                        <option value="DirectCredit">Direct Credit to Account</option>
+                        <option value="Check">Check Issuance</option>
+                        <option value="Cash">Cash Release</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Reference Number</label>
+                    <input type="text" @bind="referenceNumber" class="form-control" placeholder="Enter reference number" />
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" @bind="confirmDisbursal" />
+                        I confirm that all documents are in order and authorize this disbursal
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn btn-success" @onclick="ProcessDisbursal" disabled="@(!confirmDisbursal)">
+                    Process Disbursal
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool showModal = false;
+    private DisbursalItem? selectedDisbursal;
+    private string adminReason = "";
+    private string disbursalMethod = "DirectCredit";
+    private string referenceNumber = "";
+    private bool confirmDisbursal = false;
+    private string message = "";
+    private bool isError = false;
+
+    private List<DisbursalItem> pendingDisbursals = new()
+    {
+        new() { ContractNo = "LN-20240115-001", CustomerName = "Juan Dela Cruz", Amount = 50000, AccountNumber = "SA-001234", ContractDate = DateTime.Now.AddDays(-2) },
+        new() { ContractNo = "LN-20240114-002", CustomerName = "Maria Santos", Amount = 450000, AccountNumber = "SA-005678", ContractDate = DateTime.Now.AddDays(-3) }
+    };
+
+    private List<DisbursalItem> completedDisbursals = new()
+    {
+        new() { ContractNo = "LN-20240110-001", CustomerName = "Pedro Garcia", Amount = 100000, DisbursedDate = DateTime.Now.AddDays(-5), ProcessedBy = "Admin" }
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        {
+            Navigation.NavigateTo("/admin/dashboard");
+        }
+    }
+
+    private void ShowDisbursalModal(DisbursalItem disbursal)
+    {
+        selectedDisbursal = disbursal;
+        referenceNumber = $"REF-{DateTime.Now:yyyyMMddHHmmss}";
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        selectedDisbursal = null;
+        adminReason = "";
+        confirmDisbursal = false;
+    }
+
+    private void ProcessDisbursal()
+    {
+        if (string.IsNullOrWhiteSpace(adminReason) || !confirmDisbursal) return;
+        
+        if (selectedDisbursal != null)
+        {
+            selectedDisbursal.DisbursedDate = DateTime.Now;
+            selectedDisbursal.ProcessedBy = AuthService.FullName ?? "Admin";
+            completedDisbursals.Insert(0, selectedDisbursal);
+            pendingDisbursals.Remove(selectedDisbursal);
+            message = $"Disbursal of ₱{selectedDisbursal.Amount:N2} processed successfully!";
+            isError = false;
+        }
+        CloseModal();
+    }
+
+    private class DisbursalItem
+    {
+        public string ContractNo { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string AccountNumber { get; set; } = "";
+        public DateTime ContractDate { get; set; }
+        public DateTime? DisbursedDate { get; set; }
+        public string ProcessedBy { get; set; } = "";
+    }
+}

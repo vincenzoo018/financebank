@@ -1,0 +1,135 @@
+@* Reusable Page Header Component *@
+
+<div class="page-header @HeaderClass" style="@HeaderStyle">
+    <div class="page-header-content">
+        @if (!string.IsNullOrEmpty(Icon))
+        {
+            <div class="page-header-icon" style="@IconStyle">
+                @((MarkupString)Icon)
+            </div>
+        }
+        <div class="page-header-text">
+            <h1 class="page-header-title">@Title</h1>
+            @if (!string.IsNullOrEmpty(Subtitle))
+            {
+                <p class="page-header-subtitle">@Subtitle</p>
+            }
+        </div>
+    </div>
+    @if (Actions != null)
+    {
+        <div class="page-header-actions">
+            @Actions
+        </div>
+    }
+</div>
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-green-mid) 0%, var(--primary-green-end) 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px;
+        margin-bottom: 32px;
+        color: var(--white);
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+        pointer-events: none;
+    }
+
+    .page-header-content {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        position: relative;
+        z-index: 1;
+        flex: 1;
+    }
+
+    .page-header-icon {
+        width: 56px;
+        height: 56px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .page-header-icon svg {
+        width: 32px;
+        height: 32px;
+        stroke: white;
+        stroke-width: 2.5;
+    }
+
+    .page-header-text {
+        flex: 1;
+    }
+
+    .page-header-title {
+        font-size: 28px;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -0.5px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .page-header-subtitle {
+        margin: 6px 0 0;
+        opacity: 0.95;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .page-header-actions {
+        display: flex;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Role-specific variants */
+    .page-header-teller {
+        background: linear-gradient(135deg, var(--teller-color) 0%, #059669 100%);
+    }
+
+    .page-header-accountant {
+        background: linear-gradient(135deg, var(--accountant-color) 0%, #7c3aed 100%);
+    }
+
+    .page-header-finance {
+        background: linear-gradient(135deg, var(--finance-color) 0%, #d97706 100%);
+    }
+
+    .page-header-admin {
+        background: linear-gradient(135deg, var(--admin-color) 0%, #1d4ed8 100%);
+    }
+</style>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Subtitle { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string IconStyle { get; set; } = "";
+    [Parameter] public string HeaderClass { get; set; } = "";
+    [Parameter] public string HeaderStyle { get; set; } = "";
+    [Parameter] public RenderFragment? Actions { get; set; }
+}
