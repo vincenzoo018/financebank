@@ -2,7 +2,9 @@
 @layout FinanceManagerLayout
 @using FinanceBank.Services
 @using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
 @inject AuthService AuthService
+@inject BFASDbContext DbContext
 
 <!-- Page Header -->
 <div
@@ -116,16 +118,52 @@
     private int pendingCount = 0;
     private int approvedCount = 0;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadExpenses();
+        await LoadExpenses();
     }
 
-    private void LoadExpenses()
+    private async Task LoadExpenses()
     {
-        // TODO: Load from service
-        expenses = new List<Expense>();
-        CalculateStats();
+        try
+        {
+            // Load expenses from AccountsPayable as business expenses
+            var payables = await DbContext.AccountsPayables
+                .OrderByDescending(ap => ap.InvoiceDate)
+                .Take(50)
+                .ToListAsync();
+
+            expenses = payables.Select(ap => new Expense
+            {
+                Id = ap.PayableId,
+                Date = ap.InvoiceDate,
+                Category = DetermineCategory(ap.Description ?? ap.VendorName),
+                Description = $"{ap.VendorName} - {ap.InvoiceNumber}",
+                Amount = ap.Amount,
+                Status = ap.Status == "Paid" ? "Approved" : ap.Status == "Pending" ? "Pending" : "Approved"
+            }).ToList();
+
+            CalculateStats();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading expenses: {ex.Message}");
+            expenses = new List<Expense>();
+            CalculateStats();
+        }
+    }
+
+    private string DetermineCategory(string description)
+    {
+        var desc = description.ToLower();
+        if (desc.Contains("office") || desc.Contains("supplies")) return "Office Supplies";
+        if (desc.Contains("utility") || desc.Contains("utilities") || desc.Contains("electric") || desc.Contains("water")) return "Utilities";
+        if (desc.Contains("salary") || desc.Contains("payroll") || desc.Contains("wage")) return "Payroll";
+        if (desc.Contains("rent") || desc.Contains("lease")) return "Rent";
+        if (desc.Contains("maintenance") || desc.Contains("repair")) return "Maintenance";
+        if (desc.Contains("marketing") || desc.Contains("advertising")) return "Marketing";
+        if (desc.Contains("travel") || desc.Contains("transportation")) return "Travel";
+        return "Other";
     }
 
     private void CalculateStats()

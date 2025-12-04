@@ -42,10 +42,30 @@ namespace FinanceBank.Models
         [MaxLength(255)]
         public string? TransferPinHash { get; set; }
 
+        // Profile Picture stored as binary data (VARBINARY in SQL Server)
+        [Column(TypeName = "varbinary(max)")]
+        public byte[]? ProfilePicture { get; set; }
+
+        [MaxLength(50)]
+        public string? ProfilePictureFileName { get; set; }
+
+        [MaxLength(100)]
+        public string? ProfilePictureContentType { get; set; }
+
+        // Valid ID stored as binary data (VARBINARY in SQL Server)
+        [Column(TypeName = "varbinary(max)")]
+        public byte[]? ValidIdDocument { get; set; }
+
+        [MaxLength(50)]
+        public string? ValidIdFileName { get; set; }
+
+        [MaxLength(100)]
+        public string? ValidIdContentType { get; set; }
+
         // Navigation properties
         public virtual ICollection<LoginHistory> LoginHistories { get; set; } = new List<LoginHistory>();
         public virtual ICollection<UserSession> UserSessions { get; set; } = new List<UserSession>();
-        
+
         // Employee relationship (optional - only for employee roles)
         [ForeignKey("EmployeeId_FK")]
         public virtual Employee? Employee { get; set; }
@@ -143,6 +163,7 @@ namespace FinanceBank.Models
     public class Employee
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int EmployeeId { get; set; }
 
         [Required]

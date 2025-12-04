@@ -1,0 +1,259 @@
+@page "/admin/teller/account-verification"
+@using FinanceBank.Data
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject BFASDbContext DbContext
+@inject NavigationManager NavigationManager
+
+<div
+    style="padding: 32px; max-width: 1600px; margin: 0 auto; background: linear-gradient(to bottom, #f9fafb 0%, #ffffff 100%); min-height: 100vh;">
+
+    @* Page Header Card - Faded Green Style *@
+    <div
+        style="background: rgba(34, 197, 94, 0.1); border-radius: 16px; padding: 32px; margin-bottom: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div
+                    style="width: 56px; height: 56px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(34, 197, 94, 0.15);">
+                    <svg style="width: 28px; height: 28px; color: #15803d;" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                <div>
+                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #15803d; letter-spacing: -0.5px;">
+                        Account Verification</h1>
+                    <p style="margin: 4px 0 0 0; color: #059669; font-size: 14px; font-weight: 500;">Verify customer
+                        accounts and identities (Admin View)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Search Section *@
+    <div
+        style="background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end;">
+            <div>
+                <label
+                    style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Account
+                    Number</label>
+                <input @bind="searchAccountNumber" type="text" placeholder="Enter account number"
+                    style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: all 0.2s;"
+                    @onfocus="@(e => focusedInput = "account")" @onblur="@(e => focusedInput = "")" />
+            </div>
+            <div>
+                <label
+                    style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Customer
+                    Name</label>
+                <input @bind="searchCustomerName" type="text" placeholder="Enter customer name"
+                    style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: all 0.2s;"
+                    @onfocus="@(e => focusedInput = "name")" @onblur="@(e => focusedInput = "")" />
+            </div>
+            <button @onclick="SearchAccount"
+                style="padding: 12px 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25); transition: all 0.2s;"
+                @onmouseover="@(e => hoveredButton = "search")" @onmouseout="@(e => hoveredButton = "")">
+                Search
+            </button>
+        </div>
+    </div>
+
+    @* Results Section *@
+    @if (selectedAccount != null)
+    {
+        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            @* Account Information *@
+                <div style="border-bottom: 2px solid #f3f4f6; padding-bottom: 24px; margin-bottom: 24px;">
+                <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 16px;">Account Information</h2>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div>
+                        <label
+                            style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px;">ACCOUNT
+                            NUMBER</label>
+                        <div style="font-size: 16px; font-weight: 600; color: #111827;">@selectedAccount.AccountNumber</div>
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px;">CURRENCY</label>
+                        <div style="font-size: 16px; font-weight: 600; color: #111827;">@selectedAccount.Currency</div>
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px;">CURRENT
+                            BALANCE</label>
+                        <div style="font-size: 16px; font-weight: 600; color: #10b981;">
+                            ₱@selectedAccount.Balance.ToString("N2")</div>
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px;">STATUS</label>
+                        <span
+                            style="display: inline-block; padding: 4px 12px; background: @(selectedAccount.Status == "ACTIVE" ? "#dcfce7" : "#fee2e2"); color: @(selectedAccount.Status == "ACTIVE" ? "#166534" : "#991b1b"); border-radius: 12px; font-size: 14px; font-weight: 600;">
+                            @selectedAccount.Status
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            @* Customer Information *@
+                @if (selectedCustomer is not null)
+            {
+                <div style="border-bottom: 2px solid #f3f4f6; padding-bottom: 24px; margin-bottom: 24px;">
+                    <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 16px;">Customer Information
+                    </h2>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                        <div>
+                            <label
+                                style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px;">FULL
+                                NAME</label>
+                            <div style="font-size: 16px; font-weight: 600; color: #111827;">@(selectedCustomer.FullName ??
+                                                        "N/A")</div>
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px;">USERNAME</label>
+                            <div style="font-size: 16px; font-weight: 600; color: #111827;">@selectedCustomer.Username</div>
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px;">EMAIL</label>
+                            <div style="font-size: 16px; font-weight: 600; color: #111827;">@(selectedCustomer.Email ?? "N/A")
+                            </div>
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px;">PHONE
+                                NUMBER</label>
+                            <div style="font-size: 16px; font-weight: 600; color: #111827;">@(selectedCustomer.PhoneNumber ??
+                                                        "N/A")</div>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label
+                                style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px;">ACCOUNT
+                                CREATED</label>
+                            <div style="font-size: 16px; font-weight: 600; color: #111827;">
+                                @selectedCustomer.CreatedAt.ToString("MMMM dd, yyyy")</div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* Identity Verification *@
+            <div style="border-bottom: 2px solid #f3f4f6; padding-bottom: 24px; margin-bottom: 24px;">
+                <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 16px;">Identity Verification
+                </h2>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div>
+                        <label
+                            style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">ID
+                            Type</label>
+                        <select @bind="verificationIdType"
+                            style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                            <option value="">Select ID Type</option>
+                            <option value="National ID">National ID</option>
+                            <option value="Driver's License">Driver's License</option>
+                            <option value="Passport">Passport</option>
+                            <option value="SSS ID">SSS ID</option>
+                            <option value="UMID">UMID</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">ID
+                            Number</label>
+                        <input @bind="verificationIdNumber" type="text" placeholder="Enter ID number"
+                            style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+                    </div>
+                </div>
+            </div>
+
+            @* Verification Actions *@
+                <div>
+                <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 16px;">Verification Status</h2>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button @onclick="ApproveVerification"
+                        style="padding: 12px 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);">
+                        ✓ Verify Account
+                    </button>
+                    <button @onclick="ClearForm"
+                        style="padding: 12px 32px; background: #f3f4f6; color: #6b7280; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (searchPerformed && selectedAccount == null)
+    {
+        <div
+            style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; text-align: center;">
+            <svg style="width: 48px; height: 48px; color: #dc2626; margin: 0 auto 12px;" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p style="color: #991b1b; font-weight: 600; margin: 0;">No account found with the provided information</p>
+        </div>
+    }
+</div>
+
+@code {
+    private string searchAccountNumber = "";
+    private string searchCustomerName = "";
+    private bool searchPerformed = false;
+
+    private CustomerAccount? selectedAccount;
+    private AuthUser? selectedCustomer;
+
+    private string verificationIdType = "";
+    private string verificationIdNumber = "";
+
+    private string focusedInput = "";
+    private string hoveredButton = "";
+
+    private async Task SearchAccount()
+    {
+        searchPerformed = true;
+        selectedAccount = null;
+        selectedCustomer = null;
+
+        if (!string.IsNullOrWhiteSpace(searchAccountNumber))
+        {
+            selectedAccount = await DbContext.CustomerAccounts
+            .Include(a => a.Customer)
+            .FirstOrDefaultAsync(a => a.AccountNumber == searchAccountNumber);
+        }
+        else if (!string.IsNullOrWhiteSpace(searchCustomerName))
+        {
+            selectedAccount = await DbContext.CustomerAccounts
+            .Include(a => a.Customer)
+            .FirstOrDefaultAsync(a => a.Customer != null && a.Customer.FullName != null &&
+            a.Customer.FullName.Contains(searchCustomerName));
+        }
+
+        if (selectedAccount != null)
+        {
+            selectedCustomer = selectedAccount.Customer;
+        }
+    }
+
+    private void ApproveVerification()
+    {
+        // In a real system, this would update verification status in the database
+        // For now, just show a success message
+        ClearForm();
+    }
+
+    private void ClearForm()
+    {
+        searchAccountNumber = "";
+        searchCustomerName = "";
+        searchPerformed = false;
+        selectedAccount = null;
+        selectedCustomer = null;
+        verificationIdType = "";
+        verificationIdNumber = "";
+    }
+}

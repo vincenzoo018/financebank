@@ -60,6 +60,46 @@ namespace FinanceBank.Services
             public const string Audit = "Audit";
         }
 
+        /// <summary>
+        /// Verify a user's password WITHOUT logging them in.
+        /// Used for customer verification during teller transactions.
+        /// </summary>
+        public async Task<(bool success, string message)> VerifyPasswordOnlyAsync(string username, string password)
+        {
+            if (_contextFactory == null)
+            {
+                return (false, "Database not available");
+            }
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+
+                // Find user by username
+                var user = await context.Users
+                    .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
+
+                if (user == null)
+                {
+                    return (false, "User not found");
+                }
+
+                // Verify password using BCrypt - DO NOT LOG IN
+                bool isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+                if (!isPasswordValid)
+                {
+                    return (false, "Invalid password");
+                }
+
+                // Password is valid - but do NOT change CurrentUser or session
+                return (true, "Password verified");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Verification error: {ex.Message}");
+            }
+        }
+
         // Authenticate user with database
         public async Task<(bool success, string message)> AuthenticateAsync(string username, string password, string? ipAddress = null, string? userAgent = null)
         {

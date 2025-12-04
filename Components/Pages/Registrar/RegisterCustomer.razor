@@ -82,10 +82,36 @@
                 </div>
             </div>
 
+            <!-- Profile Picture Upload -->
+            <div style="margin-bottom: 32px;">
+                <h4 style="font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 28px; height: 28px; background: #dbeafe; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #1e40af; font-size: 14px;">2</span>
+                    Profile Picture
+                </h4>
+                <div style="background: #f9fafb; border: 2px dashed #e5e7eb; border-radius: 12px; padding: 32px; text-align: center;">
+                    <p style="margin: 0 0 16px; font-size: 14px; font-weight: 600; color: #1f2937;">Upload Profile Picture</p>
+                    <InputFile OnChange="HandleProfilePictureUpload" accept="image/*" style="display: none;" id="profilePictureInput" />
+                    <label for="profilePictureInput" style="background: linear-gradient(135deg, #2563eb, #1e40af); color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-block;">
+                        Choose Picture
+                    </label>
+                    @if (!string.IsNullOrEmpty(profilePicturePreview))
+                    {
+                        <div style="margin-top: 20px;">
+                            <p style="margin: 0 0 12px; font-size: 13px; color: #059669; font-weight: 600;">Profile Preview</p>
+                            <img src="@profilePicturePreview" style="max-width: 200px; max-height: 200px; border-radius: 12px; border: 3px solid #2563eb; object-fit: cover;" alt="Profile Preview" />
+                            <button type="button" @onclick="RemoveProfilePicture" style="display: block; margin: 12px auto 0; background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer;">
+                                Remove
+                            </button>
+                        </div>
+                    }
+                    <p style="margin: 16px 0 0; font-size: 12px; color: #6b7280;">Max file size: 2MB (JPG, PNG, GIF)</p>
+                </div>
+            </div>
+
             <!-- Valid ID Upload -->
             <div style="margin-bottom: 32px;">
                 <h4 style="font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-                    <span style="width: 28px; height: 28px; background: #d1fae5; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #047857; font-size: 14px;">2</span>
+                    <span style="width: 28px; height: 28px; background: #d1fae5; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #047857; font-size: 14px;">3</span>
                     Valid ID Upload
                 </h4>
                 <div style="background: #f9fafb; border: 2px dashed #e5e7eb; border-radius: 12px; padding: 32px; text-align: center;">
@@ -106,7 +132,7 @@
             <!-- Account Credentials -->
             <div style="margin-bottom: 32px;">
                 <h4 style="font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-                    <span style="width: 28px; height: 28px; background: #d1fae5; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #047857; font-size: 14px;">3</span>
+                    <span style="width: 28px; height: 28px; background: #d1fae5; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #047857; font-size: 14px;">4</span>
                     Account Credentials
                 </h4>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -143,7 +169,7 @@
             <!-- Transfer PIN -->
             <div style="margin-bottom: 32px;">
                 <h4 style="font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-                    <span style="width: 28px; height: 28px; background: #d1fae5; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #047857; font-size: 14px;">4</span>
+                    <span style="width: 28px; height: 28px; background: #d1fae5; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #047857; font-size: 14px;">5</span>
                     Transfer PIN
                 </h4>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -250,6 +276,13 @@
     private string dateOfBirthString = "";
     private string gender = "";
     private string uploadedIdFileName = "";
+    private byte[]? validIdBytes;
+    private string validIdContentType = "";
+    
+    // Profile Picture
+    private string profilePicturePreview = "";
+    private byte[]? profilePictureData;
+    private string profilePictureContentType = "";
     
     // Account Credentials
     private string username = "";
@@ -358,7 +391,13 @@
                 Email = email,
                 PhoneNumber = phoneNumber,
                 IsActive = true,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.Now,
+                ValidIdDocument = validIdBytes,
+                ValidIdFileName = uploadedIdFileName,
+                ValidIdContentType = validIdContentType,
+                ProfilePicture = profilePictureData,
+                ProfilePictureFileName = string.IsNullOrEmpty(profilePicturePreview) ? null : "profile.jpg",
+                ProfilePictureContentType = profilePictureContentType
             };
             context.Users.Add(newUser);
             await context.SaveChangesAsync();
@@ -456,8 +495,14 @@
                 return;
             }
 
+            // Read file into byte array
+            using var memoryStream = new MemoryStream();
+            await file.OpenReadStream(maxFileSize).CopyToAsync(memoryStream);
+            validIdBytes = memoryStream.ToArray();
+            
             // File is valid
             uploadedIdFileName = file.Name;
+            validIdContentType = file.ContentType;
             errorMessage = "";
             
             if (toastComponent != null)
@@ -472,5 +517,71 @@
             errorMessage = $"Error uploading file: {ex.Message}";
             StateHasChanged();
         }
+    }
+
+    private async Task HandleProfilePictureUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            errorMessage = "";
+            
+            if (e.FileCount == 0) return;
+
+            var file = e.GetMultipleFiles(1).FirstOrDefault();
+            if (file == null) return;
+
+            // Validate file size (2MB max for profile pictures)
+            const long maxFileSize = 2 * 1024 * 1024;
+            if (file.Size > maxFileSize)
+            {
+                errorMessage = "Profile picture size must not exceed 2MB";
+                StateHasChanged();
+                return;
+            }
+
+            // Validate file extension
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var fileName = file.Name.ToLower();
+            var hasValidExtension = allowedExtensions.Any(ext => fileName.EndsWith(ext));
+            
+            if (!hasValidExtension)
+            {
+                errorMessage = "Only JPG, PNG, and GIF image files are allowed for profile pictures";
+                StateHasChanged();
+                return;
+            }
+
+            // Read file into byte array and create preview
+            using var memoryStream = new MemoryStream();
+            await file.OpenReadStream(maxFileSize).CopyToAsync(memoryStream);
+            profilePictureData = memoryStream.ToArray();
+            
+            // Create base64 preview
+            var base64 = Convert.ToBase64String(profilePictureData);
+            profilePicturePreview = $"data:{file.ContentType};base64,{base64}";
+            profilePictureContentType = file.ContentType;
+            
+            errorMessage = "";
+            
+            if (toastComponent != null)
+            {
+                await toastComponent.Show("Profile Picture Uploaded", $"File: {file.Name}");
+            }
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error uploading profile picture: {ex.Message}";
+            StateHasChanged();
+        }
+    }
+
+    private void RemoveProfilePicture()
+    {
+        profilePicturePreview = "";
+        profilePictureData = null;
+        profilePictureContentType = "";
+        StateHasChanged();
     }
 }

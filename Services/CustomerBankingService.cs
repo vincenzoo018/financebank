@@ -316,6 +316,8 @@ namespace FinanceBank.Services
             decimal amount,
             string? purpose = null)
         {
+            const decimal TRANSFER_FEE = 15.00m;
+            
             if (amount <= 0)
                 return (false, "Transfer amount must be greater than zero.");
 
@@ -336,8 +338,11 @@ namespace FinanceBank.Services
                     if (senderAccount == null)
                         return (false, "Sender account not found.");
 
-                    if (senderAccount.Balance < amount)
-                        return (false, "Insufficient balance for transfer.");
+                    // Total deduction includes transfer fee
+                    decimal totalDeduction = amount + TRANSFER_FEE;
+                    
+                    if (senderAccount.Balance < totalDeduction)
+                        return (false, $"Insufficient balance. You need ₱{totalDeduction:N2} (₱{amount:N2} + ₱{TRANSFER_FEE:N2} fee) but only have ₱{senderAccount.Balance:N2}.");
 
                     // Get recipient account
                     var recipientAccount = await _context.CustomerAccounts
@@ -346,29 +351,29 @@ namespace FinanceBank.Services
                     if (recipientAccount == null)
                         return (false, "Recipient account not found.");
 
-                    // Deduct from sender
-                    senderAccount.Balance -= amount;
-                    senderAccount.AvailableBalance -= amount;
+                    // Deduct from sender (amount + fee)
+                    senderAccount.Balance -= totalDeduction;
+                    senderAccount.AvailableBalance -= totalDeduction;
 
-                    // Add to recipient
+                    // Add to recipient (only the transfer amount, not the fee)
                     recipientAccount.Balance += amount;
                     recipientAccount.AvailableBalance += amount;
 
                     // Get employee ID for current user
                     int? employeeId = await GetEmployeeIdForCurrentUserAsync();
 
-                    // Create transaction record for sender
+                    // Create transaction record for sender (includes fee)
                     var senderTransaction = new CustomerTransaction
                     {
                         AccountId = senderAccount.AccountId,
                         TransactionNumber = GenerateReference("TRF"),
                         TransactionType = "Transfer",
                         Amount = amount,
-                        Fee = 0,
+                        Fee = TRANSFER_FEE,
                         Status = "Completed",
                         Description = string.IsNullOrWhiteSpace(purpose) 
-                            ? $"Transfer to {recipientAccount.Customer?.FullName}" 
-                            : $"Transfer to {recipientAccount.Customer?.FullName} - {purpose}",
+                            ? $"Transfer to {recipientAccount.Customer?.FullName} (Fee: ₱{TRANSFER_FEE:N2})" 
+                            : $"Transfer to {recipientAccount.Customer?.FullName} - {purpose} (Fee: ₱{TRANSFER_FEE:N2})",
                         Reference = GenerateReference("TRFREF"),
                         ToAccountName = recipientAccount.Customer?.FullName,
                         CreatedAt = DateTime.Now,

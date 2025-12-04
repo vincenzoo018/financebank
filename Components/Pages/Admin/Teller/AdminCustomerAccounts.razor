@@ -1,170 +1,277 @@
 @page "/admin/teller/customer-accounts"
 @layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@using FinanceBank.Data
 @inject AuthService AuthService
+@inject CustomerAccountService CustomerAccountService
+@inject CustomerTransactionService CustomerTransactionService
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
 @inject NavigationManager Navigation
 
-<div class="admin-page">
-    <div class="page-header">
-        <h1 style="color: #10b981;">
-            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-            </svg>
-            Customer Accounts (Admin)
-        </h1>
-        <p class="page-subtitle">View and manage customer accounts with admin privileges</p>
-    </div>
-
-    <div class="admin-card">
-        <div class="card-header">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>Customer Account List</h3>
-                <div class="search-box">
-                    <input type="text" @bind="searchTerm" @bind:event="oninput" class="form-control" placeholder="Search by name or account..." />
-                </div>
-            </div>
-        </div>
-        <div class="card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Account Number</th>
-                        <th>Customer Name</th>
-                        <th>Account Type</th>
-                        <th>Balance</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var account in FilteredAccounts)
-                    {
-                        <tr>
-                            <td><strong>@account.AccountNumber</strong></td>
-                            <td>@account.CustomerName</td>
-                            <td>@account.AccountType</td>
-                            <td style="color: #10b981; font-weight: 600;">₱@account.Balance.ToString("N2")</td>
-                            <td><span class="badge @GetStatusClass(account.Status)">@account.Status</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-info" @onclick="() => ViewAccountDetails(account.AccountNumber)">View</button>
-                                <button class="btn btn-sm btn-warning" @onclick="() => ShowEditModal(account)">Edit</button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+<!-- Header with Gradient -->
+<div style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <div>
+            <h1 style="font-size: 20px; font-weight: 700; margin: 0;">Customer Accounts (Admin)</h1>
+            <p style="margin: 4px 0 0; opacity: 0.9; font-size: 13px;">View and manage customer accounts - SuperAdmin Access</p>
         </div>
     </div>
 </div>
 
-@if (showEditModal)
+<!-- Admin Notice -->
+<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 24px;">⚠️</span>
+        <div>
+            <p style="margin: 0; font-weight: 600; color: #92400e;">Administrative Access</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #a16207;">You are viewing all customer accounts as SuperAdmin</p>
+        </div>
+    </div>
+</div>
+
+<!-- Search & Filter -->
+<div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+    <div style="flex: 1 1 250px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Search Account</label>
+        <input type="text" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" @bind="searchQuery" @oninput="FilterAccounts" placeholder="Account number or customer name..." />
+    </div>
+    <div style="flex: 1 1 200px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Account Status</label>
+        <select style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" @bind="selectedStatus">
+            <option value="">All</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+        </select>
+    </div>
+    <div style="flex: 0 0 auto; display:flex; gap:8px;">
+        <button style="background:#f3f4f6; color:#111827; padding:10px 20px; border-radius:8px; font-size:14px; font-weight: 600; border: none; cursor: pointer;" @onclick="ReloadAccounts">Refresh</button>
+    </div>
+</div>
+
+<!-- Accounts Table -->
+<div style="background:white; border-radius:16px; border:1px solid #e5e7eb; overflow:hidden;">
+    <table style="width:100%; border-collapse:collapse;">
+        <thead>
+            <tr style="background:#f9fafb; border-bottom:2px solid #e5e7eb;">
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280; font-weight: 700;">ACCOUNT NUMBER</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280; font-weight: 700;">CUSTOMER NAME</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280; font-weight: 700;">BALANCE</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280; font-weight: 700;">ACTIVE</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280; font-weight: 700;">CREATED</th>
+                <th style="padding:12px; text-align:center; font-size:12px; color:#6b7280; font-weight: 700;">ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (filteredAccounts.Any())
+            {
+                @foreach (var account in filteredAccounts)
+                {
+                    <tr style="border-bottom:1px solid #e5e7eb;">
+                        <td style="padding:12px; font-size:13px; color:#111827; font-weight:600;">@account.AccountNumber</td>
+                        <td style="padding:12px; font-size:13px; color:#4b5563;">@account.Customer?.FullName</td>
+                        <td style="padding:12px; font-size:13px; color:#111827; font-weight:600;">₱@account.Balance.ToString("N2")</td>
+                        <td style="padding:12px;">
+                            <span style="display:inline-flex; align-items:center; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:@(account.IsActive ? "#d1fae5" : "#fee2e2"); color:@(account.IsActive ? "#065f46" : "#b91c1c");">
+                                @(account.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                        <td style="padding:12px; font-size:13px; color:#6b7280;">@account.CreatedAt.ToString("yyyy-MM-dd")</td>
+                        <td style="padding:12px; text-align:center;">
+                            <button style="background:#1f2937; color:white; padding:6px 12px; font-size:12px; border-radius:6px; border: none; cursor: pointer; font-weight: 600;" @onclick="() => ViewAccountDetails(account)">View</button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" style="padding:24px; text-align:center; font-size:14px; color:#6b7280;">No accounts found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Account Details Modal -->
+@if (showDetailsModal && selectedAccount != null)
 {
-    <div class="modal-overlay" @onclick="CloseModal">
-        <div class="modal-content" @onclick:stopPropagation>
-            <div class="modal-header">
-                <h4>Edit Account - @selectedAccount?.AccountNumber</h4>
-                <button class="close-btn" @onclick="CloseModal">&times;</button>
+    <div @onclick="CloseDetailsModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;">
+        <div @onclick:stopPropagation style="background:white; border-radius:16px; max-width:700px; width:100%; max-height:80vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <div style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="font-size:20px; font-weight:700; color:#111827; margin:0;">Account Details</h2>
+                <button @onclick="CloseDetailsModal" style="background:none; border:none; font-size:22px; color:#6b7280; cursor:pointer;">×</button>
             </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Admin Reason <span class="required">*</span></label>
-                    <textarea @bind="adminReason" class="form-control" rows="2" 
-                        placeholder="Enter reason for this admin action..."></textarea>
+            <div style="padding:20px 24px;">
+                <!-- Account Info -->
+                <div style="margin-bottom:24px;">
+                    <h3 style="font-size:16px; font-weight:600; color:#111827; margin-bottom:12px;">Account Information</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                        <div>
+                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Account Number</div>
+                            <div style="font-size:14px; color:#111827;">@selectedAccount.AccountNumber</div>
+                        </div>
+                        <div>
+                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Status</div>
+                            <div style="font-size:14px; color:#111827;">@(selectedAccount.IsActive ? "Active" : "Inactive")</div>
+                        </div>
+                        <div>
+                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Created</div>
+                            <div style="font-size:14px; color:#111827;">@selectedAccount.CreatedAt.ToString("yyyy-MM-dd")</div>
+                        </div>
+                    </div>
                 </div>
-                <hr />
-                <div class="form-group">
-                    <label>Account Status</label>
-                    <select @bind="editStatus" class="form-control">
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="Frozen">Frozen</option>
-                    </select>
+
+                <!-- Customer Info -->
+                <div style="margin-bottom:24px;">
+                    <h3 style="font-size:16px; font-weight:600; color:#111827; margin-bottom:12px;">Customer Information</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                        <div>
+                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Full Name</div>
+                            <div style="font-size:14px; color:#111827;">@selectedAccount.Customer?.FullName</div>
+                        </div>
+                        <div>
+                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Email</div>
+                            <div style="font-size:14px; color:#111827;">@selectedAccount.Customer?.Email</div>
+                        </div>
+                        <div>
+                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Phone</div>
+                            <div style="font-size:14px; color:#111827;">@selectedAccount.Customer?.PhoneNumber</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Balance Info -->
+                <div style="margin-bottom:24px;">
+                    <h3 style="font-size:16px; font-weight:600; color:#111827; margin-bottom:12px;">Balance Information</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                        <div>
+                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Current Balance</div>
+                            <div style="font-size:18px; font-weight:700; color:#059669;">₱@selectedAccount.Balance.ToString("N2")</div>
+                        </div>
+                        <div>
+                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Available Balance</div>
+                            <div style="font-size:18px; font-weight:700; color:#0891b2;">₱@selectedAccount.AvailableBalance.ToString("N2")</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div>
+                    <h3 style="font-size:16px; font-weight:600; color:#111827; margin-bottom:12px;">Recent Transactions</h3>
+                    @if (recentTransactions.Any())
+                    {
+                        <div style="border:1px solid #e5e7eb; border-radius:8px; overflow:hidden;">
+                            <table style="width:100%; border-collapse:collapse;">
+                                <thead>
+                                    <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+                                        <th style="padding:8px 12px; text-align:left; font-size:11px; color:#6b7280;">TYPE</th>
+                                        <th style="padding:8px 12px; text-align:left; font-size:11px; color:#6b7280;">AMOUNT</th>
+                                        <th style="padding:8px 12px; text-align:left; font-size:11px; color:#6b7280;">DATE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var txn in recentTransactions.Take(5))
+                                    {
+                                        <tr style="border-bottom:1px solid #e5e7eb;">
+                                            <td style="padding:8px 12px; font-size:12px; color:#111827;">@txn.TransactionType</td>
+                                            <td style="padding:8px 12px; font-size:12px; color:#111827; font-weight:600;">₱@txn.Amount.ToString("N2")</td>
+                                            <td style="padding:8px 12px; font-size:12px; color:#6b7280;">@txn.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="padding:12px; text-align:center; font-size:12px; color:#6b7280;">No transactions yet.</div>
+                    }
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
-                <button class="btn btn-primary" @onclick="SaveAccountChanges">Save Changes</button>
+            <div style="padding:16px 24px; border-top:1px solid #e5e7eb; display:flex; justify-content:flex-end;">
+                <button style="background:#f3f4f6; color:#111827; padding:8px 16px; border-radius:8px; font-size:14px; border: none; cursor: pointer; font-weight: 600;" @onclick="CloseDetailsModal">Close</button>
             </div>
         </div>
     </div>
 }
 
 @code {
-    private string searchTerm = "";
-    private bool showEditModal = false;
-    private AccountInfo? selectedAccount;
-    private string adminReason = "";
-    private string editStatus = "Active";
+    private List<CustomerAccount> accounts = new();
+    private string searchQuery = "";
+    private string selectedStatus = "";
+    private bool showDetailsModal;
+    private CustomerAccount? selectedAccount;
+    private List<CustomerTransaction> recentTransactions = new();
 
-    private List<AccountInfo> accounts = new()
-    {
-        new() { AccountNumber = "SA-001234", CustomerName = "Juan Dela Cruz", AccountType = "Savings", Balance = 25000, Status = "Active" },
-        new() { AccountNumber = "CA-005678", CustomerName = "Maria Santos", AccountType = "Checking", Balance = 15000, Status = "Active" },
-        new() { AccountNumber = "SA-009876", CustomerName = "Pedro Garcia", AccountType = "Savings", Balance = 8500, Status = "Inactive" },
-        new() { AccountNumber = "CA-001111", CustomerName = "Ana Reyes", AccountType = "Checking", Balance = 42000, Status = "Active" }
-    };
-
-    private IEnumerable<AccountInfo> FilteredAccounts => string.IsNullOrWhiteSpace(searchTerm) 
-        ? accounts 
-        : accounts.Where(a => 
-            a.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
-            a.AccountNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
         {
             Navigation.NavigateTo("/admin/dashboard");
-        }
-    }
-
-    private void ViewAccountDetails(string accountNumber)
-    {
-        Navigation.NavigateTo($"/admin/teller/account-inquiry?account={accountNumber}");
-    }
-
-    private void ShowEditModal(AccountInfo account)
-    {
-        selectedAccount = account;
-        editStatus = account.Status;
-        showEditModal = true;
-    }
-
-    private void CloseModal()
-    {
-        showEditModal = false;
-        selectedAccount = null;
-        adminReason = "";
-    }
-
-    private void SaveAccountChanges()
-    {
-        if (string.IsNullOrWhiteSpace(adminReason))
-        {
             return;
         }
         
-        if (selectedAccount != null)
-        {
-            selectedAccount.Status = editStatus;
-        }
-        CloseModal();
+        await ReloadAccounts();
     }
 
-    private string GetStatusClass(string status) => status switch
+    private async Task ReloadAccounts()
     {
-        "Active" => "badge-success",
-        "Inactive" => "badge-secondary",
-        "Frozen" => "badge-danger",
-        _ => "badge-secondary"
-    };
+        try
+        {
+            // Load all accounts (both active and inactive) for admin view
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            accounts = await context.CustomerAccounts
+                .Include(ca => ca.Customer)
+                .OrderByDescending(ca => ca.CreatedAt)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading accounts: {ex.Message}");
+            accounts = new List<CustomerAccount>();
+        }
+    }
 
-    private class AccountInfo
+    private void FilterAccounts(ChangeEventArgs e)
     {
-        public string AccountNumber { get; set; } = "";
-        public string CustomerName { get; set; } = "";
-        public string AccountType { get; set; } = "";
-        public decimal Balance { get; set; }
-        public string Status { get; set; } = "";
+        searchQuery = e.Value?.ToString() ?? "";
+    }
+
+    private IEnumerable<CustomerAccount> filteredAccounts => accounts
+        .Where(a => string.IsNullOrEmpty(searchQuery) || 
+                   a.AccountNumber.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                   a.Customer?.FullName?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true)
+        .Where(a => string.IsNullOrEmpty(selectedStatus) || 
+                   (selectedStatus == "Active" && a.IsActive) || 
+                   (selectedStatus == "Inactive" && !a.IsActive));
+
+    private async Task ViewAccountDetails(CustomerAccount account)
+    {
+        selectedAccount = account;
+        
+        // Load recent transactions for this account
+        try
+        {
+            recentTransactions = await CustomerTransactionService.GetByAccountIdAsync(account.AccountId);
+        }
+        catch
+        {
+            recentTransactions = new List<CustomerTransaction>();
+        }
+        
+        showDetailsModal = true;
+    }
+
+    private void CloseDetailsModal()
+    {
+        showDetailsModal = false;
+        selectedAccount = null;
+        recentTransactions = new List<CustomerTransaction>();
     }
 }

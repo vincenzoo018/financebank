@@ -1,6 +1,9 @@
 @page "/admin/finance-mgr/accounts-receivable"
 @layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
 @inject AuthService AuthService
+@inject AccountsReceivableService AccountsReceivableService
 @inject NavigationManager Navigation
 
 <div class="admin-page finance-mgr-page">
@@ -15,14 +18,17 @@
     <!-- Admin Action Reason -->
     <div class="admin-action-card">
         <div class="alert alert-warning">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
-                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                style="width: 24px; height: 24px;">
+                <path
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                </path>
             </svg>
             <span>You are accessing Finance Manager functions as SuperAdmin. All actions are logged.</span>
         </div>
         <div class="form-group">
             <label for="adminReason">Reason for Admin Action (Required)</label>
-            <textarea id="adminReason" @bind="adminActionReason" class="form-control" 
+            <textarea id="adminReason" @bind="adminActionReason" class="form-control"
                 placeholder="Document why you are performing this action as admin..." rows="2"></textarea>
         </div>
     </div>
@@ -51,7 +57,8 @@
             <h3>Receivable Transactions</h3>
             <div class="header-actions">
                 <button class="btn btn-outline" @onclick="ExportReport">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        style="width: 16px; height: 16px;">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -59,7 +66,8 @@
                     Export
                 </button>
                 <button class="btn btn-primary" @onclick="RecordReceivable">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        style="width: 16px; height: 16px;">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
@@ -70,7 +78,8 @@
         <div class="card-body">
             <div class="table-filters">
                 <div class="filter-group">
-                    <input type="text" class="form-control" placeholder="Search customer or invoice..." @bind="searchQuery" />
+                    <input type="text" class="form-control" placeholder="Search customer or invoice..."
+                        @bind="searchQuery" />
                 </div>
                 <div class="filter-group">
                     <select class="form-select" @bind="statusFilter">
@@ -94,11 +103,11 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Reference #</th>
+                        <th>Invoice #</th>
                         <th>Customer</th>
-                        <th>Type</th>
                         <th>Amount</th>
                         <th>Due Date</th>
+                        <th>Status</th>
                         <th>Days Outstanding</th>
                         <th>Actions</th>
                     </tr>
@@ -106,33 +115,43 @@
                 <tbody>
                     @foreach (var item in receivables)
                     {
+                        var daysOutstanding = (DateTime.Today - item.DueDate).Days;
                         <tr>
-                            <td><strong>@item.ReferenceNumber</strong></td>
+                            <td><strong>@item.InvoiceNumber</strong></td>
                             <td>@item.CustomerName</td>
-                            <td>@item.Type</td>
                             <td>₱@item.Amount.ToString("N2")</td>
                             <td>@item.DueDate.ToString("MMM dd, yyyy")</td>
                             <td>
-                                <span class="@GetDaysOutstandingClass(item.DaysOutstanding)">
-                                    @(item.DaysOutstanding > 0 ? $"{item.DaysOutstanding} days" : "Current")
+                                <span class="badge-@GetStatusClass(item.Status)">@item.Status</span>
+                            </td>
+                            <td>
+                                <span class="@GetDaysOutstandingClass(daysOutstanding)">
+                                    @(daysOutstanding > 0 ? $"{daysOutstanding} days" : "Current")
                                 </span>
                             </td>
                             <td>
                                 <div class="action-buttons">
                                     <button class="btn btn-sm btn-outline" @onclick="() => ViewDetails(item)" title="View">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            style="width: 14px; height: 14px;">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                             <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
                                     </button>
-                                    <button class="btn btn-sm btn-success" @onclick="() => RecordPayment(item)" title="Record Payment">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                                    <button class="btn btn-sm btn-success" @onclick="() => RecordPayment(item)"
+                                        title="Record Payment">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            style="width: 14px; height: 14px;">
                                             <polyline points="20 6 9 17 4 12"></polyline>
                                         </svg>
                                     </button>
-                                    <button class="btn btn-sm btn-warning" @onclick="() => SendReminder(item)" title="Send Reminder">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
-                                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <button class="btn btn-sm btn-warning" @onclick="() => SendReminder(item)"
+                                        title="Send Reminder">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            style="width: 14px; height: 14px;">
+                                            <path
+                                                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                            </path>
                                             <polyline points="22,6 12,13 2,6"></polyline>
                                         </svg>
                                     </button>
@@ -174,63 +193,93 @@
     .finance-mgr-page .role-badge.finance {
         background: linear-gradient(135deg, #f59e0b, #d97706);
     }
+
     .stats-row {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 20px;
     }
+
     .stat-card {
         background: white;
         border-radius: 12px;
         padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
+
     .stat-label {
         font-size: 0.85em;
         color: #6b7280;
         margin-bottom: 8px;
     }
+
     .stat-value {
         font-size: 1.5em;
         font-weight: 700;
         color: #1f2937;
     }
-    .stat-value.success { color: #10b981; }
-    .stat-value.warning { color: #f59e0b; }
-    .stat-value.danger { color: #ef4444; }
+
+    .stat-value.success {
+        color: #10b981;
+    }
+
+    .stat-value.warning {
+        color: #f59e0b;
+    }
+
+    .stat-value.danger {
+        color: #ef4444;
+    }
+
     .header-actions {
         display: flex;
         gap: 12px;
     }
+
     .table-filters {
         display: flex;
         gap: 16px;
         margin-bottom: 20px;
     }
+
     .filter-group {
         flex: 1;
         max-width: 250px;
     }
+
     .action-buttons {
         display: flex;
         gap: 8px;
     }
+
     .btn-sm {
         padding: 4px 8px;
         font-size: 0.85em;
     }
-    .days-current { color: #10b981; }
-    .days-warning { color: #f59e0b; }
-    .days-danger { color: #ef4444; }
+
+    .days-current {
+        color: #10b981;
+    }
+
+    .days-warning {
+        color: #f59e0b;
+    }
+
+    .days-danger {
+        color: #ef4444;
+    }
+
     .aging-chart {
         padding: 20px 0;
     }
+
     .aging-bar {
         display: flex;
         height: 40px;
         border-radius: 8px;
         overflow: hidden;
     }
+
     .aging-segment {
         display: flex;
         align-items: center;
@@ -239,10 +288,22 @@
         font-size: 0.85em;
         font-weight: 500;
     }
-    .aging-segment.current { background: #10b981; }
-    .aging-segment.days30 { background: #f59e0b; }
-    .aging-segment.days60 { background: #f97316; }
-    .aging-segment.days90 { background: #ef4444; }
+
+    .aging-segment.current {
+        background: #10b981;
+    }
+
+    .aging-segment.days30 {
+        background: #f59e0b;
+    }
+
+    .aging-segment.days60 {
+        background: #f97316;
+    }
+
+    .aging-segment.days90 {
+        background: #ef4444;
+    }
 </style>
 
 @code {
@@ -250,20 +311,49 @@
     private string searchQuery = "";
     private string statusFilter = "";
     private string typeFilter = "";
-    
-    private decimal totalReceivables = 2850000;
-    private decimal collectedThisMonth = 1250000;
-    private decimal outstanding30Days = 450000;
-    private decimal outstanding90Days = 125000;
+    private bool isLoading = true;
 
-    private List<ReceivableItem> receivables = new()
+    private decimal totalReceivables = 0;
+    private decimal collectedThisMonth = 0;
+    private decimal outstanding30Days = 0;
+    private decimal outstanding90Days = 0;
+
+    private List<FinanceBank.Models.AccountsReceivable> receivables = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        new() { ReferenceNumber = "AR-2024-001", CustomerName = "Juan Dela Cruz", Type = "Loan Payment", Amount = 15000, DueDate = DateTime.Now.AddDays(-5), DaysOutstanding = 5 },
-        new() { ReferenceNumber = "AR-2024-002", CustomerName = "Maria Santos", Type = "Interest", Amount = 2500, DueDate = DateTime.Now.AddDays(3), DaysOutstanding = 0 },
-        new() { ReferenceNumber = "AR-2024-003", CustomerName = "Pedro Reyes", Type = "Loan Payment", Amount = 25000, DueDate = DateTime.Now.AddDays(-35), DaysOutstanding = 35 },
-        new() { ReferenceNumber = "AR-2024-004", CustomerName = "Ana Garcia", Type = "Service Fee", Amount = 500, DueDate = DateTime.Now.AddDays(-95), DaysOutstanding = 95 },
-        new() { ReferenceNumber = "AR-2024-005", CustomerName = "Jose Rizal", Type = "Loan Payment", Amount = 18000, DueDate = DateTime.Now.AddDays(7), DaysOutstanding = 0 }
-    };
+        await LoadReceivables();
+    }
+
+    private async Task LoadReceivables()
+    {
+        isLoading = true;
+        try
+        {
+            receivables = await AccountsReceivableService.GetAllAsync();
+            CalculateStats();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading receivables: {ex.Message}");
+            receivables = new List<FinanceBank.Models.AccountsReceivable>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void CalculateStats()
+    {
+        var today = DateTime.Today;
+        var monthStart = new DateTime(today.Year, today.Month, 1);
+        totalReceivables = receivables.Sum(r => r.Amount);
+        collectedThisMonth = receivables.Where(r => r.Status == "Paid" && r.CreatedAt >= monthStart).Sum(r => r.ReceivedAmount);
+        outstanding30Days = receivables.Where(r => (today - r.DueDate).Days > 0 && (today - r.DueDate).Days <= 30).Sum(r =>
+        r.OutstandingAmount);
+        outstanding90Days = receivables.Where(r => (today - r.DueDate).Days > 90).Sum(r => r.OutstandingAmount);
+    }
 
     protected override void OnInitialized()
     {
@@ -282,11 +372,29 @@
 
     private void ExportReport() { }
     private void RecordReceivable() { }
-    private void ViewDetails(ReceivableItem item) { }
-    private void RecordPayment(ReceivableItem item) { }
-    private void SendReminder(ReceivableItem item) { }
+    private void ViewDetails(FinanceBank.Models.AccountsReceivable item) { }
+    private async Task RecordPayment(FinanceBank.Models.AccountsReceivable item)
+    {
+        if (!string.IsNullOrWhiteSpace(adminActionReason))
+        {
+            item.Status = "Paid";
+            await LoadReceivables();
+        }
+    }
+    private void SendReminder(FinanceBank.Models.AccountsReceivable item) { }
 
-    private class ReceivableItem
+    private string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "Paid" => "success",
+            "Pending" => "warning",
+            "Overdue" => "danger",
+            _ => "secondary"
+        };
+    }
+
+    private class ReceivableItemOld
     {
         public string ReferenceNumber { get; set; } = "";
         public string CustomerName { get; set; } = "";

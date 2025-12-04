@@ -9,21 +9,21 @@
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Header with Filter -->
-    <div style="background: linear-gradient(135deg, #3b82f6, #1e40af); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(30, 64, 175, 0.15)); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: #1e40af;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
             <div>
                 <h1 style="font-size: 24px; font-weight: 700; margin: 0;">Finance Manager Dashboard</h1>
-                <p style="margin: 8px 0 0; font-size: 14px; opacity: 0.9;">Real-time financial operations & transaction analytics</p>
+                <p style="margin: 8px 0 0; font-size: 14px; opacity: 0.85;">Real-time financial operations & transaction analytics</p>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
                 <button @onclick='() => SetPeriod("day")'
-                    style="padding: 8px 16px; background: @(selectedPeriod == "day" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "day" ? "#1e40af" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Day</button>
+                    style="padding: 8px 16px; background: @(selectedPeriod == "day" ? "white" : "rgba(255,255,255,0.5)"); color: @(selectedPeriod == "day" ? "#1e40af" : "#1e40af"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Day</button>
                 <button @onclick='() => SetPeriod("week")'
-                    style="padding: 8px 16px; background: @(selectedPeriod == "week" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "week" ? "#1e40af" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Week</button>
+                    style="padding: 8px 16px; background: @(selectedPeriod == "week" ? "white" : "rgba(255,255,255,0.5)"); color: @(selectedPeriod == "week" ? "#1e40af" : "#1e40af"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Week</button>
                 <button @onclick='() => SetPeriod("month")'
-                    style="padding: 8px 16px; background: @(selectedPeriod == "month" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "month" ? "#1e40af" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Month</button>
+                    style="padding: 8px 16px; background: @(selectedPeriod == "month" ? "white" : "rgba(255,255,255,0.5)"); color: @(selectedPeriod == "month" ? "#1e40af" : "#1e40af"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Month</button>
                 <button @onclick="OpenReportModal" 
-                    style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.2); border: 2px solid white; padding: 8px 16px; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; margin-left: 8px;">
+                    style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.5); border: 2px solid rgba(59, 130, 246, 0.5); padding: 8px 16px; border-radius: 8px; color: #1e40af; font-weight: 600; cursor: pointer; margin-left: 8px;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7 10 12 15 17 10"></polyline>

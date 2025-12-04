@@ -79,6 +79,7 @@ namespace FinanceBank
             builder.Services.AddScoped<GeneralLedgerService>();
             builder.Services.AddScoped<TrialBalanceService>();
             builder.Services.AddScoped<FinancialStatementService>();
+            builder.Services.AddScoped<FinancialReportingService>();  // New enhanced service
 
             // Register other services
             builder.Services.AddScoped<BudgetManagementService>();

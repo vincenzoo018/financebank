@@ -858,6 +858,31 @@ else
                     {
                         if (isApproved)
                         {
+                            // Create assessment record for the loan application
+                            // This creates the assessment and forwards to Finance Manager
+                            var monthlyRate = 10.0m / 100 / 12; // Default 10% interest
+                            var termMonths = 36; // Default 36 months
+                            var monthlyPayment = selectedItem.Amount * (monthlyRate * (decimal)Math.Pow(1 + (double)monthlyRate, termMonths))
+                                / ((decimal)Math.Pow(1 + (double)monthlyRate, termMonths) - 1);
+                            var totalPayable = monthlyPayment * termMonths;
+
+                            var newAssessment = new LoanAssessment
+                            {
+                                ApplicationId = loanApp.ApplicationId,
+                                AccountId = loanApp.AccountId,
+                                LoanAmount = selectedItem.Amount,
+                                InterestRate = 10.0m, // Default interest rate
+                                TermMonths = termMonths,
+                                ComputedMonthlyPayment = Math.Round(monthlyPayment, 2),
+                                TotalPayable = Math.Round(totalPayable, 2),
+                                AssessmentStatus = "ASSESSED",
+                                AssessedBy = currentUser,
+                                Remarks = approvalNotes,
+                                AssessmentDate = DateTime.Now
+                            };
+                            DbContext.LoanAssessments.Add(newAssessment);
+                            
+                            // Update application status to pending Finance Manager approval
                             loanApp.Status = "PENDING_FINANCEMANAGER_APPROVAL";
                         }
                         else
@@ -872,31 +897,32 @@ else
                     break;
 
                 case "LoanAssessment":
-                    var assessment = await DbContext.LoanAssessments.FindAsync(selectedItem.SourceId);
-                    if (assessment != null)
+                    var existingAssessment = await DbContext.LoanAssessments
+                        .Include(a => a.Application)
+                        .FirstOrDefaultAsync(a => a.AssessmentId == selectedItem.SourceId);
+                    if (existingAssessment != null)
                     {
                         if (isApproved)
                         {
-                            assessment.AssessmentStatus = "APPROVED";
-                            // Create loan approval record
-                            var approval = new LoanApproval
+                            // Forward to Finance Manager for final approval - DO NOT create LoanApproval yet
+                            existingAssessment.AssessmentStatus = "ASSESSED"; // Keep as ASSESSED so Finance Manager can see it
+                            
+                            // Update the application status to indicate it's pending Finance Manager approval
+                            if (existingAssessment.Application != null)
                             {
-                                AssessmentId = assessment.AssessmentId,
-                                ApplicationId = assessment.ApplicationId,
-                                AccountId = assessment.AccountId,
-                                ApprovalStatus = "APPROVED",
-                                ApprovalDate = DateTime.Now,
-                                ApprovedBy = currentUser,
-                                ApprovedAmount = assessment.LoanAmount,
-                                ApprovedInterestRate = assessment.InterestRate,
-                                ApprovedTermMonths = assessment.TermMonths,
-                                SpecialConditions = approvalNotes
-                            };
-                            DbContext.LoanApprovals.Add(approval);
+                                existingAssessment.Application.Status = "PENDING_FINANCEMANAGER_APPROVAL";
+                            }
                         }
                         else
                         {
-                            assessment.AssessmentStatus = "DECLINED";
+                            existingAssessment.AssessmentStatus = "DECLINED";
+                            if (existingAssessment.Application != null)
+                            {
+                                existingAssessment.Application.Status = "REJECTED_ACCOUNTANT";
+                                existingAssessment.Application.RejectionReason = approvalNotes;
+                                existingAssessment.Application.RejectedAt = DateTime.Now;
+                                existingAssessment.Application.RejectedBy = currentUser;
+                            }
                         }
                         await DbContext.SaveChangesAsync();
                     }

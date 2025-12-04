@@ -1625,6 +1625,93 @@ public class FinancialStatementService
         await _context.SaveChangesAsync();
         return statement;
     }
+
+    /// <summary>
+    /// Get financial summary for dashboard - Total Assets, Liabilities, Equity, Revenue, Expenses
+    /// </summary>
+    public async Task<Dictionary<string, decimal>> GetFinancialSummaryAsync(DateTime? asOfDate = null)
+    {
+        var targetDate = asOfDate ?? DateTime.Today;
+        var glEntries = await _glService.GetAllAsync();
+        var periodEntries = glEntries.Where(e => e.TransactionDate <= targetDate).ToList();
+
+        var summary = new Dictionary<string, decimal>
+        {
+            ["TotalAssets"] = periodEntries.Where(e => e.AccountType == "Asset")
+                .Sum(e => e.DebitAmount - e.CreditAmount),
+            ["TotalLiabilities"] = periodEntries.Where(e => e.AccountType == "Liability")
+                .Sum(e => e.CreditAmount - e.DebitAmount),
+            ["TotalEquity"] = periodEntries.Where(e => e.AccountType == "Equity")
+                .Sum(e => e.CreditAmount - e.DebitAmount),
+            ["TotalRevenue"] = periodEntries.Where(e => e.AccountType == "Revenue")
+                .Sum(e => e.CreditAmount - e.DebitAmount),
+            ["TotalExpenses"] = periodEntries.Where(e => e.AccountType == "Expense")
+                .Sum(e => e.DebitAmount - e.CreditAmount)
+        };
+
+        // Calculate Net Income
+        summary["NetIncome"] = summary["TotalRevenue"] - summary["TotalExpenses"];
+
+        // Add retained earnings to equity
+        summary["TotalEquity"] += summary["NetIncome"];
+
+        return summary;
+    }
+
+    /// <summary>
+    /// Get loan portfolio summary for financial analysis
+    /// </summary>
+    public async Task<Dictionary<string, object>> GetLoanPortfolioSummaryAsync()
+    {
+        var activeLoans = await _context.Loans
+            .Where(l => l.Status == "ACTIVE")
+            .ToListAsync();
+
+        var completedLoans = await _context.Loans
+            .Where(l => l.Status == "COMPLETED" || l.Status == "PAID")
+            .ToListAsync();
+
+        var overdueLoans = await _context.Loans
+            .Where(l => l.Status == "OVERDUE" || l.Status == "DEFAULTED")
+            .ToListAsync();
+
+        return new Dictionary<string, object>
+        {
+            ["ActiveLoansCount"] = activeLoans.Count,
+            ["ActiveLoansPrincipal"] = activeLoans.Sum(l => l.LoanAmount),
+            ["OutstandingBalance"] = activeLoans.Sum(l => l.OutstandingBalance),
+            ["CompletedLoansCount"] = completedLoans.Count,
+            ["CompletedLoansPrincipal"] = completedLoans.Sum(l => l.LoanAmount),
+            ["OverdueLoansCount"] = overdueLoans.Count,
+            ["OverdueLoansBalance"] = overdueLoans.Sum(l => l.OutstandingBalance),
+            ["TotalLoansPortfolio"] = activeLoans.Sum(l => l.LoanAmount) + completedLoans.Sum(l => l.LoanAmount)
+        };
+    }
+
+    /// <summary>
+    /// Generate comprehensive financial report with all statements combined
+    /// </summary>
+    public async Task<Dictionary<string, object>> GenerateComprehensiveReportAsync(DateTime periodStart, DateTime periodEnd, string generatedBy)
+    {
+        var incomeStatement = await GenerateIncomeStatementAsync(periodStart, periodEnd, generatedBy);
+        var balanceSheet = await GenerateBalanceSheetAsync(periodEnd, generatedBy);
+        var cashFlow = await GenerateCashFlowAsync(periodStart, periodEnd, generatedBy);
+        var financialSummary = await GetFinancialSummaryAsync(periodEnd);
+        var loanPortfolio = await GetLoanPortfolioSummaryAsync();
+
+        return new Dictionary<string, object>
+        {
+            ["IncomeStatement"] = incomeStatement,
+            ["BalanceSheet"] = balanceSheet,
+            ["CashFlowStatement"] = cashFlow,
+            ["FinancialSummary"] = financialSummary,
+            ["LoanPortfolio"] = loanPortfolio,
+            ["GeneratedAt"] = DateTime.Now,
+            ["GeneratedBy"] = generatedBy,
+            ["PeriodStart"] = periodStart,
+            ["PeriodEnd"] = periodEnd
+        };
+    }
 }
 
 // =============================================

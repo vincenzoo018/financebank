@@ -1,7 +1,13 @@
 @page "/admin/teller/loan-release"
 @layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
 @inject AuthService AuthService
+@inject LoanProcessService LoanService
+@inject BFASDbContext DbContext
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="admin-page">
     <div class="page-header">
@@ -40,12 +46,12 @@
                     @foreach (var loan in loansForRelease)
                     {
                         <tr>
-                            <td><strong>@loan.ContractNo</strong></td>
-                            <td>@loan.CustomerName</td>
+                            <td><strong>@loan.LoanNumber</strong></td>
+                            <td>@(loan.Account?.Customer?.FullName ?? "N/A")</td>
                             <td>@loan.LoanType</td>
-                            <td>₱@loan.OriginalAmount.ToString("N2")</td>
-                            <td style="color: #10b981;">₱@loan.TotalPaid.ToString("N2")</td>
-                            <td>@loan.DateCompleted.ToString("MMM dd, yyyy")</td>
+                            <td>₱@loan.LoanAmount.ToString("N2")</td>
+                            <td style="color: #10b981;">₱@((loan.LoanAmount - loan.OutstandingBalance).ToString("N2"))</td>
+                            <td>@loan.CreatedAt.ToString("MMM dd, yyyy")</td>
                             <td>
                                 <button class="btn btn-sm btn-success" @onclick="() => ShowReleaseModal(loan)">
                                     Release Loan
@@ -82,21 +88,32 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var loan in releasedLoans)
+                    @if (isLoading)
                     {
-                        <tr>
-                            <td>@loan.ContractNo</td>
-                            <td>@loan.CustomerName</td>
-                            <td>@loan.LoanType</td>
-                            <td>₱@loan.OriginalAmount.ToString("N2")</td>
-                            <td>@loan.ReleaseDate?.ToString("MMM dd, yyyy")</td>
-                            <td>@loan.ReleasedBy</td>
-                            <td>
-                                <button class="btn btn-sm btn-info" @onclick="() => PrintClearance(loan)">
-                                    Print Clearance
-                                </button>
-                            </td>
-                        </tr>
+                        <tr><td colspan="7" class="text-center" style="padding: 40px;">Loading...</td></tr>
+                    }
+                    else if (!releasedLoans.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted">No released loans</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var loan in releasedLoans)
+                        {
+                            <tr>
+                                <td>@loan.LoanNumber</td>
+                                <td>@(loan.Account?.Customer?.FullName ?? "N/A")</td>
+                                <td>@loan.LoanType</td>
+                                <td>₱@loan.LoanAmount.ToString("N2")</td>
+                                <td>@loan.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                <td>@(AuthService.FullName ?? "Admin")</td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" @onclick="() => PrintClearance(loan)">
+                                        Print Clearance
+                                    </button>
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
@@ -109,7 +126,7 @@
     <div class="modal-overlay" @onclick="CloseModal">
         <div class="modal-content" @onclick:stopPropagation style="max-width: 600px;">
             <div class="modal-header">
-                <h4>Release Loan - @selectedLoan?.ContractNo</h4>
+                <h4>Release Loan - @selectedLoan?.LoanNumber</h4>
                 <button class="close-btn" @onclick="CloseModal">&times;</button>
             </div>
             <div class="modal-body">
@@ -130,7 +147,7 @@
                     <table class="table table-bordered" style="margin-bottom: 0;">
                         <tr>
                             <td>Customer Name</td>
-                            <td><strong>@selectedLoan?.CustomerName</strong></td>
+                            <td><strong>@(selectedLoan?.Account?.Customer?.FullName ?? "N/A")</strong></td>
                         </tr>
                         <tr>
                             <td>Loan Type</td>
@@ -138,15 +155,15 @@
                         </tr>
                         <tr>
                             <td>Original Loan Amount</td>
-                            <td>₱@selectedLoan?.OriginalAmount.ToString("N2")</td>
+                            <td>₱@selectedLoan?.LoanAmount.ToString("N2")</td>
                         </tr>
                         <tr>
                             <td>Total Amount Paid</td>
-                            <td style="color: #10b981; font-weight: 600;">₱@selectedLoan?.TotalPaid.ToString("N2")</td>
+                            <td style="color: #10b981; font-weight: 600;">₱@((selectedLoan?.LoanAmount - selectedLoan?.OutstandingBalance ?? 0).ToString("N2"))</td>
                         </tr>
                         <tr>
                             <td>Completion Date</td>
-                            <td>@selectedLoan?.DateCompleted.ToString("MMMM dd, yyyy")</td>
+                            <td>@selectedLoan?.CreatedAt.ToString("MMMM dd, yyyy")</td>
                         </tr>
                     </table>
                 </div>
@@ -191,33 +208,59 @@
 
 @code {
     private bool showModal = false;
-    private LoanItem? selectedLoan;
+    private Loan? selectedLoan;
     private string adminReason = "";
     private string collateralAction = "None";
     private bool confirmRelease = false;
     private string message = "";
     private bool isError = false;
 
-    private List<LoanItem> loansForRelease = new()
-    {
-        new() { ContractNo = "LN-20230601-001", CustomerName = "Ana Reyes", LoanType = "Personal", OriginalAmount = 50000, TotalPaid = 56000, DateCompleted = DateTime.Today.AddDays(-2) },
-        new() { ContractNo = "LN-20220815-002", CustomerName = "Carlos Cruz", LoanType = "Auto", OriginalAmount = 300000, TotalPaid = 336000, DateCompleted = DateTime.Today.AddDays(-1) }
-    };
+    private List<Loan> loansForRelease = new();
+    private List<Loan> releasedLoans = new();
+    private bool isLoading = true;
 
-    private List<LoanItem> releasedLoans = new()
-    {
-        new() { ContractNo = "LN-20220101-001", CustomerName = "Maria Santos", LoanType = "Home", OriginalAmount = 500000, ReleaseDate = DateTime.Today.AddDays(-10), ReleasedBy = "Admin" }
-    };
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
         {
             Navigation.NavigateTo("/admin/dashboard");
+            return;
+        }
+        await LoadLoans();
+    }
+
+    private async Task LoadLoans()
+    {
+        isLoading = true;
+        try
+        {
+            loansForRelease = await DbContext.Loans
+                .Include(l => l.Account)
+                    .ThenInclude(a => a.Customer)
+                .Where(l => (l.Status == "COMPLETED" || l.Status == "Paid") && l.OutstandingBalance == 0)
+                .OrderByDescending(l => l.CreatedAt)
+                .ToListAsync();
+
+            releasedLoans = await DbContext.Loans
+                .Include(l => l.Account)
+                    .ThenInclude(a => a.Customer)
+                .Where(l => l.Status == "RELEASED")
+                .OrderByDescending(l => l.CreatedAt)
+                .Take(10)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error loading loans: {ex.Message}";
+            isError = true;
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
-    private void ShowReleaseModal(LoanItem loan)
+    private void ShowReleaseModal(Loan loan)
     {
         selectedLoan = loan;
         showModal = true;
@@ -232,39 +275,36 @@
         confirmRelease = false;
     }
 
-    private void ReleaseLoan()
+    private async Task ReleaseLoan()
     {
         if (string.IsNullOrWhiteSpace(adminReason) || !confirmRelease) return;
         
         if (selectedLoan != null)
         {
-            selectedLoan.ReleaseDate = DateTime.Now;
-            selectedLoan.ReleasedBy = AuthService.FullName ?? "Admin";
-            releasedLoans.Insert(0, selectedLoan);
-            loansForRelease.Remove(selectedLoan);
-            
-            message = $"Loan {selectedLoan.ContractNo} has been successfully released!";
-            isError = false;
+            try
+            {
+                selectedLoan.Status = "RELEASED";
+                DbContext.Update(selectedLoan);
+                await DbContext.SaveChangesAsync();
+                
+                message = $"Loan {selectedLoan.LoanNumber} released successfully!";
+                isError = false;
+                CloseModal();
+                await LoadLoans();
+            }
+            catch (Exception ex)
+            {
+                message = $"Error releasing loan: {ex.Message}";
+                isError = true;
+            }
         }
-        CloseModal();
     }
 
-    private void PrintClearance(LoanItem loan)
+    private void PrintClearance(Loan loan)
     {
         // Trigger print of clearance certificate
-        message = $"Clearance certificate for {loan.ContractNo} is ready to print.";
+        message = $"Clearance certificate for {loan.LoanNumber} is ready to print.";
         isError = false;
     }
-
-    private class LoanItem
-    {
-        public string ContractNo { get; set; } = "";
-        public string CustomerName { get; set; } = "";
-        public string LoanType { get; set; } = "";
-        public decimal OriginalAmount { get; set; }
-        public decimal TotalPaid { get; set; }
-        public DateTime DateCompleted { get; set; }
-        public DateTime? ReleaseDate { get; set; }
-        public string ReleasedBy { get; set; } = "";
-    }
 }
+

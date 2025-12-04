@@ -6,28 +6,22 @@
 @inject TellerReportService ReportService
 @inject IJSRuntime JS
 
-<!-- Header with Gradient -->
-<div style="background: linear-gradient(135deg, #059669, #047857); border-radius: 16px; padding: 32px; margin-bottom: 32px; color: white;">
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <svg width="40" height="40" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>
-            <div>
-                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Teller Dashboard</h1>
-                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 14px;">Real-time ERP Analytics & Transaction Processing</p>
-            </div>
+<!-- Header with Filter -->
+<div style="background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), rgba(4, 120, 87, 0.15)); border: 1px solid rgba(5, 150, 105, 0.3); border-radius: 16px; padding: 24px; margin-bottom: 32px; color: #065f46;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; margin: 0;">Teller Dashboard</h1>
+            <p style="margin: 8px 0 0; font-size: 14px; opacity: 0.85;">Real-time ERP Analytics & Transaction Processing</p>
         </div>
-        <div style="display: flex; gap: 12px; align-items: center;">
-            <!-- Date Range Selector -->
-            <select @bind="selectedPeriod" @bind:after="OnPeriodChanged"
-                    style="padding: 10px 16px; border-radius: 8px; border: none; background: rgba(255,255,255,0.2); color: white; font-weight: 600; cursor: pointer;">
-                <option value="today" style="color: #1f2937;">Today</option>
-                <option value="week" style="color: #1f2937;">This Week</option>
-                <option value="month" style="color: #1f2937;">This Month</option>
-            </select>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button @onclick='() => { selectedPeriod = "today"; OnPeriodChanged(); }'
+                style="padding: 8px 16px; background: @(selectedPeriod == "today" ? "white" : "rgba(255,255,255,0.5)"); color: @(selectedPeriod == "today" ? "#065f46" : "#065f46"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Day</button>
+            <button @onclick='() => { selectedPeriod = "week"; OnPeriodChanged(); }'
+                style="padding: 8px 16px; background: @(selectedPeriod == "week" ? "white" : "rgba(255,255,255,0.5)"); color: @(selectedPeriod == "week" ? "#065f46" : "#065f46"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Week</button>
+            <button @onclick='() => { selectedPeriod = "month"; OnPeriodChanged(); }'
+                style="padding: 8px 16px; background: @(selectedPeriod == "month" ? "white" : "rgba(255,255,255,0.5)"); color: @(selectedPeriod == "month" ? "#065f46" : "#065f46"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Month</button>
             <button @onclick="OpenReportModal" 
-                    style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.2); border: 2px solid white; padding: 10px 20px; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.5); border: 2px solid rgba(5, 150, 105, 0.5); padding: 8px 16px; border-radius: 8px; color: #065f46; font-weight: 600; cursor: pointer; margin-left: 8px;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="7 10 12 15 17 10"></polyline>

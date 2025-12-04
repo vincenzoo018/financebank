@@ -5,130 +5,164 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<div class="admin-page">
-    <div class="page-header">
-        <h1 style="color: #10b981;">
-            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="17 1 21 5 17 9"></polyline>
-                <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
-                <polyline points="7 23 3 19 7 15"></polyline>
-                <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
-            </svg>
-            Process Transfers (Admin)
-        </h1>
-        <p class="page-subtitle">Process fund transfers between accounts with admin oversight</p>
+<!-- Header with Gradient -->
+<div style="background: linear-gradient(135deg, #2563eb, #1e40af); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="17 1 21 5 17 9"></polyline>
+            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+            <polyline points="7 23 3 19 7 15"></polyline>
+            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+        </svg>
+        <div>
+            <h1 style="font-size: 20px; font-weight: 700; margin: 0;">Process Transfers (Admin)</h1>
+            <p style="margin: 4px 0 0; opacity: 0.9; font-size: 13px;">Process fund transfers between accounts with admin oversight</p>
+        </div>
     </div>
+</div>
+
+<!-- Admin Notice -->
+<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 20px;">⚠️</span>
+        <div>
+            <p style="margin: 0; font-weight: 600; color: #92400e;">Administrative Access</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #a16207;">You are performing this action as SuperAdmin. A reason for this action is required for audit purposes.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Transfer Form -->
+<div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid #e5e7eb; margin-bottom: 32px;">
+    <h3 style="margin: 0 0 24px; font-size: 18px; font-weight: 700; color: #1f2937;">Transfer Funds</h3>
 
     @if (!string.IsNullOrEmpty(errorMessage))
     {
-        <div class="alert alert-danger">@errorMessage</div>
+        <div style="background: #fee2e2; border: 1px solid #dc2626; border-radius: 8px; padding: 12px; margin-bottom: 20px; color: #991b1b;">
+            ❌ @errorMessage
+        </div>
     }
     @if (!string.IsNullOrEmpty(successMessage))
     {
-        <div class="alert alert-success">@successMessage</div>
+        <div style="background: #d1fae5; border: 1px solid #10b981; border-radius: 8px; padding: 12px; margin-bottom: 20px; color: #065f46;">
+            ✅ @successMessage
+        </div>
     }
+    
+    <form @onsubmit="ProcessTransfer" @onsubmit:preventDefault>
+        <!-- Admin Reason Field -->
+        <div style="margin-bottom: 20px;">
+            <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px; color: #dc2626;">
+                ⚠️ Reason for Admin Action *
+            </label>
+            <textarea @bind="adminReason" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; min-height: 60px;" 
+                placeholder="Enter reason for performing this action as admin..." rows="2"></textarea>
+            <small style="font-size: 12px; color: #6b7280;">Required: This will be logged for audit purposes</small>
+        </div>
+        
+        <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-bottom: 20px;"></div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+            <!-- From Account -->
+            <!-- From Account -->
+            <div>
+                <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">From Account Number *</label>
+                <input type="text" @bind="fromAccountNumber" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
+                    placeholder="Enter source account number" />
+            </div>
+            
+            <!-- To Account -->
+            <div>
+                <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">To Account Number *</label>
+                <input type="text" @bind="toAccountNumber" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
+                    placeholder="Enter destination account number" />
+            </div>
+            
+            <!-- Amount -->
+            <div>
+                <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Amount (₱) *</label>
+                <input type="number" @bind="amount" step="0.01" min="0" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
+                    placeholder="0.00" />
+            </div>
+            
+            <!-- Transfer Type -->
+            <div>
+                <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Transfer Type *</label>
+                <select @bind="transferType" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                    <option value="Internal">Internal Transfer</option>
+                    <option value="External">External Transfer</option>
+                </select>
+            </div>
+            
+            <!-- Remarks -->
+            <div style="grid-column: 1 / -1;">
+                <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Remarks</label>
+                <textarea @bind="remarks" rows="2" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
+                    placeholder="Optional remarks..."></textarea>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+            <button type="submit" disabled="@isProcessing" 
+                style="background: #2563eb; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: @(isProcessing ? "not-allowed" : "pointer"); opacity: @(isProcessing ? "0.6" : "1");">
+                @if (isProcessing)
+                {
+                    <span>Processing...</span>
+                }
+                else
+                {
+                    <span>Process Transfer</span>
+                }
+            </button>
+        </div>
+    </form>
+</div>
 
-    <div class="admin-card">
-        <div class="card-header">
-            <h3>Transfer Funds</h3>
-        </div>
-        <div class="card-body">
-            <div class="form-group">
-                <label>Reason for Admin Action <span class="required">*</span></label>
-                <textarea @bind="adminReason" class="form-control" rows="2" 
-                    placeholder="Enter reason for performing this action as admin..."></textarea>
-                <small class="form-text text-muted">Required: This will be logged for audit purposes</small>
-            </div>
-            
-            <hr />
-            
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label>From Account Number</label>
-                    <input type="text" @bind="fromAccountNumber" class="form-control" placeholder="Enter source account number" />
-                </div>
-                <div class="form-group col-md-6">
-                    <label>To Account Number</label>
-                    <input type="text" @bind="toAccountNumber" class="form-control" placeholder="Enter destination account number" />
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label>Amount</label>
-                    <div class="input-group">
-                        <span class="input-group-text">₱</span>
-                        <input type="number" @bind="amount" class="form-control" step="0.01" min="0" />
-                    </div>
-                </div>
-                <div class="form-group col-md-6">
-                    <label>Transfer Type</label>
-                    <select @bind="transferType" class="form-control">
-                        <option value="Internal">Internal Transfer</option>
-                        <option value="External">External Transfer</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Remarks</label>
-                <textarea @bind="remarks" class="form-control" rows="2" placeholder="Optional remarks..."></textarea>
-            </div>
-            
-            <div class="form-actions">
-                <button class="btn btn-primary" @onclick="ProcessTransfer" disabled="@isProcessing">
-                    @if (isProcessing)
+<!-- Recent Transfers -->
+<div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid #e5e7eb;">
+    <h3 style="margin: 0 0 24px; font-size: 18px; font-weight: 700; color: #1f2937;">Recent Transfers</h3>
+    
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">DATE</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">FROM ACCOUNT</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">TO ACCOUNT</th>
+                    <th style="padding: 12px; text-align: right; font-size: 12px; color: #6b7280; font-weight: 600;">AMOUNT</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">TYPE</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">PROCESSED BY</th>
+                    <th style="padding: 12px; text-align: center; font-size: 12px; color: #6b7280; font-weight: 600;">STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (recentTransfers.Any())
+                {
+                    @foreach (var transfer in recentTransfers)
                     {
-                        <span class="spinner-border spinner-border-sm"></span>
-                    }
-                    Process Transfer
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div class="admin-card" style="margin-top: 24px;">
-        <div class="card-header">
-            <h3>Recent Transfers</h3>
-        </div>
-        <div class="card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>From Account</th>
-                        <th>To Account</th>
-                        <th>Amount</th>
-                        <th>Type</th>
-                        <th>Processed By</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (recentTransfers.Any())
-                    {
-                        @foreach (var transfer in recentTransfers)
-                        {
-                            <tr>
-                                <td>@transfer.Date.ToString("MMM dd, yyyy HH:mm")</td>
-                                <td>@transfer.FromAccount</td>
-                                <td>@transfer.ToAccount</td>
-                                <td>₱@transfer.Amount.ToString("N2")</td>
-                                <td>@transfer.Type</td>
-                                <td>@transfer.ProcessedBy</td>
-                                <td><span class="badge @GetStatusClass(transfer.Status)">@transfer.Status</span></td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="7" class="text-center text-muted">No recent transfers</td>
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 12px; font-size: 13px; color: #111827;">@transfer.Date.ToString("MMM dd, yyyy HH:mm")</td>
+                            <td style="padding: 12px; font-size: 13px; color: #3b82f6; font-weight: 500;">@transfer.FromAccount</td>
+                            <td style="padding: 12px; font-size: 13px; color: #3b82f6; font-weight: 500;">@transfer.ToAccount</td>
+                            <td style="padding: 12px; text-align: right; font-size: 13px; color: #111827; font-weight: 600;">₱@transfer.Amount.ToString("N2")</td>
+                            <td style="padding: 12px; font-size: 13px; color: #6b7280;">@transfer.Type</td>
+                            <td style="padding: 12px; font-size: 13px; color: #6b7280;">@transfer.ProcessedBy</td>
+                            <td style="padding: 12px; text-align: center;">
+                                <span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; background: @GetStatusBackground(transfer.Status); color: @GetStatusColor(transfer.Status);">
+                                    @transfer.Status
+                                </span>
+                            </td>
                         </tr>
                     }
-                </tbody>
-            </table>
-        </div>
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" style="padding: 48px; text-align: center; color: #6b7280;">No recent transfers</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -214,12 +248,20 @@
         }
     }
 
-    private string GetStatusClass(string status) => status switch
+    private string GetStatusBackground(string status) => status switch
     {
-        "Completed" => "badge-success",
-        "Pending" => "badge-warning",
-        "Failed" => "badge-danger",
-        _ => "badge-secondary"
+        "Completed" => "#d1fae5",
+        "Pending" => "#fef3c7",
+        "Failed" => "#fee2e2",
+        _ => "#f3f4f6"
+    };
+
+    private string GetStatusColor(string status) => status switch
+    {
+        "Completed" => "#065f46",
+        "Pending" => "#92400e",
+        "Failed" => "#991b1b",
+        _ => "#4b5563"
     };
 
     private class TransferRecord

@@ -1,6 +1,11 @@
 @page "/admin/teller/loan-review"
 @layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
 @inject AuthService AuthService
+@inject LoanProcessService LoanService
+@inject BFASDbContext DbContext
 @inject NavigationManager Navigation
 
 <div class="admin-page">
@@ -34,20 +39,31 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var loan in loansUnderReview)
+                    @if (isLoading)
                     {
-                        <tr>
-                            <td><strong>@loan.ApplicationId</strong></td>
-                            <td>@loan.CustomerName</td>
-                            <td>@loan.LoanType</td>
-                            <td>₱@loan.Amount.ToString("N2")</td>
-                            <td>@loan.Term months</td>
-                            <td>@loan.CreditScore</td>
-                            <td><span class="badge @GetRiskClass(loan.RiskLevel)">@loan.RiskLevel</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-info" @onclick="() => ShowReviewModal(loan)">Review</button>
-                            </td>
-                        </tr>
+                        <tr><td colspan="8" style="text-align: center; padding: 40px;">Loading applications...</td></tr>
+                    }
+                    else if (!loansUnderReview.Any())
+                    {
+                        <tr><td colspan="8" style="text-align: center; padding: 40px;">No applications pending review</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var loan in loansUnderReview)
+                        {
+                            <tr>
+                                <td><strong>@loan.ApplicationNumber</strong></td>
+                                <td>@(loan.Account?.Customer?.FullName ?? "N/A")</td>
+                                <td>@loan.LoanType</td>
+                                <td>₱@loan.RequestedAmount.ToString("N2")</td>
+                                <td>@loan.Purpose</td>
+                                <td>@loan.ApplicationDate.ToString("MM/dd/yyyy")</td>
+                                <td><span class="badge">@loan.Status</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" @onclick="() => ShowReviewModal(loan)">Review</button>
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
@@ -74,19 +90,19 @@
                 <div class="review-summary">
                     <div class="summary-item">
                         <label>Requested Amount</label>
-                        <span>₱@selectedLoan?.Amount.ToString("N2")</span>
+                        <span>₱@selectedLoan?.RequestedAmount.ToString("N2")</span>
                     </div>
                     <div class="summary-item">
-                        <label>Monthly Payment</label>
-                        <span>₱@((selectedLoan?.Amount ?? 0) / (selectedLoan?.Term ?? 1) * 1.12m).ToString("N2")</span>
+                        <label>Purpose</label>
+                        <span>@(selectedLoan?.Purpose ?? "N/A")</span>
                     </div>
                     <div class="summary-item">
-                        <label>Interest Rate</label>
-                        <span>12% p.a.</span>
+                        <label>Monthly Income</label>
+                        <span>₱@((selectedLoan?.MonthlyIncome ?? 0).ToString("N2"))</span>
                     </div>
                     <div class="summary-item">
-                        <label>Credit Score</label>
-                        <span>@selectedLoan?.CreditScore</span>
+                        <label>Employment Status</label>
+                        <span>@(selectedLoan?.EmploymentStatus ?? "N/A")</span>
                     </div>
                 </div>
                 
@@ -152,31 +168,49 @@
 
 @code {
     private bool showModal = false;
-    private LoanReviewItem? selectedLoan;
+    private LoanApplication? selectedLoan;
     private string adminReason = "";
     private string assessmentNotes = "";
     private string recommendation = "";
     private decimal approvedAmount = 0;
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private string successMessage = "";
+    private string errorMessage = "";
 
-    private List<LoanReviewItem> loansUnderReview = new()
-    {
-        new() { ApplicationId = "LA-2024001", CustomerName = "Juan Dela Cruz", LoanType = "Personal", Amount = 50000, Term = 12, CreditScore = 720, RiskLevel = "Low" },
-        new() { ApplicationId = "LA-2024002", CustomerName = "Maria Santos", LoanType = "Home", Amount = 500000, Term = 60, CreditScore = 680, RiskLevel = "Medium" },
-        new() { ApplicationId = "LA-2024003", CustomerName = "Pedro Garcia", LoanType = "Business", Amount = 200000, Term = 36, CreditScore = 620, RiskLevel = "High" }
-    };
+    private List<LoanApplication> loansUnderReview = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
         {
             Navigation.NavigateTo("/admin/dashboard");
+            return;
+        }
+        await LoadPendingApplications();
+    }
+
+    private async Task LoadPendingApplications()
+    {
+        isLoading = true;
+        try
+        {
+            loansUnderReview = await LoanService.GetPendingApplicationsAsync("TELLER");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading applications: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
-    private void ShowReviewModal(LoanReviewItem loan)
+    private void ShowReviewModal(LoanApplication loan)
     {
         selectedLoan = loan;
-        approvedAmount = loan.Amount;
+        approvedAmount = loan.RequestedAmount;
         showModal = true;
     }
 
@@ -189,11 +223,42 @@
         recommendation = "";
     }
 
-    private void SubmitReview()
+    private async Task SubmitReview()
     {
         if (string.IsNullOrWhiteSpace(adminReason) || string.IsNullOrWhiteSpace(recommendation)) return;
         if (selectedLoan != null)
         {
+            isProcessing = true;
+            try
+            {
+                // Update application status based on recommendation
+                if (recommendation == "Approve")
+                {
+                    selectedLoan.Status = "VERIFIED";
+                    DbContext.Update(selectedLoan);
+                    await DbContext.SaveChangesAsync();
+                    successMessage = "Application approved and verified";
+                }
+                else
+                {
+                    selectedLoan.Status = "REJECTED";
+                    selectedLoan.RejectionReason = assessmentNotes;
+                    selectedLoan.RejectedAt = DateTime.Now;
+                    DbContext.Update(selectedLoan);
+                    await DbContext.SaveChangesAsync();
+                    successMessage = "Application rejected";
+                }
+                CloseModal();
+                await LoadPendingApplications();
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error processing review: {ex.Message}";
+            }
+            finally
+            {
+                isProcessing = false;
+            }
             loansUnderReview.Remove(selectedLoan);
         }
         CloseModal();

@@ -86,6 +86,85 @@ namespace FinanceBank.Services
             }
         }
 
+        // Enhanced Chart of Accounts Methods
+        public async Task<List<ChartOfAccounts>> GetChartOfAccountsByTypeAsync(string accountType)
+        {
+            try
+            {
+                return await _context.ChartOfAccounts
+                    .Where(a => a.AccountType == accountType)
+                    .OrderBy(a => a.AccountCode)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new ServiceException($"Error retrieving chart of accounts by type: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<ChartOfAccounts?> GetChartOfAccountsByCodeAsync(string accountCode)
+        {
+            try
+            {
+                return await _context.ChartOfAccounts
+                    .FirstOrDefaultAsync(a => a.AccountCode == accountCode);
+            }
+            catch (Exception ex)
+            {
+                throw new ServiceException($"Error retrieving chart of accounts by code: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<Dictionary<string, decimal>> GetAccountBalancesSummaryAsync()
+        {
+            try
+            {
+                var summary = new Dictionary<string, decimal>();
+                var accountTypes = new[] { "Asset", "Liability", "Equity", "Revenue", "Expense" };
+
+                foreach (var type in accountTypes)
+                {
+                    var balance = await _context.ChartOfAccounts
+                        .Where(a => a.AccountType == type && a.IsActive)
+                        .SumAsync(a => a.CurrentBalance);
+                    summary[type] = balance;
+                }
+
+                return summary;
+            }
+            catch (Exception ex)
+            {
+                throw new ServiceException($"Error retrieving account balances summary: {ex.Message}", ex);
+            }
+        }
+
+        public async Task UpdateAccountBalanceAsync(string accountCode, decimal amount, bool isDebit)
+        {
+            try
+            {
+                var account = await GetChartOfAccountsByCodeAsync(accountCode);
+                if (account != null)
+                {
+                    // Update balance based on normal balance type
+                    if (account.NormalBalance == "Debit")
+                    {
+                        account.CurrentBalance += isDebit ? amount : -amount;
+                    }
+                    else // Credit
+                    {
+                        account.CurrentBalance += isDebit ? -amount : amount;
+                    }
+
+                    _context.ChartOfAccounts.Update(account);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new ServiceException($"Error updating account balance: {ex.Message}", ex);
+            }
+        }
+
         // Journal Entries
         public async Task<List<JournalEntry>> GetAllJournalEntriesAsync()
         {

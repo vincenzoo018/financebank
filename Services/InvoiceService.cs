@@ -10,11 +10,11 @@ namespace FinanceBank.Services
     /// </summary>
     public class InvoiceService
     {
-        private readonly BFASDbContext _context;
+        private readonly IDbContextFactory<BFASDbContext> _contextFactory;
 
-        public InvoiceService(BFASDbContext context)
+        public InvoiceService(IDbContextFactory<BFASDbContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         /// <summary>
@@ -32,7 +32,8 @@ namespace FinanceBank.Services
         {
             try
             {
-                var account = await _context.CustomerAccounts
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var account = await context.CustomerAccounts
                     .Include(ca => ca.Customer)
                     .FirstOrDefaultAsync(ca => ca.AccountId == accountId);
 
@@ -42,7 +43,7 @@ namespace FinanceBank.Services
                 decimal balanceAfter = balanceBefore + depositAmount;
 
                 // Get employee name from transaction
-                var transaction = await _context.CustomerTransactions
+                var transaction = await context.CustomerTransactions
                     .Include(ct => ct.ProcessedByEmployee)
                     .FirstOrDefaultAsync(ct => ct.TransactionId == transactionId);
 
@@ -71,8 +72,8 @@ namespace FinanceBank.Services
                     CreatedAt = DateTime.Now
                 };
 
-                _context.Invoices.Add(invoice);
-                await _context.SaveChangesAsync();
+                context.Invoices.Add(invoice);
+                await context.SaveChangesAsync();
 
                 return (true, invoice, "Deposit invoice created successfully");
             }
@@ -97,7 +98,8 @@ namespace FinanceBank.Services
         {
             try
             {
-                var account = await _context.CustomerAccounts
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var account = await context.CustomerAccounts
                     .Include(ca => ca.Customer)
                     .FirstOrDefaultAsync(ca => ca.AccountId == accountId);
 
@@ -107,7 +109,7 @@ namespace FinanceBank.Services
                 decimal balanceAfter = balanceBefore - withdrawalAmount;
 
                 // Get employee name from transaction
-                var transaction = await _context.CustomerTransactions
+                var transaction = await context.CustomerTransactions
                     .Include(ct => ct.ProcessedByEmployee)
                     .FirstOrDefaultAsync(ct => ct.TransactionId == transactionId);
 
@@ -136,8 +138,8 @@ namespace FinanceBank.Services
                     CreatedAt = DateTime.Now
                 };
 
-                _context.Invoices.Add(invoice);
-                await _context.SaveChangesAsync();
+                context.Invoices.Add(invoice);
+                await context.SaveChangesAsync();
 
                 return (true, invoice, "Withdrawal invoice created successfully");
             }
@@ -155,7 +157,8 @@ namespace FinanceBank.Services
         {
             try
             {
-                var invoices = await _context.Invoices
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var invoices = await context.Invoices
                     .Where(i => i.AccountId == accountId)
                     .OrderByDescending(i => i.CreatedAt)
                     .Select(i => new
@@ -200,7 +203,8 @@ namespace FinanceBank.Services
             {
                 var today = DateTime.Now.Date;
 
-                var invoices = await _context.Invoices
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var invoices = await context.Invoices
                     .Where(i => i.CreatedAt.Date == today)
                     .OrderByDescending(i => i.CreatedAt)
                     .Select(i => new
@@ -238,7 +242,8 @@ namespace FinanceBank.Services
         {
             try
             {
-                var invoice = await _context.Invoices
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var invoice = await context.Invoices
                     .Include(i => i.Account)
                     .Include(i => i.Transaction)
                     .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
@@ -288,7 +293,8 @@ namespace FinanceBank.Services
         {
             try
             {
-                var invoices = await _context.Invoices
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var invoices = await context.Invoices
                     .Where(i => i.AccountId == accountId)
                     .OrderByDescending(i => i.CreatedAt)
                     .Select(i => new
@@ -350,11 +356,12 @@ namespace FinanceBank.Services
         {
             try
             {
-                var invoice = await _context.Invoices.FindAsync(invoiceId);
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var invoice = await context.Invoices.FindAsync(invoiceId);
                 if (invoice == null) return false;
 
                 invoice.PrintedAt = DateTime.Now;
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
@@ -371,11 +378,12 @@ namespace FinanceBank.Services
         {
             try
             {
-                var invoice = await _context.Invoices.FindAsync(invoiceId);
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var invoice = await context.Invoices.FindAsync(invoiceId);
                 if (invoice == null) return false;
 
                 invoice.DownloadedAt = DateTime.Now;
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)

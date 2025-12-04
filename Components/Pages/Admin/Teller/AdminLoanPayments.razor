@@ -1,6 +1,12 @@
 @page "/admin/teller/loan-payments"
 @layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
 @inject AuthService AuthService
+@inject LoanProcessService LoanService
+@inject BFASDbContext DbContext
+@inject IJSRuntime JS
 @inject NavigationManager Navigation
 
 <div class="admin-page">
@@ -95,24 +101,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var due in duePayments)
-                    {
-                        <tr class="@(due.IsOverdue ? "table-danger" : "")">
-                            <td><strong>@due.ContractNo</strong></td>
-                            <td>@due.CustomerName</td>
-                            <td>₱@due.DueAmount.ToString("N2")</td>
-                            <td>@due.DueDate.ToString("MMM dd, yyyy")</td>
-                            <td>₱@due.OutstandingBalance.ToString("N2")</td>
-                            <td>
-                                <span class="badge @(due.IsOverdue ? "badge-danger" : "badge-warning")">
-                                    @(due.IsOverdue ? "Overdue" : "Due Today")
-                                </span>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-success" @onclick="() => QuickPay(due)">Quick Pay</button>
-                            </td>
-                        </tr>
-                    }
+                    <tr>
+                        <td colspan="7" class="text-center text-muted" style="padding: 40px;">Due payments tracking coming soon</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -139,10 +130,10 @@
                     {
                         <tr>
                             <td>@payment.PaymentDate.ToString("MMM dd, yyyy HH:mm")</td>
-                            <td>@payment.ContractNo</td>
-                            <td>@payment.CustomerName</td>
-                            <td style="color: #10b981;">₱@payment.Amount.ToString("N2")</td>
-                            <td>@payment.Method</td>
+                            <td>@(payment.Loan?.LoanNumber ?? "N/A")</td>
+                            <td>@(payment.Loan?.Account?.Customer?.FullName ?? "N/A")</td>
+                            <td style="color: #10b981;">₱@payment.PaymentAmount.ToString("N2")</td>
+                            <td>@payment.PaymentMethod</td>
                             <td>@payment.ProcessedBy</td>
                         </tr>
                     }
@@ -162,27 +153,76 @@
     private string message = "";
     private bool isError = false;
 
-    private List<DuePayment> duePayments = new()
-    {
-        new() { ContractNo = "LN-20240101-001", CustomerName = "Juan Dela Cruz", DueAmount = 4440.78m, DueDate = DateTime.Today, OutstandingBalance = 45000, IsOverdue = false },
-        new() { ContractNo = "LN-20231215-003", CustomerName = "Pedro Garcia", DueAmount = 3500, DueDate = DateTime.Today.AddDays(-5), OutstandingBalance = 85000, IsOverdue = true }
-    };
+    private CustomerAccount? selectedAccount;
+    private List<Loan> activeLoans = new();
+    private Loan? selectedLoan;
+    private LoanPaymentSchedule? nextPayment;
+    private bool isLoading = false;
+    private List<LoanPayment> recentPayments = new();
+    private string searchAccountNumber = "";
 
-    private List<PaymentRecord> recentPayments = new()
-    {
-        new() { PaymentDate = DateTime.Now.AddHours(-3), ContractNo = "LN-20240101-002", CustomerName = "Maria Santos", Amount = 9561.20m, Method = "Cash", ProcessedBy = "Teller1" },
-        new() { PaymentDate = DateTime.Now.AddDays(-1), ContractNo = "LN-20240101-001", CustomerName = "Juan Dela Cruz", Amount = 4440.78m, Method = "BankTransfer", ProcessedBy = "Admin" }
-    };
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
         {
             Navigation.NavigateTo("/admin/dashboard");
+            return;
+        }
+        await LoadRecentPayments();
+    }
+
+    private async Task LoadRecentPayments()
+    {
+        try
+        {
+            recentPayments = await DbContext.LoanPayments
+                .Include(p => p.Loan)
+                    .ThenInclude(l => l.Account)
+                        .ThenInclude(a => a.Customer)
+                .OrderByDescending(p => p.PaymentDate)
+                .Take(10)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error loading payments: {ex.Message}";
+            isError = true;
         }
     }
 
-    private void ProcessPayment()
+    private async Task SearchAccount()
+    {
+        if (string.IsNullOrWhiteSpace(contractNumber))
+        {
+            message = "Please enter account number";
+            isError = true;
+            return;
+        }
+
+        try
+        {
+            selectedAccount = await DbContext.CustomerAccounts
+                .Include(a => a.Customer)
+                .FirstOrDefaultAsync(a => a.AccountNumber == contractNumber);
+
+            if (selectedAccount == null)
+            {
+                message = "Account not found";
+                isError = true;
+                return;
+            }
+
+            activeLoans = await LoanService.GetAccountLoansAsync(selectedAccount.AccountId);
+            activeLoans = activeLoans.Where(l => l.Status == "ACTIVE" && l.OutstandingBalance > 0).ToList();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error searching account: {ex.Message}";
+            isError = true;
+        }
+    }
+
+    private async Task ProcessPayment()
     {
         if (string.IsNullOrWhiteSpace(adminReason))
         {
@@ -198,18 +238,46 @@
             return;
         }
 
-        recentPayments.Insert(0, new PaymentRecord
+        try
         {
-            PaymentDate = DateTime.Now,
-            ContractNo = contractNumber,
-            CustomerName = "Customer",
-            Amount = paymentAmount,
-            Method = paymentMethod,
-            ProcessedBy = AuthService.FullName ?? "Admin"
-        });
+            // Find loan by contract number
+            var loan = await DbContext.Loans
+                .Include(l => l.Account)
+                    .ThenInclude(a => a.Customer)
+                .FirstOrDefaultAsync(l => l.LoanNumber == contractNumber);
 
-        message = $"Payment of ₱{paymentAmount:N2} for {contractNumber} processed successfully!";
-        isError = false;
+            if (loan == null)
+            {
+                message = "Loan not found.";
+                isError = true;
+                return;
+            }
+
+            // Create payment record
+            var payment = new LoanPayment
+            {
+                LoanId = loan.LoanId,
+                ScheduleId = 0, // Admin override payment
+                PaymentAmount = paymentAmount,
+                PaymentDate = DateTime.Now,
+                PaymentMethod = paymentMethod,
+                Reference = referenceNumber,
+                ProcessedBy = AuthService.FullName ?? "Admin"
+            };
+
+            DbContext.LoanPayments.Add(payment);
+            await DbContext.SaveChangesAsync();
+
+            message = $"Payment of ₱{paymentAmount:N2} for {contractNumber} processed successfully!";
+            isError = false;
+            
+            await LoadRecentPayments();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error processing payment: {ex.Message}";
+            isError = true;
+        }
         
         // Reset form
         contractNumber = "";
@@ -217,32 +285,5 @@
         referenceNumber = "";
         remarks = "";
         adminReason = "";
-    }
-
-    private void QuickPay(DuePayment due)
-    {
-        contractNumber = due.ContractNo;
-        paymentAmount = due.DueAmount;
-        referenceNumber = $"QP-{DateTime.Now:yyyyMMddHHmmss}";
-    }
-
-    private class DuePayment
-    {
-        public string ContractNo { get; set; } = "";
-        public string CustomerName { get; set; } = "";
-        public decimal DueAmount { get; set; }
-        public DateTime DueDate { get; set; }
-        public decimal OutstandingBalance { get; set; }
-        public bool IsOverdue { get; set; }
-    }
-
-    private class PaymentRecord
-    {
-        public DateTime PaymentDate { get; set; }
-        public string ContractNo { get; set; } = "";
-        public string CustomerName { get; set; } = "";
-        public decimal Amount { get; set; }
-        public string Method { get; set; } = "";
-        public string ProcessedBy { get; set; } = "";
     }
 }

@@ -1,15 +1,26 @@
 @page "/admin/teller/daily-report"
 @layout AdminLayout
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
 @inject AuthService AuthService
+@inject TellerReportService ReportService
 @inject NavigationManager Navigation
 
 <div class="admin-page teller-page">
-    <div class="page-header">
-        <h1>
-            <span class="role-badge teller">Teller</span>
-            Daily Report
-        </h1>
-        <p class="page-subtitle">View and generate daily teller transaction reports</p>
+    <!-- Header Title Card -->
+    <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.15)); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 16px; padding: 28px; margin-bottom: 20px; color: #15803d;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                    <path d="M16 2v4M8 2v4M3 10h18"/>
+                </svg>
+            </div>
+            <div>
+                <h1 style="font-size: 22px; font-weight: 700; margin: 0;">Daily Report</h1>
+                <p style="font-size: 14px; color: rgba(21,128,61,0.85); margin: 4px 0 0 0;">Today's transaction summary</p>
+            </div>
+        </div>
     </div>
 
     <!-- Admin Action Reason -->
@@ -104,17 +115,17 @@
                     @foreach (var tx in transactions)
                     {
                         <tr>
-                            <td>@tx.Time.ToString("HH:mm:ss")</td>
-                            <td><strong>@tx.Reference</strong></td>
+                            <td>@tx.TransactionDate.ToString("HH:mm:ss")</td>
+                            <td><strong>@tx.TransactionNumber</strong></td>
                             <td>
-                                <span class="tx-type @tx.Type.ToLower()">@tx.Type</span>
+                                <span class="tx-type @tx.TransactionType.ToLower()">@tx.TransactionType</span>
                             </td>
                             <td>@tx.CustomerName</td>
                             <td>@tx.AccountNumber</td>
-                            <td class="@GetAmountClass(tx.Type)">
-                                @GetAmountPrefix(tx.Type)₱@tx.Amount.ToString("N2")
+                            <td class="@GetAmountClass(tx.TransactionType)">
+                                @GetAmountPrefix(tx.TransactionType)₱@tx.Amount.ToString("N2")
                             </td>
-                            <td>@tx.TellerName</td>
+                            <td>@tx.ProcessedBy</td>
                         </tr>
                     }
                 </tbody>
@@ -285,23 +296,17 @@
     private string adminActionReason = "";
     private DateTime reportDate = DateTime.Today;
     private string selectedTeller = "";
+    private bool isLoading = true;
 
-    private decimal totalDeposits = 1250000;
-    private int depositCount = 45;
-    private decimal totalWithdrawals = 850000;
-    private int withdrawalCount = 32;
-    private decimal totalTransfers = 350000;
-    private int transferCount = 18;
-    private decimal netCash = 400000;
+    private decimal totalDeposits = 0;
+    private int depositCount = 0;
+    private decimal totalWithdrawals = 0;
+    private int withdrawalCount = 0;
+    private decimal totalTransfers = 0;
+    private int transferCount = 0;
+    private decimal netCash = 0;
 
-    private List<TransactionItem> transactions = new()
-    {
-        new() { Time = DateTime.Today.AddHours(9).AddMinutes(15), Reference = "DEP-2024-0001", Type = "Deposit", CustomerName = "Juan Dela Cruz", AccountNumber = "SAV-001234", Amount = 50000, TellerName = "Teller 1" },
-        new() { Time = DateTime.Today.AddHours(9).AddMinutes(32), Reference = "WDR-2024-0001", Type = "Withdrawal", CustomerName = "Maria Santos", AccountNumber = "SAV-002345", Amount = 25000, TellerName = "Teller 2" },
-        new() { Time = DateTime.Today.AddHours(10).AddMinutes(5), Reference = "TRF-2024-0001", Type = "Transfer", CustomerName = "Pedro Reyes", AccountNumber = "SAV-003456", Amount = 15000, TellerName = "Teller 1" },
-        new() { Time = DateTime.Today.AddHours(10).AddMinutes(45), Reference = "DEP-2024-0002", Type = "Deposit", CustomerName = "Ana Garcia", AccountNumber = "SAV-004567", Amount = 100000, TellerName = "Teller 3" },
-        new() { Time = DateTime.Today.AddHours(11).AddMinutes(20), Reference = "WDR-2024-0002", Type = "Withdrawal", CustomerName = "Jose Rizal", AccountNumber = "SAV-005678", Amount = 35000, TellerName = "Teller 2" }
-    };
+    private List<TellerTransactionRecord> transactions = new();
 
     private List<HourlyData> hourlyData = new()
     {
@@ -325,12 +330,61 @@
         new() { Value = 20, Count = 120 }
     };
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        if (!AuthService.IsAuthenticated)
+        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
         {
-            Navigation.NavigateTo("/login");
+            Navigation.NavigateTo("/admin/dashboard");
         }
+        await LoadReportData();
+    }
+
+    private async Task LoadReportData()
+    {
+        isLoading = true;
+        try
+        {
+            var startDate = reportDate.Date;
+            var endDate = reportDate.Date.AddDays(1).AddSeconds(-1);
+            
+            transactions = await ReportService.GetAllTransactionsAsync(startDate, endDate);
+            
+            // Calculate totals
+            totalDeposits = transactions.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount);
+            depositCount = transactions.Count(t => t.TransactionType == "Deposit");
+            
+            totalWithdrawals = transactions.Where(t => t.TransactionType == "Withdrawal").Sum(t => t.Amount);
+            withdrawalCount = transactions.Count(t => t.TransactionType == "Withdrawal");
+            
+            totalTransfers = transactions.Where(t => t.TransactionType == "Transfer").Sum(t => t.Amount);
+            transferCount = transactions.Count(t => t.TransactionType == "Transfer");
+            
+            netCash = totalDeposits - totalWithdrawals;
+            
+            // Recalculate hourly data
+            RecalculateHourlyData();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading report: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void RecalculateHourlyData()
+    {
+        hourlyData = transactions
+            .GroupBy(t => t.TransactionDate.Hour)
+            .Select(g => new HourlyData
+            {
+                Hour = $"{(g.Key % 12 == 0 ? 12 : g.Key % 12)}{(g.Key >= 12 ? "PM" : "AM")}",
+                Count = g.Count()
+            })
+            .OrderBy(h => h.Hour)
+            .ToList();
     }
 
     private string GetAmountClass(string type) => type switch
@@ -348,20 +402,15 @@
         _ => ""
     };
 
-    private void GenerateReport() { }
+    private async Task GenerateReport() 
+    {
+        await LoadReportData();
+    }
+    
     private void PrintReport() { }
     private void ExportReport() { }
 
-    private class TransactionItem
-    {
-        public DateTime Time { get; set; }
-        public string Reference { get; set; } = "";
-        public string Type { get; set; } = "";
-        public string CustomerName { get; set; } = "";
-        public string AccountNumber { get; set; } = "";
-        public decimal Amount { get; set; }
-        public string TellerName { get; set; } = "";
-    }
+
 
     private class HourlyData
     {

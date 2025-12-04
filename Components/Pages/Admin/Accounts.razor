@@ -1,4 +1,8 @@
 @page "/admin/accounts"
+@using FinanceBank.Models
+@using FinanceBank.Data
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
 @layout AdminLayout
 
 <div class="section-header">
@@ -44,12 +48,12 @@
             {
                 <tr style="border-bottom: 1px solid var(--border);">
                     <td style="padding: 16px; font-weight: 600; font-family: monospace;">@account.AccountNumber</td>
-                    <td style="padding: 16px;">@account.Owner</td>
-                    <td style="padding: 16px;">@account.Type</td>
+                    <td style="padding: 16px;">@(account.Customer != null ? account.Customer.FullName : "N/A")</td>
+                    <td style="padding: 16px;">@account.Currency</td>
                     <td style="padding: 16px; font-weight: 700;">₱@account.Balance.ToString("N2")</td>
                     <td style="padding: 16px;">
-                        <span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">
-                            Active
+                        <span style="padding: 4px 12px; background: @(account.Status == "Active" ? "#d1fae5" : "#fee2e2"); color: @(account.Status == "Active" ? "#065f46" : "#991b1b"); border-radius: 8px; font-size: 12px; font-weight: 600;">
+                            @account.Status
                         </span>
                     </td>
                     <td style="padding: 16px;">
@@ -62,26 +66,27 @@
 </div>
 
 @code {
-    private List<Account> accounts = new();
+    private List<CustomerAccount> accounts = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        accounts = new List<Account>
-        {
-            new Account { AccountNumber = "BFAS-100000000001", Owner = "John Doe", Type = "Savings", Balance = 18450 },
-            new Account { AccountNumber = "BFAS-100000000002", Owner = "John Doe", Type = "Checking", Balance = 7000 },
-            new Account { AccountNumber = "BFAS-100000000003", Owner = "Jane Smith", Type = "Savings", Balance = 25300 },
-            new Account { AccountNumber = "BFAS-100000000004", Owner = "Bob Johnson", Type = "Business", Balance = 45200 },
-            new Account { AccountNumber = "BFAS-100000000005", Owner = "Alice Brown", Type = "Savings", Balance = 12800 },
-        };
+        await LoadAccounts();
     }
 
-    private class Account
+    private async Task LoadAccounts()
     {
-        public string AccountNumber { get; set; } = "";
-        public string Owner { get; set; } = "";
-        public string Type { get; set; } = "";
-        public decimal Balance { get; set; }
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            accounts = await context.CustomerAccounts
+                .Include(ca => ca.Customer)
+                .OrderByDescending(ca => ca.CreatedAt)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading accounts: {ex.Message}");
+        }
     }
 }
 

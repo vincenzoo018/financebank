@@ -10,13 +10,13 @@ namespace FinanceBank.Services
     /// </summary>
     public class TellerBankingService
     {
-        private readonly BFASDbContext _context;
+        private readonly IDbContextFactory<BFASDbContext> _contextFactory;
         private readonly AuthService _authService;
         private readonly InvoiceService _invoiceService;
 
-        public TellerBankingService(BFASDbContext context, AuthService authService, InvoiceService invoiceService)
+        public TellerBankingService(IDbContextFactory<BFASDbContext> contextFactory, AuthService authService, InvoiceService invoiceService)
         {
-            _context = context;
+            _contextFactory = contextFactory;
             _authService = authService;
             _invoiceService = invoiceService;
         }
@@ -29,7 +29,8 @@ namespace FinanceBank.Services
             if (string.IsNullOrWhiteSpace(searchTerm) || searchTerm.Length < 2)
                 return new List<(int, string, string, decimal)>();
 
-            var results = await _context.CustomerAccounts
+            using var context = await _contextFactory.CreateDbContextAsync();
+            var results = await context.CustomerAccounts
                 .Where(ca => ca.Customer != null && 
                        (ca.Customer.FullName.Contains(searchTerm) || 
                         ca.AccountNumber.Contains(searchTerm)) &&
@@ -54,7 +55,8 @@ namespace FinanceBank.Services
             if (string.IsNullOrWhiteSpace(accountNumber))
                 return (false, null, "Account number is required");
 
-            var account = await _context.CustomerAccounts
+            using var context = await _contextFactory.CreateDbContextAsync();
+            var account = await context.CustomerAccounts
                 .Include(ca => ca.Customer)
                 .FirstOrDefaultAsync(ca => ca.AccountNumber == accountNumber && ca.IsActive);
 
@@ -83,17 +85,16 @@ namespace FinanceBank.Services
             if (string.IsNullOrWhiteSpace(depositMethod))
                 return (false, "Deposit method is required", null, "");
 
-            if (_context == null)
-                return (false, "Database context is not configured", null, "");
+            using var context = await _contextFactory.CreateDbContextAsync();
 
-            var account = await _context.CustomerAccounts
+            var account = await context.CustomerAccounts
                 .Include(ca => ca.Customer)
                 .FirstOrDefaultAsync(ca => ca.AccountNumber == accountNumber && ca.IsActive);
 
             if (account == null)
                 return (false, "Account not found or inactive", null, "");
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            using var transaction = await context.Database.BeginTransactionAsync();
 
             try
             {
@@ -109,7 +110,7 @@ namespace FinanceBank.Services
                 string receiptNumber = GenerateReceiptNumber("DEP");
 
                 // Get employee ID for the current user
-                int? employeeId = await GetEmployeeIdForCurrentUserAsync();
+                int? employeeId = await GetEmployeeIdForCurrentUserAsync(context);
 
                 // Create transaction record
                 var customerTransaction = new CustomerTransaction
@@ -127,8 +128,8 @@ namespace FinanceBank.Services
                     ProcessedByEmployeeId = employeeId
                 };
 
-                _context.CustomerTransactions.Add(customerTransaction);
-                await _context.SaveChangesAsync();
+                context.CustomerTransactions.Add(customerTransaction);
+                await context.SaveChangesAsync();
 
                 // Create invoice record
                 await _invoiceService.CreateDepositInvoiceAsync(
@@ -153,21 +154,24 @@ namespace FinanceBank.Services
 
         /// <summary>
         /// Verify customer password for withdrawal authorization (security)
+        /// This verifies the password WITHOUT logging in the customer
         /// </summary>
         public async Task<(bool success, string message, int attemptCount)> VerifyCustomerPasswordAsync(string accountNumber, string password)
         {
             if (string.IsNullOrWhiteSpace(accountNumber) || string.IsNullOrWhiteSpace(password))
                 return (false, "Account number and password are required", 0);
 
-            var account = await _context.CustomerAccounts
+            using var context = await _contextFactory.CreateDbContextAsync();
+            var account = await context.CustomerAccounts
                 .Include(ca => ca.Customer)
                 .FirstOrDefaultAsync(ca => ca.AccountNumber == accountNumber && ca.IsActive);
 
             if (account?.Customer == null)
                 return (false, "Account not found", 0);
 
-            // Verify password using AuthService
-            var (isValidPassword, authMessage) = await _authService.AuthenticateAsync(account.Customer.Username, password);
+            // Verify password using VerifyPasswordOnlyAsync - this does NOT log in the customer
+            // The teller remains logged in
+            var (isValidPassword, authMessage) = await _authService.VerifyPasswordOnlyAsync(account.Customer.Username, password);
 
             if (!isValidPassword)
             {
@@ -212,10 +216,9 @@ namespace FinanceBank.Services
             if (string.IsNullOrWhiteSpace(withdrawalMethod))
                 return (false, "Withdrawal method is required", null, "");
 
-            if (_context == null)
-                return (false, "Database context is not configured", null, "");
+            using var context = await _contextFactory.CreateDbContextAsync();
 
-            var account = await _context.CustomerAccounts
+            var account = await context.CustomerAccounts
                 .Include(ca => ca.Customer)
                 .FirstOrDefaultAsync(ca => ca.AccountNumber == accountNumber && ca.IsActive);
 
@@ -229,7 +232,7 @@ namespace FinanceBank.Services
             if (account.AvailableBalance < amount)
                 return (false, $"Insufficient balance. Available: ₱{account.AvailableBalance:N2}", null, "");
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            using var transaction = await context.Database.BeginTransactionAsync();
 
             try
             {
@@ -245,7 +248,7 @@ namespace FinanceBank.Services
                 string receiptNumber = GenerateReceiptNumber("WDR");
 
                 // Get employee ID for the current user
-                int? employeeId = await GetEmployeeIdForCurrentUserAsync();
+                int? employeeId = await GetEmployeeIdForCurrentUserAsync(context);
 
                 // Create transaction record
                 var customerTransaction = new CustomerTransaction
@@ -263,8 +266,8 @@ namespace FinanceBank.Services
                     ProcessedByEmployeeId = employeeId
                 };
 
-                _context.CustomerTransactions.Add(customerTransaction);
-                await _context.SaveChangesAsync();
+                context.CustomerTransactions.Add(customerTransaction);
+                await context.SaveChangesAsync();
 
                 // Create invoice record
                 await _invoiceService.CreateWithdrawalInvoiceAsync(
@@ -292,7 +295,8 @@ namespace FinanceBank.Services
         /// </summary>
         public async Task<List<CustomerTransaction>> GetAccountTransactionHistoryAsync(int accountId, int limit = 50)
         {
-            return await _context.CustomerTransactions
+            using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.CustomerTransactions
                 .Where(ct => ct.AccountId == accountId)
                 .OrderByDescending(ct => ct.CreatedAt)
                 .Take(limit)
@@ -306,7 +310,8 @@ namespace FinanceBank.Services
         {
             var today = DateTime.Now.Date;
 
-            var transactions = await _context.CustomerTransactions
+            using var context = await _contextFactory.CreateDbContextAsync();
+            var transactions = await context.CustomerTransactions
                 .Include(ct => ct.Account)
                 .ThenInclude(ca => ca.Customer)
                 .Where(ct => ct.CreatedAt.Date == today)
@@ -344,7 +349,7 @@ namespace FinanceBank.Services
         /// Get the Employee ID for the current authenticated user
         /// Joins Users → Employees to get the EmployeeId
         /// </summary>
-        private async Task<int?> GetEmployeeIdForCurrentUserAsync()
+        private async Task<int?> GetEmployeeIdForCurrentUserAsync(BFASDbContext context)
         {
             try
             {
@@ -353,7 +358,7 @@ namespace FinanceBank.Services
 
                 var userId = _authService.CurrentUserId.Value;
 
-                var employee = await _context.Employees
+                var employee = await context.Employees
                     .Where(e => e.UserId == userId)
                     .FirstOrDefaultAsync();
 
@@ -385,7 +390,8 @@ namespace FinanceBank.Services
         {
             try
             {
-                var account = await _context.CustomerAccounts
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var account = await context.CustomerAccounts
                     .Include(ca => ca.Customer)
                     .FirstOrDefaultAsync(ca => ca.AccountId == accountId);
 
@@ -413,8 +419,8 @@ namespace FinanceBank.Services
                     CreatedAt = DateTime.Now
                 };
 
-                _context.Invoices.Add(invoice);
-                await _context.SaveChangesAsync();
+                context.Invoices.Add(invoice);
+                await context.SaveChangesAsync();
 
                 return (true, invoice, "Invoice generated successfully");
             }
@@ -429,7 +435,8 @@ namespace FinanceBank.Services
         /// </summary>
         public async Task<Invoice?> GetInvoiceByNumberAsync(string invoiceNumber)
         {
-            return await _context.Invoices
+            using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.Invoices
                 .Include(i => i.Account)
                 .Include(i => i.Transaction)
                 .FirstOrDefaultAsync(i => i.InvoiceNumber == invoiceNumber);
@@ -440,7 +447,8 @@ namespace FinanceBank.Services
         /// </summary>
         public async Task<List<Invoice>> GetAccountInvoicesAsync(int accountId, int limit = 50)
         {
-            return await _context.Invoices
+            using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.Invoices
                 .Where(i => i.AccountId == accountId)
                 .OrderByDescending(i => i.CreatedAt)
                 .Take(limit)

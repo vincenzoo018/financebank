@@ -1,7 +1,13 @@
 @page "/admin/teller/loan-disbursals"
 @layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
 @inject AuthService AuthService
+@inject LoanProcessService LoanService
+@inject BFASDbContext DbContext
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="admin-page">
     <div class="page-header">
@@ -25,35 +31,50 @@
             <h3>Pending Disbursals</h3>
         </div>
         <div class="card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Contract No</th>
-                        <th>Customer</th>
-                        <th>Disbursal Amount</th>
-                        <th>Account Number</th>
-                        <th>Contract Date</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var disbursal in pendingDisbursals)
-                    {
+            @if (isLoading)
+            {
+                <div class="text-center" style="padding: 40px;">
+                    <p style="color: #6b7280;">Loading approved loans...</p>
+                </div>
+            }
+            else if (!pendingDisbursals.Any())
+            {
+                <div class="text-center" style="padding: 40px;">
+                    <p style="color: #6b7280;">No approved loans pending disbursal</p>
+                </div>
+            }
+            else
+            {
+                <table class="table">
+                    <thead>
                         <tr>
-                            <td><strong>@disbursal.ContractNo</strong></td>
-                            <td>@disbursal.CustomerName</td>
-                            <td style="color: #10b981; font-weight: 600;">₱@disbursal.Amount.ToString("N2")</td>
-                            <td>@disbursal.AccountNumber</td>
-                            <td>@disbursal.ContractDate.ToString("MMM dd, yyyy")</td>
-                            <td><span class="badge badge-warning">Pending Disbursal</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-success" @onclick="() => ShowDisbursalModal(disbursal)">Disburse</button>
-                            </td>
+                            <th>Application No</th>
+                            <th>Customer</th>
+                            <th>Disbursal Amount</th>
+                            <th>Account Number</th>
+                            <th>Approval Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var approval in pendingDisbursals)
+                        {
+                            <tr>
+                                <td><strong>@approval.Application?.ApplicationNumber</strong></td>
+                                <td>@approval.Account?.Customer?.FullName</td>
+                                <td style="color: #10b981; font-weight: 600;">₱@approval.ApprovedAmount?.ToString("N2")</td>
+                                <td>@approval.Account?.AccountNumber</td>
+                                <td>@approval.ApprovalDate.ToString("MMM dd, yyyy")</td>
+                                <td><span class="badge badge-warning">Pending Disbursal</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-success" @onclick="() => ShowDisbursalModal(approval)">Disburse</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
         </div>
     </div>
 
@@ -65,7 +86,7 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Contract No</th>
+                        <th>Application No</th>
                         <th>Customer</th>
                         <th>Amount</th>
                         <th>Disbursed Date</th>
@@ -77,10 +98,10 @@
                     @foreach (var disbursal in completedDisbursals)
                     {
                         <tr>
-                            <td>@disbursal.ContractNo</td>
-                            <td>@disbursal.CustomerName</td>
-                            <td>₱@disbursal.Amount.ToString("N2")</td>
-                            <td>@disbursal.DisbursedDate?.ToString("MMM dd, yyyy HH:mm")</td>
+                            <td>@disbursal.Approval?.Application?.ApplicationNumber</td>
+                            <td>@disbursal.Approval?.Account?.Customer?.FullName</td>
+                            <td>₱@disbursal.DisbursalAmount.ToString("N2")</td>
+                            <td>@disbursal.DisbursalDate.ToString("MMM dd, yyyy HH:mm")</td>
                             <td>@disbursal.ProcessedBy</td>
                             <td><span class="badge badge-success">Disbursed</span></td>
                         </tr>
@@ -91,12 +112,12 @@
     </div>
 </div>
 
-@if (showModal)
+@if (showModal && selectedApproval != null)
 {
     <div class="modal-overlay" @onclick="CloseModal">
         <div class="modal-content" @onclick:stopPropagation>
             <div class="modal-header">
-                <h4>Process Disbursal - @selectedDisbursal?.ContractNo</h4>
+                <h4>Process Disbursal - @selectedApproval.Application?.ApplicationNumber</h4>
                 <button class="close-btn" @onclick="CloseModal">&times;</button>
             </div>
             <div class="modal-body">
@@ -112,15 +133,15 @@
                     <table class="table table-bordered">
                         <tr>
                             <td>Customer Name</td>
-                            <td><strong>@selectedDisbursal?.CustomerName</strong></td>
+                            <td><strong>@selectedApproval.Account?.Customer?.FullName</strong></td>
                         </tr>
                         <tr>
                             <td>Account Number</td>
-                            <td><strong>@selectedDisbursal?.AccountNumber</strong></td>
+                            <td><strong>@selectedApproval.Account?.AccountNumber</strong></td>
                         </tr>
                         <tr>
                             <td>Disbursal Amount</td>
-                            <td style="color: #10b981; font-size: 1.2em;"><strong>₱@selectedDisbursal?.Amount.ToString("N2")</strong></td>
+                            <td style="color: #10b981; font-size: 1.2em;"><strong>₱@disbursalAmount.ToString("N2")</strong></td>
                         </tr>
                     </table>
                 </div>
@@ -148,7 +169,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
-                <button class="btn btn-success" @onclick="ProcessDisbursal" disabled="@(!confirmDisbursal)">
+                <button class="btn btn-success" @onclick="ProcessDisbursal" disabled="@(!confirmDisbursal || string.IsNullOrWhiteSpace(adminReason))">
                     Process Disbursal
                 </button>
             </div>
@@ -158,36 +179,70 @@
 
 @code {
     private bool showModal = false;
-    private DisbursalItem? selectedDisbursal;
+    private LoanApproval? selectedApproval;
+    private Loan? selectedLoan;
     private string adminReason = "";
     private string disbursalMethod = "DirectCredit";
     private string referenceNumber = "";
+    private decimal disbursalAmount = 0;
     private bool confirmDisbursal = false;
     private string message = "";
     private bool isError = false;
+    private bool isLoading = true;
 
-    private List<DisbursalItem> pendingDisbursals = new()
-    {
-        new() { ContractNo = "LN-20240115-001", CustomerName = "Juan Dela Cruz", Amount = 50000, AccountNumber = "SA-001234", ContractDate = DateTime.Now.AddDays(-2) },
-        new() { ContractNo = "LN-20240114-002", CustomerName = "Maria Santos", Amount = 450000, AccountNumber = "SA-005678", ContractDate = DateTime.Now.AddDays(-3) }
-    };
+    private List<LoanApproval> approvedLoans = new();
 
-    private List<DisbursalItem> completedDisbursals = new()
-    {
-        new() { ContractNo = "LN-20240110-001", CustomerName = "Pedro Garcia", Amount = 100000, DisbursedDate = DateTime.Now.AddDays(-5), ProcessedBy = "Admin" }
-    };
+    private IEnumerable<LoanApproval> pendingDisbursals => approvedLoans
+        .Where(a => !DbContext.LoanDisbursals.Any(d => d.LoanId == DbContext.Loans
+            .Where(l => l.ApprovalId == a.ApprovalId)
+            .Select(l => l.LoanId)
+            .FirstOrDefault()));
 
-    protected override void OnInitialized()
+    private List<LoanDisbursal> completedDisbursals = new();
+
+    protected override async Task OnInitializedAsync()
     {
         if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
         {
             Navigation.NavigateTo("/admin/dashboard");
+            return;
+        }
+        
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            approvedLoans = await LoanService.GetApprovedLoansAsync();
+            completedDisbursals = await DbContext.LoanDisbursals
+                .Include(d => d.Approval)
+                    .ThenInclude(a => a.Application)
+                .Include(d => d.Approval)
+                    .ThenInclude(a => a.Account)
+                        .ThenInclude(ac => ac.Customer)
+                .OrderByDescending(d => d.DisbursalDate)
+                .Take(10)
+                .ToListAsync();
+        }
+        catch
+        {
+            message = "Error loading data";
+            isError = true;
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
-    private void ShowDisbursalModal(DisbursalItem disbursal)
+    private void ShowDisbursalModal(LoanApproval approval)
     {
-        selectedDisbursal = disbursal;
+        selectedApproval = approval;
+        selectedLoan = DbContext.Loans.FirstOrDefault(l => l.ApprovalId == approval.ApprovalId);
+        disbursalAmount = approval.ApprovedAmount ?? 0;
         referenceNumber = $"REF-{DateTime.Now:yyyyMMddHHmmss}";
         showModal = true;
     }
@@ -195,35 +250,50 @@
     private void CloseModal()
     {
         showModal = false;
-        selectedDisbursal = null;
+        selectedApproval = null;
+        selectedLoan = null;
         adminReason = "";
         confirmDisbursal = false;
     }
 
-    private void ProcessDisbursal()
+    private async Task ProcessDisbursal()
     {
-        if (string.IsNullOrWhiteSpace(adminReason) || !confirmDisbursal) return;
+        if (string.IsNullOrWhiteSpace(adminReason) || !confirmDisbursal || selectedApproval == null) return;
         
-        if (selectedDisbursal != null)
+        try
         {
-            selectedDisbursal.DisbursedDate = DateTime.Now;
-            selectedDisbursal.ProcessedBy = AuthService.FullName ?? "Admin";
-            completedDisbursals.Insert(0, selectedDisbursal);
-            pendingDisbursals.Remove(selectedDisbursal);
-            message = $"Disbursal of ₱{selectedDisbursal.Amount:N2} processed successfully!";
-            isError = false;
-        }
-        CloseModal();
-    }
+            if (selectedLoan == null)
+            {
+                message = "Error: Loan record not found";
+                isError = true;
+                return;
+            }
 
-    private class DisbursalItem
-    {
-        public string ContractNo { get; set; } = "";
-        public string CustomerName { get; set; } = "";
-        public decimal Amount { get; set; }
-        public string AccountNumber { get; set; } = "";
-        public DateTime ContractDate { get; set; }
-        public DateTime? DisbursedDate { get; set; }
-        public string ProcessedBy { get; set; } = "";
+            var disbursal = new LoanDisbursal
+            {
+                LoanId = selectedLoan.LoanId,
+                ApprovalId = selectedApproval.ApprovalId,
+                DisbursalAmount = disbursalAmount,
+                DisbursalDate = DateTime.Now,
+                DisbursalStatus = "RELEASED",
+                DisbursedTo = disbursalMethod,
+                Reference = $"{referenceNumber} | [ADMIN] {adminReason}",
+                ProcessedBy = AuthService.FullName ?? "Admin"
+            };
+
+            DbContext.LoanDisbursals.Add(disbursal);
+            await DbContext.SaveChangesAsync();
+
+            message = $"Disbursal of ₱{disbursalAmount:N2} processed successfully!";
+            isError = false;
+            
+            await LoadData();
+            CloseModal();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error processing disbursal: {ex.Message}";
+            isError = true;
+        }
     }
 }

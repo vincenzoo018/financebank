@@ -9,7 +9,7 @@ namespace FinanceBank.Services;
 /// </summary>
 public class LoanProcessService
 {
-    private readonly BFASDbContext _context;
+    private readonly IDbContextFactory<BFASDbContext> _contextFactory;
     private const decimal DAILY_PENALTY_RATE = 0.0005m; // 0.05% daily (BPI Standard)
 
     // =====================================================================
@@ -47,9 +47,9 @@ public class LoanProcessService
         public const string DISBURSED = "DISBURSED";
     }
 
-    public LoanProcessService(BFASDbContext context)
+    public LoanProcessService(IDbContextFactory<BFASDbContext> contextFactory)
     {
-        _context = context;
+        _contextFactory = contextFactory;
     }
 
     // =====================================================================
@@ -68,6 +68,7 @@ public class LoanProcessService
         decimal? monthlyIncome,
         string submittedBy)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             // LOAN RESTRICTION CHECK: Block application if user has existing unpaid loans
@@ -106,12 +107,13 @@ public class LoanProcessService
                 throw new InvalidOperationException("You still have an outstanding loan balance. Please fully pay your current loan before applying for a new one.");
             }
 
-            // Also check for pending applications
+            // Also check for pending applications (excluding CANCELLED)
             var hasPendingApplication = await _context.LoanApplications
                 .AnyAsync(a => a.AccountId == accountId &&
                               !a.Status.Contains("REJECTED") &&
                               a.Status != LoanStatus.COMPLETED_RELEASED &&
-                              a.Status != "REJECTED");
+                              a.Status != "REJECTED" &&
+                              a.Status != "CANCELLED");
 
             if (hasPendingApplication)
             {
@@ -168,6 +170,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<LoanApplication> TellerApproveAsync(int applicationId, string approvedBy, string? remarks = null)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var application = await _context.LoanApplications.FindAsync(applicationId);
@@ -207,6 +210,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<LoanApplication> TellerRejectAsync(int applicationId, string rejectionReason, string rejectedBy)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var application = await _context.LoanApplications.FindAsync(applicationId);
@@ -233,6 +237,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<LoanApplication> VerifyIdentityAsync(int applicationId, string verifiedBy)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var application = await _context.LoanApplications.FindAsync(applicationId);
@@ -260,6 +265,7 @@ public class LoanProcessService
         string rejectionReason,
         string rejectedBy)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var application = await _context.LoanApplications.FindAsync(applicationId);
@@ -298,6 +304,7 @@ public class LoanProcessService
         string assessedBy,
         string? remarks = null)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             // Validate application exists
@@ -362,6 +369,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<LoanApplication> AccountantRejectAsync(int applicationId, string rejectionReason, string rejectedBy)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var application = await _context.LoanApplications.FindAsync(applicationId);
@@ -400,6 +408,7 @@ public class LoanProcessService
         string approvedBy,
         string? specialConditions = null)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var assessment = await _context.LoanAssessments.FindAsync(assessmentId);
@@ -465,6 +474,7 @@ public class LoanProcessService
         string declinationReason,
         string declinedBy)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             // Update assessment status (so it doesn't appear in pending list)
@@ -537,6 +547,7 @@ public class LoanProcessService
         string processedBy,
         string? contractReference = null)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var approval = await _context.LoanApprovals
@@ -682,11 +693,15 @@ public class LoanProcessService
     /// </summary>
     public async Task<List<LoanApproval>> GetApprovedLoansForReleaseAsync()
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.LoanApprovals
             .Include(a => a.Assessment)
-            .ThenInclude(a => a.Application)
-            .ThenInclude(a => a.Account)
-            .ThenInclude(a => a.Customer)
+                .ThenInclude(a => a!.Application)
+            .Include(a => a.Account)
+                .ThenInclude(a => a!.Customer)
+            .Include(a => a.Application)
+                .ThenInclude(a => a!.Account)
+                    .ThenInclude(a => a!.Customer)
             .Where(a => a.ApprovalStatus == "APPROVED")
             .Where(a => !_context.LoanDisbursals.Any(d => d.ApprovalId == a.ApprovalId))
             .OrderByDescending(a => a.ApprovalDate)
@@ -707,6 +722,7 @@ public class LoanProcessService
         string disbursedTo,
         string processedBy)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var approval = await _context.LoanApprovals
@@ -791,6 +807,7 @@ public class LoanProcessService
         int termMonths,
         DateTime startDate)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var monthlyRate = interestRate / 100 / 12;
@@ -848,6 +865,7 @@ public class LoanProcessService
         string processedBy,
         string? reference = null)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var loan = await _context.Loans
@@ -987,6 +1005,7 @@ public class LoanProcessService
         decimal penaltyAmount,
         decimal outstandingBalance)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var violation = new LoanViolation
@@ -1037,6 +1056,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<(bool IsEligible, string Reason)> CheckReloamEligibilityAsync(int accountId)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             // Get all loans for customer
@@ -1082,6 +1102,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<LoanApplication?> GetApplicationAsync(int applicationId)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.LoanApplications
             .Include(a => a.Account)
             .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
@@ -1092,6 +1113,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<Loan?> GetLoanAsync(int loanId)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.Loans
             .Include(l => l.Account)
             .Include(l => l.PaymentSchedules)
@@ -1105,6 +1127,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<List<Loan>> GetAccountLoansAsync(int accountId)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.Loans
             .Where(l => l.AccountId == accountId)
             .Include(l => l.PaymentSchedules)
@@ -1117,6 +1140,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<List<LoanPaymentSchedule>> GetPendingPaymentsAsync(int loanId)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.LoanPaymentSchedules
             .Where(s => s.LoanId == loanId && (s.PaymentStatus == "PENDING" || s.PaymentStatus == "OVERDUE"))
             .OrderBy(s => s.DueDate)
@@ -1128,6 +1152,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<List<LoanViolation>> GetLoanViolationsAsync(int loanId)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.LoanViolations
             .Where(v => v.LoanId == loanId)
             .OrderByDescending(v => v.ViolationDate)
@@ -1139,9 +1164,11 @@ public class LoanProcessService
     /// </summary>
     public async Task<List<LoanAssessment>> GetPendingAssessmentsAsync()
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.LoanAssessments
             .Where(a => a.AssessmentStatus == "ASSESSED")
             .Include(a => a.Account)
+                .ThenInclude(a => a!.Customer)
             .Include(a => a.Application)
             .OrderBy(a => a.AssessmentDate)
             .ToListAsync();
@@ -1152,6 +1179,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<List<LoanApproval>> GetApprovedLoansAsync()
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.LoanApprovals
             .Where(a => a.ApprovalStatus == "APPROVED")
             .Include(a => a.Account)
@@ -1168,6 +1196,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<string> PrepareContractAsync(int approvalId)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         var approval = await _context.LoanApprovals
             .Include(a => a.Account)
                 .ThenInclude(a => a!.Customer)
@@ -1336,6 +1365,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<List<Loan>> GetActiveLoansAsync()
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.Loans
             .Where(l => l.Status == "ACTIVE")
             .Include(l => l.Account)
@@ -1352,6 +1382,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<List<Loan>> GetCompletedLoansAsync()
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.Loans
             .Where(l => l.Status == "COMPLETED")
             .Include(l => l.Account)
@@ -1367,6 +1398,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<List<LoanApplication>> GetPendingApplicationsAsync(string role)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         IQueryable<LoanApplication> query = _context.LoanApplications
             .Include(a => a.Account)
             .ThenInclude(a => a.Customer);
@@ -1410,6 +1442,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<LoanApplication> EncodeApplicationAsync(int applicationId, string encodedBy)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var application = await _context.LoanApplications.FindAsync(applicationId);
@@ -1436,6 +1469,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<LoanDisbursal> ReleaseFundsAsync(int approvalId, decimal amount, string disbursedTo, string processedBy)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var approval = await _context.LoanApprovals
@@ -1532,6 +1566,7 @@ public class LoanProcessService
         decimal? balanceBefore = null,
         decimal? balanceAfter = null)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             var history = new LoanTransactionHistory
@@ -1583,6 +1618,7 @@ public class LoanProcessService
         decimal? balanceAfter = null,
         string? notes = null)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         try
         {
             // Get account number
@@ -1632,6 +1668,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<List<LoanTransactionHistory>> GetTransactionHistoryAsync(int? loanId = null, int? accountId = null)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         var query = _context.LoanTransactionHistory.AsQueryable();
 
         if (loanId.HasValue)
@@ -1651,6 +1688,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<LoanInvoice?> GetInvoiceAsync(int invoiceId)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.LoanInvoices
             .Include(i => i.Account)
             .Include(i => i.Loan)
@@ -1662,6 +1700,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<List<LoanInvoice>> GetLoanInvoicesAsync(int loanId)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.LoanInvoices
             .Where(i => i.LoanId == loanId)
             .OrderByDescending(i => i.InvoiceDate)
@@ -1673,6 +1712,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<LoanInvoice?> GetLatestInvoiceAsync(int? paymentId = null, int? disbursalId = null)
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         var query = _context.LoanInvoices.AsQueryable();
 
         if (paymentId.HasValue)
@@ -1689,6 +1729,7 @@ public class LoanProcessService
     /// </summary>
     public async Task<List<LoanApproval>> GetApprovalHistoryAsync()
     {
+        using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.LoanApprovals
             .Include(a => a.Assessment)
             .ThenInclude(a => a.Application)
@@ -1697,6 +1738,159 @@ public class LoanProcessService
             .Where(a => a.ApprovalStatus == "APPROVED" || a.ApprovalStatus == "DECLINED")
             .OrderByDescending(a => a.ApprovalDate)
             .Take(50)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Get pending loan applications for a specific account (customer-side)
+    /// </summary>
+    public async Task<List<LoanApplication>> GetPendingApplicationsByAccountAsync(int accountId)
+    {
+        using var _context = await _contextFactory.CreateDbContextAsync();
+        return await _context.LoanApplications
+            .Where(a => a.AccountId == accountId && 
+                (a.Status == LoanStatus.SUBMITTED ||
+                 a.Status == LoanStatus.PENDING_TELLER_REVIEW ||
+                 a.Status == LoanStatus.VERIFIED ||
+                 a.Status == LoanStatus.ENCODED ||
+                 a.Status == LoanStatus.PENDING_ACCOUNTANT_REVIEW ||
+                 a.Status == LoanStatus.ASSESSED ||
+                 a.Status == LoanStatus.PENDING_FINANCEMANAGER_APPROVAL))
+            .Include(a => a.Account)
+            .ThenInclude(a => a.Customer)
+            .OrderByDescending(a => a.ApplicationDate)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Cancel a loan application (customer-side) - only if still in early stages
+    /// </summary>
+    public async Task<(bool success, string message)> CancelApplicationAsync(int applicationId, int accountId)
+    {
+        using var _context = await _contextFactory.CreateDbContextAsync();
+        try
+        {
+            var application = await _context.LoanApplications.FindAsync(applicationId);
+            if (application == null)
+                return (false, "Application not found.");
+
+            // Verify ownership
+            if (application.AccountId != accountId)
+                return (false, "You are not authorized to cancel this application.");
+
+            // Only allow cancellation if in early stages
+            var cancellableStatuses = new[] { 
+                LoanStatus.SUBMITTED, 
+                LoanStatus.PENDING_TELLER_REVIEW, 
+                LoanStatus.VERIFIED 
+            };
+            
+            if (!cancellableStatuses.Contains(application.Status))
+                return (false, "This application can no longer be cancelled. It has already progressed to assessment stage.");
+
+            application.Status = "CANCELLED";
+            application.RejectionReason = "Cancelled by customer";
+            application.RejectedAt = DateTime.Now;
+            application.RejectedBy = "CUSTOMER";
+
+            await _context.SaveChangesAsync();
+
+            return (true, $"Application {application.ApplicationNumber} has been cancelled successfully.");
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Error cancelling application: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Update a loan application (customer-side) - only if still in early stages
+    /// </summary>
+    public async Task<(bool success, string message)> UpdateApplicationAsync(
+        int applicationId, 
+        int accountId,
+        decimal? newAmount = null,
+        string? newPurpose = null,
+        string? newEmploymentStatus = null,
+        decimal? newMonthlyIncome = null)
+    {
+        using var _context = await _contextFactory.CreateDbContextAsync();
+        try
+        {
+            var application = await _context.LoanApplications.FindAsync(applicationId);
+            if (application == null)
+                return (false, "Application not found.");
+
+            // Verify ownership
+            if (application.AccountId != accountId)
+                return (false, "You are not authorized to update this application.");
+
+            // Only allow updates if in early stages
+            var editableStatuses = new[] { 
+                LoanStatus.SUBMITTED, 
+                LoanStatus.PENDING_TELLER_REVIEW 
+            };
+            
+            if (!editableStatuses.Contains(application.Status))
+                return (false, "This application can no longer be edited. It has already progressed beyond the initial review stage.");
+
+            // Update fields if provided
+            if (newAmount.HasValue && newAmount.Value > 0)
+                application.RequestedAmount = newAmount.Value;
+            
+            if (!string.IsNullOrWhiteSpace(newPurpose))
+                application.Purpose = newPurpose;
+            
+            if (!string.IsNullOrWhiteSpace(newEmploymentStatus))
+                application.EmploymentStatus = newEmploymentStatus;
+            
+            if (newMonthlyIncome.HasValue && newMonthlyIncome.Value >= 0)
+                application.MonthlyIncome = newMonthlyIncome.Value;
+
+            await _context.SaveChangesAsync();
+
+            return (true, $"Application {application.ApplicationNumber} has been updated successfully.");
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Error updating application: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Get cancelled and rejected loan applications for a specific account (customer-side history)
+    /// </summary>
+    public async Task<List<LoanApplication>> GetCancelledAndRejectedApplicationsByAccountAsync(int accountId)
+    {
+        using var _context = await _contextFactory.CreateDbContextAsync();
+        return await _context.LoanApplications
+            .Where(a => a.AccountId == accountId && 
+                (a.Status == "CANCELLED" ||
+                 a.Status == LoanStatus.REJECTED_TELLER ||
+                 a.Status == LoanStatus.REJECTED_ACCOUNTANT ||
+                 a.Status == LoanStatus.REJECTED_FINANCEMANAGER ||
+                 a.Status == "REJECTED"))
+            .Include(a => a.Account)
+            .ThenInclude(a => a.Customer)
+            .OrderByDescending(a => a.RejectedAt ?? a.ApplicationDate)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Get all cancelled and rejected loan applications (for Teller review history)
+    /// </summary>
+    public async Task<List<LoanApplication>> GetAllCancelledAndRejectedApplicationsAsync()
+    {
+        using var _context = await _contextFactory.CreateDbContextAsync();
+        return await _context.LoanApplications
+            .Where(a => a.Status == "CANCELLED" ||
+                 a.Status == LoanStatus.REJECTED_TELLER ||
+                 a.Status == LoanStatus.REJECTED_ACCOUNTANT ||
+                 a.Status == LoanStatus.REJECTED_FINANCEMANAGER ||
+                 a.Status == "REJECTED")
+            .Include(a => a.Account)
+            .ThenInclude(a => a.Customer)
+            .OrderByDescending(a => a.RejectedAt ?? a.ApplicationDate)
             .ToListAsync();
     }
 }

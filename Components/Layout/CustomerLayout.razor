@@ -2,9 +2,12 @@
 @implements IDisposable
 @using FinanceBank.Services
 @using FinanceBank.Models
+@using FinanceBank.Data
+@using Microsoft.EntityFrameworkCore
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 @inject CustomerBankingService BankingService
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
 
 <div class="sidebar-container">
     <!-- Sidebar -->
@@ -154,7 +157,16 @@
             <div class="topbar-title">@GetPageTitle()</div>
             <div class="topbar-user-menu">
                 <button class="topbar-user-btn" @onclick="() => showUserMenu = !showUserMenu">
-                    <div class="topbar-user-avatar">@userInitials</div>
+                    @if (!string.IsNullOrEmpty(profilePictureUrl))
+                    {
+                        <div class="topbar-user-avatar" style="padding: 0; overflow: hidden;">
+                            <img src="@profilePictureUrl" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="topbar-user-avatar">@userInitials</div>
+                    }
                 </button>
                 @if (showUserMenu)
                 {
@@ -191,6 +203,7 @@
 @code {
     private string customerName = "";
     private string userInitials = "";
+    private string profilePictureUrl = "";
     private decimal sidebarBalance = 0;
     private string maskedAccountNumber = "****";
     private bool showUserMenu = false;
@@ -218,6 +231,31 @@
         }
 
         await LoadAccountBalanceAsync();
+        await LoadProfilePictureAsync();
+    }
+
+    private async Task LoadProfilePictureAsync()
+    {
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            var user = await context.Users
+                .Where(u => u.Username == AuthService.CurrentUser)
+                .Select(u => new { u.ProfilePicture, u.ProfilePictureContentType })
+                .FirstOrDefaultAsync();
+
+            if (user?.ProfilePicture != null && user.ProfilePicture.Length > 0)
+            {
+                var base64 = Convert.ToBase64String(user.ProfilePicture);
+                var contentType = user.ProfilePictureContentType ?? "image/png";
+                profilePictureUrl = $"data:{contentType};base64,{base64}";
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading profile picture: {ex.Message}");
+        }
     }
 
     private async Task LoadAccountBalanceAsync()

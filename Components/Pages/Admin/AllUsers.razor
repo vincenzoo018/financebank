@@ -1,0 +1,372 @@
+@page "/admin/all-users"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject AuthService AuthService
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">All Users</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">View and manage all registered users with their profile details</p>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #2563eb;">
+        <div style="font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 4px; text-transform: uppercase;">TOTAL USERS</div>
+        <div style="font-size: 24px; font-weight: 800; color: #2563eb;">@allUsers.Count</div>
+    </div>
+    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #10b981;">
+        <div style="font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 4px; text-transform: uppercase;">ACTIVE</div>
+        <div style="font-size: 24px; font-weight: 800; color: #10b981;">@allUsers.Count(u => u.IsActive)</div>
+    </div>
+    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #8b5cf6;">
+        <div style="font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 4px; text-transform: uppercase;">EMPLOYEES</div>
+        <div style="font-size: 24px; font-weight: 800; color: #8b5cf6;">@allUsers.Count(u => u.Role != "Customer")</div>
+    </div>
+    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #f59e0b;">
+        <div style="font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 4px; text-transform: uppercase;">CUSTOMERS</div>
+        <div style="font-size: 24px; font-weight: 800; color: #f59e0b;">@allUsers.Count(u => u.Role == "Customer")</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+    <div style="flex: 1 1 200px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Search</label>
+        <input type="text" class="form-control" @bind="searchQuery" @bind:event="oninput" placeholder="Search by name, username, email..."
+            style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; width: 100%;" />
+    </div>
+    <div style="flex: 1 1 150px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Role</label>
+        <select class="form-control" @bind="selectedRole"
+            style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; width: 100%;">
+            <option value="">All Roles</option>
+            <option value="SuperAdmin">SuperAdmin</option>
+            <option value="Accountant">Accountant</option>
+            <option value="FinanceManager">Finance Manager</option>
+            <option value="Teller">Teller</option>
+            <option value="Registrar">Registrar</option>
+            <option value="Customer">Customer</option>
+        </select>
+    </div>
+    <div style="flex: 1 1 150px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Status</label>
+        <select class="form-control" @bind="selectedStatus"
+            style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; width: 100%;">
+            <option value="">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+        </select>
+    </div>
+    <div style="flex: 0 0 auto; display:flex; gap:8px;">
+        <button class="btn"
+            style="background:#2563eb; color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
+            @onclick="ApplyFilters">🔍 Filter</button>
+        <button class="btn"
+            style="background:#e5e7eb; color:#374151; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
+            @onclick="ResetFilters">↻ Reset</button>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">
+            Registered Users
+            <span style="font-size: 14px; font-weight: 400; color: #6b7280;">(@GetFilteredUsers().Count() of @allUsers.Count records)</span>
+        </h2>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <label style="font-size: 12px; color: #6b7280;">Show:</label>
+            <select @bind="pageSize" @bind:event="oninput" @onchange="() => { currentPage = 1; StateHasChanged(); }"
+                style="padding: 6px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 12px;">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">PROFILE</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">USERNAME</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">FULL NAME</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">EMAIL</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">ROLE</th>
+                    <th style="padding: 12px; text-align: center; font-size: 12px; color: #6b7280; font-weight: 600;">STATUS</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">CREATED</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (GetPaginatedUsers().Any())
+                {
+                    @foreach (var user in GetPaginatedUsers())
+                    {
+                        <tr style="border-bottom: 1px solid #e5e7eb; transition: background 0.2s; background: @(hoveredUserId == user.UserId ? "#f9fafb" : "white");" 
+                            @onmouseenter="@(() => hoveredUserId = user.UserId)" 
+                            @onmouseleave="@(() => hoveredUserId = 0)">
+                            <td style="padding: 12px;">
+                                @if (user.ProfilePicture != null && user.ProfilePicture.Length > 0)
+                                {
+                                    var imageUrl = $"data:{user.ProfilePictureContentType};base64,{Convert.ToBase64String(user.ProfilePicture)}";
+                                    <img src="@imageUrl" alt="@user.FullName" 
+                                        style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb;" />
+                                }
+                                else
+                                {
+                                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, @GetRoleColor(user.Role) 0%, @GetRoleColorDark(user.Role) 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">
+                                        @GetInitials(user.FullName ?? user.Username)
+                                    </div>
+                                }
+                            </td>
+                            <td style="padding: 12px; font-size: 13px; color: #3b82f6; font-weight: 500;">@user.Username</td>
+                            <td style="padding: 12px; font-size: 13px; color: #111827; font-weight: 600;">@(user.FullName ?? "-")</td>
+                            <td style="padding: 12px; font-size: 13px; color: #6b7280;">@(user.Email ?? "-")</td>
+                            <td style="padding: 12px;">
+                                <span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; background: @GetRoleBadgeBackground(user.Role); color: @GetRoleBadgeColor(user.Role);">
+                                    @user.Role
+                                </span>
+                            </td>
+                            <td style="padding: 12px; text-align: center;">
+                                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; background: @(user.IsActive ? "#d1fae5" : "#fee2e2"); color: @(user.IsActive ? "#065f46" : "#991b1b");">
+                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: @(user.IsActive ? "#10b981" : "#ef4444");"></span>
+                                    @(user.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td style="padding: 12px; font-size: 13px; color: #6b7280;">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" style="padding: 48px; text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+                            <div style="font-size: 16px; color: #6b7280; margin-bottom: 8px;">No users found</div>
+                            <div style="font-size: 14px; color: #9ca3af;">Try adjusting your filters</div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (GetFilteredUsers().Any())
+    {
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <div style="font-size: 13px; color: #6b7280;">
+                Showing @GetStartRecord() to @GetEndRecord() of @GetFilteredUsers().Count() entries
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn" @onclick="FirstPage" disabled="@(currentPage == 1)"
+                    style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 12px; background: white; color: #374151; cursor: @(currentPage == 1 ? "not-allowed" : "pointer"); opacity: @(currentPage == 1 ? "0.5" : "1");">
+                    ⏮️ First
+                </button>
+                <button class="btn" @onclick="PreviousPage" disabled="@(currentPage == 1)"
+                    style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 12px; background: white; color: #374151; cursor: @(currentPage == 1 ? "not-allowed" : "pointer"); opacity: @(currentPage == 1 ? "0.5" : "1");">
+                    ◀️ Previous
+                </button>
+                
+                @for (int i = GetStartPage(); i <= GetEndPage(); i++)
+                {
+                    var pageNum = i;
+                    <button class="btn" @onclick="() => GoToPage(pageNum)"
+                        style="padding: 8px 12px; border: 1px solid @(currentPage == pageNum ? "#2563eb" : "#e5e7eb"); border-radius: 6px; font-size: 12px; background: @(currentPage == pageNum ? "#2563eb" : "white"); color: @(currentPage == pageNum ? "white" : "#374151"); font-weight: @(currentPage == pageNum ? "600" : "400"); cursor: pointer;">
+                        @pageNum
+                    </button>
+                }
+                
+                <button class="btn" @onclick="NextPage" disabled="@(currentPage == totalPages)"
+                    style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 12px; background: white; color: #374151; cursor: @(currentPage == totalPages ? "not-allowed" : "pointer"); opacity: @(currentPage == totalPages ? "0.5" : "1");">
+                    Next ▶️
+                </button>
+                <button class="btn" @onclick="LastPage" disabled="@(currentPage == totalPages)"
+                    style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 12px; background: white; color: #374151; cursor: @(currentPage == totalPages ? "not-allowed" : "pointer"); opacity: @(currentPage == totalPages ? "0.5" : "1");">
+                    Last ⏭️
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<AuthUser> allUsers = new();
+    private string searchQuery = "";
+    private string selectedRole = "";
+    private string selectedStatus = "";
+    private int currentPage = 1;
+    private int pageSize = 25;
+    private int totalPages = 1;
+    private int hoveredUserId = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            allUsers = await context.Users
+                .OrderByDescending(u => u.CreatedAt)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading users: {ex.Message}");
+            allUsers = new List<AuthUser>();
+        }
+    }
+
+    private List<AuthUser> GetFilteredUsers()
+    {
+        var filtered = allUsers.AsEnumerable();
+
+        // Search filter
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            var search = searchQuery.ToLower();
+            filtered = filtered.Where(u =>
+                (u.Username?.ToLower().Contains(search) ?? false) ||
+                (u.FullName?.ToLower().Contains(search) ?? false) ||
+                (u.Email?.ToLower().Contains(search) ?? false)
+            );
+        }
+
+        // Role filter
+        if (!string.IsNullOrEmpty(selectedRole))
+        {
+            filtered = filtered.Where(u => u.Role == selectedRole);
+        }
+
+        // Status filter
+        if (!string.IsNullOrEmpty(selectedStatus))
+        {
+            bool isActive = selectedStatus == "Active";
+            filtered = filtered.Where(u => u.IsActive == isActive);
+        }
+
+        var result = filtered.ToList();
+        totalPages = (int)Math.Ceiling((double)result.Count / pageSize);
+        return result;
+    }
+
+    private List<AuthUser> GetPaginatedUsers()
+    {
+        var filtered = GetFilteredUsers();
+        return filtered
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+    }
+
+    private async Task ApplyFilters()
+    {
+        currentPage = 1;
+        await Task.CompletedTask;
+        StateHasChanged();
+    }
+
+    private async Task ResetFilters()
+    {
+        searchQuery = "";
+        selectedRole = "";
+        selectedStatus = "";
+        currentPage = 1;
+        await Task.CompletedTask;
+        StateHasChanged();
+    }
+
+    private void FirstPage() => currentPage = 1;
+    private void LastPage() => currentPage = totalPages;
+    private void NextPage() { if (currentPage < totalPages) currentPage++; }
+    private void PreviousPage() { if (currentPage > 1) currentPage--; }
+    private void GoToPage(int page) => currentPage = page;
+
+    private int GetStartRecord() => (currentPage - 1) * pageSize + 1;
+    private int GetEndRecord() => Math.Min(currentPage * pageSize, GetFilteredUsers().Count);
+
+    private int GetStartPage()
+    {
+        int start = Math.Max(1, currentPage - 2);
+        return Math.Min(start, Math.Max(1, totalPages - 4));
+    }
+
+    private int GetEndPage()
+    {
+        return Math.Min(totalPages, GetStartPage() + 4);
+    }
+
+    private string GetInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "U";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1) return parts[0].Substring(0, 1).ToUpper();
+        return (parts[0].Substring(0, 1) + parts[^1].Substring(0, 1)).ToUpper();
+    }
+
+    private string GetRoleColor(string? role) => role switch
+    {
+        "SuperAdmin" => "#dc2626",
+        "Accountant" => "#8b5cf6",
+        "FinanceManager" => "#f59e0b",
+        "Teller" => "#10b981",
+        "Registrar" => "#3b82f6",
+        "Customer" => "#6b7280",
+        _ => "#6b7280"
+    };
+
+    private string GetRoleColorDark(string? role) => role switch
+    {
+        "SuperAdmin" => "#991b1b",
+        "Accountant" => "#6b21a8",
+        "FinanceManager" => "#d97706",
+        "Teller" => "#059669",
+        "Registrar" => "#1e40af",
+        "Customer" => "#4b5563",
+        _ => "#4b5563"
+    };
+
+    private string GetRoleBadgeBackground(string? role) => role switch
+    {
+        "SuperAdmin" => "#fee2e2",
+        "Accountant" => "#ede9fe",
+        "FinanceManager" => "#fef3c7",
+        "Teller" => "#d1fae5",
+        "Registrar" => "#dbeafe",
+        "Customer" => "#f3f4f6",
+        _ => "#f3f4f6"
+    };
+
+    private string GetRoleBadgeColor(string? role) => role switch
+    {
+        "SuperAdmin" => "#991b1b",
+        "Accountant" => "#5b21b6",
+        "FinanceManager" => "#92400e",
+        "Teller" => "#065f46",
+        "Registrar" => "#1e40af",
+        "Customer" => "#4b5563",
+        _ => "#4b5563"
+    };
+}

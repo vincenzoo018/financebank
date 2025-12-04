@@ -1,6 +1,9 @@
 @page "/admin/finance-mgr/accounts-payable"
 @layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
 @inject AuthService AuthService
+@inject AccountsPayableService AccountsPayableService
 @inject NavigationManager Navigation
 
 <div class="admin-page finance-mgr-page">
@@ -188,19 +191,46 @@
     private string adminActionReason = "";
     private string searchQuery = "";
     private string statusFilter = "";
+    private bool isLoading = true;
     
-    private decimal totalPending = 450000.00m;
-    private decimal dueThisWeek = 125000.00m;
-    private decimal overdue = 35000.00m;
+    private decimal totalPending = 0;
+    private decimal dueThisWeek = 0;
+    private decimal overdue = 0;
 
-    private List<PayableItem> payables = new()
+    private List<FinanceBank.Models.AccountsPayable> payables = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        new() { InvoiceNumber = "INV-2024-001", VendorName = "Office Supplies Co.", Amount = 25000, DueDate = DateTime.Now.AddDays(7), Status = "Pending" },
-        new() { InvoiceNumber = "INV-2024-002", VendorName = "IT Solutions Inc.", Amount = 85000, DueDate = DateTime.Now.AddDays(14), Status = "Approved" },
-        new() { InvoiceNumber = "INV-2024-003", VendorName = "Security Services", Amount = 45000, DueDate = DateTime.Now.AddDays(-3), Status = "Overdue" },
-        new() { InvoiceNumber = "INV-2024-004", VendorName = "Utilities Provider", Amount = 32000, DueDate = DateTime.Now.AddDays(5), Status = "Pending" },
-        new() { InvoiceNumber = "INV-2024-005", VendorName = "Maintenance Corp.", Amount = 18000, DueDate = DateTime.Now.AddDays(-1), Status = "Paid" }
-    };
+        await LoadPayables();
+    }
+
+    private async Task LoadPayables()
+    {
+        isLoading = true;
+        try
+        {
+            payables = await AccountsPayableService.GetAllAsync();
+            CalculateStats();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading payables: {ex.Message}");
+            payables = new List<FinanceBank.Models.AccountsPayable>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void CalculateStats()
+    {
+        var today = DateTime.Today;
+        var weekEnd = today.AddDays(7);
+        totalPending = payables.Where(p => p.Status == "Pending Review").Sum(p => p.Amount);
+        dueThisWeek = payables.Where(p => p.DueDate <= weekEnd && p.DueDate >= today).Sum(p => p.Amount);
+        overdue = payables.Where(p => p.DueDate < today && p.Status != "Paid").Sum(p => p.Amount);
+    }
 
     protected override void OnInitialized()
     {
@@ -224,30 +254,32 @@
         // TODO: Open new payable modal
     }
 
-    private void ViewDetails(PayableItem payable)
+    private void ViewDetails(FinanceBank.Models.AccountsPayable payable)
     {
         // TODO: View payable details
     }
 
-    private void ApprovePayable(PayableItem payable)
+    private async Task ApprovePayable(FinanceBank.Models.AccountsPayable payable)
     {
         if (string.IsNullOrWhiteSpace(adminActionReason))
         {
             return;
         }
         payable.Status = "Approved";
+        await LoadPayables();
     }
 
-    private void ProcessPayment(PayableItem payable)
+    private async Task ProcessPayment(FinanceBank.Models.AccountsPayable payable)
     {
         if (string.IsNullOrWhiteSpace(adminActionReason))
         {
             return;
         }
         payable.Status = "Paid";
+        await LoadPayables();
     }
 
-    private class PayableItem
+    private class PayableItemOld
     {
         public string InvoiceNumber { get; set; } = "";
         public string VendorName { get; set; } = "";
