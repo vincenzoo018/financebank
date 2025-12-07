@@ -7,18 +7,21 @@ namespace FinanceBank.Services
 {
     /// <summary>
     /// Service for Teller and Admin to process customer deposits and withdrawals
+    /// Automatically posts to General Ledger for accounting.
     /// </summary>
     public class TellerBankingService
     {
         private readonly IDbContextFactory<BFASDbContext> _contextFactory;
         private readonly AuthService _authService;
         private readonly InvoiceService _invoiceService;
+        private readonly AutomaticGLPostingService _glPostingService;
 
-        public TellerBankingService(IDbContextFactory<BFASDbContext> contextFactory, AuthService authService, InvoiceService invoiceService)
+        public TellerBankingService(IDbContextFactory<BFASDbContext> contextFactory, AuthService authService, InvoiceService invoiceService, AutomaticGLPostingService glPostingService)
         {
             _contextFactory = contextFactory;
             _authService = authService;
             _invoiceService = invoiceService;
+            _glPostingService = glPostingService;
         }
 
         /// <summary>
@@ -31,8 +34,8 @@ namespace FinanceBank.Services
 
             using var context = await _contextFactory.CreateDbContextAsync();
             var results = await context.CustomerAccounts
-                .Where(ca => ca.Customer != null && 
-                       (ca.Customer.FullName.Contains(searchTerm) || 
+                .Where(ca => ca.Customer != null &&
+                       (ca.Customer.FullName.Contains(searchTerm) ||
                         ca.AccountNumber.Contains(searchTerm)) &&
                        ca.IsActive)
                 .Select(ca => new
@@ -142,6 +145,19 @@ namespace FinanceBank.Services
                     notes);
 
                 await transaction.CommitAsync();
+
+                // Post to General Ledger automatically
+                try
+                {
+                    var customerName = account.Customer?.FullName ?? $"Account #{account.AccountId}";
+                    await _glPostingService.PostDepositAsync(
+                        customerTransaction.TransactionId,
+                        customerTransaction.TransactionNumber,
+                        amount,
+                        customerName,
+                        customerTransaction.ProcessedAt ?? DateTime.Now);
+                }
+                catch { /* GL posting failure should not affect transaction */ }
 
                 return (true, $"Deposit of ₱{amount:N2} processed successfully", customerTransaction, receiptNumber);
             }
@@ -280,6 +296,19 @@ namespace FinanceBank.Services
                     notes);
 
                 await transaction.CommitAsync();
+
+                // Post to General Ledger automatically
+                try
+                {
+                    var customerName = account.Customer?.FullName ?? $"Account #{account.AccountId}";
+                    await _glPostingService.PostWithdrawalAsync(
+                        customerTransaction.TransactionId,
+                        customerTransaction.TransactionNumber,
+                        amount,
+                        customerName,
+                        customerTransaction.ProcessedAt ?? DateTime.Now);
+                }
+                catch { /* GL posting failure should not affect transaction */ }
 
                 return (true, $"Withdrawal of ₱{amount:N2} processed successfully", customerTransaction, receiptNumber);
             }

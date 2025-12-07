@@ -63,46 +63,29 @@
 </div>
 
 <!-- Statistics Cards -->
-<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px;">
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px;">
     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #f59e0b;">
-        <div style="font-size: 13px; color: #92400e; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">⏳ Pending</div>
+        <div style="font-size: 13px; color: #92400e; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">⏳ Pending Approval</div>
         <div style="font-size: 32px; font-weight: 700; color: #f59e0b;">@pendingAssessments.Count</div>
+        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Awaiting your review</div>
     </div>
     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #059669;">
         <div style="font-size: 13px; color: #065f46; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">✓ Approved</div>
         <div style="font-size: 32px; font-weight: 700; color: #059669;">@approvedCount</div>
+        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Successfully approved</div>
     </div>
     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #dc2626;">
         <div style="font-size: 13px; color: #991b1b; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">✗ Declined</div>
         <div style="font-size: 32px; font-weight: 700; color: #dc2626;">@declinedCount</div>
-    </div>
-    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #6366f1;">
-        <div style="font-size: 13px; color: #4338ca; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">📨 From Accountant</div>
-        <div style="font-size: 32px; font-weight: 700; color: #6366f1;">@fromAccountantCount</div>
+        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Applications declined</div>
     </div>
 </div>
 
-<!-- Tab Navigation -->
-<div style="display: flex; gap: 8px; margin-bottom: 24px; background: white; padding: 8px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-    <button @onclick='() => SetActiveTab("pending")' 
-        style="flex: 1; padding: 14px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; @(activeTab == "pending" ? "background: linear-gradient(135deg, #4a7c59, #5d8a6b); color: white;" : "background: transparent; color: #64748b;")">
-        ⏳ Pending Approvals (@pendingAssessments.Count)
-    </button>
-    <button @onclick='() => SetActiveTab("accountant")'
-        style="flex: 1; padding: 14px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; @(activeTab == "accountant" ? "background: linear-gradient(135deg, #4a7c59, #5d8a6b); color: white;" : "background: transparent; color: #64748b;")">
-        📨 From Accountant (@fromAccountantCount)
-    </button>
-</div>
-
-<!-- Content Area -->
+<!-- Content Area - Unified Pending Approvals -->
 <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
     <div style="background: linear-gradient(135deg, #4a7c59, #5d8a6b); color: white; padding: 20px 24px;">
-        <h4 style="margin: 0; font-weight: 600; font-size: 18px;">
-            @(activeTab == "pending" ? "📋 Pending Loan Assessments" : "📨 Items From Accountant")
-        </h4>
-        <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">
-            @(activeTab == "pending" ? "Review and make approval decisions" : "Review items submitted by Accountant for your approval")
-        </p>
+        <h4 style="margin: 0; font-weight: 600; font-size: 18px;">📋 Pending Loan Approvals</h4>
+        <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">Review assessed loans and make approval decisions</p>
     </div>
 
     <div style="padding: 24px;">
@@ -113,125 +96,67 @@
                 <p style="margin-top: 16px; color: #6b7280;">Loading...</p>
             </div>
         }
-        else if (activeTab == "pending")
+        else if (!pendingAssessments.Any())
         {
-            @if (!pendingAssessments.Any())
-            {
-                <div style="text-align: center; padding: 60px;">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin: 0 auto 16px;">
-                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <p style="color: #6b7280; font-size: 16px;">No pending assessments</p>
-                    <p style="color: #9ca3af; font-size: 14px;">All loan assessments have been processed</p>
-                </div>
-            }
-            else
-            {
-                <div style="display: grid; gap: 16px;">
-                    @foreach (var assessment in pendingAssessments)
-                    {
-                        <div style="border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s;" 
-                            @onclick="() => OpenApprovalModal(assessment)"
-                            onmouseover="this.style.borderColor='#4a7c59'; this.style.boxShadow='0 4px 12px rgba(74,124,89,0.15)'" 
-                            onmouseout="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div style="flex: 1;">
-                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                        <span style="background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
-                                            @assessment.Application?.ApplicationNumber
-                                        </span>
-                                        <span style="font-size: 13px; color: #6b7280;">
-                                            @assessment.AssessmentDate.ToString("MMM dd, yyyy")
-                                        </span>
-                                    </div>
-                                    <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">
-                                        @(assessment.Account?.Customer?.FullName ?? "Unknown Customer")
-                                    </h3>
-                                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
-                                        <div>
-                                            <span style="font-size: 12px; color: #6b7280; display: block;">Loan Type</span>
-                                            <span style="font-size: 14px; font-weight: 600; color: #1e293b;">@assessment.Application?.LoanType</span>
-                                        </div>
-                                        <div>
-                                            <span style="font-size: 12px; color: #6b7280; display: block;">Amount</span>
-                                            <span style="font-size: 14px; font-weight: 700; color: #059669;">₱@assessment.LoanAmount.ToString("N2")</span>
-                                        </div>
-                                        <div>
-                                            <span style="font-size: 12px; color: #6b7280; display: block;">Monthly Payment</span>
-                                            <span style="font-size: 14px; font-weight: 600; color: #1e293b;">₱@assessment.ComputedMonthlyPayment.ToString("N2")</span>
-                                        </div>
-                                        <div>
-                                            <span style="font-size: 12px; color: #6b7280; display: block;">Assessed By</span>
-                                            <span style="font-size: 14px; font-weight: 600; color: #1e293b;">@assessment.AssessedBy</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button style="background: linear-gradient(135deg, #4a7c59, #5d8a6b); color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                                    Review →
-                                </button>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
+            <div style="text-align: center; padding: 60px;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin: 0 auto 16px;">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p style="color: #6b7280; font-size: 16px;">No pending approvals</p>
+                <p style="color: #9ca3af; font-size: 14px;">All loan assessments have been processed</p>
+            </div>
         }
         else
         {
-            <!-- Items from Accountant -->
-            @if (!itemsFromAccountant.Any())
-            {
-                <div style="text-align: center; padding: 60px;">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin: 0 auto 16px;">
-                        <path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                    </svg>
-                    <p style="color: #6b7280; font-size: 16px;">No items from Accountant</p>
-                    <p style="color: #9ca3af; font-size: 14px;">Items submitted by Accountant will appear here</p>
-                </div>
-            }
-            else
-            {
-                <div style="display: grid; gap: 16px;">
-                    @foreach (var item in itemsFromAccountant)
-                    {
-                        <div style="border: 2px solid #c7d2fe; border-radius: 12px; padding: 20px; background: #eef2ff;">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div style="flex: 1;">
-                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                        <span style="background: #c7d2fe; color: #4338ca; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
-                                            📨 From Accountant
-                                        </span>
-                                        <span style="font-size: 13px; color: #6b7280;">
-                                            @item.SubmittedAt.ToString("MMM dd, yyyy")
-                                        </span>
-                                    </div>
-                                    <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">
-                                        @item.Reference
-                                    </h3>
-                                    <p style="color: #64748b; margin-bottom: 12px;">@item.Description</p>
-                                    <div style="display: flex; gap: 16px;">
-                                        <div>
-                                            <span style="font-size: 12px; color: #6b7280; display: block;">Amount</span>
-                                            <span style="font-size: 14px; font-weight: 700; color: #059669;">₱@item.Amount.ToString("N2")</span>
-                                        </div>
-                                        <div>
-                                            <span style="font-size: 12px; color: #6b7280; display: block;">Submitted By</span>
-                                            <span style="font-size: 14px; font-weight: 600; color: #1e293b;">@item.SubmittedBy</span>
-                                        </div>
-                                    </div>
+            <div style="display: grid; gap: 16px;">
+                @foreach (var assessment in pendingAssessments)
+                {
+                    <div style="border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s;" 
+                        @onclick="() => OpenApprovalModal(assessment)"
+                        onmouseover="this.style.borderColor='#4a7c59'; this.style.boxShadow='0 4px 12px rgba(74,124,89,0.15)'" 
+                        onmouseout="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                    <span style="background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                        @assessment.Application?.ApplicationNumber
+                                    </span>
+                                    <span style="background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                        📋 Assessed by @assessment.AssessedBy
+                                    </span>
+                                    <span style="font-size: 13px; color: #6b7280;">
+                                        @assessment.AssessmentDate.ToString("MMM dd, yyyy")
+                                    </span>
                                 </div>
-                                <div style="display: flex; gap: 8px;">
-                                    <button @onclick="() => ApproveFromAccountant(item)" style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                                        ✓ Approve
-                                    </button>
-                                    <button @onclick="() => DeclineFromAccountant(item)" style="background: linear-gradient(135deg, #dc2626, #ef4444); color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                                        ✗ Decline
-                                    </button>
+                                <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">
+                                    @(assessment.Account?.Customer?.FullName ?? "Unknown Customer")
+                                </h3>
+                                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+                                    <div>
+                                        <span style="font-size: 12px; color: #6b7280; display: block;">Loan Type</span>
+                                        <span style="font-size: 14px; font-weight: 600; color: #1e293b;">@assessment.Application?.LoanType</span>
+                                    </div>
+                                    <div>
+                                        <span style="font-size: 12px; color: #6b7280; display: block;">Amount</span>
+                                        <span style="font-size: 14px; font-weight: 700; color: #059669;">₱@assessment.LoanAmount.ToString("N2")</span>
+                                    </div>
+                                    <div>
+                                        <span style="font-size: 12px; color: #6b7280; display: block;">Monthly Payment</span>
+                                        <span style="font-size: 14px; font-weight: 600; color: #1e293b;">₱@assessment.ComputedMonthlyPayment.ToString("N2")</span>
+                                    </div>
+                                    <div>
+                                        <span style="font-size: 12px; color: #6b7280; display: block;">Term</span>
+                                        <span style="font-size: 14px; font-weight: 600; color: #1e293b;">@assessment.TermMonths months</span>
+                                    </div>
                                 </div>
                             </div>
+                            <button style="background: linear-gradient(135deg, #4a7c59, #5d8a6b); color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                Review →
+                            </button>
                         </div>
-                    }
-                </div>
-            }
+                    </div>
+                }
+            </div>
         }
     </div>
 </div>
@@ -463,7 +388,7 @@
 @if (showHistoryModal)
 {
     <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-        <div style="background: white; border-radius: 20px; max-width: 900px; width: 95%; max-height: 85vh; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+        <div style="background: white; border-radius: 20px; max-width: 1100px; width: 96%; max-height: 92vh; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
             <!-- Modal Header -->
             <div style="background: linear-gradient(135deg, #4a7c59, #5d8a6b); color: white; padding: 24px 32px; display: flex; justify-content: space-between; align-items: center;">
                 <div>
@@ -473,17 +398,72 @@
                 <button @onclick="CloseHistoryModal" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px;">×</button>
             </div>
 
-            <!-- Filter Tabs -->
-            <div style="padding: 16px 32px; background: #f8fafc; display: flex; gap: 12px; border-bottom: 1px solid #e5e7eb;">
-                <button @onclick='() => SetHistoryFilter("ALL")' style="padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(historyFilter == "ALL" ? "background: linear-gradient(135deg, #4a7c59, #5d8a6b); color: white;" : "background: white; color: #64748b; border: 2px solid #e5e7eb;")">
-                    All History
-                </button>
-                <button @onclick='() => SetHistoryFilter("APPROVED")' style="padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(historyFilter == "APPROVED" ? "background: linear-gradient(135deg, #059669, #10b981); color: white;" : "background: white; color: #64748b; border: 2px solid #e5e7eb;")">
-                    ✓ Approved
-                </button>
-                <button @onclick='() => SetHistoryFilter("DECLINED")' style="padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(historyFilter == "DECLINED" ? "background: linear-gradient(135deg, #dc2626, #ef4444); color: white;" : "background: white; color: #64748b; border: 2px solid #e5e7eb;")">
-                    ✗ Declined
-                </button>
+            <!-- Filter Section -->
+            <div style="padding: 16px 32px; background: #f8fafc; display: flex; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid #e5e7eb; align-items: center;">
+                <!-- Status Filter Tabs -->
+                <div style="display: flex; gap: 8px;">
+                    <button @onclick='() => SetHistoryFilter("ALL")' style="padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(historyFilter == "ALL" ? "background: linear-gradient(135deg, #4a7c59, #5d8a6b); color: white;" : "background: white; color: #64748b; border: 2px solid #e5e7eb;")">
+                        All History
+                    </button>
+                    <button @onclick='() => SetHistoryFilter("APPROVED")' style="padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(historyFilter == "APPROVED" ? "background: linear-gradient(135deg, #059669, #10b981); color: white;" : "background: white; color: #64748b; border: 2px solid #e5e7eb;")">
+                        ✓ Approved
+                    </button>
+                    <button @onclick='() => SetHistoryFilter("DECLINED")' style="padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(historyFilter == "DECLINED" ? "background: linear-gradient(135deg, #dc2626, #ef4444); color: white;" : "background: white; color: #64748b; border: 2px solid #e5e7eb;")">
+                        ✗ Declined
+                    </button>
+                </div>
+
+                <!-- Divider -->
+                <div style="width: 1px; height: 36px; background: #d1d5db;"></div>
+
+                <!-- Date Range Filter -->
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="font-size: 13px; color: #6b7280; font-weight: 600;">📅 Date:</span>
+                    <button @onclick='() => SetDateFilter("TODAY")' style="padding: 8px 16px; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 13px; @(historyDateFilter == "TODAY" ? "background: #3b82f6; color: white;" : "background: white; color: #64748b; border: 1px solid #d1d5db;")">
+                        Today
+                    </button>
+                    <button @onclick='() => SetDateFilter("WEEK")' style="padding: 8px 16px; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 13px; @(historyDateFilter == "WEEK" ? "background: #3b82f6; color: white;" : "background: white; color: #64748b; border: 1px solid #d1d5db;")">
+                        This Week
+                    </button>
+                    <button @onclick='() => SetDateFilter("MONTH")' style="padding: 8px 16px; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 13px; @(historyDateFilter == "MONTH" ? "background: #3b82f6; color: white;" : "background: white; color: #64748b; border: 1px solid #d1d5db;")">
+                        This Month
+                    </button>
+                    <button @onclick='() => SetDateFilter("ALL")' style="padding: 8px 16px; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 13px; @(historyDateFilter == "ALL" ? "background: #3b82f6; color: white;" : "background: white; color: #64748b; border: 1px solid #d1d5db;")">
+                        All Time
+                    </button>
+                </div>
+
+                <!-- Divider -->
+                <div style="width: 1px; height: 36px; background: #d1d5db;"></div>
+
+                <!-- Custom Date Range -->
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="font-size: 13px; color: #6b7280; font-weight: 600;">Custom:</span>
+                    <input type="date" @bind="historyDateFrom" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;" />
+                    <span style="color: #9ca3af;">to</span>
+                    <input type="date" @bind="historyDateTo" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;" />
+                    <button @onclick="ApplyCustomDateFilter" style="background: #3b82f6; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px;">
+                        Apply
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Summary -->
+            <div style="padding: 12px 32px; background: #f1f5f9; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #475569;">
+                    Showing <strong>@filteredApprovals.Count</strong> records
+                    @if (historyDateFilter != "ALL" || historyDateFrom.HasValue)
+                    {
+                        <span> • @GetDateFilterLabel()</span>
+                    }
+                </span>
+                @if (filteredApprovals.Any())
+                {
+                    <div style="display: flex; gap: 16px; font-size: 13px;">
+                        <span style="color: #059669; font-weight: 600;">✓ @filteredApprovals.Count(a => a.ApprovalStatus == "APPROVED") Approved</span>
+                        <span style="color: #dc2626; font-weight: 600;">✗ @filteredApprovals.Count(a => a.ApprovalStatus == "DECLINED") Declined</span>
+                    </div>
+                }
             </div>
 
             <!-- History Content -->
@@ -607,13 +587,11 @@
     // Stats
     private int approvedCount = 0;
     private int declinedCount = 0;
-    private int fromAccountantCount = 0;
 
     // Data
     private List<LoanAssessment> pendingAssessments = new();
     private List<LoanApproval> allApprovals = new();
     private List<LoanApproval> filteredApprovals = new();
-    private List<AccountantItem> itemsFromAccountant = new();
     private string historyFilter = "ALL";
 
     // Approval Modal
@@ -629,18 +607,9 @@
 
     // History Modal
     private bool showHistoryModal = false;
-
-    // Helper class for items from accountant
-    private class AccountantItem
-    {
-        public int Id { get; set; }
-        public string Reference { get; set; } = "";
-        public string Description { get; set; } = "";
-        public decimal Amount { get; set; }
-        public string SubmittedBy { get; set; } = "";
-        public DateTime SubmittedAt { get; set; }
-        public string Type { get; set; } = "";
-    }
+    private string historyDateFilter = "ALL";
+    private DateTime? historyDateFrom = null;
+    private DateTime? historyDateTo = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -659,10 +628,6 @@
             allApprovals = await LoanService.GetApprovalHistoryAsync();
             approvedCount = allApprovals.Count(a => a.ApprovalStatus == "APPROVED");
             declinedCount = allApprovals.Count(a => a.ApprovalStatus == "DECLINED");
-
-            // Load items from accountant (items submitted by accountant for FM approval)
-            // These could be journal entries, assessments, or other accounting items
-            await LoadItemsFromAccountant();
         }
         catch (Exception ex)
         {
@@ -673,55 +638,6 @@
         {
             isLoading = false;
         }
-    }
-
-    private async Task LoadItemsFromAccountant()
-    {
-        itemsFromAccountant.Clear();
-        try
-        {
-            // Load loan applications that were assessed by accountant and need FM approval
-            var assessedApps = await DbContext.LoanApplications
-                .Include(a => a.Account)
-                .ThenInclude(a => a!.Customer)
-                .Where(a => a.Status == "PENDING_FINANCEMANAGER_APPROVAL" || a.Status == "ASSESSED")
-                .OrderByDescending(a => a.ApplicationDate)
-                .ToListAsync();
-
-            foreach (var app in assessedApps)
-            {
-                // Check if there's an assessment for this
-                var assessment = await DbContext.LoanAssessments
-                    .Where(a => a.ApplicationId == app.ApplicationId)
-                    .OrderByDescending(a => a.AssessmentDate)
-                    .FirstOrDefaultAsync();
-
-                if (assessment != null)
-                {
-                    itemsFromAccountant.Add(new AccountantItem
-                    {
-                        Id = app.ApplicationId,
-                        Reference = app.ApplicationNumber,
-                        Description = $"{app.LoanType} loan for {app.Account?.Customer?.FullName ?? "Unknown"}",
-                        Amount = assessment.LoanAmount,
-                        SubmittedBy = assessment.AssessedBy,
-                        SubmittedAt = assessment.AssessmentDate,
-                        Type = "LoanAssessment"
-                    });
-                }
-            }
-
-            fromAccountantCount = itemsFromAccountant.Count;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading accountant items: {ex.Message}");
-        }
-    }
-
-    private void SetActiveTab(string tab)
-    {
-        activeTab = tab;
     }
 
     private void OpenApprovalModal(LoanAssessment assessment)
@@ -823,60 +739,6 @@
         }
     }
 
-    private async Task ApproveFromAccountant(AccountantItem item)
-    {
-        try
-        {
-            if (item.Type == "LoanAssessment")
-            {
-                // Find the assessment and open the approval modal
-                var assessment = await DbContext.LoanAssessments
-                    .Include(a => a.Application)
-                    .Include(a => a.Account)
-                    .ThenInclude(a => a!.Customer)
-                    .FirstOrDefaultAsync(a => a.ApplicationId == item.Id);
-
-                if (assessment != null)
-                {
-                    OpenApprovalModal(assessment);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            ShowToast($"Error: {ex.Message}", "error");
-        }
-    }
-
-    private async Task DeclineFromAccountant(AccountantItem item)
-    {
-        try
-        {
-            var currentUser = AuthService.FullName ?? AuthService.CurrentUser ?? "Finance Manager";
-
-            if (item.Type == "LoanAssessment")
-            {
-                var assessment = await DbContext.LoanAssessments.FirstOrDefaultAsync(a => a.ApplicationId == item.Id);
-                if (assessment != null)
-                {
-                    await LoanService.DeclineLoanAsync(
-                        assessment.AssessmentId,
-                        assessment.ApplicationId,
-                        assessment.AccountId,
-                        "Declined by Finance Manager",
-                        currentUser
-                    );
-                    ShowToast("Item declined successfully.", "success");
-                    await LoadData();
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            ShowToast($"Error: {ex.Message}", "error");
-        }
-    }
-
     // History Modal
     private async Task OpenHistoryModal()
     {
@@ -908,14 +770,84 @@
         ApplyHistoryFilter();
     }
 
+    private void SetDateFilter(string filter)
+    {
+        historyDateFilter = filter;
+        var today = DateTime.Today;
+        
+        switch (filter)
+        {
+            case "TODAY":
+                historyDateFrom = today;
+                historyDateTo = today;
+                break;
+            case "WEEK":
+                // Start of week (Monday)
+                var diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+                historyDateFrom = today.AddDays(-diff);
+                historyDateTo = today;
+                break;
+            case "MONTH":
+                historyDateFrom = new DateTime(today.Year, today.Month, 1);
+                historyDateTo = today;
+                break;
+            case "ALL":
+            default:
+                historyDateFrom = null;
+                historyDateTo = null;
+                break;
+        }
+        ApplyHistoryFilter();
+    }
+
+    private void ApplyCustomDateFilter()
+    {
+        if (historyDateFrom.HasValue && historyDateTo.HasValue)
+        {
+            historyDateFilter = "CUSTOM";
+            ApplyHistoryFilter();
+        }
+    }
+
+    private string GetDateFilterLabel()
+    {
+        return historyDateFilter switch
+        {
+            "TODAY" => "Today",
+            "WEEK" => "This Week",
+            "MONTH" => "This Month",
+            "CUSTOM" => $"{historyDateFrom:MMM d} - {historyDateTo:MMM d, yyyy}",
+            _ => "All Time"
+        };
+    }
+
     private void ApplyHistoryFilter()
     {
-        filteredApprovals = historyFilter switch
+        var query = allApprovals.AsEnumerable();
+        
+        // Apply status filter
+        if (historyFilter == "APPROVED")
         {
-            "APPROVED" => allApprovals.Where(a => a.ApprovalStatus == "APPROVED").ToList(),
-            "DECLINED" => allApprovals.Where(a => a.ApprovalStatus == "DECLINED").ToList(),
-            _ => allApprovals
-        };
+            query = query.Where(a => a.ApprovalStatus == "APPROVED");
+        }
+        else if (historyFilter == "DECLINED")
+        {
+            query = query.Where(a => a.ApprovalStatus == "DECLINED");
+        }
+        
+        // Apply date filter
+        if (historyDateFrom.HasValue)
+        {
+            var fromDate = historyDateFrom.Value.Date;
+            query = query.Where(a => a.ApprovalDate.Date >= fromDate);
+        }
+        if (historyDateTo.HasValue)
+        {
+            var toDate = historyDateTo.Value.Date;
+            query = query.Where(a => a.ApprovalDate.Date <= toDate);
+        }
+        
+        filteredApprovals = query.ToList();
     }
 
     private void ShowToast(string message, string type)

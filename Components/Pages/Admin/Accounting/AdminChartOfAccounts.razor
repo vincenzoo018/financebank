@@ -1,205 +1,271 @@
 @page "/admin/accountant/chart-of-accounts"
 @layout AdminLayout
+@using FinanceBank.Models
+@using FinanceBank.Services
+@inject AccountingService AccountingService
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<div class="admin-page">
-    <div class="page-header">
-        <h1 style="color: #8b5cf6;">
-            <svg style="width: 32px; height: 32px; margin-right: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Chart of Accounts</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">SuperAdmin: Manage financial accounts structure</p>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Notice -->
+<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 24px;">⚠️</span>
+        <div>
+            <p style="margin: 0; font-weight: 600; color: #92400e;">Administrative Access</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #a16207;">Changes made here affect the entire accounting system. All actions are logged.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Action Bar -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div style="display: flex; gap: 12px;">
+        <button style="background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;"
+            @onclick="ShowAddModal">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
-            Chart of Accounts (Admin)
-        </h1>
-        <p class="page-subtitle">Manage the complete chart of accounts</p>
+            Add Account
+        </button>
     </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <input type="text" placeholder="Search accounts..." @bind="searchQuery" @bind:event="oninput"
+            style="padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; width: 280px;" />
+        <select @bind="filterType" style="padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white;">
+            <option value="">All Types</option>
+            <option value="Asset">Asset</option>
+            <option value="Liability">Liability</option>
+            <option value="Equity">Equity</option>
+            <option value="Revenue">Revenue</option>
+            <option value="Expense">Expense</option>
+        </select>
+    </div>
+</div>
 
-    <div class="admin-card">
-        <div class="card-header">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>Account List</h3>
-                <button class="btn btn-primary" @onclick="ShowAddModal">
-                    <svg style="width: 16px; height: 16px; margin-right: 8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    Add Account
-                </button>
-            </div>
-        </div>
-        <div class="card-body">
-            <table class="table">
+<!-- Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px;">
+    <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 12px; padding: 18px; border: 2px solid #93c5fd; text-align: center;">
+        <div style="font-size: 12px; color: #1e40af; font-weight: 600; margin-bottom: 6px;">ASSETS</div>
+        <div style="font-size: 24px; font-weight: 700; color: #1e40af;">@accounts.Count(a => a.AccountType == "Asset")</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #fce7f3, #fbcfe8); border-radius: 12px; padding: 18px; border: 2px solid #f9a8d4; text-align: center;">
+        <div style="font-size: 12px; color: #9d174d; font-weight: 600; margin-bottom: 6px;">LIABILITIES</div>
+        <div style="font-size: 24px; font-weight: 700; color: #9d174d;">@accounts.Count(a => a.AccountType == "Liability")</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-radius: 12px; padding: 18px; border: 2px solid #c4b5fd; text-align: center;">
+        <div style="font-size: 12px; color: #5b21b6; font-weight: 600; margin-bottom: 6px;">EQUITY</div>
+        <div style="font-size: 24px; font-weight: 700; color: #5b21b6;">@accounts.Count(a => a.AccountType == "Equity")</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 18px; border: 2px solid #6ee7b7; text-align: center;">
+        <div style="font-size: 12px; color: #065f46; font-weight: 600; margin-bottom: 6px;">REVENUE</div>
+        <div style="font-size: 24px; font-weight: 700; color: #065f46;">@accounts.Count(a => a.AccountType == "Revenue")</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 12px; padding: 18px; border: 2px solid #fca5a5; text-align: center;">
+        <div style="font-size: 12px; color: #991b1b; font-weight: 600; margin-bottom: 6px;">EXPENSES</div>
+        <div style="font-size: 24px; font-weight: 700; color: #991b1b;">@accounts.Count(a => a.AccountType == "Expense")</div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+        @successMessage
+        <button @onclick="() => successMessage = string.Empty" style="float: right; background: none; border: none; cursor: pointer;">×</button>
+    </div>
+}
+
+<!-- Account List -->
+<div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+    <div style="background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; padding: 20px 24px;">
+        <h4 style="margin: 0; font-weight: 600; font-size: 18px;">📊 Account List</h4>
+        <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">@FilteredAccounts.Count() accounts found</p>
+    </div>
+    <div style="padding: 24px;">
+        @if (isLoading)
+        {
+            <div style="text-align: center; padding: 60px;"><p>Loading accounts...</p></div>
+        }
+        else if (!FilteredAccounts.Any())
+        {
+            <div style="text-align: center; padding: 60px;"><p>No accounts found</p></div>
+        }
+        else
+        {
+            <table style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr>
-                        <th>Account Code</th>
-                        <th>Account Name</th>
-                        <th>Type</th>
-                        <th>Category</th>
-                        <th>Normal Balance</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                    <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                        <th style="padding: 14px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">CODE</th>
+                        <th style="padding: 14px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">ACCOUNT NAME</th>
+                        <th style="padding: 14px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">TYPE</th>
+                        <th style="padding: 14px; text-align: center; font-size: 12px; font-weight: 700; color: #6b7280;">LEVEL</th>
+                        <th style="padding: 14px; text-align: center; font-size: 12px; font-weight: 700; color: #6b7280;">STATUS</th>
+                        <th style="padding: 14px; text-align: center; font-size: 12px; font-weight: 700; color: #6b7280;">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var account in accounts)
+                    @foreach (var account in FilteredAccounts)
                     {
-                        <tr>
-                            <td><strong>@account.Code</strong></td>
-                            <td>@account.Name</td>
-                            <td><span class="badge @GetTypeClass(account.Type)">@account.Type</span></td>
-                            <td>@account.Category</td>
-                            <td>@account.NormalBalance</td>
-                            <td><span class="badge @(account.IsActive ? "badge-success" : "badge-secondary")">@(account.IsActive ? "Active" : "Inactive")</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-info" @onclick="() => ShowEditModal(account)">Edit</button>
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 14px;"><span style="background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-weight: 600;">@account.AccountCode</span></td>
+                            <td style="padding: 14px; font-weight: 600;">@account.AccountName</td>
+                            <td style="padding: 14px;">
+                                @{ var (c, bg) = GetAccountTypeStyle(account.AccountType); }
+                                <span style="background: @bg; color: @c; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">@account.AccountType</span>
+                            </td>
+                            <td style="padding: 14px; text-align: center; font-weight: 600;">@account.Level</td>
+                            <td style="padding: 14px; text-align: center;">
+                                <span style="background: @(account.IsActive ? "#d1fae5" : "#fee2e2"); color: @(account.IsActive ? "#065f46" : "#991b1b"); padding: 4px 10px; border-radius: 6px; font-size: 12px;">@(account.IsActive ? "Active" : "Inactive")</span>
+                            </td>
+                            <td style="padding: 14px; text-align: center;">
+                                <button style="background: #3b82f6; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;" @onclick="() => EditAccount(account)">✏️ Edit</button>
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
-        </div>
+        }
     </div>
 </div>
 
 @if (showModal)
 {
-    <div class="modal-overlay" @onclick="CloseModal">
-        <div class="modal-content" @onclick:stopPropagation>
-            <div class="modal-header">
-                <h4>@(isEditing ? "Edit" : "Add") Account</h4>
-                <button class="close-btn" @onclick="CloseModal">&times;</button>
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <h2 style="margin: 0 0 24px 0;">@(isEditing ? "✏️ Edit Account" : "➕ Add New Account")</h2>
+            
+            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; color: #92400e; margin-bottom: 8px;">Admin Reason (Required)</label>
+                <textarea @bind="adminReason" rows="2" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;" placeholder="Enter reason for this action..."></textarea>
             </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Admin Reason <span class="required">*</span></label>
-                    <textarea @bind="adminReason" class="form-control" rows="2" 
-                        placeholder="Enter reason for this action..."></textarea>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Account Code *</label>
+                    <input type="text" @bind="editAccount.AccountCode" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;" />
                 </div>
-                <hr />
-                
-                <div class="form-row">
-                    <div class="form-group col-md-4">
-                        <label>Account Code</label>
-                        <input type="text" @bind="editAccount.Code" class="form-control" />
-                    </div>
-                    <div class="form-group col-md-8">
-                        <label>Account Name</label>
-                        <input type="text" @bind="editAccount.Name" class="form-control" />
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                        <label>Type</label>
-                        <select @bind="editAccount.Type" class="form-control">
-                            <option value="Asset">Asset</option>
-                            <option value="Liability">Liability</option>
-                            <option value="Equity">Equity</option>
-                            <option value="Revenue">Revenue</option>
-                            <option value="Expense">Expense</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label>Category</label>
-                        <input type="text" @bind="editAccount.Category" class="form-control" />
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="checkbox-item">
-                        <input type="checkbox" @bind="editAccount.IsActive" /> Active
-                    </label>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Account Name *</label>
+                    <input type="text" @bind="editAccount.AccountName" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;" />
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
-                <button class="btn btn-primary" @onclick="SaveAccount">Save</button>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Account Type *</label>
+                    <select @bind="editAccount.AccountType" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; background: white;">
+                        <option value="">Select Type</option>
+                        <option value="Asset">Asset</option>
+                        <option value="Liability">Liability</option>
+                        <option value="Equity">Equity</option>
+                        <option value="Revenue">Revenue</option>
+                        <option value="Expense">Expense</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Level</label>
+                    <input type="number" @bind="editAccount.Level" min="1" max="5" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;" />
+                </div>
+            </div>
+
+            <div style="margin-top: 16px;">
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" @bind="editAccount.IsActive" />
+                    <span style="font-weight: 500;">Account is Active</span>
+                </label>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                <button style="background: #e5e7eb; color: #374151; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" @onclick="CloseModal">Cancel</button>
+                <button style="background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" @onclick="SaveAccount">@(isEditing ? "Update" : "Add") Account</button>
             </div>
         </div>
     </div>
 }
 
 @code {
+    private List<FinanceBank.Models.ChartOfAccounts> accounts = new();
+    private FinanceBank.Models.ChartOfAccounts editAccount = new();
     private bool showModal = false;
     private bool isEditing = false;
+    private bool isLoading = true;
+    private string successMessage = "";
+    private string searchQuery = "";
+    private string filterType = "";
     private string adminReason = "";
-    private AccountItem editAccount = new();
 
-    private List<AccountItem> accounts = new()
-    {
-        new() { Code = "1000", Name = "Cash on Hand", Type = "Asset", Category = "Current Assets", NormalBalance = "Debit", IsActive = true },
-        new() { Code = "1100", Name = "Cash in Bank", Type = "Asset", Category = "Current Assets", NormalBalance = "Debit", IsActive = true },
-        new() { Code = "1200", Name = "Accounts Receivable", Type = "Asset", Category = "Current Assets", NormalBalance = "Debit", IsActive = true },
-        new() { Code = "2000", Name = "Accounts Payable", Type = "Liability", Category = "Current Liabilities", NormalBalance = "Credit", IsActive = true },
-        new() { Code = "3000", Name = "Common Stock", Type = "Equity", Category = "Shareholders Equity", NormalBalance = "Credit", IsActive = true },
-        new() { Code = "4000", Name = "Interest Income", Type = "Revenue", Category = "Operating Revenue", NormalBalance = "Credit", IsActive = true },
-        new() { Code = "5000", Name = "Salaries Expense", Type = "Expense", Category = "Operating Expenses", NormalBalance = "Debit", IsActive = true }
-    };
+    private IEnumerable<FinanceBank.Models.ChartOfAccounts> FilteredAccounts => accounts
+        .Where(a => string.IsNullOrEmpty(searchQuery) || a.AccountName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) || a.AccountCode.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+        .Where(a => string.IsNullOrEmpty(filterType) || a.AccountType == filterType)
+        .OrderBy(a => a.AccountCode);
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
-        {
-            Navigation.NavigateTo("/admin/dashboard");
-        }
+        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin)) { Navigation.NavigateTo("/admin/dashboard"); return; }
+        await LoadAccounts();
+    }
+
+    private async Task LoadAccounts()
+    {
+        isLoading = true;
+        try { accounts = await AccountingService.GetAllChartOfAccountsAsync(); }
+        catch { accounts = new(); }
+        finally { isLoading = false; }
     }
 
     private void ShowAddModal()
     {
-        isEditing = false;
-        editAccount = new AccountItem { IsActive = true };
-        showModal = true;
-    }
-
-    private void ShowEditModal(AccountItem account)
-    {
-        isEditing = true;
-        editAccount = new AccountItem
-        {
-            Code = account.Code,
-            Name = account.Name,
-            Type = account.Type,
-            Category = account.Category,
-            NormalBalance = account.NormalBalance,
-            IsActive = account.IsActive
-        };
-        showModal = true;
-    }
-
-    private void CloseModal()
-    {
-        showModal = false;
+        editAccount = new() { IsActive = true, Level = 1, CreatedBy = "SuperAdmin" };
         adminReason = "";
+        isEditing = false;
+        showModal = true;
     }
 
-    private void SaveAccount()
+    private void EditAccount(FinanceBank.Models.ChartOfAccounts account)
     {
-        if (string.IsNullOrWhiteSpace(adminReason)) return;
-        
-        if (!isEditing)
+        editAccount = new() { AccountId = account.AccountId, AccountCode = account.AccountCode, AccountName = account.AccountName, AccountType = account.AccountType, ParentAccountCode = account.ParentAccountCode, Level = account.Level, IsActive = account.IsActive, CreatedBy = account.CreatedBy, CreatedAt = account.CreatedAt };
+        adminReason = "";
+        isEditing = true;
+        showModal = true;
+    }
+
+    private void CloseModal() { showModal = false; adminReason = ""; }
+
+    private async Task SaveAccount()
+    {
+        if (string.IsNullOrWhiteSpace(adminReason) || string.IsNullOrWhiteSpace(editAccount.AccountCode) || string.IsNullOrWhiteSpace(editAccount.AccountName) || string.IsNullOrWhiteSpace(editAccount.AccountType)) return;
+        try
         {
-            editAccount.NormalBalance = editAccount.Type is "Asset" or "Expense" ? "Debit" : "Credit";
-            accounts.Add(editAccount);
+            if (isEditing) { await AccountingService.UpdateChartOfAccountsAsync(editAccount); successMessage = $"✓ Account '{editAccount.AccountName}' updated!"; }
+            else { editAccount.CreatedAt = DateTime.Now; editAccount.CreatedBy = "SuperAdmin"; await AccountingService.CreateChartOfAccountsAsync(editAccount); successMessage = $"✓ Account '{editAccount.AccountName}' created!"; }
+            await LoadAccounts();
+            CloseModal();
         }
-        CloseModal();
+        catch (Exception ex) { Console.WriteLine($"Error: {ex.Message}"); }
     }
 
-    private string GetTypeClass(string type) => type switch
+    private (string color, string bg) GetAccountTypeStyle(string type) => type switch
     {
-        "Asset" => "badge-info",
-        "Liability" => "badge-warning",
-        "Equity" => "badge-primary",
-        "Revenue" => "badge-success",
-        "Expense" => "badge-danger",
-        _ => "badge-secondary"
+        "Asset" => ("#1e40af", "#dbeafe"),
+        "Liability" => ("#9d174d", "#fce7f3"),
+        "Equity" => ("#5b21b6", "#ede9fe"),
+        "Revenue" => ("#065f46", "#d1fae5"),
+        "Expense" => ("#991b1b", "#fee2e2"),
+        _ => ("#374151", "#f3f4f6")
     };
-
-    private class AccountItem
-    {
-        public string Code { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string Type { get; set; } = "Asset";
-        public string Category { get; set; } = "";
-        public string NormalBalance { get; set; } = "Debit";
-        public bool IsActive { get; set; } = true;
-    }
 }

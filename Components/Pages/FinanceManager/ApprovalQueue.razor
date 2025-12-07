@@ -1,5 +1,9 @@
 @page "/finance-manager/approval-queue"
 @layout FinanceManagerLayout
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
+@inject AuthService AuthService
+@inject NavigationManager Navigation
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Header -->
@@ -21,75 +25,102 @@
         </div>
     </div>
 
-    <!-- Filter Bar -->
-    <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-            <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Department</label>
-                <select style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
-                    <option>All Departments</option>
-                    <option>Operations</option>
-                    <option>Loans</option>
-                    <option>Accounts</option>
-                    <option>Cards</option>
-                </select>
-            </div>
-            <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Type</label>
-                <select style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
-                    <option>All Types</option>
-                    <option>Deposit</option>
-                    <option>Withdrawal</option>
-                    <option>Transfer</option>
-                    <option>Loan</option>
-                </select>
-            </div>
-            <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Priority</label>
-                <select style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
-                    <option>All Priorities</option>
-                    <option>High</option>
-                    <option>Medium</option>
-                    <option>Low</option>
-                </select>
-            </div>
-            <div style="display: flex; align-items: flex-end;">
-                <button style="width: 100%; padding: 8px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Apply Filters</button>
+    @if (isLoading)
+    {
+        <div style="background: white; border-radius: 16px; padding: 60px; text-align: center; border: 1px solid #e5e7eb;">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p style="margin-top: 16px; color: #6b7280;">Loading approval queue...</p>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; color: #dc2626;">
+            @errorMessage
+        </div>
+    }
+    else
+    {
+        <!-- Filter Bar -->
+        <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Type</label>
+                    <select @bind="filterType" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        <option value="">All Types</option>
+                        <option value="Deposit">Deposit</option>
+                        <option value="Withdrawal">Withdrawal</option>
+                        <option value="Transfer">Transfer</option>
+                        <option value="Loan">Loan</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Priority</label>
+                    <select @bind="filterPriority" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        <option value="">All Priorities</option>
+                        <option value="Urgent">Urgent</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+                <div style="display: flex; align-items: flex-end; gap: 8px;">
+                    <button @onclick="ApplyFilters" style="flex: 1; padding: 8px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Apply</button>
+                    <button @onclick="LoadData" style="padding: 8px 12px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 14px; cursor: pointer;">Refresh</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Approval Items -->
-    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px;">Pending Approvals (@approvalItems.Count)</h3>
-        
-        <div style="display: grid; gap: 16px;">
-            @foreach (var item in approvalItems)
+        <!-- Approval Items -->
+        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px;">Pending Approvals (@filteredItems.Count)</h3>
+            
+            @if (!filteredItems.Any())
             {
-                <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; transition: all 0.2s; hover: box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div style="flex: 1;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                <span style="padding: 4px 8px; background: @GetTypeColor(item.Type); border-radius: 6px; font-size: 11px; font-weight: 600; color: white;">@item.Type</span>
-                                <span style="padding: 4px 8px; background: @GetPriorityColor(item.Priority); border-radius: 6px; font-size: 11px; font-weight: 600;">@item.Priority</span>
-                            </div>
-                            <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">@item.Type Request - @item.CustomerName</h4>
-                            <p style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">@item.Description</p>
-                            <div style="display: flex; gap: 16px; font-size: 12px; color: #9ca3af;">
-                                <span>ID: @item.Id</span>
-                                <span>Customer: @item.CustomerName</span>
-                                <span>Submitted: @item.SubmittedDate.ToString("MMM dd, yyyy")</span>
+                <div style="text-align: center; padding: 40px; color: #6b7280;">
+                    <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 16px; opacity: 0.5;">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p>No pending approvals found.</p>
+                </div>
+            }
+            else
+            {
+                <div style="display: grid; gap: 16px;">
+                    @foreach (var item in filteredItems)
+                    {
+                        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; transition: all 0.2s;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                                        <span style="padding: 4px 8px; background: @GetTypeColor(item.RequestType ?? ""); border-radius: 6px; font-size: 11px; font-weight: 600; color: white;">@item.RequestType</span>
+                                        <span style="padding: 4px 8px; background: @GetPriorityColor(item.Priority); border-radius: 6px; font-size: 11px; font-weight: 600;">@item.Priority</span>
+                                    </div>
+                                    <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">@item.RequestType Request #@item.RequestId</h4>
+                                    <p style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">@item.Description</p>
+                                    <div style="display: flex; gap: 16px; font-size: 12px; color: #9ca3af; flex-wrap: wrap;">
+                                        <span>ID: @item.ApprovalId</span>
+                                        <span>Requested by: @item.RequestedBy</span>
+                                        <span>Submitted: @item.RequestedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 18px; font-weight: 700; color: #f59e0b; margin-bottom: 8px;">₱@item.Amount.ToString("N2")</div>
+                                    <button @onclick="() => ShowApprovalModal(item)" style="background: #f59e0b; color: white; padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">Review</button>
+                                </div>
                             </div>
                         </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 18px; font-weight: 700; color: #f59e0b; margin-bottom: 8px;">₱@item.Amount.ToString("N2")</div>
-                            <button @onclick="() => ShowApprovalModal(item)" style="background: #f59e0b; color: white; padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">Review</button>
-                        </div>
-                    </div>
+                    }
                 </div>
             }
         </div>
-    </div>
+        
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div style="background: #d1fae5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 16px; margin-top: 16px; color: #059669;">
+                @successMessage
+            </div>
+        }
+    }
 </div>
 
 <!-- Approval Modal -->
@@ -103,23 +134,23 @@
                         <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
-                <h2 style="font-size: 20px; font-weight: 700; margin: 0;">Review @selectedItem.Type Request</h2>
-                <p style="font-size: 14px; color: #6b7280; margin-top: 4px;">@selectedItem.Priority Priority - Department: @selectedItem.Department</p>
+                <h2 style="font-size: 20px; font-weight: 700; margin: 0;">Review @selectedItem.RequestType Request</h2>
+                <p style="font-size: 14px; color: #6b7280; margin-top: 4px;">@selectedItem.Priority Priority</p>
             </div>
 
             <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                     <div>
                         <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">Request ID</div>
-                        <div style="font-weight: 600;">@selectedItem.Id</div>
+                        <div style="font-weight: 600;">@selectedItem.RequestId</div>
                     </div>
                     <div>
                         <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">Submitted</div>
-                        <div style="font-weight: 600;">@selectedItem.SubmittedDate.ToString("MMM dd, yyyy")</div>
+                        <div style="font-weight: 600;">@selectedItem.RequestedAt.ToString("MMM dd, yyyy")</div>
                     </div>
                     <div>
-                        <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">Customer</div>
-                        <div style="font-weight: 600;">@selectedItem.CustomerName</div>
+                        <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">Requested By</div>
+                        <div style="font-weight: 600;">@selectedItem.RequestedBy</div>
                     </div>
                     <div>
                         <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">Amount</div>
@@ -128,45 +159,90 @@
                 </div>
                 <div style="margin-top: 16px;">
                     <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">Description</div>
-                    <div style="font-weight: 600;">@selectedItem.Description</div>
+                    <div style="font-weight: 600;">@(selectedItem.Description ?? "No description provided")</div>
                 </div>
             </div>
 
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px;">Employee Comments</label>
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px;">Approval Notes</label>
                 <textarea @bind="approvalComments" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;" rows="3" placeholder="Add your comments for this review..."></textarea>
             </div>
 
             <div style="display: flex; gap: 12px;">
                 <button @onclick="CloseApprovalModal" style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Cancel</button>
-                <button style="flex: 1; padding: 12px; background: #dc2626; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Reject</button>
-                <button style="flex: 1; padding: 12px; background: #059669; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Approve</button>
+                <button @onclick="RejectSelectedItem" disabled="@isProcessing" style="flex: 1; padding: 12px; background: #dc2626; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Reject</button>
+                <button @onclick="ApproveSelectedItem" disabled="@isProcessing" style="flex: 1; padding: 12px; background: #059669; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Approve</button>
             </div>
         </div>
     </div>
 }
 
 @code {
-    private List<ApprovalItem> approvalItems = new();
+    private List<ApprovalQueueEntity> approvalItems = new();
+    private List<ApprovalQueueEntity> filteredItems = new();
     private bool showApprovalModal = false;
-    private ApprovalItem? selectedItem = null;
+    private ApprovalQueueEntity? selectedItem = null;
     private string approvalComments = "";
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private string errorMessage = "";
+    private string successMessage = "";
+    private string filterType = "";
+    private string filterPriority = "";
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        approvalItems = new List<ApprovalItem>
+        if (!AuthService.IsAuthenticated)
         {
-            new() { Id = "REQ-001", Type = "Deposit", Priority = "High", Description = "Large cash deposit verification required", CustomerName = "Juan Dela Cruz", Amount = 50000, SubmittedDate = DateTime.Now.AddHours(-2), Department = "Operations" },
-            new() { Id = "REQ-002", Type = "Loan", Priority = "Medium", Description = "Personal loan application - income verification", CustomerName = "Maria Santos", Amount = 100000, SubmittedDate = DateTime.Now.AddHours(-5), Department = "Loans" },
-            new() { Id = "REQ-003", Type = "Transfer", Priority = "High", Description = "International transfer - compliance check", CustomerName = "Pedro Reyes", Amount = 75000, SubmittedDate = DateTime.Now.AddHours(-1), Department = "Operations" },
-            new() { Id = "REQ-004", Type = "Card", Priority = "Low", Description = "Credit card application review", CustomerName = "Ana Garcia", Amount = 0, SubmittedDate = DateTime.Now.AddHours(-3), Department = "Cards" },
-        };
+            Navigation.NavigateTo("/login");
+            return;
+        }
+        await LoadData();
+    }
+    
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = "";
+        successMessage = "";
+        
+        try
+        {
+            using var context = DbContextFactory.CreateDbContext();
+            approvalItems = await context.ApprovalQueues
+                .Where(a => a.Status == "Pending")
+                .OrderByDescending(a => a.Priority == "Urgent")
+                .ThenByDescending(a => a.Priority == "High")
+                .ThenByDescending(a => a.RequestedAt)
+                .ToListAsync();
+            
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading approvals: {ex.Message}";
+            approvalItems = new();
+            filteredItems = new();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private void ApplyFilters()
+    {
+        filteredItems = approvalItems.Where(item =>
+            (string.IsNullOrEmpty(filterType) || item.RequestType == filterType) &&
+            (string.IsNullOrEmpty(filterPriority) || item.Priority == filterPriority)
+        ).ToList();
     }
 
-    private void ShowApprovalModal(ApprovalItem item)
+    private void ShowApprovalModal(ApprovalQueueEntity item)
     {
         selectedItem = item;
         showApprovalModal = true;
+        approvalComments = "";
     }
 
     private void CloseApprovalModal()
@@ -174,6 +250,70 @@
         showApprovalModal = false;
         selectedItem = null;
         approvalComments = "";
+    }
+    
+    private async Task ApproveSelectedItem()
+    {
+        if (selectedItem == null) return;
+        
+        isProcessing = true;
+        try
+        {
+            using var context = DbContextFactory.CreateDbContext();
+            var entity = await context.ApprovalQueues.FindAsync(selectedItem.ApprovalId);
+            if (entity != null)
+            {
+                entity.Status = "Approved";
+                entity.ProcessedAt = DateTime.Now;
+                entity.ProcessedBy = AuthService.FullName ?? "Finance Manager";
+                entity.ApprovalNotes = approvalComments;
+                await context.SaveChangesAsync();
+                
+                successMessage = $"Request #{selectedItem.RequestId} approved successfully.";
+                CloseApprovalModal();
+                await LoadData();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error approving request: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+    
+    private async Task RejectSelectedItem()
+    {
+        if (selectedItem == null) return;
+        
+        isProcessing = true;
+        try
+        {
+            using var context = DbContextFactory.CreateDbContext();
+            var entity = await context.ApprovalQueues.FindAsync(selectedItem.ApprovalId);
+            if (entity != null)
+            {
+                entity.Status = "Rejected";
+                entity.ProcessedAt = DateTime.Now;
+                entity.ProcessedBy = AuthService.FullName ?? "Finance Manager";
+                entity.ApprovalNotes = approvalComments;
+                await context.SaveChangesAsync();
+                
+                successMessage = $"Request #{selectedItem.RequestId} rejected.";
+                CloseApprovalModal();
+                await LoadData();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error rejecting request: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
     }
 
     private string GetTypeColor(string type)
@@ -184,7 +324,6 @@
             "Withdrawal" => "#dc2626",
             "Transfer" => "#0891b2",
             "Loan" => "#7c3aed",
-            "Card" => "#f59e0b",
             _ => "#6b7280"
         };
     }
@@ -193,23 +332,12 @@
     {
         return priority switch
         {
+            "Urgent" => "#fee2e2",
             "High" => "#fee2e2",
             "Medium" => "#fef3c7",
             "Low" => "#dbeafe",
             _ => "#f3f4f6"
         };
-    }
-
-    private class ApprovalItem
-    {
-        public string Id { get; set; } = "";
-        public string Type { get; set; } = "";
-        public string Priority { get; set; } = "";
-        public string Description { get; set; } = "";
-        public string CustomerName { get; set; } = "";
-        public decimal Amount { get; set; }
-        public DateTime SubmittedDate { get; set; }
-        public string Department { get; set; } = "";
     }
 }
 

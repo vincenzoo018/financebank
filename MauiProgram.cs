@@ -24,9 +24,14 @@ namespace FinanceBank
             // Using lazy initialization to prevent startup errors
             try
             {
+                // Cloud Database Connection (MonsterASP)
+                // var connectionString = "Server=db34283.public.databaseasp.net,1433;Database=db34283;User Id=db34283;Password=Zx6=2+fXCm8!;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;Connection Timeout=30;";
+
+                // Local Database Connection (Development)
+                var connectionString = "Server=localhost\\SQLEXPRESS;Database=BFASdatabase;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;";
+
                 builder.Services.AddDbContextFactory<BFASDbContext>(options =>
                 {
-                    var connectionString = "Server=localhost\\SQLEXPRESS;Database=BFASdatabase;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;";
                     options.UseSqlServer(connectionString);
                     options.EnableSensitiveDataLogging(false);
                 });
@@ -34,7 +39,6 @@ namespace FinanceBank
                 // Also add regular DbContext for scoped usage
                 builder.Services.AddDbContext<BFASDbContext>(options =>
                 {
-                    var connectionString = "Server=localhost\\SQLEXPRESS;Database=BFASdatabase;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;";
                     options.UseSqlServer(connectionString);
                     options.EnableSensitiveDataLogging(false);
                 });
@@ -110,6 +114,9 @@ namespace FinanceBank
             builder.Services.AddScoped<FinanceService>();
             builder.Services.AddScoped<ApprovalsService>();
 
+            // Register Automatic GL Posting Service (real-time General Ledger posting)
+            builder.Services.AddScoped<AutomaticGLPostingService>();
+
             // Register Loan Process Services
             builder.Services.AddScoped<LoanProcessService>();
             builder.Services.AddScoped<LoanPaymentService>();
@@ -117,6 +124,12 @@ namespace FinanceBank
 
             // Register Teller Report Service (analytics and report generation)
             builder.Services.AddScoped<TellerReportService>();
+
+            // Register Database Sync Service (LOCAL <-> CLOUD synchronization)
+            builder.Services.AddSingleton<DatabaseSyncService>();
+
+            // Register Sync-Aware DbContext Service (wraps DB operations with auto-sync)
+            builder.Services.AddScoped<SyncAwareDbContextService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

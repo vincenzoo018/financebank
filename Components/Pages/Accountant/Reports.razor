@@ -1,7 +1,12 @@
 @page "/accountant/reports"
 @layout AccountantLayout
-@using FinanceBank.Services
-@using FinanceBank.Models
+@inject JournalEntryService JournalEntryService
+@inject AccountsPayableService AccountsPayableService
+@inject AccountsReceivableService AccountsReceivableService
+@inject GeneralLedgerService GeneralLedgerService
+@inject FinancialStatementService FinancialStatementService
+@inject CustomerTransactionService CustomerTransactionService
+@inject TrialBalanceService TrialBalanceService
 @inject AuthService AuthService
 
 <!-- Page Header -->
@@ -9,121 +14,624 @@
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M3 3h18v18H3z"/>
-                <path d="M9 9h6v6H9z"/>
+                <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
         </div>
         <div>
-            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Reports</h1>
-            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Generate and view financial reports</p>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">📊 Accounting Reports</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Generate and view real-time financial reports from database</p>
         </div>
     </div>
 </div>
 
-<!-- Available Reports -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-    <!-- Monthly Financial Statement -->
-    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #059669, #047857); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                </svg>
-            </div>
-            <div>
-                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Monthly Financial Statement</h3>
-                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Complete overview for the month</p>
-            </div>
-        </div>
-        <button class="btn" style="width: 100%; background: #059669; color: white; padding: 10px; border-radius: 8px; font-weight: 600;">Generate Report</button>
+<!-- Alert Messages -->
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 20px;">✅</span>
+        <span style="font-weight: 500;">@successMessage</span>
+        <button @onclick="() => successMessage = string.Empty" style="margin-left: auto; background: none; border: none; color: #065f46; cursor: pointer; font-size: 18px;">×</button>
     </div>
+}
 
-    <!-- Account Reconciliation -->
-    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #059669, #047857); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                    <polyline points="20 6 9 17 4 12"/>
-                </svg>
-            </div>
-            <div>
-                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Account Reconciliation</h3>
-                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Verify account balances</p>
-            </div>
+<!-- Date Range Filter -->
+<div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
+    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <div>
+            <label style="font-size: 12px; color: #6b7280; font-weight: 600;">From Date</label>
+            <input type="date" @bind="startDate" style="display: block; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 8px; margin-top: 4px;" />
         </div>
-        <button class="btn" style="width: 100%; background: #059669; color: white; padding: 10px; border-radius: 8px; font-weight: 600;">Generate Report</button>
-    </div>
-
-    <!-- Expense Summary -->
-    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="1"/>
-                    <path d="M19.07 4.93l-2.58 2.58A8 8 0 1 0 20.5 12z"/>
-                </svg>
-            </div>
-            <div>
-                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Expense Summary</h3>
-                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Breakdown of all expenses</p>
-            </div>
+        <div>
+            <label style="font-size: 12px; color: #6b7280; font-weight: 600;">To Date</label>
+            <input type="date" @bind="endDate" style="display: block; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 8px; margin-top: 4px;" />
         </div>
-        <button class="btn" style="width: 100%; background: #f59e0b; color: white; padding: 10px; border-radius: 8px; font-weight: 600;">Generate Report</button>
-    </div>
-
-    <!-- Cash Flow Analysis -->
-    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #059669, #047857); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M12 2v20M2 12h20"/>
-                </svg>
-            </div>
-            <div>
-                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Cash Flow Analysis</h3>
-                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Analyze cash movements</p>
-            </div>
+        <div style="margin-left: auto; display: flex; gap: 8px;">
+            <button @onclick="() => SetQuickRange(7)" style="padding: 10px 16px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Last 7 Days</button>
+            <button @onclick="() => SetQuickRange(30)" style="padding: 10px 16px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Last 30 Days</button>
+            <button @onclick="() => SetQuickRange(90)" style="padding: 10px 16px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Last 90 Days</button>
         </div>
-        <button class="btn" style="width: 100%; background: #059669; color: white; padding: 10px; border-radius: 8px; font-weight: 600;">Generate Report</button>
-    </div>
-
-    <!-- Payables & Receivables -->
-    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #059669, #047857); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-            </div>
-            <div>
-                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Payables & Receivables</h3>
-                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Outstanding amounts summary</p>
-            </div>
-        </div>
-        <button class="btn" style="width: 100%; background: #059669; color: white; padding: 10px; border-radius: 8px; font-weight: 600;">Generate Report</button>
-    </div>
-
-    <!-- Audit Trail -->
-    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #059669, #047857); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M12 2v20M2 12h20"/>
-                </svg>
-            </div>
-            <div>
-                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">Audit Trail</h3>
-                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">System activity log</p>
-            </div>
-        </div>
-        <button class="btn" style="width: 100%; background: #059669; color: white; padding: 10px; border-radius: 8px; font-weight: 600;">Generate Report</button>
     </div>
 </div>
+
+<!-- Report Cards Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 24px;">
+    <!-- Journal Entries Report -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 28px;">📝</span>
+            </div>
+            <div style="flex: 1;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0;">Journal Entries Report</h3>
+                <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">All journal entries within date range</p>
+            </div>
+        </div>
+        <div style="background: #fef3c7; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 13px; color: #92400e;">Total Entries:</span>
+                <span style="font-weight: 700; color: #92400e;">@journalEntriesCount</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="font-size: 13px; color: #92400e;">Total Amount:</span>
+                <span style="font-weight: 700; color: #92400e;">₱@journalTotalAmount.ToString("N2")</span>
+            </div>
+        </div>
+        <button @onclick="GenerateJournalReport" disabled="@isGenerating" 
+            style="width: 100%; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
+            @(isGenerating ? "Generating..." : "📄 Generate Report")
+        </button>
+    </div>
+
+    <!-- Accounts Payable Report -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 28px;">💳</span>
+            </div>
+            <div style="flex: 1;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0;">Accounts Payable Report</h3>
+                <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">Outstanding payments and invoices</p>
+            </div>
+        </div>
+        <div style="background: #fee2e2; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 13px; color: #991b1b;">Pending Invoices:</span>
+                <span style="font-weight: 700; color: #991b1b;">@payablesCount</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="font-size: 13px; color: #991b1b;">Total Payable:</span>
+                <span style="font-weight: 700; color: #991b1b;">₱@payablesTotalAmount.ToString("N2")</span>
+            </div>
+        </div>
+        <button @onclick="GeneratePayablesReport" disabled="@isGenerating"
+            style="width: 100%; background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
+            @(isGenerating ? "Generating..." : "📄 Generate Report")
+        </button>
+    </div>
+
+    <!-- Accounts Receivable Report -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #059669, #047857); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 28px;">💰</span>
+            </div>
+            <div style="flex: 1;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0;">Accounts Receivable Report</h3>
+                <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">Outstanding collections</p>
+            </div>
+        </div>
+        <div style="background: #d1fae5; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 13px; color: #065f46;">Pending Collections:</span>
+                <span style="font-weight: 700; color: #065f46;">@receivablesCount</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="font-size: 13px; color: #065f46;">Total Receivable:</span>
+                <span style="font-weight: 700; color: #065f46;">₱@receivablesTotalAmount.ToString("N2")</span>
+            </div>
+        </div>
+        <button @onclick="GenerateReceivablesReport" disabled="@isGenerating"
+            style="width: 100%; background: linear-gradient(135deg, #059669, #047857); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
+            @(isGenerating ? "Generating..." : "📄 Generate Report")
+        </button>
+    </div>
+
+    <!-- General Ledger Report -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 28px;">📒</span>
+            </div>
+            <div style="flex: 1;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0;">General Ledger Report</h3>
+                <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">Complete GL entries for period</p>
+            </div>
+        </div>
+        <div style="background: #dbeafe; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 13px; color: #1e40af;">Total Entries:</span>
+                <span style="font-weight: 700; color: #1e40af;">@glEntriesCount</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="font-size: 13px; color: #1e40af;">Total Debits:</span>
+                <span style="font-weight: 700; color: #1e40af;">₱@glTotalDebits.ToString("N2")</span>
+            </div>
+        </div>
+        <button @onclick="GenerateGLReport" disabled="@isGenerating"
+            style="width: 100%; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
+            @(isGenerating ? "Generating..." : "📄 Generate Report")
+        </button>
+    </div>
+
+    <!-- Transaction Summary Report -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #7c3aed, #6d28d9); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 28px;">📊</span>
+            </div>
+            <div style="flex: 1;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0;">Transaction Summary</h3>
+                <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">Deposits, withdrawals, transfers</p>
+            </div>
+        </div>
+        <div style="background: #ede9fe; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 13px; color: #5b21b6;">Total Transactions:</span>
+                <span style="font-weight: 700; color: #5b21b6;">@transactionsCount</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="font-size: 13px; color: #5b21b6;">Net Flow:</span>
+                <span style="font-weight: 700; color: @(netFlow >= 0 ? "#059669" : "#dc2626");">₱@netFlow.ToString("N2")</span>
+            </div>
+        </div>
+        <button @onclick="GenerateTransactionReport" disabled="@isGenerating"
+            style="width: 100%; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
+            @(isGenerating ? "Generating..." : "📄 Generate Report")
+        </button>
+    </div>
+
+    <!-- Financial Statements Summary -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 28px;">📑</span>
+            </div>
+            <div style="flex: 1;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0;">Financial Statements</h3>
+                <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">Income, Balance, Cash Flow</p>
+            </div>
+        </div>
+        <div style="background: #fce7f3; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 13px; color: #9d174d;">Total Statements:</span>
+                <span style="font-weight: 700; color: #9d174d;">@statementsCount</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="font-size: 13px; color: #9d174d;">Types:</span>
+                <span style="font-weight: 700; color: #9d174d;">Income, Balance, Cash Flow</span>
+            </div>
+        </div>
+        <a href="/accountant/financial-statements" style="display: block; width: 100%; background: linear-gradient(135deg, #ec4899, #db2777); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; text-align: center; text-decoration: none;">
+            📄 View Statements
+        </a>
+    </div>
+</div>
+
+<!-- Report Preview Modal -->
+@if (showReportModal)
+{
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; overflow-y: auto; padding: 20px;">
+        <div style="background: white; border-radius: 16px; max-width: 1000px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <!-- Modal Header -->
+            <div style="background: linear-gradient(135deg, #059669, #047857); padding: 24px; border-radius: 16px 16px 0 0; position: sticky; top: 0; z-index: 10;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 style="font-size: 20px; font-weight: 700; color: white; margin: 0;">@reportTitle</h2>
+                        <p style="color: rgba(255,255,255,0.9); margin: 4px 0 0 0; font-size: 13px;">
+                            Period: @startDate.ToString("MMM dd, yyyy") - @endDate.ToString("MMM dd, yyyy")
+                        </p>
+                    </div>
+                    <button @onclick="CloseReportModal" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer;">×</button>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div style="padding: 24px;">
+                @if (reportType == "journal")
+                {
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Date</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Reference</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Description</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Amount</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var entry in reportJournalEntries.Take(50))
+                            {
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding: 12px;">@entry.TransactionDate.ToString("MMM dd, yyyy")</td>
+                                    <td style="padding: 12px; font-family: monospace;">@entry.Reference</td>
+                                    <td style="padding: 12px;">@entry.Description</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600;">₱@entry.TotalDebit.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(entry.Status == "Posted" ? "#d1fae5" : "#fef3c7"); color: @(entry.Status == "Posted" ? "#065f46" : "#92400e");">@entry.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: #f8fafc; font-weight: 700;">
+                                <td colspan="3" style="padding: 12px;">Total (@reportJournalEntries.Count entries)</td>
+                                <td style="padding: 12px; text-align: right;">₱@reportJournalEntries.Sum(e => e.TotalDebit).ToString("N2")</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                }
+                else if (reportType == "payables")
+                {
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Vendor</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Invoice #</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Due Date</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Amount</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ap in reportPayables.Take(50))
+                            {
+                                var isOverdue = ap.DueDate < DateTime.Today && ap.Status != "Paid";
+                                <tr style="border-bottom: 1px solid #f1f5f9; background: @(isOverdue ? "#fef2f2" : "transparent");">
+                                    <td style="padding: 12px;">@ap.VendorName</td>
+                                    <td style="padding: 12px; font-family: monospace;">@ap.InvoiceNumber</td>
+                                    <td style="padding: 12px; color: @(isOverdue ? "#dc2626" : "#374151");">@ap.DueDate.ToString("MMM dd, yyyy") @(isOverdue ? "⚠️" : "")</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: #dc2626;">₱@ap.OutstandingAmount.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(ap.Status == "Paid" ? "#d1fae5" : "#fee2e2"); color: @(ap.Status == "Paid" ? "#065f46" : "#991b1b");">@ap.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: #fee2e2; font-weight: 700;">
+                                <td colspan="3" style="padding: 12px;">Total Payable (@reportPayables.Count records)</td>
+                                <td style="padding: 12px; text-align: right; color: #dc2626;">₱@reportPayables.Sum(p => p.OutstandingAmount).ToString("N2")</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                }
+                else if (reportType == "receivables")
+                {
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Customer</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Invoice #</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Due Date</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Amount</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ar in reportReceivables.Take(50))
+                            {
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding: 12px;">@ar.CustomerName</td>
+                                    <td style="padding: 12px; font-family: monospace;">@ar.InvoiceNumber</td>
+                                    <td style="padding: 12px;">@ar.DueDate.ToString("MMM dd, yyyy")</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: #059669;">₱@ar.OutstandingAmount.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(ar.Status == "Paid" ? "#d1fae5" : "#fef3c7"); color: @(ar.Status == "Paid" ? "#065f46" : "#92400e");">@ar.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: #d1fae5; font-weight: 700;">
+                                <td colspan="3" style="padding: 12px;">Total Receivable (@reportReceivables.Count records)</td>
+                                <td style="padding: 12px; text-align: right; color: #059669;">₱@reportReceivables.Sum(r => r.OutstandingAmount).ToString("N2")</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                }
+                else if (reportType == "gl")
+                {
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Date</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Account</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Description</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Debit</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Credit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var gl in reportGLEntries.Take(50))
+                            {
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding: 12px;">@gl.TransactionDate.ToString("MMM dd, yyyy")</td>
+                                    <td style="padding: 12px;">@gl.AccountCode - @gl.AccountName</td>
+                                    <td style="padding: 12px;">@gl.Description</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: @(gl.DebitAmount > 0 ? "#2563eb" : "#9ca3af");">@(gl.DebitAmount > 0 ? $"₱{gl.DebitAmount:N2}" : "-")</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: @(gl.CreditAmount > 0 ? "#059669" : "#9ca3af");">@(gl.CreditAmount > 0 ? $"₱{gl.CreditAmount:N2}" : "-")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: #dbeafe; font-weight: 700;">
+                                <td colspan="3" style="padding: 12px;">Totals (@reportGLEntries.Count entries)</td>
+                                <td style="padding: 12px; text-align: right; color: #2563eb;">₱@reportGLEntries.Sum(g => g.DebitAmount).ToString("N2")</td>
+                                <td style="padding: 12px; text-align: right; color: #059669;">₱@reportGLEntries.Sum(g => g.CreditAmount).ToString("N2")</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                }
+                else if (reportType == "transactions")
+                {
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                        <div style="background: #d1fae5; padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 14px; color: #065f46;">Total Deposits</div>
+                            <div style="font-size: 28px; font-weight: 700; color: #059669;">₱@reportTransactions.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount).ToString("N2")</div>
+                        </div>
+                        <div style="background: #fee2e2; padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 14px; color: #991b1b;">Total Withdrawals</div>
+                            <div style="font-size: 28px; font-weight: 700; color: #dc2626;">₱@reportTransactions.Where(t => t.TransactionType == "Withdrawal").Sum(t => t.Amount).ToString("N2")</div>
+                        </div>
+                        <div style="background: #dbeafe; padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 14px; color: #1e40af;">Net Flow</div>
+                            <div style="font-size: 28px; font-weight: 700; color: @(reportNetFlow >= 0 ? "#059669" : "#dc2626");">₱@reportNetFlow.ToString("N2")</div>
+                        </div>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Date</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Type</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Reference</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; border-bottom: 2px solid #e5e7eb;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tx in reportTransactions.Take(50))
+                            {
+                                var isDeposit = tx.TransactionType == "Deposit";
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding: 12px;">@tx.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                                    <td style="padding: 12px;">
+                                        <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(isDeposit ? "#d1fae5" : "#fee2e2"); color: @(isDeposit ? "#065f46" : "#991b1b");">@tx.TransactionType</span>
+                                    </td>
+                                    <td style="padding: 12px; font-family: monospace;">@(tx.Reference ?? "N/A")</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: @(isDeposit ? "#059669" : "#dc2626");">@(isDeposit ? "+" : "-")₱@tx.Amount.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 13px; color: #6b7280;">Generated on @DateTime.Now.ToString("MMM dd, yyyy HH:mm")</span>
+                <button @onclick="CloseReportModal" style="background: #e5e7eb; color: #374151; padding: 10px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Close</button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
-    protected override void OnInitialized()
+    private DateTime startDate = DateTime.Today.AddDays(-30);
+    private DateTime endDate = DateTime.Today;
+    private bool isGenerating = false;
+    private string successMessage = "";
+    private bool showReportModal = false;
+    private string reportTitle = "";
+    private string reportType = "";
+    
+    // Summary counts
+    private int journalEntriesCount = 0;
+    private decimal journalTotalAmount = 0;
+    private int payablesCount = 0;
+    private decimal payablesTotalAmount = 0;
+    private int receivablesCount = 0;
+    private decimal receivablesTotalAmount = 0;
+    private int glEntriesCount = 0;
+    private decimal glTotalDebits = 0;
+    private int transactionsCount = 0;
+    private decimal netFlow = 0;
+    private int statementsCount = 0;
+    
+    // Report data
+    private List<JournalEntry> reportJournalEntries = new();
+    private List<AccountsPayable> reportPayables = new();
+    private List<AccountsReceivable> reportReceivables = new();
+    private List<GeneralLedgerEntry> reportGLEntries = new();
+    private List<CustomerTransaction> reportTransactions = new();
+    private decimal reportNetFlow = 0;
+
+    protected override async Task OnInitializedAsync()
     {
-        // Load any necessary data
+        await LoadSummaryData();
+    }
+
+    private async Task LoadSummaryData()
+    {
+        try
+        {
+            // Journal Entries
+            var journalEntries = await JournalEntryService.GetAllAsync();
+            var filteredJournal = journalEntries.Where(j => j.TransactionDate >= startDate && j.TransactionDate <= endDate).ToList();
+            journalEntriesCount = filteredJournal.Count;
+            journalTotalAmount = filteredJournal.Sum(j => j.TotalDebit);
+
+            // Accounts Payable
+            var payables = await AccountsPayableService.GetAllAsync();
+            var filteredPayables = payables.Where(p => p.Status != "Paid").ToList();
+            payablesCount = filteredPayables.Count;
+            payablesTotalAmount = filteredPayables.Sum(p => p.OutstandingAmount);
+
+            // Accounts Receivable
+            var receivables = await AccountsReceivableService.GetAllAsync();
+            var filteredReceivables = receivables.Where(r => r.Status != "Paid").ToList();
+            receivablesCount = filteredReceivables.Count;
+            receivablesTotalAmount = filteredReceivables.Sum(r => r.OutstandingAmount);
+
+            // General Ledger
+            var glEntries = await GeneralLedgerService.GetAllAsync();
+            var filteredGL = glEntries.Where(g => g.TransactionDate >= startDate && g.TransactionDate <= endDate).ToList();
+            glEntriesCount = filteredGL.Count;
+            glTotalDebits = filteredGL.Sum(g => g.DebitAmount);
+
+            // Transactions
+            var transactions = await CustomerTransactionService.GetAllAsync();
+            var filteredTransactions = transactions.Where(t => t.CreatedAt >= startDate && t.CreatedAt <= endDate).ToList();
+            transactionsCount = filteredTransactions.Count;
+            var deposits = filteredTransactions.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount);
+            var withdrawals = filteredTransactions.Where(t => t.TransactionType == "Withdrawal").Sum(t => t.Amount);
+            netFlow = deposits - withdrawals;
+
+            // Financial Statements
+            var statements = await FinancialStatementService.GetAllAsync();
+            statementsCount = statements.Count;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading summary: {ex.Message}");
+        }
+    }
+
+    private void SetQuickRange(int days)
+    {
+        endDate = DateTime.Today;
+        startDate = DateTime.Today.AddDays(-days);
+        _ = LoadSummaryData();
+        StateHasChanged();
+    }
+
+    private async Task GenerateJournalReport()
+    {
+        isGenerating = true;
+        StateHasChanged();
+        
+        try
+        {
+            var entries = await JournalEntryService.GetAllAsync();
+            reportJournalEntries = entries.Where(j => j.TransactionDate >= startDate && j.TransactionDate <= endDate)
+                .OrderByDescending(j => j.TransactionDate).ToList();
+            
+            reportTitle = "📝 Journal Entries Report";
+            reportType = "journal";
+            showReportModal = true;
+        }
+        finally
+        {
+            isGenerating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task GeneratePayablesReport()
+    {
+        isGenerating = true;
+        StateHasChanged();
+        
+        try
+        {
+            var payables = await AccountsPayableService.GetAllAsync();
+            reportPayables = payables.OrderBy(p => p.DueDate).ToList();
+            
+            reportTitle = "💳 Accounts Payable Report";
+            reportType = "payables";
+            showReportModal = true;
+        }
+        finally
+        {
+            isGenerating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task GenerateReceivablesReport()
+    {
+        isGenerating = true;
+        StateHasChanged();
+        
+        try
+        {
+            var receivables = await AccountsReceivableService.GetAllAsync();
+            reportReceivables = receivables.OrderBy(r => r.DueDate).ToList();
+            
+            reportTitle = "💰 Accounts Receivable Report";
+            reportType = "receivables";
+            showReportModal = true;
+        }
+        finally
+        {
+            isGenerating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task GenerateGLReport()
+    {
+        isGenerating = true;
+        StateHasChanged();
+        
+        try
+        {
+            var entries = await GeneralLedgerService.GetAllAsync();
+            reportGLEntries = entries.Where(g => g.TransactionDate >= startDate && g.TransactionDate <= endDate)
+                .OrderByDescending(g => g.TransactionDate).ToList();
+            
+            reportTitle = "📒 General Ledger Report";
+            reportType = "gl";
+            showReportModal = true;
+        }
+        finally
+        {
+            isGenerating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task GenerateTransactionReport()
+    {
+        isGenerating = true;
+        StateHasChanged();
+        
+        try
+        {
+            var transactions = await CustomerTransactionService.GetAllAsync();
+            reportTransactions = transactions.Where(t => t.CreatedAt >= startDate && t.CreatedAt <= endDate)
+                .OrderByDescending(t => t.CreatedAt).ToList();
+            
+            var deposits = reportTransactions.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount);
+            var withdrawals = reportTransactions.Where(t => t.TransactionType == "Withdrawal").Sum(t => t.Amount);
+            reportNetFlow = deposits - withdrawals;
+            
+            reportTitle = "📊 Transaction Summary Report";
+            reportType = "transactions";
+            showReportModal = true;
+        }
+        finally
+        {
+            isGenerating = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CloseReportModal()
+    {
+        showReportModal = false;
+        reportType = "";
     }
 }

@@ -111,38 +111,16 @@ public class ChartOfAccounts
     public string AccountType { get; set; } = ""; // Asset, Liability, Equity, Revenue, Expense
 
     [MaxLength(50)]
-    public string? SubAccountType { get; set; } // More specific type
+    public string? ParentAccountCode { get; set; } // For hierarchical account structure
 
-    [Required, MaxLength(10)]
-    public string NormalBalance { get; set; } = "Debit"; // Debit or Credit
-
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal CurrentBalance { get; set; } = 0;
+    public int Level { get; set; } = 1; // Account hierarchy level
 
     public bool IsActive { get; set; } = true;
 
-    public bool IsHeader { get; set; } = false; // If true, this is a header/parent account
-
-    public int? ParentAccountId { get; set; } // For hierarchical account structure
-
-    [MaxLength(500)]
-    public string? Description { get; set; }
-
-    [Required, MaxLength(50)]
-    public string CreatedBy { get; set; } = "";
-
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-    [MaxLength(50)]
-    public string? ModifiedBy { get; set; }
-
-    public DateTime? ModifiedAt { get; set; }
-
-    // Navigation
-    [ForeignKey("ParentAccountId")]
-    public virtual ChartOfAccounts? ParentAccount { get; set; }
-
-    public virtual ICollection<ChartOfAccounts> SubAccounts { get; set; } = new List<ChartOfAccounts>();
+    [Required, MaxLength(50)]
+    public string CreatedBy { get; set; } = "System";
 }
 
 [Table("JournalEntries")]
@@ -214,7 +192,7 @@ public class JournalEntryLine
     public virtual JournalEntry? Journal { get; set; }
 }
 
-[Table("Budgets")]
+[Table("BudgetManagement")]
 public class Budget
 {
     [Key]

@@ -3,151 +3,197 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<div class="admin-page accountant-page">
-    <div class="page-header">
-        <h1>
-            <span class="role-badge accountant">Accountant</span>
-            Interest Payouts
-        </h1>
-        <p class="page-subtitle">Process and manage interest payouts for savings accounts</p>
-    </div>
-
-    <!-- Admin Action Reason -->
-    <div class="admin-action-card">
-        <div class="alert alert-warning">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
-                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-            </svg>
-            <span>You are accessing Accountant functions as SuperAdmin. All actions are logged.</span>
-        </div>
-        <div class="form-group">
-            <label for="adminReason">Reason for Admin Action (Required)</label>
-            <textarea id="adminReason" @bind="adminActionReason" class="form-control" 
-                placeholder="Document why you are performing this action as admin..." rows="2"></textarea>
+<!-- Toast Notification -->
+@if (showToast)
+{
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease-out;">
+        <div style="background: linear-gradient(135deg, @(toastType == "success" ? "#059669, #10b981" : "#dc2626, #ef4444")); color: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; min-width: 300px;">
+            @if (toastType == "success")
+            {
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            }
+            <span style="font-weight: 500;">@toastMessage</span>
+            <button @onclick="() => showToast = false" style="background: none; border: none; color: white; cursor: pointer; margin-left: auto; font-size: 18px;">×</button>
         </div>
     </div>
+}
 
-    <div class="payout-summary" style="margin-top: 24px;">
-        <div class="summary-card">
-            <div class="summary-icon" style="background: #10b981;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #a855f7, #9333ea); border-radius: 16px; padding: 32px; margin-bottom: 24px; color: white;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="28" height="28" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                </svg>
+            </div>
+            <div>
+                <h1 style="font-size: 26px; font-weight: 700; margin: 0;">💰 Interest Payouts (Admin)</h1>
+                <p style="margin: 6px 0 0; opacity: 0.9; font-size: 15px;">Process and manage interest payouts - SuperAdmin Access</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 10px; text-align: center;">
+                <div style="font-size: 12px; opacity: 0.9;">Pending</div>
+                <div style="font-size: 24px; font-weight: 700;">@accountsPending</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 10px; text-align: center;">
+                <div style="font-size: 12px; opacity: 0.9;">Total Due</div>
+                <div style="font-size: 24px; font-weight: 700;">₱@totalInterestDue.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Notice -->
+<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 24px;">⚠️</span>
+        <div style="flex: 1;">
+            <p style="margin: 0; font-weight: 600; color: #92400e;">Administrative Access - Interest Payouts</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #a16207;">All payout processing will be logged with your reason for audit purposes.</p>
+        </div>
+    </div>
+    <div style="margin-top: 12px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #92400e; margin-bottom: 4px;">Reason for Admin Action (Required)</label>
+        <textarea @bind="adminActionReason" style="width: 100%; padding: 10px; border: 1px solid #f59e0b; border-radius: 8px; font-size: 14px; resize: vertical; min-height: 60px;" placeholder="Document why you are performing this action as admin..."></textarea>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px;">
+    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #10b981;">
+        <div style="display: flex; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: #10b981; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
                     <line x1="12" y1="1" x2="12" y2="23"></line>
                     <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                 </svg>
             </div>
-            <div class="summary-content">
-                <div class="summary-label">Total Interest Due</div>
-                <div class="summary-value">₱@totalInterestDue.ToString("N0")</div>
+            <div>
+                <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Total Interest Due</div>
+                <div style="font-size: 24px; font-weight: 700; color: #10b981;">₱@totalInterestDue.ToString("N0")</div>
             </div>
         </div>
-        <div class="summary-card">
-            <div class="summary-icon" style="background: #3b82f6;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6;">
+        <div style="display: flex; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: #3b82f6; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                     <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
             </div>
-            <div class="summary-content">
-                <div class="summary-label">Accounts Pending</div>
-                <div class="summary-value">@accountsPending</div>
+            <div>
+                <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Accounts Pending</div>
+                <div style="font-size: 24px; font-weight: 700; color: #3b82f6;">@accountsPending</div>
             </div>
         </div>
-        <div class="summary-card">
-            <div class="summary-icon" style="background: #8b5cf6;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #a855f7;">
+        <div style="display: flex; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: #a855f7; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
             </div>
-            <div class="summary-content">
-                <div class="summary-label">Processed Today</div>
-                <div class="summary-value">₱@processedToday.ToString("N0")</div>
+            <div>
+                <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Processed Today</div>
+                <div style="font-size: 24px; font-weight: 700; color: #a855f7;">₱@processedToday.ToString("N0")</div>
             </div>
         </div>
-        <div class="summary-card">
-            <div class="summary-icon" style="background: #f59e0b;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #f59e0b;">
+        <div style="display: flex; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: #f59e0b; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
                     <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
             </div>
-            <div class="summary-content">
-                <div class="summary-label">Next Batch Date</div>
-                <div class="summary-value">@nextBatchDate.ToString("MMM dd")</div>
+            <div>
+                <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Next Batch Date</div>
+                <div style="font-size: 24px; font-weight: 700; color: #f59e0b;">@nextBatchDate.ToString("MMM dd")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Payouts Table -->
+<div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; border: 2px solid #a855f7; margin-bottom: 24px;">
+    <div style="background: linear-gradient(135deg, #fdf4ff, #f5d0fe); padding: 20px 24px; border-bottom: 1px solid #e879f9;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h4 style="margin: 0; font-weight: 700; color: #7c3aed; font-size: 18px;">📋 Pending Interest Payouts (Admin View)</h4>
+                <p style="margin: 6px 0 0 0; color: #9333ea; font-size: 13px;">Review and process pending interest payouts</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button @onclick="SelectAll" style="background: rgba(168, 85, 247, 0.2); color: #7c3aed; padding: 10px 16px; border: 1px solid #a855f7; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Select All
+                </button>
+                <button @onclick="ProcessSelected" style="background: linear-gradient(135deg, #a855f7, #9333ea); color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; opacity: @((!selectedPayouts.Any() || string.IsNullOrWhiteSpace(adminActionReason)) ? "0.5" : "1");" 
+                    disabled="@(!selectedPayouts.Any() || string.IsNullOrWhiteSpace(adminActionReason))">
+                    ✓ Process Selected (@selectedPayouts.Count)
+                </button>
             </div>
         </div>
     </div>
 
-    <div class="admin-card" style="margin-top: 24px;">
-        <div class="card-header">
-            <h3>Pending Interest Payouts</h3>
-            <div class="header-actions">
-                <button class="btn btn-outline" @onclick="SelectAll">Select All</button>
-                <button class="btn btn-primary" @onclick="ProcessSelected" disabled="@(!selectedPayouts.Any() || string.IsNullOrWhiteSpace(adminActionReason))">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                    Process Selected (@selectedPayouts.Count)
-                </button>
+    <div style="padding: 24px;">
+        <!-- Filters -->
+        <div style="display: flex; gap: 16px; margin-bottom: 20px;">
+            <div style="flex: 1; max-width: 300px;">
+                <input type="text" @bind="searchQuery" style="width: 100%; padding: 10px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" placeholder="Search account..." />
+            </div>
+            <div style="flex: 0 0 200px;">
+                <select @bind="accountTypeFilter" style="width: 100%; padding: 10px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                    <option value="">All Account Types</option>
+                    <option value="savings">Regular Savings</option>
+                    <option value="time">Time Deposit</option>
+                    <option value="special">Special Savings</option>
+                </select>
             </div>
         </div>
-        <div class="card-body">
-            <div class="table-filters">
-                <div class="filter-group">
-                    <input type="text" class="form-control" placeholder="Search account..." @bind="searchQuery" />
-                </div>
-                <div class="filter-group">
-                    <select class="form-select" @bind="accountTypeFilter">
-                        <option value="">All Account Types</option>
-                        <option value="savings">Regular Savings</option>
-                        <option value="time">Time Deposit</option>
-                        <option value="special">Special Savings</option>
-                    </select>
-                </div>
-            </div>
 
-            <table class="table">
+        <!-- Table -->
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr>
-                        <th style="width: 40px;">
+                    <tr style="background: #f9fafb;">
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb; width: 40px;">
                             <input type="checkbox" @onchange="ToggleSelectAll" />
                         </th>
-                        <th>Account Number</th>
-                        <th>Account Holder</th>
-                        <th>Account Type</th>
-                        <th>Balance</th>
-                        <th>Interest Rate</th>
-                        <th>Interest Due</th>
-                        <th>Period</th>
-                        <th>Actions</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Account</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Holder</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Type</th>
+                        <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Balance</th>
+                        <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Rate</th>
+                        <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Interest Due</th>
+                        <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var payout in pendingPayouts)
                     {
-                        <tr class="@(selectedPayouts.Contains(payout) ? "selected" : "")">
-                            <td>
-                                <input type="checkbox" checked="@selectedPayouts.Contains(payout)" 
-                                    @onchange="() => ToggleSelection(payout)" />
+                        <tr style="border-bottom: 1px solid #e5e7eb; background: @(selectedPayouts.Contains(payout) ? "#f0fdf4" : "white");">
+                            <td style="padding: 12px;">
+                                <input type="checkbox" checked="@selectedPayouts.Contains(payout)" @onchange="() => ToggleSelection(payout)" />
                             </td>
-                            <td><strong>@payout.AccountNumber</strong></td>
-                            <td>@payout.AccountHolder</td>
-                            <td>
-                                <span class="account-type-badge @payout.AccountType.ToLower()">@payout.AccountType</span>
+                            <td style="padding: 12px; font-weight: 600; color: #111827;">@payout.AccountNumber</td>
+                            <td style="padding: 12px; color: #374151;">@payout.AccountHolder</td>
+                            <td style="padding: 12px;">
+                                <span style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; @GetAccountTypeStyle(payout.AccountType)">@payout.AccountType</span>
                             </td>
-                            <td>₱@payout.Balance.ToString("N2")</td>
-                            <td>@payout.InterestRate% p.a.</td>
-                            <td class="interest-amount">₱@payout.InterestDue.ToString("N2")</td>
-                            <td>@payout.Period</td>
-                            <td>
-                                <button class="btn btn-sm btn-success" @onclick="() => ProcessPayout(payout)"
-                                    disabled="@string.IsNullOrWhiteSpace(adminActionReason)" title="Process">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
-                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                    </svg>
+                            <td style="padding: 12px; text-align: right; color: #374151;">₱@payout.Balance.ToString("N2")</td>
+                            <td style="padding: 12px; text-align: right; color: #374151;">@payout.InterestRate% p.a.</td>
+                            <td style="padding: 12px; text-align: right; font-weight: 600; color: #10b981;">₱@payout.InterestDue.ToString("N2")</td>
+                            <td style="padding: 12px; text-align: center;">
+                                <button @onclick="() => ProcessPayout(payout)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; opacity: @(string.IsNullOrWhiteSpace(adminActionReason) ? "0.5" : "1");" disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
+                                    ✓ Process
                                 </button>
                             </td>
                         </tr>
@@ -155,109 +201,62 @@
                 </tbody>
             </table>
         </div>
+
+        @if (!pendingPayouts.Any())
+        {
+            <div style="text-align: center; padding: 60px;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="1.5" style="margin: 0 auto 16px;">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <p style="color: #6b7280; font-size: 16px;">No pending interest payouts</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Recent Payouts History -->
+<div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+    <div style="background: linear-gradient(135deg, #a855f7, #9333ea); color: white; padding: 20px 24px;">
+        <h4 style="margin: 0; font-weight: 600; font-size: 18px;">📜 Recent Interest Payouts</h4>
+        <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">Recently processed interest payments</p>
     </div>
 
-    <div class="admin-card" style="margin-top: 24px;">
-        <div class="card-header">
-            <h3>Recent Interest Payouts</h3>
-        </div>
-        <div class="card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Account Number</th>
-                        <th>Account Holder</th>
-                        <th>Interest Paid</th>
-                        <th>Processed By</th>
-                        <th>Status</th>
+    <div style="padding: 24px;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f9fafb;">
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Date</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Account</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Holder</th>
+                    <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Interest Paid</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Processed By</th>
+                    <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var history in payoutHistory)
+                {
+                    <tr style="border-bottom: 1px solid #e5e7eb;">
+                        <td style="padding: 12px; color: #6b7280; font-size: 14px;">@history.ProcessedDate.ToString("MMM dd, yyyy HH:mm")</td>
+                        <td style="padding: 12px; font-weight: 600; color: #111827;">@history.AccountNumber</td>
+                        <td style="padding: 12px; color: #374151;">@history.AccountHolder</td>
+                        <td style="padding: 12px; text-align: right; font-weight: 600; color: #10b981;">₱@history.InterestPaid.ToString("N2")</td>
+                        <td style="padding: 12px; color: #374151;">@history.ProcessedBy</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <span style="padding: 4px 10px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 12px; font-weight: 600;">✓ Completed</span>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var history in payoutHistory)
-                    {
-                        <tr>
-                            <td>@history.ProcessedDate.ToString("MMM dd, yyyy HH:mm")</td>
-                            <td><strong>@history.AccountNumber</strong></td>
-                            <td>@history.AccountHolder</td>
-                            <td>₱@history.InterestPaid.ToString("N2")</td>
-                            <td>@history.ProcessedBy</td>
-                            <td>
-                                <span class="badge badge-success">Completed</span>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
 
 <style>
-    .accountant-page .role-badge.accountant {
-        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-    }
-    .payout-summary {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-    }
-    .summary-card {
-        display: flex;
-        gap: 16px;
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    .summary-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-    }
-    .summary-label {
-        font-size: 0.85em;
-        color: #6b7280;
-    }
-    .summary-value {
-        font-size: 1.5em;
-        font-weight: 700;
-        color: #1f2937;
-    }
-    .header-actions {
-        display: flex;
-        gap: 12px;
-    }
-    .table-filters {
-        display: flex;
-        gap: 16px;
-        margin-bottom: 20px;
-    }
-    .filter-group {
-        flex: 1;
-        max-width: 300px;
-    }
-    .table tr.selected {
-        background: #f0fdf4;
-    }
-    .account-type-badge {
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.8em;
-    }
-    .account-type-badge.savings { background: #dcfce7; color: #166534; }
-    .account-type-badge.time { background: #dbeafe; color: #1e40af; }
-    .account-type-badge.special { background: #fef3c7; color: #92400e; }
-    .interest-amount {
-        font-weight: 600;
-        color: #10b981;
-    }
-    .btn-sm {
-        padding: 4px 8px;
+    @@keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
 </style>
 
@@ -265,6 +264,9 @@
     private string adminActionReason = "";
     private string searchQuery = "";
     private string accountTypeFilter = "";
+    private bool showToast = false;
+    private string toastMessage = "";
+    private string toastType = "success";
 
     private decimal totalInterestDue = 125000;
     private int accountsPending = 48;
@@ -295,6 +297,14 @@
             Navigation.NavigateTo("/login");
         }
     }
+
+    private string GetAccountTypeStyle(string type) => type switch
+    {
+        "Savings" => "background: #dcfce7; color: #166534;",
+        "Time" => "background: #dbeafe; color: #1e40af;",
+        "Special" => "background: #fef3c7; color: #92400e;",
+        _ => "background: #f3f4f6; color: #374151;"
+    };
 
     private void ToggleSelectAll(ChangeEventArgs e)
     {
@@ -328,11 +338,13 @@
     private void ProcessSelected()
     {
         if (string.IsNullOrWhiteSpace(adminActionReason)) return;
+        var count = selectedPayouts.Count;
         foreach (var payout in selectedPayouts.ToList())
         {
             pendingPayouts.Remove(payout);
         }
         selectedPayouts.Clear();
+        ShowToast($"Successfully processed {count} interest payouts.", "success");
     }
 
     private void ProcessPayout(PayoutItem payout)
@@ -340,6 +352,15 @@
         if (string.IsNullOrWhiteSpace(adminActionReason)) return;
         pendingPayouts.Remove(payout);
         selectedPayouts.Remove(payout);
+        ShowToast($"Interest payout for {payout.AccountNumber} processed successfully.", "success");
+    }
+
+    private void ShowToast(string message, string type)
+    {
+        toastMessage = message;
+        toastType = type;
+        showToast = true;
+        StateHasChanged();
     }
 
     private class PayoutItem

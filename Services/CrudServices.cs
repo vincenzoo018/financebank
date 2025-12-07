@@ -1983,6 +1983,15 @@ public class CustomerTransactionService
     {
         _context = context;
     }
+
+    public async Task<List<CustomerTransaction>> GetAllAsync()
+    {
+        return await _context.CustomerTransactions
+            .Include(ct => ct.Account)
+            .OrderByDescending(ct => ct.CreatedAt)
+            .ToListAsync();
+    }
+
     public async Task<List<CustomerTransaction>> GetByAccountIdAsync(int accountId)
     {
         return await _context.CustomerTransactions
@@ -2232,6 +2241,31 @@ public class LoanService
         }
 
         return loan;
+    }
+
+    public async Task<List<Loan>> GetAllOutstandingLoansAsync()
+    {
+        // Get all loans with outstanding balance > 0 and status Active
+        return await _context.Loans
+            .Include(l => l.Account)
+                .ThenInclude(a => a!.Customer)
+            .Where(l => l.OutstandingBalance > 0 && l.Status == "Active")
+            .OrderByDescending(l => l.OutstandingBalance)
+            .ToListAsync();
+    }
+
+    public async Task<List<Loan>> GetAllLoansAsync()
+    {
+        return await _context.Loans
+            .Include(l => l.Account)
+                .ThenInclude(a => a!.Customer)
+            .OrderByDescending(l => l.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<List<Loan>> GetAllAsync()
+    {
+        return await GetAllLoansAsync();
     }
 }
 

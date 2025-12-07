@@ -1,301 +1,304 @@
 @page "/admin/teller/daily-report"
 @layout AdminLayout
 @using FinanceBank.Models
+@using FinanceBank.Services
 @using Microsoft.EntityFrameworkCore
 @inject AuthService AuthService
 @inject TellerReportService ReportService
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
 @inject NavigationManager Navigation
 
-<div class="admin-page teller-page">
-    <!-- Header Title Card -->
-    <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.15)); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 16px; padding: 28px; margin-bottom: 20px; color: #15803d;">
+<!-- Header with Gradient -->
+<div style="background: linear-gradient(135deg, #059669, #10b981); border-radius: 16px; padding: 32px; margin-bottom: 32px; color: white;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            <svg style="width: 28px; height: 28px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Daily Report</h1>
+            <p style="margin: 4px 0 0; opacity: 0.9; font-size: 14px;">SuperAdmin: View and export daily transaction summaries per teller</p>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Notice -->
+<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px;">
+    <svg style="width: 20px; height: 20px; color: #d97706; flex-shrink: 0; margin-top: 2px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+    <div>
+        <p style="font-weight: 600; color: #92400e; margin: 0 0 4px 0;">Administrative Report Access</p>
+        <p style="font-size: 14px; color: #a16207; margin: 0;">You are viewing teller daily reports. Filter by date and teller to generate specific reports.</p>
+    </div>
+</div>
+
+<!-- Filter Controls -->
+<div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+            <div>
+                <label style="font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 8px;">Report Date</label>
+                <input type="date" @bind="reportDate"
+                       style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+            </div>
+            <div>
+                <label style="font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 8px;">Teller</label>
+                <select @bind="selectedTellerId"
+                        style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white; min-width: 200px;">
+                    <option value="0">All Tellers</option>
+                    @foreach (var teller in allTellers)
+                    {
+                        <option value="@teller.EmployeeId">@teller.FullName</option>
+                    }
+                </select>
+            </div>
+            <button @onclick="GenerateReport"
+                    style="padding: 12px 24px; background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Generate Report
+            </button>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button @onclick="PrintReport"
+                    style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                Print
+            </button>
+            <button @onclick="ExportReport"
+                    style="padding: 12px 24px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Export
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (selectedTellerId > 0 && GetSelectedTeller() != null)
+{
+    <!-- Selected Teller Details -->
+    var selectedTeller = GetSelectedTeller();
+    {
+        <div style="background: linear-gradient(135deg, #dcfce7, #bbf7d0); border: 2px solid #10b981; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #059669, #10b981); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 24px;">
+                        @selectedTeller.FullName.Substring(0, 1).ToUpper()
+                    </div>
+                    <div>
+                        <h3 style="font-size: 20px; font-weight: 700; color: #166534; margin: 0;">@selectedTeller.FullName</h3>
+                        <p style="font-size: 14px; color: #15803d; margin: 4px 0 0 0;">@selectedTeller.Department • Daily Report for @reportDate.ToString("MMMM dd, yyyy")</p>
+                    </div>
+                </div>
+                <button @onclick="ClearTellerFilter"
+                        style="padding: 10px 20px; background: white; color: #059669; border: 2px solid #059669; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    ✕ Clear Filter
+                </button>
+            </div>
+        </div>
+    }
+}
+
+<!-- Summary Stats -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px;">
+    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
         <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
-                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <rect x="3" y="4" width="18" height="18" rx="2"/>
-                    <path d="M16 2v4M8 2v4M3 10h18"/>
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981, #34d399); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 28px; height: 28px; color: white;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M12 4v16m8-8H4"/>
                 </svg>
             </div>
             <div>
-                <h1 style="font-size: 22px; font-weight: 700; margin: 0;">Daily Report</h1>
-                <p style="font-size: 14px; color: rgba(21,128,61,0.85); margin: 4px 0 0 0;">Today's transaction summary</p>
+                <p style="font-size: 14px; color: #6b7280; margin: 0;">Total Deposits</p>
+                <p style="font-size: 24px; font-weight: 700; color: #059669; margin: 4px 0 0 0;">₱@totalDeposits.ToString("N0")</p>
+                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">@depositCount transactions</p>
             </div>
         </div>
     </div>
-
-    <!-- Admin Action Reason -->
-    <div class="admin-action-card">
-        <div class="alert alert-warning">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
-                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-            </svg>
-            <span>You are accessing Teller functions as SuperAdmin. All actions are logged.</span>
-        </div>
-        <div class="form-group">
-            <label for="adminReason">Reason for Admin Action (Required)</label>
-            <textarea id="adminReason" @bind="adminActionReason" class="form-control" 
-                placeholder="Document why you are performing this action as admin..." rows="2"></textarea>
-        </div>
-    </div>
-
-    <div class="report-controls" style="margin-top: 24px;">
-        <div class="control-group">
-            <label>Report Date</label>
-            <input type="date" class="form-control" @bind="reportDate" />
-        </div>
-        <div class="control-group">
-            <label>Teller</label>
-            <select class="form-select" @bind="selectedTeller">
-                <option value="">All Tellers</option>
-                <option value="teller1">Teller 1 - Juan Dela Cruz</option>
-                <option value="teller2">Teller 2 - Maria Santos</option>
-                <option value="teller3">Teller 3 - Pedro Reyes</option>
-            </select>
-        </div>
-        <button class="btn btn-primary" @onclick="GenerateReport">Generate Report</button>
-        <button class="btn btn-outline" @onclick="PrintReport">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                <rect x="6" y="14" width="12" height="8"></rect>
-            </svg>
-            Print
-        </button>
-        <button class="btn btn-outline" @onclick="ExportReport">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Export
-        </button>
-    </div>
-
-    <div class="report-summary" style="margin-top: 24px;">
-        <div class="summary-card">
-            <div class="summary-label">Total Deposits</div>
-            <div class="summary-value deposits">₱@totalDeposits.ToString("N0")</div>
-            <div class="summary-count">@depositCount transactions</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-label">Total Withdrawals</div>
-            <div class="summary-value withdrawals">₱@totalWithdrawals.ToString("N0")</div>
-            <div class="summary-count">@withdrawalCount transactions</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-label">Total Transfers</div>
-            <div class="summary-value transfers">₱@totalTransfers.ToString("N0")</div>
-            <div class="summary-count">@transferCount transactions</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-label">Net Cash Position</div>
-            <div class="summary-value @(netCash >= 0 ? "positive" : "negative")">₱@netCash.ToString("N0")</div>
-            <div class="summary-count">End of Day</div>
-        </div>
-    </div>
-
-    <div class="admin-card" style="margin-top: 24px;">
-        <div class="card-header">
-            <h3>Transaction Details</h3>
-        </div>
-        <div class="card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>Reference</th>
-                        <th>Type</th>
-                        <th>Customer</th>
-                        <th>Account</th>
-                        <th>Amount</th>
-                        <th>Teller</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var tx in transactions)
-                    {
-                        <tr>
-                            <td>@tx.TransactionDate.ToString("HH:mm:ss")</td>
-                            <td><strong>@tx.TransactionNumber</strong></td>
-                            <td>
-                                <span class="tx-type @tx.TransactionType.ToLower()">@tx.TransactionType</span>
-                            </td>
-                            <td>@tx.CustomerName</td>
-                            <td>@tx.AccountNumber</td>
-                            <td class="@GetAmountClass(tx.TransactionType)">
-                                @GetAmountPrefix(tx.TransactionType)₱@tx.Amount.ToString("N2")
-                            </td>
-                            <td>@tx.ProcessedBy</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="reports-grid" style="margin-top: 24px;">
-        <div class="admin-card">
-            <div class="card-header">
-                <h3>Hourly Distribution</h3>
+    
+    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #ef4444, #f87171); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 28px; height: 28px; color: white;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M20 12H4"/>
+                </svg>
             </div>
-            <div class="card-body">
-                <div class="hourly-chart">
-                    @foreach (var hour in hourlyData)
-                    {
-                        <div class="hour-bar">
-                            <div class="bar" style="height: @(hour.Count * 8)px;"></div>
-                            <span class="hour-label">@hour.Hour</span>
-                        </div>
-                    }
-                </div>
+            <div>
+                <p style="font-size: 14px; color: #6b7280; margin: 0;">Total Withdrawals</p>
+                <p style="font-size: 24px; font-weight: 700; color: #dc2626; margin: 4px 0 0 0;">₱@totalWithdrawals.ToString("N0")</p>
+                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">@withdrawalCount transactions</p>
             </div>
         </div>
-
-        <div class="admin-card">
-            <div class="card-header">
-                <h3>Cash Denomination</h3>
+    </div>
+    
+    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6, #60a5fa); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 28px; height: 28px; color: white;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
             </div>
-            <div class="card-body">
-                <table class="denomination-table">
-                    <thead>
-                        <tr>
-                            <th>Denomination</th>
-                            <th>Count</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var denom in denominations)
-                        {
-                            <tr>
-                                <td>₱@denom.Value.ToString("N0")</td>
-                                <td>@denom.Count</td>
-                                <td>₱@(denom.Value * denom.Count).ToString("N0")</td>
-                            </tr>
-                        }
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="2"><strong>Total</strong></td>
-                            <td><strong>₱@denominations.Sum(d => d.Value * d.Count).ToString("N0")</strong></td>
-                        </tr>
-                    </tfoot>
-                </table>
+            <div>
+                <p style="font-size: 14px; color: #6b7280; margin: 0;">Total Transfers</p>
+                <p style="font-size: 24px; font-weight: 700; color: #3b82f6; margin: 4px 0 0 0;">₱@totalTransfers.ToString("N0")</p>
+                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">@transferCount transactions</p>
+            </div>
+        </div>
+    </div>
+    
+    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, @(netCash >= 0 ? "#10b981" : "#ef4444"), @(netCash >= 0 ? "#34d399" : "#f87171")); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 28px; height: 28px; color: white;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+            </div>
+            <div>
+                <p style="font-size: 14px; color: #6b7280; margin: 0;">Net Cash Position</p>
+                <p style="font-size: 24px; font-weight: 700; color: @(netCash >= 0 ? "#059669" : "#dc2626"); margin: 4px 0 0 0;">@(netCash >= 0 ? "+" : "")₱@netCash.ToString("N0")</p>
+                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">End of Day</p>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    .teller-page .role-badge.teller {
-        background: linear-gradient(135deg, #10b981, #059669);
+<!-- Transaction Details -->
+<div style="background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 24px;">
+    <div style="background: linear-gradient(135deg, #059669, #10b981); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 18px; font-weight: 600; color: white; margin: 0;">Transaction Details</h3>
+        <span style="background: rgba(255,255,255,0.2); color: white; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 500;">
+            @transactions.Count transactions
+        </span>
+    </div>
+    
+    @if (isLoading)
+    {
+        <div style="padding: 60px; text-align: center; color: #6b7280;">
+            <p style="margin: 0;">Loading transactions...</p>
+        </div>
     }
-    .report-controls {
-        display: flex;
-        gap: 16px;
-        align-items: flex-end;
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    else if (transactions.Any())
+    {
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f9fafb;">
+                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Time</th>
+                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Reference</th>
+                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Type</th>
+                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Customer</th>
+                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Account</th>
+                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Amount</th>
+                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Teller</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var tx in transactions)
+                    {
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 16px; color: #4b5563; font-size: 14px;">@tx.TransactionDate.ToString("HH:mm:ss")</td>
+                            <td style="padding: 16px; font-weight: 600; color: #1f2937;">@tx.TransactionNumber</td>
+                            <td style="padding: 16px;">
+                                <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+                                             background: @GetTypeBgColor(tx.TransactionType); color: @GetTypeColor(tx.TransactionType);">
+                                    @tx.TransactionType
+                                </span>
+                            </td>
+                            <td style="padding: 16px; color: #4b5563;">@tx.CustomerName</td>
+                            <td style="padding: 16px; color: #4b5563;">@tx.AccountNumber</td>
+                            <td style="padding: 16px; font-weight: 600; color: @GetAmountColor(tx.TransactionType);">
+                                @GetAmountPrefix(tx.TransactionType)₱@tx.Amount.ToString("N2")
+                            </td>
+                            <td style="padding: 16px; color: #4b5563; font-size: 14px;">@tx.ProcessedBy</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
-    .control-group {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
+    else
+    {
+        <div style="padding: 60px; text-align: center; color: #6b7280;">
+            <svg style="width: 48px; height: 48px; color: #d1d5db; margin: 0 auto 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <p style="margin: 0; font-size: 16px;">No transactions found for @reportDate.ToString("MMMM dd, yyyy")</p>
+        </div>
     }
-    .control-group label {
-        font-size: 0.85em;
-        color: #6b7280;
-    }
-    .report-summary {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-    }
-    .summary-card {
-        background: white;
-        padding: 24px;
-        border-radius: 12px;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    .summary-label {
-        font-size: 0.9em;
-        color: #6b7280;
-        margin-bottom: 8px;
-    }
-    .summary-value {
-        font-size: 1.8em;
-        font-weight: 700;
-    }
-    .summary-value.deposits { color: #10b981; }
-    .summary-value.withdrawals { color: #ef4444; }
-    .summary-value.transfers { color: #3b82f6; }
-    .summary-value.positive { color: #10b981; }
-    .summary-value.negative { color: #ef4444; }
-    .summary-count {
-        font-size: 0.85em;
-        color: #9ca3af;
-        margin-top: 4px;
-    }
-    .tx-type {
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.8em;
-    }
-    .tx-type.deposit { background: #dcfce7; color: #166534; }
-    .tx-type.withdrawal { background: #fee2e2; color: #991b1b; }
-    .tx-type.transfer { background: #dbeafe; color: #1e40af; }
-    .amount-deposit { color: #10b981; }
-    .amount-withdrawal { color: #ef4444; }
-    .amount-transfer { color: #3b82f6; }
-    .reports-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 24px;
-    }
-    .hourly-chart {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        height: 150px;
-        padding: 20px 0;
-    }
-    .hour-bar {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-    }
-    .hour-bar .bar {
-        width: 24px;
-        background: #10b981;
-        border-radius: 4px 4px 0 0;
-        min-height: 4px;
-    }
-    .hour-label {
-        font-size: 0.75em;
-        color: #6b7280;
-    }
-    .denomination-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .denomination-table th, .denomination-table td {
-        padding: 10px;
-        text-align: left;
-        border-bottom: 1px solid #e5e7eb;
-    }
-    .denomination-table tfoot td {
-        background: #f8fafc;
-    }
-</style>
+</div>
+
+<!-- Reports Grid -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Hourly Distribution -->
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 20px 24px;">
+            <h3 style="font-size: 18px; font-weight: 600; color: white; margin: 0;">Hourly Distribution</h3>
+        </div>
+        <div style="padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; height: 150px; padding: 20px 0;">
+                @foreach (var hour in hourlyData)
+                {
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <div style="width: 32px; background: linear-gradient(135deg, #10b981, #34d399); border-radius: 4px 4px 0 0; height: @(Math.Max(hour.Count * 6, 4))px;"></div>
+                        <span style="font-size: 11px; color: #6b7280;">@hour.Hour</span>
+                        <span style="font-size: 10px; color: #9ca3af;">@hour.Count</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cash Denomination -->
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #f59e0b, #fbbf24); padding: 20px 24px;">
+            <h3 style="font-size: 18px; font-weight: 600; color: white; margin: 0;">Cash Denomination</h3>
+        </div>
+        <div style="padding: 24px;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e5e7eb;">
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Denomination</th>
+                        <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151;">Count</th>
+                        <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var denom in denominations)
+                    {
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 12px; color: #4b5563;">₱@denom.Value.ToString("N0")</td>
+                            <td style="padding: 12px; text-align: center; color: #4b5563;">@denom.Count</td>
+                            <td style="padding: 12px; text-align: right; color: #059669; font-weight: 600;">₱@(denom.Value * denom.Count).ToString("N0")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr style="background: #f9fafb;">
+                        <td colspan="2" style="padding: 12px; font-weight: 700; color: #1f2937;">Total</td>
+                        <td style="padding: 12px; text-align: right; font-weight: 700; color: #059669;">₱@denominations.Sum(d => d.Value * d.Count).ToString("N0")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
 
 @code {
-    private string adminActionReason = "";
     private DateTime reportDate = DateTime.Today;
-    private string selectedTeller = "";
+    private int selectedTellerId = 0;
     private bool isLoading = true;
 
     private decimal totalDeposits = 0;
@@ -307,36 +310,93 @@
     private decimal netCash = 0;
 
     private List<TellerTransactionRecord> transactions = new();
-
+    private List<TellerInfo> allTellers = new();
+    
     private List<HourlyData> hourlyData = new()
     {
-        new() { Hour = "9AM", Count = 8 },
-        new() { Hour = "10AM", Count = 12 },
-        new() { Hour = "11AM", Count = 15 },
-        new() { Hour = "12PM", Count = 6 },
-        new() { Hour = "1PM", Count = 10 },
-        new() { Hour = "2PM", Count = 14 },
-        new() { Hour = "3PM", Count = 18 },
-        new() { Hour = "4PM", Count = 12 }
+        new() { Hour = "9AM", Count = 0 },
+        new() { Hour = "10AM", Count = 0 },
+        new() { Hour = "11AM", Count = 0 },
+        new() { Hour = "12PM", Count = 0 },
+        new() { Hour = "1PM", Count = 0 },
+        new() { Hour = "2PM", Count = 0 },
+        new() { Hour = "3PM", Count = 0 },
+        new() { Hour = "4PM", Count = 0 }
     };
 
     private List<Denomination> denominations = new()
     {
-        new() { Value = 1000, Count = 250 },
-        new() { Value = 500, Count = 180 },
-        new() { Value = 200, Count = 95 },
-        new() { Value = 100, Count = 150 },
-        new() { Value = 50, Count = 80 },
-        new() { Value = 20, Count = 120 }
+        new() { Value = 1000, Count = 0 },
+        new() { Value = 500, Count = 0 },
+        new() { Value = 200, Count = 0 },
+        new() { Value = 100, Count = 0 },
+        new() { Value = 50, Count = 0 },
+        new() { Value = 20, Count = 0 }
     };
+    
+    private class TellerInfo
+    {
+        public int EmployeeId { get; set; }
+        public string FullName { get; set; } = "";
+        public string Department { get; set; } = "";
+    }
+
+    private class HourlyData
+    {
+        public string Hour { get; set; } = "";
+        public int Count { get; set; }
+    }
+
+    private class Denomination
+    {
+        public int Value { get; set; }
+        public int Count { get; set; }
+    }
+    
+    private TellerInfo? GetSelectedTeller()
+    {
+        return allTellers.FirstOrDefault(t => t.EmployeeId == selectedTellerId);
+    }
 
     protected override async Task OnInitializedAsync()
     {
         if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
         {
             Navigation.NavigateTo("/admin/dashboard");
+            return;
         }
+        await LoadTellers();
         await LoadReportData();
+    }
+
+    private async Task LoadTellers()
+    {
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            
+            // Get all employees who are tellers or have processed transactions
+            var tellerIds = await context.CustomerTransactions
+                .Where(t => t.ProcessedByEmployeeId.HasValue)
+                .Select(t => t.ProcessedByEmployeeId!.Value)
+                .Distinct()
+                .ToListAsync();
+            
+            var employees = await context.Employees
+                .Where(e => e.IsActive && (e.Department.Contains("Teller") || e.Position == "Teller" || tellerIds.Contains(e.EmployeeId)))
+                .ToListAsync();
+            
+            allTellers = employees.Select(e => new TellerInfo
+            {
+                EmployeeId = e.EmployeeId,
+                FullName = $"{e.FirstName} {e.LastName}",
+                Department = e.Department
+            }).Distinct().OrderBy(t => t.FullName).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading tellers: {ex.Message}");
+        }
     }
 
     private async Task LoadReportData()
@@ -347,7 +407,20 @@
             var startDate = reportDate.Date;
             var endDate = reportDate.Date.AddDays(1).AddSeconds(-1);
             
-            transactions = await ReportService.GetAllTransactionsAsync(startDate, endDate);
+            // Get transactions from service
+            var allTransactions = await ReportService.GetAllTransactionsAsync(startDate, endDate);
+            
+            // Filter by teller if selected
+            if (selectedTellerId > 0)
+            {
+                using var context = await DbContextFactory.CreateDbContextAsync();
+                var tellerName = allTellers.FirstOrDefault(t => t.EmployeeId == selectedTellerId)?.FullName ?? "";
+                transactions = allTransactions.Where(t => t.ProcessedBy?.Contains(tellerName.Split(' ')[0]) == true || t.ProcessedBy?.Contains(tellerName) == true).ToList();
+            }
+            else
+            {
+                transactions = allTransactions;
+            }
             
             // Calculate totals
             totalDeposits = transactions.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount);
@@ -363,10 +436,13 @@
             
             // Recalculate hourly data
             RecalculateHourlyData();
+            
+            // Update denomination estimates based on cash movement
+            UpdateDenominationEstimates();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading report: {ex.Message}");
+            Console.WriteLine($"Error loading report: {ex.Message}");
         }
         finally
         {
@@ -376,23 +452,60 @@
 
     private void RecalculateHourlyData()
     {
-        hourlyData = transactions
+        var grouped = transactions
             .GroupBy(t => t.TransactionDate.Hour)
-            .Select(g => new HourlyData
-            {
-                Hour = $"{(g.Key % 12 == 0 ? 12 : g.Key % 12)}{(g.Key >= 12 ? "PM" : "AM")}",
-                Count = g.Count()
-            })
-            .OrderBy(h => h.Hour)
-            .ToList();
+            .ToDictionary(g => g.Key, g => g.Count());
+        
+        hourlyData = new List<HourlyData>
+        {
+            new() { Hour = "9AM", Count = grouped.GetValueOrDefault(9, 0) },
+            new() { Hour = "10AM", Count = grouped.GetValueOrDefault(10, 0) },
+            new() { Hour = "11AM", Count = grouped.GetValueOrDefault(11, 0) },
+            new() { Hour = "12PM", Count = grouped.GetValueOrDefault(12, 0) },
+            new() { Hour = "1PM", Count = grouped.GetValueOrDefault(13, 0) },
+            new() { Hour = "2PM", Count = grouped.GetValueOrDefault(14, 0) },
+            new() { Hour = "3PM", Count = grouped.GetValueOrDefault(15, 0) },
+            new() { Hour = "4PM", Count = grouped.GetValueOrDefault(16, 0) }
+        };
+    }
+    
+    private void UpdateDenominationEstimates()
+    {
+        // Estimate denomination distribution based on total deposits
+        var totalCash = totalDeposits;
+        denominations = new List<Denomination>
+        {
+            new() { Value = 1000, Count = (int)(totalCash * 0.40m / 1000) },
+            new() { Value = 500, Count = (int)(totalCash * 0.25m / 500) },
+            new() { Value = 200, Count = (int)(totalCash * 0.10m / 200) },
+            new() { Value = 100, Count = (int)(totalCash * 0.15m / 100) },
+            new() { Value = 50, Count = (int)(totalCash * 0.05m / 50) },
+            new() { Value = 20, Count = (int)(totalCash * 0.05m / 20) }
+        };
     }
 
-    private string GetAmountClass(string type) => type switch
+    private string GetTypeBgColor(string type) => type switch
     {
-        "Deposit" => "amount-deposit",
-        "Withdrawal" => "amount-withdrawal",
-        "Transfer" => "amount-transfer",
-        _ => ""
+        "Deposit" => "#dcfce7",
+        "Withdrawal" => "#fee2e2",
+        "Transfer" => "#dbeafe",
+        _ => "#f3f4f6"
+    };
+
+    private string GetTypeColor(string type) => type switch
+    {
+        "Deposit" => "#166534",
+        "Withdrawal" => "#991b1b",
+        "Transfer" => "#1e40af",
+        _ => "#374151"
+    };
+
+    private string GetAmountColor(string type) => type switch
+    {
+        "Deposit" => "#10b981",
+        "Withdrawal" => "#ef4444",
+        "Transfer" => "#3b82f6",
+        _ => "#1f2937"
     };
 
     private string GetAmountPrefix(string type) => type switch
@@ -407,20 +520,19 @@
         await LoadReportData();
     }
     
-    private void PrintReport() { }
-    private void ExportReport() { }
-
-
-
-    private class HourlyData
+    private async Task ClearTellerFilter()
     {
-        public string Hour { get; set; } = "";
-        public int Count { get; set; }
+        selectedTellerId = 0;
+        await LoadReportData();
     }
-
-    private class Denomination
+    
+    private void PrintReport() 
     {
-        public int Value { get; set; }
-        public int Count { get; set; }
+        Console.WriteLine("Print report triggered");
+    }
+    
+    private void ExportReport() 
+    {
+        Console.WriteLine("Export report triggered");
     }
 }

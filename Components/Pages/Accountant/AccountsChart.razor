@@ -152,11 +152,8 @@
                             style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
                             Type</th>
                         <th
-                            style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
-                            Normal Balance</th>
-                        <th
-                            style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
-                            Current Balance</th>
+                            style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                            Level</th>
                         <th
                             style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
                             Status</th>
@@ -175,9 +172,9 @@
                             </td>
                             <td style="padding: 16px;">
                                 <div style="font-weight: 600; color: #1e293b;">@account.AccountName</div>
-                                @if (!string.IsNullOrEmpty(account.Description))
+                                @if (!string.IsNullOrEmpty(account.ParentAccountCode))
                                 {
-                                    <div style="font-size: 12px; color: #64748b; margin-top: 2px;">@account.Description</div>
+                                    <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Parent: @account.ParentAccountCode</div>
                                 }
                             </td>
                             <td style="padding: 16px;">
@@ -187,15 +184,8 @@
                                 <span
                                     style="background: @typeBg; color: @typeColor; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">@account.AccountType</span>
                             </td>
-                            <td style="padding: 16px;">
-                                <span
-                                    style="background: @(account.NormalBalance == "Debit" ? "#fee2e2" : "#d1fae5"); color: @(account.NormalBalance == "Debit" ? "#991b1b" : "#065f46"); padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">
-                                    @account.NormalBalance
-                                </span>
-                            </td>
-                            <td
-                                style="padding: 16px; text-align: right; font-weight: 600; font-family: monospace; color: @(account.CurrentBalance >= 0 ? "#059669" : "#dc2626");">
-                                ₱@account.CurrentBalance.ToString("N2")
+                            <td style="padding: 16px; text-align: center;">
+                                <span style="font-weight: 600; color: #374151;">@account.Level</span>
                             </td>
                             <td style="padding: 16px; text-align: center;">
                                 @if (account.IsActive)
@@ -267,26 +257,25 @@
                     </select>
                 </div>
                 <div>
-                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Normal Balance
-                        *</label>
-                    <select @bind="editAccount.NormalBalance"
-                        style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white;">
-                        <option value="Debit">Debit</option>
-                        <option value="Credit">Credit</option>
-                    </select>
+                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Parent Account Code</label>
+                    <input type="text" @bind="editAccount.ParentAccountCode"
+                        style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
+                        placeholder="e.g., 1000 (optional)" />
                 </div>
             </div>
 
-            <div style="margin-top: 16px;">
-                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Description</label>
-                <textarea @bind="editAccount.Description" rows="3"
-                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"
-                placeholder="Account description..."></textarea>
-            </div>
-
-            <div style="display: flex; align-items: center; gap: 8px; margin-top: 16px;">
-                <input type="checkbox" @bind="editAccount.IsActive" id="isActive" />
-                <label for="isActive" style="font-weight: 500; color: #374151;">Account is Active</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                <div>
+                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Level</label>
+                    <input type="number" @bind="editAccount.Level" min="1" max="5"
+                        style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                </div>
+                <div style="display: flex; align-items: flex-end; padding-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" @bind="editAccount.IsActive" id="isActive" />
+                        <label for="isActive" style="font-weight: 500; color: #374151;">Account is Active</label>
+                    </div>
+                </div>
             </div>
 
             <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
@@ -356,7 +345,7 @@
         editAccount = new FinanceBank.Models.ChartOfAccounts
         {
             IsActive = true,
-            NormalBalance = "Debit",
+            Level = 1,
             CreatedBy = "Accountant"
         };
         isEditing = false;
@@ -371,10 +360,9 @@
             AccountCode = account.AccountCode,
             AccountName = account.AccountName,
             AccountType = account.AccountType,
-            NormalBalance = account.NormalBalance,
-            Description = account.Description,
+            ParentAccountCode = account.ParentAccountCode,
+            Level = account.Level,
             IsActive = account.IsActive,
-            CurrentBalance = account.CurrentBalance,
             CreatedBy = account.CreatedBy,
             CreatedAt = account.CreatedAt
         };
@@ -401,14 +389,13 @@
         {
             if (isEditing)
             {
-                editAccount.ModifiedBy = "Accountant";
-                editAccount.ModifiedAt = DateTime.Now;
                 await AccountingService.UpdateChartOfAccountsAsync(editAccount);
                 successMessage = $"✓ Account '{editAccount.AccountName}' updated successfully!";
             }
             else
             {
                 editAccount.CreatedAt = DateTime.Now;
+                editAccount.CreatedBy = "Accountant";
                 await AccountingService.CreateChartOfAccountsAsync(editAccount);
                 successMessage = $"✓ Account '{editAccount.AccountName}' created successfully!";
             }

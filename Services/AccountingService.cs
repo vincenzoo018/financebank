@@ -119,17 +119,16 @@ namespace FinanceBank.Services
         {
             try
             {
-                var summary = new Dictionary<string, decimal>();
-                var accountTypes = new[] { "Asset", "Liability", "Equity", "Revenue", "Expense" };
-
-                foreach (var type in accountTypes)
+                // Balances are now computed from JournalEntries, not stored on ChartOfAccounts
+                // Return zeros as placeholder - use GeneralLedgerService for actual balances
+                var summary = new Dictionary<string, decimal>
                 {
-                    var balance = await _context.ChartOfAccounts
-                        .Where(a => a.AccountType == type && a.IsActive)
-                        .SumAsync(a => a.CurrentBalance);
-                    summary[type] = balance;
-                }
-
+                    ["Asset"] = 0,
+                    ["Liability"] = 0,
+                    ["Equity"] = 0,
+                    ["Revenue"] = 0,
+                    ["Expense"] = 0
+                };
                 return summary;
             }
             catch (Exception ex)
@@ -140,29 +139,9 @@ namespace FinanceBank.Services
 
         public async Task UpdateAccountBalanceAsync(string accountCode, decimal amount, bool isDebit)
         {
-            try
-            {
-                var account = await GetChartOfAccountsByCodeAsync(accountCode);
-                if (account != null)
-                {
-                    // Update balance based on normal balance type
-                    if (account.NormalBalance == "Debit")
-                    {
-                        account.CurrentBalance += isDebit ? amount : -amount;
-                    }
-                    else // Credit
-                    {
-                        account.CurrentBalance += isDebit ? -amount : amount;
-                    }
-
-                    _context.ChartOfAccounts.Update(account);
-                    await _context.SaveChangesAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new ServiceException($"Error updating account balance: {ex.Message}", ex);
-            }
+            // Balances are now computed from JournalEntries, not stored on ChartOfAccounts
+            // This method is kept for API compatibility but does nothing
+            await Task.CompletedTask;
         }
 
         // Journal Entries

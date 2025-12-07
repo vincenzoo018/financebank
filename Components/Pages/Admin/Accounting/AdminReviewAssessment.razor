@@ -3,181 +3,222 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<div class="admin-page accountant-page">
-    <div class="page-header">
-        <h1>
-            <span class="role-badge accountant">Accountant</span>
-            Review & Assessment
-        </h1>
-        <p class="page-subtitle">Review loan applications and financial assessments</p>
-    </div>
-
-    <!-- Admin Action Reason -->
-    <div class="admin-action-card">
-        <div class="alert alert-warning">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
-                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+<!-- Toast Notification -->
+@if (showToast)
+{
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease-out;">
+        <div style="background: linear-gradient(135deg, @(toastType == "success" ? "#059669, #10b981" : "#dc2626, #ef4444")); color: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; min-width: 300px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
-            <span>You are accessing Accountant functions as SuperAdmin. All actions are logged.</span>
-        </div>
-        <div class="form-group">
-            <label for="adminReason">Reason for Admin Action (Required)</label>
-            <textarea id="adminReason" @bind="adminActionReason" class="form-control" 
-                placeholder="Document why you are performing this action as admin..." rows="2"></textarea>
+            <span style="font-weight: 500;">@toastMessage</span>
+            <button @onclick="() => showToast = false" style="background: none; border: none; color: white; cursor: pointer; margin-left: auto; font-size: 18px;">×</button>
         </div>
     </div>
+}
 
-    <div class="review-tabs" style="margin-top: 24px;">
-        <button class="tab-btn @(activeTab == "pending" ? "active" : "")" @onclick='() => activeTab = "pending"'>
-            Pending Review
-            <span class="badge">@pendingReviews.Count</span>
-        </button>
-        <button class="tab-btn @(activeTab == "inprogress" ? "active" : "")" @onclick='() => activeTab = "inprogress"'>
-            In Progress
-            <span class="badge">@inProgressReviews.Count</span>
-        </button>
-        <button class="tab-btn @(activeTab == "completed" ? "active" : "")" @onclick='() => activeTab = "completed"'>
-            Completed
-            <span class="badge">@completedReviews.Count</span>
-        </button>
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Review & Assessment (Admin)</h1>
+                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Review loan applications and financial assessments - SuperAdmin Access</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 10px; text-align: center;">
+                <div style="font-size: 12px; opacity: 0.9;">Pending</div>
+                <div style="font-size: 24px; font-weight: 700;">@pendingReviews.Count</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 10px; text-align: center;">
+                <div style="font-size: 12px; opacity: 0.9;">In Progress</div>
+                <div style="font-size: 24px; font-weight: 700;">@inProgressReviews.Count</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Notice -->
+<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 24px;">⚠️</span>
+        <div style="flex: 1;">
+            <p style="margin: 0; font-weight: 600; color: #92400e;">Administrative Access - Review & Assessment</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #a16207;">All assessment actions will be logged with your reason for audit purposes.</p>
+        </div>
+    </div>
+    <div style="margin-top: 12px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #92400e; margin-bottom: 4px;">Reason for Admin Action (Required)</label>
+        <textarea @bind="adminActionReason" style="width: 100%; padding: 10px; border: 1px solid #f59e0b; border-radius: 8px; font-size: 14px; resize: vertical; min-height: 60px;" placeholder="Document why you are performing this action as admin..."></textarea>
+    </div>
+</div>
+
+<!-- Tab Navigation -->
+<div style="display: flex; gap: 8px; margin-bottom: 24px; background: white; padding: 8px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <button @onclick='() => activeTab = "pending"' style="flex: 1; padding: 14px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; @(activeTab == "pending" ? "background: linear-gradient(135deg, #f59e0b, #d97706); color: white;" : "background: transparent; color: #64748b;")">
+        ⏳ Pending Review <span style="background: @(activeTab == "pending" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.1)"); padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 4px;">@pendingReviews.Count</span>
+    </button>
+    <button @onclick='() => activeTab = "inprogress"' style="flex: 1; padding: 14px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; @(activeTab == "inprogress" ? "background: linear-gradient(135deg, #f59e0b, #d97706); color: white;" : "background: transparent; color: #64748b;")">
+        🔄 In Progress <span style="background: @(activeTab == "inprogress" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.1)"); padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 4px;">@inProgressReviews.Count</span>
+    </button>
+    <button @onclick='() => activeTab = "completed"' style="flex: 1; padding: 14px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; @(activeTab == "completed" ? "background: linear-gradient(135deg, #f59e0b, #d97706); color: white;" : "background: transparent; color: #64748b;")">
+        ✓ Completed <span style="background: @(activeTab == "completed" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.1)"); padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 4px;">@completedReviews.Count</span>
+    </button>
+</div>
+
+<!-- Content Area -->
+<div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+    <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 20px 24px;">
+        <h4 style="margin: 0; font-weight: 600; font-size: 18px;">📋 @GetTabTitle() (Admin View)</h4>
+        <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">Review and assess loan applications</p>
     </div>
 
-    <div class="admin-card" style="margin-top: 24px;">
+    <div style="padding: 24px;">
         @if (activeTab == "pending")
         {
-            <div class="card-header">
-                <h3>Pending Reviews</h3>
-            </div>
-            <div class="card-body">
-                @foreach (var review in pendingReviews)
-                {
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="applicant-info">
-                                <strong>@review.ApplicantName</strong>
-                                <span class="loan-type">@review.LoanType</span>
-                            </div>
-                            <div class="review-date">
-                                Submitted: @review.SubmittedDate.ToString("MMM dd, yyyy")
-                            </div>
+            @foreach (var review in pendingReviews)
+            {
+                <div style="padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 16px; background: #fafafa;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <strong style="font-size: 16px; color: #111827;">@review.ApplicantName</strong>
+                            <span style="padding: 4px 12px; background: #e0e7ff; color: #4f46e5; border-radius: 6px; font-size: 12px; font-weight: 600;">@review.LoanType</span>
                         </div>
-                        <div class="review-details">
-                            <div class="detail-row">
-                                <span class="label">Amount Requested:</span>
-                                <span class="value">₱@review.AmountRequested.ToString("N2")</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="label">Term:</span>
-                                <span class="value">@review.Term months</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="label">Monthly Income:</span>
-                                <span class="value">₱@review.MonthlyIncome.ToString("N2")</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="label">Debt-to-Income Ratio:</span>
-                                <span class="value @GetDTIClass(review.DebtToIncomeRatio)">@review.DebtToIncomeRatio%</span>
-                            </div>
+                        <span style="color: #6b7280; font-size: 13px;">Submitted: @review.SubmittedDate.ToString("MMM dd, yyyy")</span>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; padding: 16px; background: white; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #6b7280;">Amount Requested:</span>
+                            <span style="font-weight: 600;">₱@review.AmountRequested.ToString("N2")</span>
                         </div>
-                        <div class="review-actions">
-                            <button class="btn btn-primary" @onclick="() => StartReview(review)" disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
-                                Start Review
-                            </button>
-                            <button class="btn btn-outline" @onclick="() => ViewApplication(review)">
-                                View Full Application
-                            </button>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #6b7280;">Term:</span>
+                            <span style="font-weight: 600;">@review.Term months</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #6b7280;">Monthly Income:</span>
+                            <span style="font-weight: 600;">₱@review.MonthlyIncome.ToString("N2")</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #6b7280;">Debt-to-Income Ratio:</span>
+                            <span style="font-weight: 600; color: @GetDTIColor(review.DebtToIncomeRatio);">@review.DebtToIncomeRatio%</span>
                         </div>
                     </div>
-                }
-            </div>
+                    
+                    <div style="display: flex; gap: 12px;">
+                        <button @onclick="() => StartReview(review)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; opacity: @(string.IsNullOrWhiteSpace(adminActionReason) ? "0.5" : "1");" disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
+                            ▶️ Start Review
+                        </button>
+                        <button style="background: #f3f4f6; color: #374151; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            👁️ View Application
+                        </button>
+                    </div>
+                </div>
+            }
+            
+            @if (!pendingReviews.Any())
+            {
+                <div style="text-align: center; padding: 60px;">
+                    <p style="color: #6b7280; font-size: 16px;">No pending reviews</p>
+                </div>
+            }
         }
         else if (activeTab == "inprogress")
         {
-            <div class="card-header">
-                <h3>Reviews In Progress</h3>
-            </div>
-            <div class="card-body">
-                @foreach (var review in inProgressReviews)
-                {
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="applicant-info">
-                                <strong>@review.ApplicantName</strong>
-                                <span class="loan-type">@review.LoanType</span>
-                            </div>
-                            <div class="review-progress">
-                                <span class="progress-label">@review.ProgressPercent% Complete</span>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: @review.ProgressPercent%;"></div>
-                                </div>
-                            </div>
+            @foreach (var review in inProgressReviews)
+            {
+                <div style="padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 16px; background: #fafafa;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <strong style="font-size: 16px; color: #111827;">@review.ApplicantName</strong>
+                            <span style="padding: 4px 12px; background: #e0e7ff; color: #4f46e5; border-radius: 6px; font-size: 12px; font-weight: 600;">@review.LoanType</span>
                         </div>
-                        <div class="assessment-form">
-                            <h4>Assessment Checklist</h4>
-                            <div class="checklist">
-                                <label class="check-item">
-                                    <input type="checkbox" checked="@review.IncomeVerified" disabled />
-                                    <span>Income Verified</span>
-                                </label>
-                                <label class="check-item">
-                                    <input type="checkbox" checked="@review.EmploymentVerified" disabled />
-                                    <span>Employment Verified</span>
-                                </label>
-                                <label class="check-item">
-                                    <input type="checkbox" checked="@review.CollateralAssessed" disabled />
-                                    <span>Collateral Assessed</span>
-                                </label>
-                                <label class="check-item">
-                                    <input type="checkbox" checked="@review.CreditHistoryReviewed" disabled />
-                                    <span>Credit History Reviewed</span>
-                                </label>
+                        <div style="text-align: right;">
+                            <span style="display: block; font-size: 13px; color: #6b7280; margin-bottom: 4px;">@review.ProgressPercent% Complete</span>
+                            <div style="width: 150px; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden;">
+                                <div style="height: 100%; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 4px; width: @(review.ProgressPercent)%;"></div>
                             </div>
-                        </div>
-                        <div class="review-actions">
-                            <button class="btn btn-success" @onclick="() => CompleteReview(review)" disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
-                                Complete Assessment
-                            </button>
-                            <button class="btn btn-outline" @onclick="() => ContinueReview(review)">
-                                Continue Review
-                            </button>
                         </div>
                     </div>
-                }
-            </div>
+                    
+                    <div style="padding: 16px; background: white; border-radius: 8px; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 12px; font-size: 14px; color: #374151;">Assessment Checklist</h4>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" checked="@review.IncomeVerified" disabled style="width: 18px; height: 18px; accent-color: #f59e0b;" />
+                                <span>Income Verified</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" checked="@review.EmploymentVerified" disabled style="width: 18px; height: 18px; accent-color: #f59e0b;" />
+                                <span>Employment Verified</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" checked="@review.CollateralAssessed" disabled style="width: 18px; height: 18px; accent-color: #f59e0b;" />
+                                <span>Collateral Assessed</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" checked="@review.CreditHistoryReviewed" disabled style="width: 18px; height: 18px; accent-color: #f59e0b;" />
+                                <span>Credit History Reviewed</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px;">
+                        <button @onclick="() => CompleteReview(review)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; opacity: @(string.IsNullOrWhiteSpace(adminActionReason) ? "0.5" : "1");" disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
+                            ✓ Complete Assessment
+                        </button>
+                        <button style="background: #f3f4f6; color: #374151; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            🔄 Continue Review
+                        </button>
+                    </div>
+                </div>
+            }
+            
+            @if (!inProgressReviews.Any())
+            {
+                <div style="text-align: center; padding: 60px;">
+                    <p style="color: #6b7280; font-size: 16px;">No reviews in progress</p>
+                </div>
+            }
         }
         else if (activeTab == "completed")
         {
-            <div class="card-header">
-                <h3>Completed Reviews</h3>
-            </div>
-            <div class="card-body">
-                <table class="table">
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
                     <thead>
-                        <tr>
-                            <th>Applicant</th>
-                            <th>Loan Type</th>
-                            <th>Amount</th>
-                            <th>Assessment</th>
-                            <th>Reviewed By</th>
-                            <th>Date</th>
-                            <th>Actions</th>
+                        <tr style="background: #f9fafb;">
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Applicant</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Loan Type</th>
+                            <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Amount</th>
+                            <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Assessment</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Reviewed By</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Date</th>
+                            <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var review in completedReviews)
                         {
-                            <tr>
-                                <td><strong>@review.ApplicantName</strong></td>
-                                <td>@review.LoanType</td>
-                                <td>₱@review.AmountRequested.ToString("N0")</td>
-                                <td>
-                                    <span class="badge @GetAssessmentBadge(review.Assessment)">@review.Assessment</span>
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td style="padding: 12px; font-weight: 600; color: #111827;">@review.ApplicantName</td>
+                                <td style="padding: 12px; color: #374151;">@review.LoanType</td>
+                                <td style="padding: 12px; text-align: right; color: #374151;">₱@review.AmountRequested.ToString("N0")</td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <span style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; @GetAssessmentStyle(review.Assessment)">@review.Assessment</span>
                                 </td>
-                                <td>@review.ReviewedBy</td>
-                                <td>@review.CompletedDate?.ToString("MMM dd, yyyy")</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline" @onclick="() => ViewAssessment(review)">
-                                        View Details
+                                <td style="padding: 12px; color: #374151;">@review.ReviewedBy</td>
+                                <td style="padding: 12px; color: #6b7280; font-size: 13px;">@review.CompletedDate?.ToString("MMM dd, yyyy")</td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <button style="background: #f3f4f6; color: #374151; padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                                        👁️ View
                                     </button>
                                 </td>
                             </tr>
@@ -185,159 +226,30 @@
                     </tbody>
                 </table>
             </div>
+            
+            @if (!completedReviews.Any())
+            {
+                <div style="text-align: center; padding: 60px;">
+                    <p style="color: #6b7280; font-size: 16px;">No completed reviews</p>
+                </div>
+            }
         }
     </div>
 </div>
 
 <style>
-    .accountant-page .role-badge.accountant {
-        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-    }
-    .review-tabs {
-        display: flex;
-        gap: 8px;
-        background: white;
-        padding: 8px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    .tab-btn {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 20px;
-        border: none;
-        background: transparent;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 500;
-        color: #6b7280;
-        transition: all 0.2s;
-    }
-    .tab-btn:hover {
-        background: #f3f4f6;
-    }
-    .tab-btn.active {
-        background: #8b5cf6;
-        color: white;
-    }
-    .tab-btn .badge {
-        background: rgba(0,0,0,0.1);
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.8em;
-    }
-    .tab-btn.active .badge {
-        background: rgba(255,255,255,0.3);
-    }
-    .review-card {
-        padding: 24px;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        margin-bottom: 16px;
-        background: #fafafa;
-    }
-    .review-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 16px;
-    }
-    .applicant-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    .loan-type {
-        padding: 4px 12px;
-        background: #e0e7ff;
-        color: #4f46e5;
-        border-radius: 6px;
-        font-size: 0.85em;
-    }
-    .review-date {
-        color: #6b7280;
-        font-size: 0.9em;
-    }
-    .review-details {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        margin-bottom: 20px;
-        padding: 16px;
-        background: white;
-        border-radius: 8px;
-    }
-    .detail-row {
-        display: flex;
-        justify-content: space-between;
-    }
-    .detail-row .label {
-        color: #6b7280;
-    }
-    .detail-row .value {
-        font-weight: 600;
-    }
-    .dti-good { color: #10b981; }
-    .dti-moderate { color: #f59e0b; }
-    .dti-high { color: #ef4444; }
-    .review-actions {
-        display: flex;
-        gap: 12px;
-    }
-    .review-progress {
-        text-align: right;
-    }
-    .progress-label {
-        display: block;
-        font-size: 0.85em;
-        color: #6b7280;
-        margin-bottom: 4px;
-    }
-    .progress-bar {
-        width: 150px;
-        height: 8px;
-        background: #e5e7eb;
-        border-radius: 4px;
-        overflow: hidden;
-    }
-    .progress-fill {
-        height: 100%;
-        background: #8b5cf6;
-        border-radius: 4px;
-    }
-    .assessment-form {
-        padding: 16px;
-        background: white;
-        border-radius: 8px;
-        margin-bottom: 20px;
-    }
-    .assessment-form h4 {
-        margin-bottom: 12px;
-        font-size: 0.95em;
-        color: #374151;
-    }
-    .checklist {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-    .check-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-    }
-    .check-item input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
-        accent-color: #8b5cf6;
+    @@keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
 </style>
 
 @code {
     private string adminActionReason = "";
     private string activeTab = "pending";
+    private bool showToast = false;
+    private string toastMessage = "";
+    private string toastType = "success";
 
     private List<ReviewItem> pendingReviews = new()
     {
@@ -367,26 +279,56 @@
         }
     }
 
-    private string GetDTIClass(int ratio) => ratio switch
+    private string GetTabTitle() => activeTab switch
     {
-        <= 30 => "dti-good",
-        <= 40 => "dti-moderate",
-        _ => "dti-high"
+        "pending" => "Pending Reviews",
+        "inprogress" => "Reviews In Progress",
+        "completed" => "Completed Reviews",
+        _ => "Reviews"
     };
 
-    private string GetAssessmentBadge(string assessment) => assessment switch
+    private string GetDTIColor(int ratio) => ratio switch
     {
-        "Approved" => "badge-success",
-        "Conditional" => "badge-warning",
-        "Rejected" => "badge-danger",
-        _ => "badge-secondary"
+        <= 30 => "#10b981",
+        <= 40 => "#f59e0b",
+        _ => "#ef4444"
     };
 
-    private void StartReview(ReviewItem review) { }
-    private void ViewApplication(ReviewItem review) { }
-    private void CompleteReview(ReviewItem review) { }
-    private void ContinueReview(ReviewItem review) { }
-    private void ViewAssessment(ReviewItem review) { }
+    private string GetAssessmentStyle(string assessment) => assessment switch
+    {
+        "Approved" => "background: #d1fae5; color: #065f46;",
+        "Conditional" => "background: #fef3c7; color: #92400e;",
+        "Rejected" => "background: #fee2e2; color: #991b1b;",
+        _ => "background: #f3f4f6; color: #374151;"
+    };
+
+    private void StartReview(ReviewItem review)
+    {
+        if (string.IsNullOrWhiteSpace(adminActionReason)) return;
+        pendingReviews.Remove(review);
+        review.ProgressPercent = 25;
+        inProgressReviews.Add(review);
+        ShowToast($"Started review for {review.ApplicantName}.", "success");
+    }
+
+    private void CompleteReview(ReviewItem review)
+    {
+        if (string.IsNullOrWhiteSpace(adminActionReason)) return;
+        inProgressReviews.Remove(review);
+        review.Assessment = "Approved";
+        review.ReviewedBy = "Admin";
+        review.CompletedDate = DateTime.Now;
+        completedReviews.Insert(0, review);
+        ShowToast($"Assessment completed for {review.ApplicantName}.", "success");
+    }
+
+    private void ShowToast(string message, string type)
+    {
+        toastMessage = message;
+        toastType = type;
+        showToast = true;
+        StateHasChanged();
+    }
 
     private class ReviewItem
     {

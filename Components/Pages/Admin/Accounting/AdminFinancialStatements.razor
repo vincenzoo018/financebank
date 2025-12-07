@@ -26,12 +26,12 @@
 </div>
 
 <!-- Admin Notice -->
-<div style="background: #ede9fe; border: 1px solid #8b5cf6; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 12px;">
-        <span style="font-size: 24px;">📊</span>
+        <span style="font-size: 24px;">⚠️</span>
         <div>
-            <p style="margin: 0; font-weight: 600; color: #5b21b6;">Administrative Access - Financial Statements</p>
-            <p style="margin: 4px 0 0; font-size: 13px; color: #7c3aed;">Generating statements as SuperAdmin will be logged with reason for audit purposes.</p>
+            <p style="margin: 0; font-weight: 600; color: #92400e;">Administrative Access - Financial Statements</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #a16207;">Generating statements as SuperAdmin will be logged with reason for audit purposes.</p>
         </div>
     </div>
 </div>
@@ -70,13 +70,13 @@
 <!-- Alerts -->
 @if (!string.IsNullOrEmpty(successMessage))
 {
-    <div style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border: 1px solid #8b5cf6; color: #5b21b6; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 1px solid #6ee7b7; color: #065f46; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
         <span style="font-weight: 500;">@successMessage</span>
-        <button @onclick="() => successMessage = string.Empty" style="margin-left: auto; background: none; border: none; color: #5b21b6; cursor: pointer; font-size: 18px;">×</button>
+        <button @onclick="() => successMessage = string.Empty" style="margin-left: auto; background: none; border: none; color: #065f46; cursor: pointer; font-size: 18px;">×</button>
     </div>
 }
 

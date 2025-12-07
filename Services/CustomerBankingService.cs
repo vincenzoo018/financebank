@@ -12,16 +12,30 @@ namespace FinanceBank.Services
     /// deposits, withdrawals, and bill payments. It ties together
     /// CustomerAccount and CustomerTransaction updates in a single
     /// database operation so the balance and history stay in sync.
+    /// Auto-syncs changes to cloud when internet is available.
+    /// Automatically posts to General Ledger for accounting.
     /// </summary>
     public class CustomerBankingService
     {
         private readonly BFASDbContext? _context;
         private readonly AuthService _authService;
+        private readonly DatabaseSyncService? _syncService;
+        private readonly AutomaticGLPostingService? _glPostingService;
 
-        public CustomerBankingService(BFASDbContext? context, AuthService authService)
+        public CustomerBankingService(BFASDbContext? context, AuthService authService, DatabaseSyncService? syncService = null, AutomaticGLPostingService? glPostingService = null)
         {
             _context = context;
             _authService = authService;
+            _syncService = syncService;
+            _glPostingService = glPostingService;
+        }
+
+        /// <summary>
+        /// Queue changes for auto-sync to cloud
+        /// </summary>
+        private void QueueForSync(string tableName, string operation, object? primaryKey = null)
+        {
+            _syncService?.QueueChange(tableName, operation, primaryKey);
         }
 
         /// <summary>
@@ -145,6 +159,23 @@ namespace FinanceBank.Services
 
                 await transaction.CommitAsync();
 
+                // Queue changes for auto-sync to cloud
+                QueueForSync("CustomerAccounts", "UPDATE", account.AccountId);
+                QueueForSync("CustomerTransactions", "INSERT", customerTransaction.TransactionId);
+
+                // Post to General Ledger automatically
+                try
+                {
+                    var customerName = account.Customer?.FullName ?? $"Account #{account.AccountId}";
+                    await _glPostingService?.PostDepositAsync(
+                        customerTransaction.TransactionId,
+                        customerTransaction.TransactionNumber,
+                        amount,
+                        customerName,
+                        customerTransaction.ProcessedAt ?? DateTime.Now)!;
+                }
+                catch { /* GL posting failure should not affect transaction */ }
+
                 return (true, "Deposit successful.", account);
             }
             catch (Exception ex)
@@ -219,6 +250,23 @@ namespace FinanceBank.Services
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
+
+                // Queue changes for auto-sync to cloud
+                QueueForSync("CustomerAccounts", "UPDATE", account.AccountId);
+                QueueForSync("CustomerTransactions", "INSERT", customerTransaction.TransactionId);
+
+                // Post to General Ledger automatically
+                try
+                {
+                    var customerName = account.Customer?.FullName ?? $"Account #{account.AccountId}";
+                    await _glPostingService?.PostWithdrawalAsync(
+                        customerTransaction.TransactionId,
+                        customerTransaction.TransactionNumber,
+                        amount,
+                        customerName,
+                        customerTransaction.ProcessedAt ?? DateTime.Now)!;
+                }
+                catch { /* GL posting failure should not affect transaction */ }
 
                 return (true, "Withdrawal successful.", account);
             }
@@ -298,6 +346,20 @@ namespace FinanceBank.Services
 
                 await transaction.CommitAsync();
 
+                // Post to General Ledger automatically
+                try
+                {
+                    var customerName = account.Customer?.FullName ?? $"Account #{account.AccountId}";
+                    await _glPostingService?.PostBillPaymentAsync(
+                        customerTransaction.TransactionId,
+                        customerTransaction.TransactionNumber,
+                        amount,
+                        customerName,
+                        billerName,
+                        customerTransaction.ProcessedAt ?? DateTime.Now)!;
+                }
+                catch { /* GL posting failure should not affect transaction */ }
+
                 return (true, "Bill payment successful.", account);
             }
             catch (Exception ex)
@@ -317,7 +379,7 @@ namespace FinanceBank.Services
             string? purpose = null)
         {
             const decimal TRANSFER_FEE = 15.00m;
-            
+
             if (amount <= 0)
                 return (false, "Transfer amount must be greater than zero.");
 
@@ -340,7 +402,7 @@ namespace FinanceBank.Services
 
                     // Total deduction includes transfer fee
                     decimal totalDeduction = amount + TRANSFER_FEE;
-                    
+
                     if (senderAccount.Balance < totalDeduction)
                         return (false, $"Insufficient balance. You need ₱{totalDeduction:N2} (₱{amount:N2} + ₱{TRANSFER_FEE:N2} fee) but only have ₱{senderAccount.Balance:N2}.");
 
@@ -371,8 +433,8 @@ namespace FinanceBank.Services
                         Amount = amount,
                         Fee = TRANSFER_FEE,
                         Status = "Completed",
-                        Description = string.IsNullOrWhiteSpace(purpose) 
-                            ? $"Transfer to {recipientAccount.Customer?.FullName} (Fee: ₱{TRANSFER_FEE:N2})" 
+                        Description = string.IsNullOrWhiteSpace(purpose)
+                            ? $"Transfer to {recipientAccount.Customer?.FullName} (Fee: ₱{TRANSFER_FEE:N2})"
                             : $"Transfer to {recipientAccount.Customer?.FullName} - {purpose} (Fee: ₱{TRANSFER_FEE:N2})",
                         Reference = GenerateReference("TRFREF"),
                         ToAccountName = recipientAccount.Customer?.FullName,
@@ -390,8 +452,8 @@ namespace FinanceBank.Services
                         Amount = amount,
                         Fee = 0,
                         Status = "Completed",
-                        Description = string.IsNullOrWhiteSpace(purpose) 
-                            ? $"Transfer from {senderAccount.Customer?.FullName}" 
+                        Description = string.IsNullOrWhiteSpace(purpose)
+                            ? $"Transfer from {senderAccount.Customer?.FullName}"
                             : $"Transfer from {senderAccount.Customer?.FullName} - {purpose}",
                         Reference = GenerateReference("TRFREF"),
                         ToAccountName = senderAccount.Customer?.FullName,
@@ -405,6 +467,22 @@ namespace FinanceBank.Services
                     await _context.SaveChangesAsync();
 
                     await transaction.CommitAsync();
+
+                    // Post transfer fee to General Ledger automatically
+                    try
+                    {
+                        var senderName = senderAccount.Customer?.FullName ?? $"Account #{senderAccount.AccountId}";
+                        var recipientName = recipientAccount.Customer?.FullName ?? $"Account #{recipientAccount.AccountId}";
+                        await _glPostingService?.PostTransferAsync(
+                            senderTransaction.TransactionId,
+                            senderTransaction.TransactionNumber,
+                            amount,
+                            TRANSFER_FEE,
+                            senderName,
+                            recipientName,
+                            senderTransaction.ProcessedAt ?? DateTime.Now)!;
+                    }
+                    catch { /* GL posting failure should not affect transaction */ }
 
                     return (true, "Transfer successful.");
                 }

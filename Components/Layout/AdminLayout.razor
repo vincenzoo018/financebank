@@ -413,6 +413,12 @@
                     </svg>
                     <span>Reports & Analytics</span>
                 </a>
+                <a href="/admin/database-sync" class="sidebar-item @(IsActive("/admin/database-sync"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"></path>
+                    </svg>
+                    <span>Database Sync</span>
+                </a>
                 <a href="/admin/settings" class="sidebar-item @(IsActive("/admin/settings"))" style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="3"></circle>

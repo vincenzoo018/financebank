@@ -1,0 +1,1196 @@
+@page "/admin/database-sync"
+@using FinanceBank.Services
+@using FinanceBank.Data
+@inject DatabaseSyncService SyncService
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="sync-container">
+    <!-- Back Button -->
+    <div class="back-button-section">
+        <button class="btn btn-back" @onclick="GoBack">
+            <i class="fas fa-arrow-left me-2"></i>
+            Back to Dashboard
+        </button>
+    </div>
+
+    <div class="sync-header">
+        <h2><i class="fas fa-sync-alt"></i> Database Synchronization</h2>
+        <p class="subtitle">Sync data between LOCAL and CLOUD databases</p>
+    </div>
+
+    <!-- DUAL-WRITE Status Banner (NEW) -->
+    <div class="dual-write-banner @(dualWriteEnabled ? "enabled" : "disabled")">
+        <div class="dual-write-info">
+            <i class="fas @(dualWriteEnabled ? "fa-database" : "fa-database") me-2"></i>
+            <div>
+                <strong>🔄 DUAL-WRITE: @(dualWriteEnabled ? "ENABLED" : "DISABLED")</strong>
+                <p class="mb-0">
+                    @if (dualWriteEnabled)
+                    {
+                        <span><i class="fas fa-check-circle text-success me-1"></i> ALL changes are automatically saved to BOTH LOCAL and CLOUD databases</span>
+                    }
+                    else
+                    {
+                        <span><i class="fas fa-exclamation-triangle text-warning me-1"></i> Changes are only saved to LOCAL database</span>
+                    }
+                </p>
+                @if (dualWriteEnabled && cloudConnected)
+                {
+                    <small class="text-success"><i class="fas fa-wifi me-1"></i> Cloud connected - Real-time sync active</small>
+                }
+                else if (dualWriteEnabled && !cloudConnected)
+                {
+                    <small class="text-warning"><i class="fas fa-wifi-slash me-1"></i> Cloud offline - Changes will sync when available</small>
+                }
+            </div>
+        </div>
+        <div class="dual-write-toggle">
+            <button class="btn @(dualWriteEnabled ? "btn-outline-danger" : "btn-success")" @onclick="ToggleDualWrite">
+                <i class="fas @(dualWriteEnabled ? "fa-power-off" : "fa-power-off") me-1"></i>
+                @(dualWriteEnabled ? "Disable Dual-Write" : "Enable Dual-Write")
+            </button>
+        </div>
+    </div>
+
+    <!-- Auto-Sync Status Banner -->
+    <div class="auto-sync-banner @(autoSyncEnabled ? "enabled" : "disabled")">
+        <div class="auto-sync-info">
+            <i class="fas @(autoSyncEnabled ? "fa-wifi" : "fa-wifi-slash") me-2"></i>
+            <div>
+                <strong>Auto-Sync: @(autoSyncEnabled ? "ENABLED" : "DISABLED")</strong>
+                <p class="mb-0">
+                    @if (autoSyncEnabled)
+                    {
+                        <span>Data automatically syncs to cloud when internet is available</span>
+                    }
+                    else
+                    {
+                        <span>Use manual sync buttons below to sync data</span>
+                    }
+                </p>
+                @if (!string.IsNullOrEmpty(autoSyncStatus))
+                {
+                    <small class="sync-status-text">@autoSyncStatus</small>
+                }
+            </div>
+        </div>
+        <div class="auto-sync-toggle">
+            <button class="btn @(autoSyncEnabled ? "btn-warning" : "btn-success")" @onclick="ToggleAutoSync">
+                <i class="fas @(autoSyncEnabled ? "fa-pause" : "fa-play") me-1"></i>
+                @(autoSyncEnabled ? "Pause Auto-Sync" : "Enable Auto-Sync")
+            </button>
+        </div>
+    </div>
+
+    <!-- Connection Status -->
+    <div class="connection-status-section">
+        <div class="status-card @(localConnected ? "connected" : "disconnected")">
+            <div class="status-icon">
+                <i class="fas @(localConnected ? "fa-check-circle" : "fa-times-circle")"></i>
+            </div>
+            <div class="status-info">
+                <h4>LOCAL Database</h4>
+                <p>localhost\SQLEXPRESS</p>
+                <span class="status-badge">@(localConnected ? "Connected" : "Disconnected")</span>
+            </div>
+        </div>
+
+        <div class="sync-arrow">
+            <i class="fas fa-exchange-alt"></i>
+        </div>
+
+        <div class="status-card @(cloudConnected ? "connected" : "disconnected")">
+            <div class="status-icon">
+                <i class="fas @(cloudConnected ? "fa-check-circle" : "fa-times-circle")"></i>
+            </div>
+            <div class="status-info">
+                <h4>CLOUD Database</h4>
+                <p>MonsterASP (db34283)</p>
+                <span class="status-badge">@(cloudConnected ? "Connected" : "Disconnected")</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Check Connection Button -->
+    <div class="action-section">
+        <button class="btn btn-secondary" @onclick="CheckConnections" disabled="@isChecking">
+            @if (isChecking)
+            {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                <span>Checking...</span>
+            }
+            else
+            {
+                <i class="fas fa-plug me-2"></i>
+                <span>Check Connections</span>
+            }
+        </button>
+    </div>
+
+    <!-- Database Statistics -->
+    @if (stats != null)
+    {
+        <div class="stats-section">
+            <h3><i class="fas fa-chart-bar me-2"></i>Database Statistics</h3>
+            <div class="stats-grid">
+                <div class="stats-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Table</th>
+                                <th>LOCAL</th>
+                                <th>CLOUD</th>
+                                <th>Difference</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Core User Tables -->
+                            <tr class="section-header">
+                                <td colspan="4"><strong>👥 USER MANAGEMENT</strong></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-users me-2"></i>Users</td>
+                                <td>@stats.LocalUsers</td>
+                                <td>@stats.CloudUsers</td>
+                                <td class="@GetDiffClass(stats.LocalUsers - stats.CloudUsers)">
+                                    @GetDiffString(stats.LocalUsers - stats.CloudUsers)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-user-tie me-2"></i>Employees</td>
+                                <td>@stats.LocalEmployees</td>
+                                <td>@stats.CloudEmployees</td>
+                                <td class="@GetDiffClass(stats.LocalEmployees - stats.CloudEmployees)">
+                                    @GetDiffString(stats.LocalEmployees - stats.CloudEmployees)
+                                </td>
+                            </tr>
+                            
+                            <!-- Customer Tables -->
+                            <tr class="section-header">
+                                <td colspan="4"><strong>💳 CUSTOMER DATA</strong></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-wallet me-2"></i>Customer Accounts</td>
+                                <td>@stats.LocalCustomerAccounts</td>
+                                <td>@stats.CloudCustomerAccounts</td>
+                                <td class="@GetDiffClass(stats.LocalCustomerAccounts - stats.CloudCustomerAccounts)">
+                                    @GetDiffString(stats.LocalCustomerAccounts - stats.CloudCustomerAccounts)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-exchange-alt me-2"></i>Transactions</td>
+                                <td>@stats.LocalTransactions</td>
+                                <td>@stats.CloudTransactions</td>
+                                <td class="@GetDiffClass(stats.LocalTransactions - stats.CloudTransactions)">
+                                    @GetDiffString(stats.LocalTransactions - stats.CloudTransactions)
+                                </td>
+                            </tr>
+                            
+                            <!-- Loan Tables -->
+                            <tr class="section-header">
+                                <td colspan="4"><strong>🏦 LOAN MANAGEMENT</strong></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-hand-holding-usd me-2"></i>Customer Loans</td>
+                                <td>@stats.LocalCustomerLoans</td>
+                                <td>@stats.CloudCustomerLoans</td>
+                                <td class="@GetDiffClass(stats.LocalCustomerLoans - stats.CloudCustomerLoans)">
+                                    @GetDiffString(stats.LocalCustomerLoans - stats.CloudCustomerLoans)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-file-alt me-2"></i>Loan Applications</td>
+                                <td>@stats.LocalLoanApplications</td>
+                                <td>@stats.CloudLoanApplications</td>
+                                <td class="@GetDiffClass(stats.LocalLoanApplications - stats.CloudLoanApplications)">
+                                    @GetDiffString(stats.LocalLoanApplications - stats.CloudLoanApplications)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-clipboard-check me-2"></i>Loan Assessments</td>
+                                <td>@stats.LocalLoanAssessments</td>
+                                <td>@stats.CloudLoanAssessments</td>
+                                <td class="@GetDiffClass(stats.LocalLoanAssessments - stats.CloudLoanAssessments)">
+                                    @GetDiffString(stats.LocalLoanAssessments - stats.CloudLoanAssessments)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-check-circle me-2"></i>Loan Approvals</td>
+                                <td>@stats.LocalLoanApprovals</td>
+                                <td>@stats.CloudLoanApprovals</td>
+                                <td class="@GetDiffClass(stats.LocalLoanApprovals - stats.CloudLoanApprovals)">
+                                    @GetDiffString(stats.LocalLoanApprovals - stats.CloudLoanApprovals)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-money-bill-wave me-2"></i>Loan Disbursals</td>
+                                <td>@stats.LocalLoanDisbursals</td>
+                                <td>@stats.CloudLoanDisbursals</td>
+                                <td class="@GetDiffClass(stats.LocalLoanDisbursals - stats.CloudLoanDisbursals)">
+                                    @GetDiffString(stats.LocalLoanDisbursals - stats.CloudLoanDisbursals)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-receipt me-2"></i>Loan Payments</td>
+                                <td>@stats.LocalLoanPayments</td>
+                                <td>@stats.CloudLoanPayments</td>
+                                <td class="@GetDiffClass(stats.LocalLoanPayments - stats.CloudLoanPayments)">
+                                    @GetDiffString(stats.LocalLoanPayments - stats.CloudLoanPayments)
+                                </td>
+                            </tr>
+                            
+                            <!-- Finance Tables -->
+                            <tr class="section-header">
+                                <td colspan="4"><strong>📊 FINANCE & ACCOUNTING</strong></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-file-invoice me-2"></i>Invoices</td>
+                                <td>@stats.LocalInvoices</td>
+                                <td>@stats.CloudInvoices</td>
+                                <td class="@GetDiffClass(stats.LocalInvoices - stats.CloudInvoices)">
+                                    @GetDiffString(stats.LocalInvoices - stats.CloudInvoices)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-book me-2"></i>Journal Entries</td>
+                                <td>@stats.LocalJournalEntries</td>
+                                <td>@stats.CloudJournalEntries</td>
+                                <td class="@GetDiffClass(stats.LocalJournalEntries - stats.CloudJournalEntries)">
+                                    @GetDiffString(stats.LocalJournalEntries - stats.CloudJournalEntries)
+                                </td>
+                            </tr>
+                            
+                            <!-- System Tables -->
+                            <tr class="section-header">
+                                <td colspan="4"><strong>⚙️ SYSTEM & AUDIT</strong></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-sign-in-alt me-2"></i>Login History</td>
+                                <td>@stats.LocalLoginHistory</td>
+                                <td>@stats.CloudLoginHistory</td>
+                                <td class="@GetDiffClass(stats.LocalLoginHistory - stats.CloudLoginHistory)">
+                                    @GetDiffString(stats.LocalLoginHistory - stats.CloudLoginHistory)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-history me-2"></i>Audit Logs</td>
+                                <td>@stats.LocalAuditLogs</td>
+                                <td>@stats.CloudAuditLogs</td>
+                                <td class="@GetDiffClass(stats.LocalAuditLogs - stats.CloudAuditLogs)">
+                                    @GetDiffString(stats.LocalAuditLogs - stats.CloudAuditLogs)
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Sync Actions -->
+    <div class="sync-actions-section">
+        <h3><i class="fas fa-cogs me-2"></i>Sync Actions</h3>
+        
+        <div class="sync-buttons">
+            <div class="sync-button-card">
+                <div class="sync-direction">
+                    <span class="db-label local">LOCAL</span>
+                    <i class="fas fa-arrow-right"></i>
+                    <span class="db-label cloud">CLOUD</span>
+                </div>
+                <h4>Upload to Cloud</h4>
+                <p>Push your local changes to the cloud database</p>
+                <button class="btn btn-primary" @onclick="SyncLocalToCloud" 
+                        disabled="@(isSyncing || !localConnected || !cloudConnected)">
+                    @if (isSyncing && syncDirection == "LOCAL_TO_CLOUD")
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        <span>Syncing...</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-cloud-upload-alt me-2"></i>
+                        <span>Sync to Cloud</span>
+                    }
+                </button>
+            </div>
+
+            <div class="sync-button-card">
+                <div class="sync-direction">
+                    <span class="db-label cloud">CLOUD</span>
+                    <i class="fas fa-arrow-right"></i>
+                    <span class="db-label local">LOCAL</span>
+                </div>
+                <h4>Download from Cloud</h4>
+                <p>Pull cloud data to your local database</p>
+                <button class="btn btn-info" @onclick="SyncCloudToLocal" 
+                        disabled="@(isSyncing || !localConnected || !cloudConnected)">
+                    @if (isSyncing && syncDirection == "CLOUD_TO_LOCAL")
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        <span>Syncing...</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-cloud-download-alt me-2"></i>
+                        <span>Sync from Cloud</span>
+                    }
+                </button>
+            </div>
+
+            <div class="sync-button-card highlight">
+                <div class="sync-direction">
+                    <span class="db-label local">LOCAL</span>
+                    <i class="fas fa-exchange-alt"></i>
+                    <span class="db-label cloud">CLOUD</span>
+                </div>
+                <h4>Two-Way Sync</h4>
+                <p>Sync both databases to have identical data</p>
+                <button class="btn btn-success" @onclick="SyncBidirectional" 
+                        disabled="@(isSyncing || !localConnected || !cloudConnected)">
+                    @if (isSyncing && syncDirection == "BIDIRECTIONAL")
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        <span>Syncing...</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-sync me-2"></i>
+                        <span>Full Sync</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress & Log -->
+    @if (!string.IsNullOrEmpty(currentProgress) || syncLogs.Any())
+    {
+        <div class="progress-section">
+            <h3><i class="fas fa-terminal me-2"></i>Sync Log</h3>
+            
+            @if (!string.IsNullOrEmpty(currentProgress))
+            {
+                <div class="current-progress">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 100%"></div>
+                    </div>
+                    <p class="progress-text">@currentProgress</p>
+                </div>
+            }
+            
+            <div class="log-container">
+                @foreach (var log in syncLogs.TakeLast(20).Reverse())
+                {
+                    <div class="log-entry @GetLogClass(log)">
+                        <span class="log-time">@log.Time.ToString("HH:mm:ss")</span>
+                        <span class="log-message">@log.Message</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Last Sync Result -->
+    @if (lastResult != null)
+    {
+        <div class="result-section @(lastResult.Success ? "success" : "error")">
+            <div class="result-icon">
+                <i class="fas @(lastResult.Success ? "fa-check-circle" : "fa-exclamation-circle")"></i>
+            </div>
+            <div class="result-info">
+                <h4>@(lastResult.Success ? "Sync Completed Successfully!" : "Sync Failed")</h4>
+                @if (lastResult.Success)
+                {
+                    <p>@lastResult.InsertedRecords records synced at @lastResult.SyncedAt.ToString("g")</p>
+                }
+                else
+                {
+                    <p class="error-message">@lastResult.ErrorMessage</p>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .sync-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    /* Back Button */
+    .back-button-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.6rem 1.25rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-back:hover {
+        transform: translateX(-3px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-back i {
+        transition: transform 0.3s ease;
+    }
+
+    .btn-back:hover i {
+        transform: translateX(-3px);
+    }
+
+    .sync-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .sync-header h2 {
+        color: #2c3e50;
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .sync-header .subtitle {
+        color: #7f8c8d;
+        font-size: 1rem;
+    }
+
+    /* Connection Status */
+    .connection-status-section {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .status-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        min-width: 280px;
+        border-left: 4px solid #95a5a6;
+    }
+
+    .status-card.connected {
+        border-left-color: #27ae60;
+    }
+
+    .status-card.disconnected {
+        border-left-color: #e74c3c;
+    }
+
+    .status-icon {
+        font-size: 2.5rem;
+    }
+
+    .status-card.connected .status-icon {
+        color: #27ae60;
+    }
+
+    .status-card.disconnected .status-icon {
+        color: #e74c3c;
+    }
+
+    .status-info h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #2c3e50;
+    }
+
+    .status-info p {
+        margin: 0.25rem 0;
+        font-size: 0.85rem;
+        color: #7f8c8d;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-card.connected .status-badge {
+        background: #d5f4e6;
+        color: #27ae60;
+    }
+
+    .status-card.disconnected .status-badge {
+        background: #fde8e8;
+        color: #e74c3c;
+    }
+
+    .sync-arrow {
+        font-size: 2rem;
+        color: #3498db;
+    }
+
+    /* Action Section */
+    .action-section {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    /* Stats Section */
+    .stats-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .stats-section h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+
+    .stats-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .stats-table th,
+    .stats-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid #ecf0f1;
+    }
+
+    .stats-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .stats-table td.positive {
+        color: #27ae60;
+        font-weight: 600;
+    }
+
+    .stats-table td.negative {
+        color: #e74c3c;
+        font-weight: 600;
+    }
+
+    .stats-table td.neutral {
+        color: #95a5a6;
+    }
+
+    .stats-table tr.section-header td {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.5rem 1rem;
+        border: none;
+    }
+
+    .stats-table tr.section-header td i {
+        margin-right: 0.5rem;
+    }
+
+    .stats-table tbody tr:hover:not(.section-header) {
+        background: #f8f9fa;
+    }
+
+    /* Sync Actions */
+    .sync-actions-section {
+        margin-bottom: 2rem;
+    }
+
+    .sync-actions-section h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+
+    .sync-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .sync-button-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .sync-button-card.highlight {
+        border: 2px solid #27ae60;
+    }
+
+    .sync-direction {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .db-label {
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .db-label.local {
+        background: #3498db;
+        color: white;
+    }
+
+    .db-label.cloud {
+        background: #9b59b6;
+        color: white;
+    }
+
+    .sync-button-card h4 {
+        margin: 0.5rem 0;
+        color: #2c3e50;
+    }
+
+    .sync-button-card p {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .sync-button-card button {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    /* Progress Section */
+    .progress-section {
+        background: #2c3e50;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .progress-section h3 {
+        color: white;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+
+    .current-progress {
+        margin-bottom: 1rem;
+    }
+
+    .progress-text {
+        color: #3498db;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .log-container {
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: 'Consolas', monospace;
+        font-size: 0.85rem;
+    }
+
+    .log-entry {
+        padding: 0.5rem;
+        border-bottom: 1px solid #34495e;
+    }
+
+    .log-entry.info {
+        color: #3498db;
+    }
+
+    .log-entry.success {
+        color: #27ae60;
+    }
+
+    .log-entry.error {
+        color: #e74c3c;
+    }
+
+    .log-time {
+        color: #95a5a6;
+        margin-right: 1rem;
+    }
+
+    /* Result Section */
+    .result-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-radius: 12px;
+    }
+
+    .result-section.success {
+        background: #d5f4e6;
+        border: 1px solid #27ae60;
+    }
+
+    .result-section.error {
+        background: #fde8e8;
+        border: 1px solid #e74c3c;
+    }
+
+    .result-icon {
+        font-size: 2.5rem;
+    }
+
+    .result-section.success .result-icon {
+        color: #27ae60;
+    }
+
+    .result-section.error .result-icon {
+        color: #e74c3c;
+    }
+
+    .result-info h4 {
+        margin: 0;
+        color: #2c3e50;
+    }
+
+    .result-info p {
+        margin: 0.25rem 0 0;
+        color: #7f8c8d;
+    }
+
+    .result-info .error-message {
+        color: #e74c3c;
+    }
+
+    /* Buttons */
+    .btn {
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-primary {
+        background: #3498db;
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: #2980b9;
+    }
+
+    .btn-secondary {
+        background: #95a5a6;
+        color: white;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: #7f8c8d;
+    }
+
+    .btn-info {
+        background: #9b59b6;
+        color: white;
+    }
+
+    .btn-info:hover:not(:disabled) {
+        background: #8e44ad;
+    }
+
+    .btn-success {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-success:hover:not(:disabled) {
+        background: #219a52;
+    }
+
+    .btn-warning {
+        background: #f39c12;
+        color: white;
+    }
+
+    .btn-warning:hover:not(:disabled) {
+        background: #d68910;
+    }
+
+    /* Dual-Write Banner Styles */
+    .dual-write-banner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .dual-write-banner.enabled {
+        background: linear-gradient(135deg, #e8f4fd 0%, #bee5eb 100%);
+        border: 2px solid #17a2b8;
+        box-shadow: 0 4px 12px rgba(23, 162, 184, 0.15);
+    }
+
+    .dual-write-banner.disabled {
+        background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+        border: 2px solid #e74c3c;
+    }
+
+    .dual-write-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .dual-write-info i {
+        font-size: 2.2rem;
+        color: #2c3e50;
+    }
+
+    .dual-write-info strong {
+        color: #2c3e50;
+        font-size: 1.2rem;
+    }
+
+    .dual-write-info p {
+        color: #5a6c7d;
+        font-size: 0.95rem;
+    }
+
+    .dual-write-toggle button {
+        min-width: 180px;
+    }
+
+    /* Auto-Sync Banner Styles */
+    .auto-sync-banner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .auto-sync-banner.enabled {
+        background: linear-gradient(135deg, #d5f4e6 0%, #a8e6cf 100%);
+        border: 1px solid #27ae60;
+    }
+
+    .auto-sync-banner.disabled {
+        background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+        border: 1px solid #f39c12;
+    }
+
+    .auto-sync-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .auto-sync-info i {
+        font-size: 2rem;
+        color: #2c3e50;
+    }
+
+    .auto-sync-info strong {
+        color: #2c3e50;
+        font-size: 1.1rem;
+    }
+
+    .auto-sync-info p {
+        color: #5a6c7d;
+        font-size: 0.9rem;
+    }
+
+    .sync-status-text {
+        color: #27ae60;
+        font-weight: 500;
+    }
+
+    .auto-sync-toggle button {
+        min-width: 160px;
+    }
+</style>
+
+@code {
+    private bool localConnected = false;
+    private bool cloudConnected = false;
+    private bool isChecking = false;
+    private bool isSyncing = false;
+    private string syncDirection = "";
+    private string currentProgress = "";
+    private DatabaseStats? stats;
+    private SyncResult? lastResult;
+    private List<LogEntry> syncLogs = new();
+    
+    // Auto-sync state
+    private bool autoSyncEnabled = true;
+    private string autoSyncStatus = "";
+    
+    // Dual-write state (saves to BOTH databases simultaneously)
+    private bool dualWriteEnabled = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialize dual-write state from BFASDbContext
+        dualWriteEnabled = BFASDbContext.DualWriteEnabled;
+        
+        // Subscribe to sync status events
+        SyncService.SyncStatusChanged += OnSyncStatusChanged;
+        
+        await CheckConnections();
+    }
+
+    private void OnSyncStatusChanged(object? sender, SyncStatusEventArgs e)
+    {
+        autoSyncStatus = e.Status;
+        if (e.LastSyncTime.HasValue)
+        {
+            autoSyncStatus = $"{e.Status} at {e.LastSyncTime.Value:HH:mm:ss}";
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ToggleDualWrite()
+    {
+        dualWriteEnabled = !dualWriteEnabled;
+        BFASDbContext.DualWriteEnabled = dualWriteEnabled;
+        
+        if (dualWriteEnabled)
+        {
+            AddLog("🔄 DUAL-WRITE ENABLED - All changes will be saved to BOTH LOCAL and CLOUD databases", "success");
+        }
+        else
+        {
+            AddLog("⚠️ DUAL-WRITE DISABLED - Changes will only be saved to LOCAL database", "warning");
+        }
+        
+        StateHasChanged();
+    }
+
+    private void ToggleAutoSync()
+    {
+        autoSyncEnabled = !autoSyncEnabled;
+        
+        if (autoSyncEnabled)
+        {
+            SyncService.StartAutoSync();
+            AddLog("Auto-sync enabled - data will sync automatically when internet is available", "success");
+        }
+        else
+        {
+            SyncService.StopAutoSync();
+            AddLog("Auto-sync disabled - use manual sync buttons to sync data", "info");
+        }
+        
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        SyncService.SyncStatusChanged -= OnSyncStatusChanged;
+    }
+
+    private async Task CheckConnections()
+    {
+        isChecking = true;
+        StateHasChanged();
+
+        AddLog("Checking database connections...", "info");
+
+        var (local, cloud) = await SyncService.CheckAllConnectionsAsync();
+        localConnected = local;
+        cloudConnected = cloud;
+
+        AddLog($"LOCAL: {(local ? "Connected" : "Disconnected")}", local ? "success" : "error");
+        AddLog($"CLOUD: {(cloud ? "Connected" : "Disconnected")}", cloud ? "success" : "error");
+
+        if (local && cloud)
+        {
+            AddLog("Fetching database statistics...", "info");
+            stats = await SyncService.GetDatabaseStatsAsync();
+            AddLog("Statistics loaded successfully", "success");
+        }
+
+        isChecking = false;
+        StateHasChanged();
+    }
+
+    private async Task SyncLocalToCloud()
+    {
+        isSyncing = true;
+        syncDirection = "LOCAL_TO_CLOUD";
+        currentProgress = "Starting sync...";
+        StateHasChanged();
+
+        AddLog("Starting LOCAL → CLOUD sync...", "info");
+
+        var progress = new Progress<string>(msg =>
+        {
+            currentProgress = msg;
+            AddLog(msg, "info");
+            InvokeAsync(StateHasChanged);
+        });
+
+        lastResult = await SyncService.SyncLocalToCloudAsync(progress);
+
+        if (lastResult.Success)
+        {
+            AddLog($"Sync completed! {lastResult.InsertedRecords} records synced.", "success");
+            await RefreshStats();
+        }
+        else
+        {
+            AddLog($"Sync failed: {lastResult.ErrorMessage}", "error");
+        }
+
+        isSyncing = false;
+        currentProgress = "";
+        StateHasChanged();
+    }
+
+    private async Task SyncCloudToLocal()
+    {
+        isSyncing = true;
+        syncDirection = "CLOUD_TO_LOCAL";
+        currentProgress = "Starting sync...";
+        StateHasChanged();
+
+        AddLog("Starting CLOUD → LOCAL sync...", "info");
+
+        var progress = new Progress<string>(msg =>
+        {
+            currentProgress = msg;
+            AddLog(msg, "info");
+            InvokeAsync(StateHasChanged);
+        });
+
+        lastResult = await SyncService.SyncCloudToLocalAsync(progress);
+
+        if (lastResult.Success)
+        {
+            AddLog($"Sync completed! {lastResult.InsertedRecords} records synced.", "success");
+            await RefreshStats();
+        }
+        else
+        {
+            AddLog($"Sync failed: {lastResult.ErrorMessage}", "error");
+        }
+
+        isSyncing = false;
+        currentProgress = "";
+        StateHasChanged();
+    }
+
+    private async Task SyncBidirectional()
+    {
+        isSyncing = true;
+        syncDirection = "BIDIRECTIONAL";
+        currentProgress = "Starting two-way sync...";
+        StateHasChanged();
+
+        AddLog("Starting BIDIRECTIONAL sync...", "info");
+
+        var progress = new Progress<string>(msg =>
+        {
+            currentProgress = msg;
+            AddLog(msg, "info");
+            InvokeAsync(StateHasChanged);
+        });
+
+        lastResult = await SyncService.SyncBidirectionalAsync(progress);
+
+        if (lastResult.Success)
+        {
+            AddLog($"Bidirectional sync completed! {lastResult.InsertedRecords} records synced.", "success");
+            await RefreshStats();
+        }
+        else
+        {
+            AddLog($"Sync failed: {lastResult.ErrorMessage}", "error");
+        }
+
+        isSyncing = false;
+        currentProgress = "";
+        StateHasChanged();
+    }
+
+    private async Task RefreshStats()
+    {
+        stats = await SyncService.GetDatabaseStatsAsync();
+    }
+
+    private void AddLog(string message, string type)
+    {
+        syncLogs.Add(new LogEntry { Time = DateTime.Now, Message = message, Type = type });
+    }
+
+    private string GetDiffClass(int diff)
+    {
+        if (diff > 0) return "positive";
+        if (diff < 0) return "negative";
+        return "neutral";
+    }
+
+    private string GetDiffString(int diff)
+    {
+        if (diff > 0) return $"+{diff}";
+        if (diff < 0) return diff.ToString();
+        return "=";
+    }
+
+    private string GetLogClass(LogEntry log)
+    {
+        return log.Type;
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/admin/dashboard");
+    }
+
+    private class LogEntry
+    {
+        public DateTime Time { get; set; }
+        public string Message { get; set; } = "";
+        public string Type { get; set; } = "info";
+    }
+}

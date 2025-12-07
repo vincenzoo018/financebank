@@ -1,389 +1,284 @@
 @page "/admin/finance-mgr/approval-queue"
 @layout AdminLayout
+@using Microsoft.EntityFrameworkCore
 @inject AuthService AuthService
 @inject NavigationManager Navigation
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
 
-<div class="admin-page finance-mgr-page">
-    <div class="page-header">
-        <h1>
-            <span class="role-badge finance">Finance Mgr</span>
-            Approval Queue
-        </h1>
-        <p class="page-subtitle">Review and approve pending financial transactions</p>
-    </div>
-
-    <!-- Admin Action Reason -->
-    <div class="admin-action-card">
-        <div class="alert alert-warning">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
-                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-            </svg>
-            <span>You are accessing Finance Manager functions as SuperAdmin. All actions are logged.</span>
-        </div>
-        <div class="form-group">
-            <label for="adminReason">Reason for Admin Action (Required)</label>
-            <textarea id="adminReason" @bind="adminActionReason" class="form-control" 
-                placeholder="Document why you are performing this action as admin..." rows="2"></textarea>
+<div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
+    <!-- Header - Matching Finance Manager style -->
+    <div style="background: linear-gradient(135deg, #059669, #047857); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                <h1 style="font-size: 24px; font-weight: 700; margin: 0;">Approval Queue</h1>
+                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 14px;">Review and process pending approvals</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); padding: 10px 16px; border-radius: 8px;">
+                <div style="font-size: 11px; opacity: 0.9;">Queue Size</div>
+                <div style="font-size: 20px; font-weight: 700;">@pendingApprovals.Count</div>
+            </div>
         </div>
     </div>
 
-    <div class="queue-tabs" style="margin-top: 24px;">
-        <button class="tab-btn @(activeTab == "loans" ? "active" : "")" @onclick='() => activeTab = "loans"'>
-            Loan Approvals
-            <span class="badge">@loanApprovals.Count</span>
-        </button>
-        <button class="tab-btn @(activeTab == "expenses" ? "active" : "")" @onclick='() => activeTab = "expenses"'>
-            Expense Approvals
-            <span class="badge">@expenseApprovals.Count</span>
-        </button>
-        <button class="tab-btn @(activeTab == "disbursements" ? "active" : "")" @onclick='() => activeTab = "disbursements"'>
-            Disbursements
-            <span class="badge">@disbursementApprovals.Count</span>
-        </button>
-        <button class="tab-btn @(activeTab == "overrides" ? "active" : "")" @onclick='() => activeTab = "overrides"'>
-            Override Requests
-            <span class="badge">@overrideRequests.Count</span>
-        </button>
+    <!-- Admin Notice -->
+    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: start; gap: 12px;">
+            <span style="font-size: 24px;">🔐</span>
+            <div style="flex: 1;">
+                <p style="margin: 0; font-weight: 600; color: #92400e;">SuperAdmin Access - Finance Manager Functions</p>
+                <p style="margin: 4px 0 8px; font-size: 13px; color: #b45309;">All actions are logged for audit purposes.</p>
+                <div style="margin-top: 8px;">
+                    <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #92400e;">Reason for Admin Action (Required)</label>
+                    <textarea @bind="adminActionReason" style="width: 100%; padding: 10px; border: 1px solid #fcd34d; border-radius: 8px; font-size: 14px;" rows="2" placeholder="Document why you are performing this action as admin..."></textarea>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="admin-card" style="margin-top: 24px;">
-        @if (activeTab == "loans")
-        {
-            <div class="card-header">
-                <h3>Pending Loan Approvals</h3>
+    @if (isLoading)
+    {
+        <div style="background: white; border-radius: 16px; padding: 60px; text-align: center; border: 1px solid #e5e7eb;">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p style="margin-top: 16px; color: #6b7280;">Loading approval queue...</p>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; color: #dc2626;">
+            @errorMessage
+        </div>
+    }
+    else
+    {
+        <!-- Filter Bar -->
+        <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Type</label>
+                    <select @bind="filterType" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        <option value="">All Types</option>
+                        <option value="Deposit">Deposit</option>
+                        <option value="Withdrawal">Withdrawal</option>
+                        <option value="Transfer">Transfer</option>
+                        <option value="Loan">Loan</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Priority</label>
+                    <select @bind="filterPriority" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        <option value="">All Priorities</option>
+                        <option value="Urgent">Urgent</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+                <div style="display: flex; align-items: flex-end; gap: 8px;">
+                    <button @onclick="ApplyFilters" style="flex: 1; padding: 8px; background: #059669; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Apply</button>
+                    <button @onclick="LoadData" style="padding: 8px 12px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 14px; cursor: pointer;">Refresh</button>
+                </div>
             </div>
-            <div class="card-body">
-                @foreach (var loan in loanApprovals)
-                {
-                    <div class="approval-item">
-                        <div class="approval-info">
-                            <div class="approval-header">
-                                <strong>@loan.ApplicantName</strong>
-                                <span class="loan-type">@loan.LoanType</span>
-                            </div>
-                            <div class="approval-details">
-                                <span>Amount: ₱@loan.Amount.ToString("N2")</span>
-                                <span>Term: @loan.Term months</span>
-                                <span>Rate: @loan.InterestRate%</span>
-                            </div>
-                            <div class="approval-meta">
-                                Submitted: @loan.SubmittedDate.ToString("MMM dd, yyyy") by @loan.SubmittedBy
+        </div>
+
+        <!-- Approval Items -->
+        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+            @{
+                var filteredApprovals = pendingApprovals.Where(a => 
+                    (string.IsNullOrEmpty(filterType) || a.RequestType == filterType) &&
+                    (string.IsNullOrEmpty(filterPriority) || a.Priority == filterPriority)
+                ).ToList();
+            }
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px;">Pending Approvals (@filteredApprovals.Count)</h3>
+            
+            @if (!filteredApprovals.Any())
+            {
+                <div style="text-align: center; padding: 40px; color: #6b7280;">
+                    <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 16px; opacity: 0.5;">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p>No pending approvals found.</p>
+                </div>
+            }
+            else
+            {
+                <div style="display: grid; gap: 16px;">
+                    @foreach (var item in filteredApprovals)
+                    {
+                        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; transition: all 0.2s;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 16px;">
+                                <div style="flex: 1; min-width: 280px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                                        <span style="padding: 4px 8px; background: @GetTypeColor(item.RequestType ?? ""); border-radius: 6px; font-size: 11px; font-weight: 600; color: white;">@item.RequestType</span>
+                                        <span style="padding: 4px 8px; background: @GetPriorityColor(item.Priority); border-radius: 6px; font-size: 11px; font-weight: 600;">@item.Priority</span>
+                                    </div>
+                                    <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">@item.RequestType Request #@item.RequestId</h4>
+                                    <p style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">@item.Description</p>
+                                    <div style="display: flex; gap: 16px; font-size: 12px; color: #9ca3af; flex-wrap: wrap;">
+                                        <span>ID: @item.ApprovalId</span>
+                                        <span>Requested by: @item.RequestedBy</span>
+                                        <span>Submitted: @item.RequestedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 18px; font-weight: 700; color: #f59e0b; margin-bottom: 8px;">₱@item.Amount.ToString("N2")</div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button @onclick="() => ApproveRequest(item)" disabled="@(string.IsNullOrWhiteSpace(adminActionReason) || isProcessing)" style="background: @(string.IsNullOrWhiteSpace(adminActionReason) ? "#9ca3af" : "#059669"); color: white; padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: @(string.IsNullOrWhiteSpace(adminActionReason) ? "not-allowed" : "pointer");">Approve</button>
+                                        <button @onclick="() => RejectRequest(item)" disabled="@(string.IsNullOrWhiteSpace(adminActionReason) || isProcessing)" style="background: @(string.IsNullOrWhiteSpace(adminActionReason) ? "#9ca3af" : "#dc2626"); color: white; padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: @(string.IsNullOrWhiteSpace(adminActionReason) ? "not-allowed" : "pointer");">Reject</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="approval-actions">
-                            <button class="btn btn-success" @onclick="() => ApproveLoan(loan)" disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                                Approve
-                            </button>
-                            <button class="btn btn-danger" @onclick="() => RejectLoan(loan)" disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                                Reject
-                            </button>
-                            <button class="btn btn-outline" @onclick="() => ViewLoanDetails(loan)">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
-                }
+                    }
+                </div>
+            }
+        </div>
+        
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div style="background: #d1fae5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 16px; margin-top: 16px; color: #059669;">
+                @successMessage
             </div>
         }
-        else if (activeTab == "expenses")
-        {
-            <div class="card-header">
-                <h3>Pending Expense Approvals</h3>
-            </div>
-            <div class="card-body">
-                @foreach (var expense in expenseApprovals)
-                {
-                    <div class="approval-item">
-                        <div class="approval-info">
-                            <div class="approval-header">
-                                <strong>@expense.Description</strong>
-                                <span class="expense-category">@expense.Category</span>
-                            </div>
-                            <div class="approval-details">
-                                <span>Amount: ₱@expense.Amount.ToString("N2")</span>
-                                <span>Department: @expense.Department</span>
-                            </div>
-                            <div class="approval-meta">
-                                Requested: @expense.RequestedDate.ToString("MMM dd, yyyy") by @expense.RequestedBy
-                            </div>
-                        </div>
-                        <div class="approval-actions">
-                            <button class="btn btn-success" @onclick="() => ApproveExpense(expense)" disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
-                                Approve
-                            </button>
-                            <button class="btn btn-danger" @onclick="() => RejectExpense(expense)" disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
-                                Reject
-                            </button>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-        else if (activeTab == "disbursements")
-        {
-            <div class="card-header">
-                <h3>Pending Disbursements</h3>
-            </div>
-            <div class="card-body">
-                @foreach (var disbursement in disbursementApprovals)
-                {
-                    <div class="approval-item">
-                        <div class="approval-info">
-                            <div class="approval-header">
-                                <strong>@disbursement.Beneficiary</strong>
-                                <span class="disbursement-type">@disbursement.Type</span>
-                            </div>
-                            <div class="approval-details">
-                                <span>Amount: ₱@disbursement.Amount.ToString("N2")</span>
-                                <span>Account: @disbursement.AccountNumber</span>
-                            </div>
-                            <div class="approval-meta">
-                                Requested: @disbursement.RequestedDate.ToString("MMM dd, yyyy")
-                            </div>
-                        </div>
-                        <div class="approval-actions">
-                            <button class="btn btn-success" @onclick="() => ApproveDisbursement(disbursement)" disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
-                                Authorize
-                            </button>
-                            <button class="btn btn-danger" @onclick="() => RejectDisbursement(disbursement)" disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
-                                Reject
-                            </button>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-        else if (activeTab == "overrides")
-        {
-            <div class="card-header">
-                <h3>Override Requests</h3>
-            </div>
-            <div class="card-body">
-                @foreach (var request in overrideRequests)
-                {
-                    <div class="approval-item override">
-                        <div class="approval-info">
-                            <div class="approval-header">
-                                <strong>@request.RequestType</strong>
-                                <span class="priority @request.Priority.ToLower()">@request.Priority</span>
-                            </div>
-                            <div class="approval-details">
-                                <span>@request.Description</span>
-                            </div>
-                            <div class="approval-meta">
-                                Requested: @request.RequestedDate.ToString("MMM dd, yyyy HH:mm") by @request.RequestedBy
-                            </div>
-                        </div>
-                        <div class="approval-actions">
-                            <button class="btn btn-success" @onclick="() => ApproveOverride(request)" disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
-                                Grant Override
-                            </button>
-                            <button class="btn btn-danger" @onclick="() => DenyOverride(request)" disabled="@string.IsNullOrWhiteSpace(adminActionReason)">
-                                Deny
-                            </button>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-    </div>
+    }
 </div>
-
-<style>
-    .finance-mgr-page .role-badge.finance {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-    }
-    .queue-tabs {
-        display: flex;
-        gap: 8px;
-        background: white;
-        padding: 8px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    .tab-btn {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 20px;
-        border: none;
-        background: transparent;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 500;
-        color: #6b7280;
-        transition: all 0.2s;
-    }
-    .tab-btn:hover {
-        background: #f3f4f6;
-    }
-    .tab-btn.active {
-        background: #f59e0b;
-        color: white;
-    }
-    .tab-btn .badge {
-        background: rgba(0,0,0,0.1);
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.8em;
-    }
-    .tab-btn.active .badge {
-        background: rgba(255,255,255,0.3);
-    }
-    .approval-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        margin-bottom: 16px;
-        background: #fafafa;
-    }
-    .approval-item:last-child {
-        margin-bottom: 0;
-    }
-    .approval-info {
-        flex: 1;
-    }
-    .approval-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 8px;
-    }
-    .loan-type, .expense-category, .disbursement-type {
-        padding: 4px 10px;
-        background: #e0e7ff;
-        color: #4f46e5;
-        border-radius: 6px;
-        font-size: 0.8em;
-    }
-    .approval-details {
-        display: flex;
-        gap: 20px;
-        color: #6b7280;
-        font-size: 0.9em;
-        margin-bottom: 8px;
-    }
-    .approval-meta {
-        font-size: 0.85em;
-        color: #9ca3af;
-    }
-    .approval-actions {
-        display: flex;
-        gap: 10px;
-    }
-    .priority {
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.8em;
-        font-weight: 600;
-    }
-    .priority.high {
-        background: #fee2e2;
-        color: #dc2626;
-    }
-    .priority.medium {
-        background: #fef3c7;
-        color: #d97706;
-    }
-    .priority.low {
-        background: #d1fae5;
-        color: #059669;
-    }
-</style>
 
 @code {
     private string adminActionReason = "";
-    private string activeTab = "loans";
+    private string filterType = "";
+    private string filterPriority = "";
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private string errorMessage = "";
+    private string successMessage = "";
+    
+    private List<ApprovalQueueEntity> pendingApprovals = new();
 
-    private List<LoanApproval> loanApprovals = new()
-    {
-        new() { ApplicantName = "Juan Dela Cruz", LoanType = "Personal Loan", Amount = 150000, Term = 24, InterestRate = 12, SubmittedDate = DateTime.Now.AddDays(-2), SubmittedBy = "Teller 1" },
-        new() { ApplicantName = "Maria Santos", LoanType = "Business Loan", Amount = 500000, Term = 36, InterestRate = 10, SubmittedDate = DateTime.Now.AddDays(-1), SubmittedBy = "Teller 2" },
-        new() { ApplicantName = "Pedro Reyes", LoanType = "Emergency Loan", Amount = 50000, Term = 12, InterestRate = 15, SubmittedDate = DateTime.Now, SubmittedBy = "Teller 1" }
-    };
-
-    private List<ExpenseApproval> expenseApprovals = new()
-    {
-        new() { Description = "Office Equipment", Category = "Capital", Amount = 85000, Department = "Operations", RequestedDate = DateTime.Now.AddDays(-1), RequestedBy = "Admin" },
-        new() { Description = "Staff Training", Category = "HR", Amount = 25000, Department = "Human Resources", RequestedDate = DateTime.Now, RequestedBy = "HR Manager" }
-    };
-
-    private List<DisbursementApproval> disbursementApprovals = new()
-    {
-        new() { Beneficiary = "Ana Garcia", Type = "Loan Release", Amount = 200000, AccountNumber = "1234-5678-90", RequestedDate = DateTime.Now.AddDays(-1) },
-        new() { Beneficiary = "Jose Rizal", Type = "Loan Release", Amount = 75000, AccountNumber = "0987-6543-21", RequestedDate = DateTime.Now }
-    };
-
-    private List<OverrideRequest> overrideRequests = new()
-    {
-        new() { RequestType = "Transaction Limit Override", Description = "Customer needs to withdraw ₱500,000 (limit: ₱200,000)", Priority = "High", RequestedDate = DateTime.Now.AddHours(-2), RequestedBy = "Teller 3" },
-        new() { RequestType = "Fee Waiver", Description = "Waive penalty fee for customer with good standing", Priority = "Medium", RequestedDate = DateTime.Now.AddHours(-4), RequestedBy = "Teller 1" }
-    };
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (!AuthService.IsAuthenticated)
         {
             Navigation.NavigateTo("/login");
+            return;
+        }
+        
+        await LoadData();
+    }
+    
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = "";
+        successMessage = "";
+        
+        try
+        {
+            using var context = DbContextFactory.CreateDbContext();
+            pendingApprovals = await context.ApprovalQueues
+                .Where(a => a.Status == "Pending")
+                .OrderByDescending(a => a.Priority == "Urgent")
+                .ThenByDescending(a => a.Priority == "High")
+                .ThenByDescending(a => a.RequestedAt)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading approvals: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private void ApplyFilters()
+    {
+        // Filters are applied inline in the view
+        StateHasChanged();
+    }
+
+    private async Task ApproveRequest(ApprovalQueueEntity approval)
+    {
+        if (string.IsNullOrWhiteSpace(adminActionReason)) return;
+        
+        isProcessing = true;
+        try
+        {
+            using var context = DbContextFactory.CreateDbContext();
+            var entity = await context.ApprovalQueues.FindAsync(approval.ApprovalId);
+            if (entity != null)
+            {
+                entity.Status = "Approved";
+                entity.ProcessedAt = DateTime.Now;
+                entity.ProcessedBy = $"SuperAdmin: {AuthService.FullName ?? "Admin"}";
+                entity.ApprovalNotes = $"[Admin Action] {adminActionReason}";
+                await context.SaveChangesAsync();
+                
+                successMessage = $"Request #{approval.RequestId} approved successfully.";
+                adminActionReason = "";
+                await LoadData();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error approving request: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
         }
     }
 
-    private void ApproveLoan(LoanApproval loan) { loanApprovals.Remove(loan); }
-    private void RejectLoan(LoanApproval loan) { loanApprovals.Remove(loan); }
-    private void ViewLoanDetails(LoanApproval loan) { }
-    private void ApproveExpense(ExpenseApproval expense) { expenseApprovals.Remove(expense); }
-    private void RejectExpense(ExpenseApproval expense) { expenseApprovals.Remove(expense); }
-    private void ApproveDisbursement(DisbursementApproval disbursement) { disbursementApprovals.Remove(disbursement); }
-    private void RejectDisbursement(DisbursementApproval disbursement) { disbursementApprovals.Remove(disbursement); }
-    private void ApproveOverride(OverrideRequest request) { overrideRequests.Remove(request); }
-    private void DenyOverride(OverrideRequest request) { overrideRequests.Remove(request); }
-
-    private class LoanApproval
+    private async Task RejectRequest(ApprovalQueueEntity approval)
     {
-        public string ApplicantName { get; set; } = "";
-        public string LoanType { get; set; } = "";
-        public decimal Amount { get; set; }
-        public int Term { get; set; }
-        public decimal InterestRate { get; set; }
-        public DateTime SubmittedDate { get; set; }
-        public string SubmittedBy { get; set; } = "";
+        if (string.IsNullOrWhiteSpace(adminActionReason)) return;
+        
+        isProcessing = true;
+        try
+        {
+            using var context = DbContextFactory.CreateDbContext();
+            var entity = await context.ApprovalQueues.FindAsync(approval.ApprovalId);
+            if (entity != null)
+            {
+                entity.Status = "Rejected";
+                entity.ProcessedAt = DateTime.Now;
+                entity.ProcessedBy = $"SuperAdmin: {AuthService.FullName ?? "Admin"}";
+                entity.ApprovalNotes = $"[Admin Rejection] {adminActionReason}";
+                await context.SaveChangesAsync();
+                
+                successMessage = $"Request #{approval.RequestId} rejected.";
+                adminActionReason = "";
+                await LoadData();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error rejecting request: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
     }
 
-    private class ExpenseApproval
+    private string GetTypeColor(string type) => type switch
     {
-        public string Description { get; set; } = "";
-        public string Category { get; set; } = "";
-        public decimal Amount { get; set; }
-        public string Department { get; set; } = "";
-        public DateTime RequestedDate { get; set; }
-        public string RequestedBy { get; set; } = "";
-    }
-
-    private class DisbursementApproval
+        "Loan" => "#4f46e5",
+        "Transfer" => "#059669",
+        "Deposit" => "#d97706",
+        "Withdrawal" => "#dc2626",
+        _ => "#6b7280"
+    };
+    
+    private string GetPriorityColor(string? priority) => priority?.ToLower() switch
     {
-        public string Beneficiary { get; set; } = "";
-        public string Type { get; set; } = "";
-        public decimal Amount { get; set; }
-        public string AccountNumber { get; set; } = "";
-        public DateTime RequestedDate { get; set; }
-    }
-
-    private class OverrideRequest
-    {
-        public string RequestType { get; set; } = "";
-        public string Description { get; set; } = "";
-        public string Priority { get; set; } = "";
-        public DateTime RequestedDate { get; set; }
-        public string RequestedBy { get; set; } = "";
-    }
+        "urgent" or "high" => "#fee2e2",
+        "medium" => "#fef3c7",
+        "low" => "#d1fae5",
+        _ => "#f3f4f6"
+    };
 }

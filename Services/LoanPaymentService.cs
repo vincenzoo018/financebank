@@ -6,17 +6,20 @@ namespace FinanceBank.Services;
 
 /// <summary>
 /// Loan Payment Service - Handles payment cycles, penalties, and payment processing
+/// Automatically posts to General Ledger for accounting.
 /// </summary>
 public class LoanPaymentService
 {
     private readonly BFASDbContext _context;
     private readonly AccountsReceivableService _arService;
+    private readonly AutomaticGLPostingService? _glPostingService;
     private const decimal DAILY_PENALTY_RATE = 0.0005m; // 0.05% daily (BPI Standard)
 
-    public LoanPaymentService(BFASDbContext context, AccountsReceivableService arService)
+    public LoanPaymentService(BFASDbContext context, AccountsReceivableService arService, AutomaticGLPostingService? glPostingService = null)
     {
         _context = context;
         _arService = arService;
+        _glPostingService = glPostingService;
     }
 
     // =====================================================================
@@ -234,6 +237,39 @@ public class LoanPaymentService
             catch
             {
                 // AR creation failure should not prevent payment from being recorded
+            }
+
+            // Post to General Ledger automatically
+            try
+            {
+                // Get customer name and loan number
+                var loanInfo = await _context.Loans
+                    .Include(l => l.Account)
+                    .ThenInclude(a => a!.Customer)
+                    .Where(l => l.LoanId == loanId)
+                    .Select(l => new
+                    {
+                        CustomerName = l.Account!.Customer!.FullName,
+                        LoanNumber = l.LoanNumber
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (loanInfo != null && _glPostingService != null)
+                {
+                    await _glPostingService.PostLoanPaymentAsync(
+                        payment.PaymentId,
+                        loanInfo.LoanNumber,
+                        paymentAmount,
+                        schedule.PrincipalAmount,
+                        schedule.InterestAmount,
+                        penaltyAmount,
+                        loanInfo.CustomerName,
+                        payment.PaymentDate);
+                }
+            }
+            catch
+            {
+                // GL posting failure should not prevent payment from being recorded
             }
 
             return payment;

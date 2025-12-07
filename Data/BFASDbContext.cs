@@ -1,10 +1,30 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using FinanceBank.Models;
+using System.Reflection;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Concurrent;
+using System.Net.NetworkInformation;
 
 namespace FinanceBank.Data
 {
     public class BFASDbContext : DbContext
     {
+        // CLOUD Database Connection String - for dual-write replication
+        private const string CloudConnectionString = "Server=db34283.public.databaseasp.net,1433;Database=db34283;User Id=db34283;Password=Zx6=2+fXCm8!;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;Connection Timeout=30;";
+
+        // Cloud availability caching
+        private static bool _cloudAvailable = true;
+        private static DateTime _lastCloudCheck = DateTime.MinValue;
+        private const int CLOUD_CHECK_INTERVAL_SECONDS = 30;
+
+        // Entity metadata cache for performance
+        private static readonly ConcurrentDictionary<Type, EntityMetadataInfo> _metadataCache = new();
+
+        // Enable/disable dual write (can be toggled)
+        public static bool DualWriteEnabled { get; set; } = true;
+
         public BFASDbContext(DbContextOptions<BFASDbContext> options) : base(options)
         {
         }
@@ -15,6 +35,426 @@ namespace FinanceBank.Data
             optionsBuilder.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
             base.OnConfiguring(optionsBuilder);
         }
+
+        #region Dual-Write SaveChanges Override
+
+        /// <summary>
+        /// Override SaveChangesAsync to replicate changes to CLOUD database
+        /// </summary>
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            // Capture pending changes BEFORE saving
+            var pendingChanges = DualWriteEnabled ? CapturePendingChanges() : new List<DualWriteChange>();
+
+            // Save to LOCAL database first (primary)
+            var result = await base.SaveChangesAsync(cancellationToken);
+
+            // Replicate to CLOUD if enabled and we have changes
+            if (DualWriteEnabled && pendingChanges.Any())
+            {
+                // Update insert records with generated IDs
+                UpdateInsertedIds(pendingChanges);
+
+                // Fire-and-forget cloud replication (don't block the user)
+                _ = Task.Run(() => ReplicateToCloudAsync(pendingChanges));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Override SaveChanges to replicate changes to CLOUD database
+        /// </summary>
+        public override int SaveChanges()
+        {
+            // Capture pending changes BEFORE saving
+            var pendingChanges = DualWriteEnabled ? CapturePendingChanges() : new List<DualWriteChange>();
+
+            // Save to LOCAL database first (primary)
+            var result = base.SaveChanges();
+
+            // Replicate to CLOUD if enabled and we have changes
+            if (DualWriteEnabled && pendingChanges.Any())
+            {
+                // Update insert records with generated IDs
+                UpdateInsertedIds(pendingChanges);
+
+                // Fire-and-forget cloud replication (don't block the user)
+                _ = Task.Run(() => ReplicateToCloudAsync(pendingChanges));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Capture all pending changes from change tracker
+        /// </summary>
+        private List<DualWriteChange> CapturePendingChanges()
+        {
+            var changes = new List<DualWriteChange>();
+
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                if (entry.State == EntityState.Added ||
+                    entry.State == EntityState.Modified ||
+                    entry.State == EntityState.Deleted)
+                {
+                    var entityType = entry.Entity.GetType();
+                    var metadata = GetEntityMetadata(entityType);
+                    if (metadata == null) continue;
+
+                    var change = new DualWriteChange
+                    {
+                        Entity = entry.Entity,
+                        TableName = metadata.TableName,
+                        PrimaryKeyColumn = metadata.PrimaryKeyColumn,
+                        HasIdentity = metadata.HasIdentity,
+                        Operation = entry.State switch
+                        {
+                            EntityState.Added => "INSERT",
+                            EntityState.Modified => "UPDATE",
+                            EntityState.Deleted => "DELETE",
+                            _ => "NONE"
+                        }
+                    };
+
+                    // Capture values
+                    if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
+                    {
+                        change.Values = new Dictionary<string, object?>();
+                        foreach (var prop in entry.Properties)
+                        {
+                            // Skip navigation properties
+                            if (prop.Metadata.IsPrimaryKey() || !prop.Metadata.IsKey())
+                            {
+                                var colName = prop.Metadata.GetColumnName();
+                                change.Values[colName] = prop.CurrentValue;
+                            }
+                        }
+                    }
+
+                    // For updates/deletes, get the PK value
+                    if (entry.State == EntityState.Modified || entry.State == EntityState.Deleted)
+                    {
+                        var pkProp = entry.Properties.FirstOrDefault(p => p.Metadata.IsPrimaryKey());
+                        if (pkProp != null)
+                        {
+                            change.PrimaryKeyValue = pkProp.CurrentValue;
+                        }
+                    }
+
+                    changes.Add(change);
+                }
+            }
+
+            return changes;
+        }
+
+        /// <summary>
+        /// After local save, update insert changes with generated IDs
+        /// </summary>
+        private void UpdateInsertedIds(List<DualWriteChange> changes)
+        {
+            foreach (var change in changes.Where(c => c.Operation == "INSERT"))
+            {
+                if (string.IsNullOrEmpty(change.PrimaryKeyColumn)) continue;
+
+                var metadata = GetEntityMetadata(change.Entity.GetType());
+                if (metadata == null) continue;
+
+                // Get the generated ID from the entity
+                var prop = change.Entity.GetType().GetProperty(metadata.PrimaryKeyProperty);
+                if (prop != null)
+                {
+                    var pkValue = prop.GetValue(change.Entity);
+                    change.PrimaryKeyValue = pkValue;
+
+                    // Add PK to values if not present
+                    if (change.Values != null && !change.Values.ContainsKey(change.PrimaryKeyColumn))
+                    {
+                        change.Values[change.PrimaryKeyColumn] = pkValue;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Replicate changes to CLOUD database
+        /// </summary>
+        private async Task ReplicateToCloudAsync(List<DualWriteChange> changes)
+        {
+            if (!await IsCloudAvailableAsync())
+            {
+                System.Diagnostics.Debug.WriteLine("☁️ DUAL-WRITE: Cloud unavailable - data saved to LOCAL only");
+                return;
+            }
+
+            int successCount = 0;
+            int failCount = 0;
+
+            try
+            {
+                using var cloudConn = new SqlConnection(CloudConnectionString);
+                await cloudConn.OpenAsync();
+
+                foreach (var change in changes)
+                {
+                    try
+                    {
+                        switch (change.Operation)
+                        {
+                            case "INSERT":
+                                await ExecuteCloudInsertAsync(cloudConn, change);
+                                break;
+                            case "UPDATE":
+                                await ExecuteCloudUpdateAsync(cloudConn, change);
+                                break;
+                            case "DELETE":
+                                await ExecuteCloudDeleteAsync(cloudConn, change);
+                                break;
+                        }
+                        successCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failCount++;
+                        System.Diagnostics.Debug.WriteLine($"⚠️ DUAL-WRITE: Failed {change.Operation} on {change.TableName}: {ex.Message}");
+                    }
+                }
+
+                if (successCount > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"✅ DUAL-WRITE: Replicated {successCount} changes to CLOUD");
+                }
+                if (failCount > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ DUAL-WRITE: {failCount} changes failed to replicate");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ DUAL-WRITE: Cloud connection failed: {ex.Message}");
+                _cloudAvailable = false;
+            }
+        }
+
+        private async Task ExecuteCloudInsertAsync(SqlConnection conn, DualWriteChange change)
+        {
+            if (change.Values == null || !change.Values.Any()) return;
+
+            var columns = change.Values.Keys.ToList();
+            var columnList = string.Join(", ", columns.Select(c => $"[{c}]"));
+            var paramList = string.Join(", ", columns.Select((c, i) => $"@p{i}"));
+
+            string sql;
+            if (change.HasIdentity && !string.IsNullOrEmpty(change.PrimaryKeyColumn))
+            {
+                sql = $@"
+                    SET IDENTITY_INSERT [{change.TableName}] ON;
+                    IF NOT EXISTS (SELECT 1 FROM [{change.TableName}] WHERE [{change.PrimaryKeyColumn}] = @pkCheck)
+                    BEGIN
+                        INSERT INTO [{change.TableName}] ({columnList}) VALUES ({paramList});
+                    END
+                    SET IDENTITY_INSERT [{change.TableName}] OFF;";
+            }
+            else
+            {
+                sql = $"INSERT INTO [{change.TableName}] ({columnList}) VALUES ({paramList})";
+            }
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.CommandTimeout = 60;
+
+            // Add PK check parameter
+            if (change.HasIdentity && change.PrimaryKeyValue != null)
+            {
+                cmd.Parameters.AddWithValue("@pkCheck", change.PrimaryKeyValue);
+            }
+
+            var values = change.Values.Values.ToList();
+            for (int i = 0; i < values.Count; i++)
+            {
+                cmd.Parameters.AddWithValue($"@p{i}", values[i] ?? DBNull.Value);
+            }
+
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        private async Task ExecuteCloudUpdateAsync(SqlConnection conn, DualWriteChange change)
+        {
+            if (change.Values == null || change.PrimaryKeyValue == null || string.IsNullOrEmpty(change.PrimaryKeyColumn))
+                return;
+
+            var updateCols = change.Values.Where(v => v.Key != change.PrimaryKeyColumn).ToList();
+            if (!updateCols.Any()) return;
+
+            var setClause = string.Join(", ", updateCols.Select((v, i) => $"[{v.Key}] = @p{i}"));
+            var sql = $"UPDATE [{change.TableName}] SET {setClause} WHERE [{change.PrimaryKeyColumn}] = @pkValue";
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.CommandTimeout = 60;
+
+            for (int i = 0; i < updateCols.Count; i++)
+            {
+                cmd.Parameters.AddWithValue($"@p{i}", updateCols[i].Value ?? DBNull.Value);
+            }
+            cmd.Parameters.AddWithValue("@pkValue", change.PrimaryKeyValue);
+
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        private async Task ExecuteCloudDeleteAsync(SqlConnection conn, DualWriteChange change)
+        {
+            if (change.PrimaryKeyValue == null || string.IsNullOrEmpty(change.PrimaryKeyColumn))
+                return;
+
+            var sql = $"DELETE FROM [{change.TableName}] WHERE [{change.PrimaryKeyColumn}] = @pkValue";
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.CommandTimeout = 60;
+            cmd.Parameters.AddWithValue("@pkValue", change.PrimaryKeyValue);
+
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        /// <summary>
+        /// Check if cloud database is available (with caching)
+        /// </summary>
+        private static async Task<bool> IsCloudAvailableAsync()
+        {
+            if ((DateTime.Now - _lastCloudCheck).TotalSeconds < CLOUD_CHECK_INTERVAL_SECONDS)
+                return _cloudAvailable;
+
+            try
+            {
+                if (!NetworkInterface.GetIsNetworkAvailable())
+                {
+                    _cloudAvailable = false;
+                    _lastCloudCheck = DateTime.Now;
+                    return false;
+                }
+
+                using var conn = new SqlConnection(CloudConnectionString.Replace("Connection Timeout=30", "Connection Timeout=5"));
+                await conn.OpenAsync();
+                _cloudAvailable = true;
+            }
+            catch
+            {
+                _cloudAvailable = false;
+            }
+
+            _lastCloudCheck = DateTime.Now;
+            return _cloudAvailable;
+        }
+
+        /// <summary>
+        /// Force cloud availability check (reset cache)
+        /// </summary>
+        public static void ResetCloudAvailability()
+        {
+            _lastCloudCheck = DateTime.MinValue;
+        }
+
+        /// <summary>
+        /// Get current cloud availability status
+        /// </summary>
+        public static bool IsCloudAvailable => _cloudAvailable;
+
+        /// <summary>
+        /// Get entity metadata (table name, primary key, etc.)
+        /// </summary>
+        private EntityMetadataInfo? GetEntityMetadata(Type entityType)
+        {
+            if (_metadataCache.TryGetValue(entityType, out var cached))
+                return cached;
+
+            try
+            {
+                // Get table name
+                var tableAttr = entityType.GetCustomAttribute<TableAttribute>();
+                var tableName = tableAttr?.Name ?? entityType.Name;
+
+                // Handle pluralization for common entities
+                if (tableName == "AuthUser") tableName = "Users";
+                else if (!tableName.EndsWith("s") && !tableName.Contains("Entry") && !tableName.Contains("History"))
+                {
+                    // Don't pluralize if already has Table attribute
+                    if (tableAttr == null) tableName = tableName + "s";
+                }
+
+                // Find primary key
+                string? pkColumn = null;
+                string? pkProperty = null;
+                bool hasIdentity = true;
+
+                var properties = entityType.GetProperties();
+
+                // Look for [Key] attribute
+                var keyProp = properties.FirstOrDefault(p => p.GetCustomAttribute<KeyAttribute>() != null);
+                if (keyProp != null)
+                {
+                    pkProperty = keyProp.Name;
+                    var colAttr = keyProp.GetCustomAttribute<ColumnAttribute>();
+                    pkColumn = colAttr?.Name ?? keyProp.Name;
+                    hasIdentity = keyProp.GetCustomAttribute<DatabaseGeneratedAttribute>()?.DatabaseGeneratedOption != DatabaseGeneratedOption.None;
+                }
+                else
+                {
+                    // Convention: look for Id or {Type}Id
+                    keyProp = properties.FirstOrDefault(p =>
+                        p.Name == "Id" ||
+                        p.Name == entityType.Name + "Id" ||
+                        p.Name == entityType.Name.Replace("Entity", "") + "Id");
+
+                    if (keyProp != null)
+                    {
+                        pkProperty = keyProp.Name;
+                        var colAttr = keyProp.GetCustomAttribute<ColumnAttribute>();
+                        pkColumn = colAttr?.Name ?? keyProp.Name;
+                    }
+                }
+
+                var metadata = new EntityMetadataInfo
+                {
+                    TableName = tableName,
+                    PrimaryKeyColumn = pkColumn,
+                    PrimaryKeyProperty = pkProperty,
+                    HasIdentity = hasIdentity
+                };
+
+                _metadataCache[entityType] = metadata;
+                return metadata;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        #endregion
+
+        #region Supporting Classes for Dual-Write
+
+        private class DualWriteChange
+        {
+            public object Entity { get; set; } = null!;
+            public string TableName { get; set; } = "";
+            public string Operation { get; set; } = "";
+            public string? PrimaryKeyColumn { get; set; }
+            public object? PrimaryKeyValue { get; set; }
+            public bool HasIdentity { get; set; } = true;
+            public Dictionary<string, object?>? Values { get; set; }
+        }
+
+        private class EntityMetadataInfo
+        {
+            public string TableName { get; set; } = "";
+            public string? PrimaryKeyColumn { get; set; }
+            public string? PrimaryKeyProperty { get; set; }
+            public bool HasIdentity { get; set; } = true;
+        }
+
+        #endregion
 
         // Authentication Tables
         public DbSet<AuthUser> Users { get; set; }
@@ -214,16 +654,9 @@ namespace FinanceBank.Data
                 entity.HasIndex(e => e.AccountType);
                 entity.HasIndex(e => e.IsActive);
 
-                entity.Property(e => e.NormalBalance).HasDefaultValue("Debit");
+                entity.Property(e => e.Level).HasDefaultValue(1);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsHeader).HasDefaultValue(false);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
-
-                // Self-referencing relationship for hierarchical accounts
-                entity.HasOne(e => e.ParentAccount)
-                    .WithMany(e => e.SubAccounts)
-                    .HasForeignKey(e => e.ParentAccountId)
-                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             // Configure JournalEntry entity
@@ -289,7 +722,16 @@ namespace FinanceBank.Data
                 entity.HasIndex(e => e.PeriodStart);
                 entity.HasIndex(e => e.PeriodEnd);
 
-                entity.Property(e => e.Status).HasDefaultValue("Draft");
+                // Ignore NotMapped properties
+                entity.Ignore(e => e.Status);
+                entity.Ignore(e => e.Notes);
+                entity.Ignore(e => e.TotalAssets);
+                entity.Ignore(e => e.TotalLiabilities);
+                entity.Ignore(e => e.TotalEquity);
+                entity.Ignore(e => e.TotalRevenue);
+                entity.Ignore(e => e.TotalExpenses);
+                entity.Ignore(e => e.NetIncome);
+
                 entity.Property(e => e.GeneratedAt).HasDefaultValueSql("GETDATE()");
             });
         }

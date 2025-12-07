@@ -6,10 +6,12 @@ namespace FinanceBank.Services;
 
 /// <summary>
 /// Complete Loan Process Service - Handles all stages from application to payment
+/// Automatically posts to General Ledger for loan disbursements.
 /// </summary>
 public class LoanProcessService
 {
     private readonly IDbContextFactory<BFASDbContext> _contextFactory;
+    private readonly AutomaticGLPostingService? _glPostingService;
     private const decimal DAILY_PENALTY_RATE = 0.0005m; // 0.05% daily (BPI Standard)
 
     // =====================================================================
@@ -47,9 +49,10 @@ public class LoanProcessService
         public const string DISBURSED = "DISBURSED";
     }
 
-    public LoanProcessService(IDbContextFactory<BFASDbContext> contextFactory)
+    public LoanProcessService(IDbContextFactory<BFASDbContext> contextFactory, AutomaticGLPostingService? glPostingService = null)
     {
         _contextFactory = contextFactory;
+        _glPostingService = glPostingService;
     }
 
     // =====================================================================
@@ -680,6 +683,24 @@ public class LoanProcessService
                 balanceAfter: customerAccount?.Balance ?? disbursalAmount
             );
 
+            // Post to General Ledger automatically
+            try
+            {
+                if (_glPostingService != null)
+                {
+                    await _glPostingService.PostLoanDisbursementAsync(
+                        disbursal.DisbursalId,
+                        loan.LoanNumber,
+                        disbursalAmount,
+                        disbursedTo,
+                        disbursal.DisbursalDate);
+                }
+            }
+            catch
+            {
+                // GL posting failure should not prevent disbursement from being recorded
+            }
+
             return (loan, disbursal);
         }
         catch (Exception ex)
@@ -784,6 +805,24 @@ public class LoanProcessService
             loan.DisbursalId = disbursal.DisbursalId;
 
             await _context.SaveChangesAsync();
+
+            // Post to General Ledger automatically
+            try
+            {
+                if (_glPostingService != null)
+                {
+                    await _glPostingService.PostLoanDisbursementAsync(
+                        disbursal.DisbursalId,
+                        loan.LoanNumber,
+                        disbursalAmount,
+                        disbursedTo,
+                        disbursal.DisbursalDate);
+                }
+            }
+            catch
+            {
+                // GL posting failure should not prevent disbursement from being recorded
+            }
 
             return (loan, disbursal);
         }
@@ -1536,6 +1575,24 @@ public class LoanProcessService
             _context.LoanDisbursals.Add(disbursal);
             await _context.SaveChangesAsync();
 
+            // Post to General Ledger automatically
+            try
+            {
+                if (_glPostingService != null)
+                {
+                    await _glPostingService.PostLoanDisbursementAsync(
+                        disbursal.DisbursalId,
+                        loan.LoanNumber,
+                        amount,
+                        disbursedTo,
+                        disbursal.DisbursalDate);
+                }
+            }
+            catch
+            {
+                // GL posting failure should not prevent disbursement from being recorded
+            }
+
             return disbursal;
         }
         catch (Exception ex)
@@ -1748,7 +1805,7 @@ public class LoanProcessService
     {
         using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.LoanApplications
-            .Where(a => a.AccountId == accountId && 
+            .Where(a => a.AccountId == accountId &&
                 (a.Status == LoanStatus.SUBMITTED ||
                  a.Status == LoanStatus.PENDING_TELLER_REVIEW ||
                  a.Status == LoanStatus.VERIFIED ||
@@ -1779,12 +1836,12 @@ public class LoanProcessService
                 return (false, "You are not authorized to cancel this application.");
 
             // Only allow cancellation if in early stages
-            var cancellableStatuses = new[] { 
-                LoanStatus.SUBMITTED, 
-                LoanStatus.PENDING_TELLER_REVIEW, 
-                LoanStatus.VERIFIED 
+            var cancellableStatuses = new[] {
+                LoanStatus.SUBMITTED,
+                LoanStatus.PENDING_TELLER_REVIEW,
+                LoanStatus.VERIFIED
             };
-            
+
             if (!cancellableStatuses.Contains(application.Status))
                 return (false, "This application can no longer be cancelled. It has already progressed to assessment stage.");
 
@@ -1807,7 +1864,7 @@ public class LoanProcessService
     /// Update a loan application (customer-side) - only if still in early stages
     /// </summary>
     public async Task<(bool success, string message)> UpdateApplicationAsync(
-        int applicationId, 
+        int applicationId,
         int accountId,
         decimal? newAmount = null,
         string? newPurpose = null,
@@ -1826,24 +1883,24 @@ public class LoanProcessService
                 return (false, "You are not authorized to update this application.");
 
             // Only allow updates if in early stages
-            var editableStatuses = new[] { 
-                LoanStatus.SUBMITTED, 
-                LoanStatus.PENDING_TELLER_REVIEW 
+            var editableStatuses = new[] {
+                LoanStatus.SUBMITTED,
+                LoanStatus.PENDING_TELLER_REVIEW
             };
-            
+
             if (!editableStatuses.Contains(application.Status))
                 return (false, "This application can no longer be edited. It has already progressed beyond the initial review stage.");
 
             // Update fields if provided
             if (newAmount.HasValue && newAmount.Value > 0)
                 application.RequestedAmount = newAmount.Value;
-            
+
             if (!string.IsNullOrWhiteSpace(newPurpose))
                 application.Purpose = newPurpose;
-            
+
             if (!string.IsNullOrWhiteSpace(newEmploymentStatus))
                 application.EmploymentStatus = newEmploymentStatus;
-            
+
             if (newMonthlyIncome.HasValue && newMonthlyIncome.Value >= 0)
                 application.MonthlyIncome = newMonthlyIncome.Value;
 
@@ -1864,7 +1921,7 @@ public class LoanProcessService
     {
         using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.LoanApplications
-            .Where(a => a.AccountId == accountId && 
+            .Where(a => a.AccountId == accountId &&
                 (a.Status == "CANCELLED" ||
                  a.Status == LoanStatus.REJECTED_TELLER ||
                  a.Status == LoanStatus.REJECTED_ACCOUNTANT ||

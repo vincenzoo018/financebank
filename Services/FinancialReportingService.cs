@@ -35,15 +35,17 @@ namespace FinanceBank.Services
             foreach (var account in accounts)
             {
                 var balance = await CalculateAccountBalanceAsync(account.AccountCode);
+                // Determine normal balance based on account type
+                var normalBalance = (account.AccountType == "Asset" || account.AccountType == "Expense") ? "Debit" : "Credit";
                 viewModels.Add(new ChartOfAccountsViewModel
                 {
                     AccountId = account.AccountId,
                     AccountCode = account.AccountCode,
                     AccountName = account.AccountName,
                     AccountType = account.AccountType,
-                    NormalBalance = account.NormalBalance,
+                    NormalBalance = normalBalance,
                     CurrentBalance = balance,
-                    Description = account.Description,
+                    Description = null,
                     IsActive = account.IsActive
                 });
             }

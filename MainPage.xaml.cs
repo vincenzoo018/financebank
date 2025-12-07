@@ -5,11 +5,11 @@ namespace FinanceBank
         public MainPage()
         {
             InitializeComponent();
-            
+
             // Set fullscreen on load
             Loaded += OnPageLoaded;
         }
-        
+
         private void OnPageLoaded(object? sender, EventArgs e)
         {
             // Maximize window on load (windowed fullscreen with title bar)
