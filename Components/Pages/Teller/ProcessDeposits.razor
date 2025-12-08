@@ -219,7 +219,7 @@
                             <td style="padding: 16px;">@transaction.CustomerName</td>
                             <td style="padding: 16px; font-weight: 600; color: #059669;">₱@transaction.Amount.ToString("N2")</td>
                             <td style="padding: 16px; font-size: 12px;">@transaction.Method</td>
-                            <td style="padding: 16px; font-size: 12px; color: #6b7280;">@transaction.Time.ToString("hh:mm tt")</td>
+                            <td style="padding: 16px; font-size: 12px; color: #6b7280;">@transaction.Date.ToString("hh:mm tt")</td>
                             <td style="padding: 16px;"><span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">Completed</span></td>
                             <td style="padding: 16px; text-align: center;">
                                 <button type="button" 
@@ -275,7 +275,7 @@
                         </div>
                         <div>
                             <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px; font-weight: 600;">DATE & TIME</p>
-                            <p style="margin: 0; color: #1f2937;">@trans.Time.ToString("yyyy-MM-dd HH:mm:ss")</p>
+                            <p style="margin: 0; color: #1f2937;">@trans.Date.ToString("yyyy-MM-dd HH:mm:ss")</p>
                         </div>
                         <div>
                             <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px; font-weight: 600;">DEPOSIT METHOD</p>
@@ -417,17 +417,17 @@
     // Transaction tracking
     private class TransactionRecord
     {
-        public string AccountNumber { get; set; }
-        public string CustomerName { get; set; }
+        public string AccountNumber { get; set; } = string.Empty;
+        public string CustomerName { get; set; } = string.Empty;
         public decimal Amount { get; set; }
-        public string Method { get; set; }
-        public DateTime Time { get; set; }
-        public string Reference { get; set; }
+        public string Method { get; set; } = string.Empty;
+        public DateTime Date { get; set; }
+        public string Reference { get; set; } = string.Empty;
     }
 
     private List<TransactionRecord> todayTransactions = new();
     private bool showInvoiceModal = false;
-    private TransactionRecord selectedTransaction = null;
+    private TransactionRecord? selectedTransaction = null;
 
     // Confirmation modal
     private bool showConfirmationModal = false;
@@ -470,7 +470,7 @@
         searchResults.Clear();
         
         // Load account details
-        LoadAccountDetails();
+        _ = LoadAccountDetails();
     }
 
     private async Task OnAccountNumberChanged(ChangeEventArgs e)
@@ -623,7 +623,7 @@
                     CustomerName = t.CustomerName,
                     Amount = t.Amount,
                     Method = t.Type,
-                    Time = t.Time,
+                    Date = t.Time,
                     Reference = "REF-" + t.Time.Ticks.ToString().Substring(0, 8)
                 })
                 .ToList();
@@ -658,7 +658,7 @@
                   FinanceBank System                   
 ========================================================
 
-Date & Time:       {trans.Time:yyyy-MM-dd HH:mm:ss}
+Date & Time:       {trans.Date:yyyy-MM-dd HH:mm:ss}
 Reference:         {trans.Reference}
 
 ========================================================
@@ -781,7 +781,7 @@ Please keep this invoice for your records.
                     CustomerName = customerName,
                     Amount = depositAmount,
                     Method = depositMethod,
-                    Time = DateTime.Now,
+                    Date = DateTime.Now,
                     Reference = referenceNumber
                 });
                 

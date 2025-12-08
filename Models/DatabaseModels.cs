@@ -1133,3 +1133,357 @@ public class UserRegistration
     [MaxLength(50)]
     public string? CreatedBy { get; set; }
 }
+
+// =============================================
+// SAVINGS ACCOUNT MODULE MODELS
+// =============================================
+
+/// <summary>
+/// Savings Account Types: Regular, Time Deposit, High-Yield
+/// </summary>
+[Table("SavingsAccountTypes")]
+public class SavingsAccountType
+{
+    [Key]
+    public int TypeId { get; set; }
+
+    [Required, MaxLength(50)]
+    public string TypeName { get; set; } = string.Empty; // Regular, TimeDeposit, HighYield
+
+    [MaxLength(500)]
+    public string? Description { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal MinimumInitialDeposit { get; set; } = 5000.00m;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal MinimumMaintainingBalance { get; set; } = 10000.00m;
+
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal InterestRateMin { get; set; } = 0.10m; // Annual interest rate minimum
+
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal InterestRateMax { get; set; } = 1.00m; // Annual interest rate maximum
+
+    public int DefaultLockInDays { get; set; } = 0; // 0 for Regular, 30/90/180/360 for TD
+
+    public bool AllowsWithdrawalAnytime { get; set; } = true; // false for Time Deposit
+
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal EarlyWithdrawalPenaltyRate { get; set; } = 0.02m; // 2% penalty
+
+    public bool IsActive { get; set; } = true;
+
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    // Navigation
+    public virtual ICollection<SavingsAccount> SavingsAccounts { get; set; } = new List<SavingsAccount>();
+}
+
+/// <summary>
+/// Customer Savings Account
+/// </summary>
+[Table("SavingsAccounts")]
+public class SavingsAccount
+{
+    [Key]
+    public int SavingsAccountId { get; set; }
+
+    [Required, MaxLength(50)]
+    public string AccountNumber { get; set; } = string.Empty; // SAV-XXXXXX
+
+    [Required]
+    public int CustomerId { get; set; }
+
+    [Required]
+    public int CustomerAccountId { get; set; } // Link to main checking account
+
+    [Required]
+    public int AccountTypeId { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal Balance { get; set; } = 0m;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalDeposits { get; set; } = 0m;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalWithdrawals { get; set; } = 0m;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalInterestEarned { get; set; } = 0m;
+
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal CurrentInterestRate { get; set; } = 0.50m; // Annual rate
+
+    [MaxLength(20)]
+    public string InterestCalculationMethod { get; set; } = "Daily"; // Daily, Monthly
+
+    [MaxLength(20)]
+    public string InterestPostingSchedule { get; set; } = "Monthly"; // Monthly, Quarterly, AtMaturity
+
+    public int LockInPeriodDays { get; set; } = 0; // 0, 30, 90, 180, 360
+
+    public DateTime? MaturityDate { get; set; } // For Time Deposits
+
+    public DateTime? LastInterestPostDate { get; set; }
+
+    [MaxLength(20)]
+    public string Status { get; set; } = "ACTIVE"; // ACTIVE, LOCKED, MATURED, CLOSED
+
+    public bool IsLocked { get; set; } = false;
+
+    public DateTime OpenedDate { get; set; } = DateTime.Now;
+
+    public DateTime? ClosedDate { get; set; }
+
+    [MaxLength(100)]
+    public string? OpenedBy { get; set; }
+
+    [MaxLength(100)]
+    public string? ClosedBy { get; set; }
+
+    [MaxLength(500)]
+    public string? Notes { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    public DateTime? UpdatedAt { get; set; }
+
+    // Navigation
+    [ForeignKey("CustomerId")]
+    public virtual AuthUser? Customer { get; set; }
+
+    [ForeignKey("CustomerAccountId")]
+    public virtual CustomerAccount? LinkedAccount { get; set; }
+
+    [ForeignKey("AccountTypeId")]
+    public virtual SavingsAccountType? AccountType { get; set; }
+
+    public virtual ICollection<SavingsTransaction> Transactions { get; set; } = new List<SavingsTransaction>();
+    public virtual ICollection<SavingsInterest> InterestRecords { get; set; } = new List<SavingsInterest>();
+
+    public static string GenerateAccountNumber()
+    {
+        var random = new Random();
+        var sixDigit = random.Next(100000, 999999);
+        return $"SAV-{sixDigit}";
+    }
+}
+
+/// <summary>
+/// Savings Transactions: Deposits, Withdrawals, Interest Postings
+/// </summary>
+[Table("SavingsTransactions")]
+public class SavingsTransaction
+{
+    [Key]
+    public int TransactionId { get; set; }
+
+    [Required, MaxLength(50)]
+    public string TransactionNumber { get; set; } = string.Empty; // SAVTXN-XXXXXX
+
+    [Required]
+    public int SavingsAccountId { get; set; }
+
+    [Required, MaxLength(20)]
+    public string TransactionType { get; set; } = string.Empty; // Deposit, Withdrawal, InterestPosting, PenaltyCharge
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal Amount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal BalanceBefore { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal BalanceAfter { get; set; }
+
+    [MaxLength(20)]
+    public string Source { get; set; } = string.Empty; // Cash, FromAccount, ToAccount
+
+    public int? RelatedCustomerAccountId { get; set; } // If from/to checking account
+
+    [MaxLength(50)]
+    public string Status { get; set; } = "Pending"; // Pending, Completed, Rejected, Reversed
+
+    [MaxLength(500)]
+    public string? Description { get; set; }
+
+    [MaxLength(100)]
+    public string? ProcessedBy { get; set; }
+
+    public DateTime TransactionDate { get; set; } = DateTime.Now;
+
+    public DateTime? ProcessedAt { get; set; }
+
+    [MaxLength(100)]
+    public string? ApprovedBy { get; set; } // For large withdrawals
+
+    public DateTime? ApprovedAt { get; set; }
+
+    [MaxLength(500)]
+    public string? RejectionReason { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    // Navigation
+    [ForeignKey("SavingsAccountId")]
+    public virtual SavingsAccount? SavingsAccount { get; set; }
+
+    [ForeignKey("RelatedCustomerAccountId")]
+    public virtual CustomerAccount? RelatedAccount { get; set; }
+
+    public static string GenerateTransactionNumber()
+    {
+        return $"SAVTXN-{DateTime.Now:yyyyMMddHHmmss}-{new Random().Next(1000, 9999)}";
+    }
+}
+
+/// <summary>
+/// Interest Calculation Records (Daily computation)
+/// </summary>
+[Table("SavingsInterest")]
+public class SavingsInterest
+{
+    [Key]
+    public int InterestId { get; set; }
+
+    [Required]
+    public int SavingsAccountId { get; set; }
+
+    public DateTime ComputationDate { get; set; } = DateTime.Today;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal DailyBalance { get; set; } // End of day balance
+
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal AppliedInterestRate { get; set; } // Annual rate
+
+    [Column(TypeName = "decimal(18,4)")]
+    public decimal DailyInterestAmount { get; set; } // Computed but not yet posted
+
+    public bool IsPosted { get; set; } = false;
+
+    public int? PostingBatchId { get; set; } // Links to batch posting
+
+    public DateTime? PostedDate { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    // Navigation
+    [ForeignKey("SavingsAccountId")]
+    public virtual SavingsAccount? SavingsAccount { get; set; }
+
+    [ForeignKey("PostingBatchId")]
+    public virtual SavingsInterestPosting? Posting { get; set; }
+}
+
+/// <summary>
+/// Interest Posting Batches (Monthly/Quarterly posting)
+/// </summary>
+[Table("SavingsInterestPostings")]
+public class SavingsInterestPosting
+{
+    [Key]
+    public int PostingId { get; set; }
+
+    public DateTime PostingDate { get; set; } = DateTime.Today;
+
+    public DateTime PeriodStart { get; set; }
+
+    public DateTime PeriodEnd { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalInterestPosted { get; set; }
+
+    public int AccountsProcessed { get; set; }
+
+    [MaxLength(50)]
+    public string PostingStatus { get; set; } = "Pending"; // Pending, FMApproved, AccountantReleased, Completed
+
+    [MaxLength(100)]
+    public string? ProcessedBy { get; set; }
+
+    [MaxLength(100)]
+    public string? ApprovedByFM { get; set; }
+
+    public DateTime? ApprovedByFMAt { get; set; }
+
+    [MaxLength(100)]
+    public string? ReleasedByAccountant { get; set; }
+
+    public DateTime? ReleasedByAccountantAt { get; set; }
+
+    [MaxLength(500)]
+    public string? Notes { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    // Navigation
+    public virtual ICollection<SavingsInterest> InterestRecords { get; set; } = new List<SavingsInterest>();
+}
+
+/// <summary>
+/// Savings Withdrawal Requests (For approval workflow)
+/// </summary>
+[Table("SavingsWithdrawalRequests")]
+public class SavingsWithdrawalRequest
+{
+    [Key]
+    public int RequestId { get; set; }
+
+    [Required]
+    public int SavingsAccountId { get; set; }
+
+    [Required]
+    public int CustomerId { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal RequestedAmount { get; set; }
+
+    [MaxLength(20)]
+    public string WithdrawalType { get; set; } = "Normal"; // Normal, Early, Full
+
+    public bool IsEarlyWithdrawal { get; set; } = false;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal PenaltyAmount { get; set; } = 0m;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal InterestForfeited { get; set; } = 0m;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal NetWithdrawalAmount { get; set; }
+
+    [MaxLength(50)]
+    public string Status { get; set; } = "Pending"; // Pending, TellerApproved, FMApproved, Rejected, Completed
+
+    [MaxLength(500)]
+    public string? CustomerReason { get; set; }
+
+    [MaxLength(100)]
+    public string? ProcessedByTeller { get; set; }
+
+    public DateTime? ProcessedByTellerAt { get; set; }
+
+    [MaxLength(100)]
+    public string? ApprovedByFM { get; set; }
+
+    public DateTime? ApprovedByFMAt { get; set; }
+
+    [MaxLength(500)]
+    public string? RejectionReason { get; set; }
+
+    public DateTime RequestedDate { get; set; } = DateTime.Now;
+
+    public DateTime? CompletedDate { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    // Navigation
+    [ForeignKey("SavingsAccountId")]
+    public virtual SavingsAccount? SavingsAccount { get; set; }
+
+    [ForeignKey("CustomerId")]
+    public virtual AuthUser? Customer { get; set; }
+}

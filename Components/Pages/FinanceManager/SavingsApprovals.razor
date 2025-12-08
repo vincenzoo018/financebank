@@ -1,0 +1,590 @@
+@page "/finance-manager/savings-approvals"
+@layout FinanceManagerLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@inject AuthService AuthService
+@inject SavingsAccountService SavingsService
+@inject SavingsInterestService InterestService
+
+<div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="28" height="28" fill="none" stroke="white" stroke-width="2">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                <h1 style="font-size: 26px; font-weight: 700; margin: 0;">Savings Approvals</h1>
+                <p style="margin: 6px 0 0; opacity: 0.9;">Approve large withdrawals and interest postings</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 12px; opacity: 0.9;">Withdrawals</div>
+                    <div style="font-size: 24px; font-weight: 700;">@withdrawalRequests.Count</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 12px; opacity: 0.9;">Interest Batches</div>
+                    <div style="font-size: 24px; font-weight: 700;">@interestBatches.Count</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+            ✅ @successMessage
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+            ❌ @errorMessage
+        </div>
+    }
+
+    <!-- Tabs -->
+    <div style="margin-bottom: 24px; border-bottom: 2px solid #e5e7eb;">
+        <div style="display: flex; gap: 8px;">
+            <button @onclick='() => activeTab = "withdrawals"' 
+                    style="@GetTabStyle("withdrawals")">
+                💸 Withdrawal Requests (@withdrawalRequests.Count)
+            </button>
+            <button @onclick='() => activeTab = "interest"' 
+                    style="@GetTabStyle("interest")">
+                📊 Interest Batches (@interestBatches.Count)
+            </button>
+        </div>
+    </div>
+
+    @if (activeTab == "withdrawals")
+    {
+        <!-- Withdrawal Requests -->
+        <div style="background: white; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden;">
+            <div style="background: #fef3c7; padding: 16px; border-bottom: 1px solid #fbbf24;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="margin: 0; font-weight: 700; color: #b45309;">⚠️ Large Withdrawal Requests (>₱200,000)</h3>
+                        <p style="margin: 6px 0 0; color: #d97706; font-size: 13px;">Requires Finance Manager approval before processing</p>
+                    </div>
+                    <button @onclick="LoadData" style="background: #f59e0b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div style="padding: 24px;">
+                @if (isLoading)
+                {
+                    <div style="text-align: center; padding: 48px;">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p style="margin-top: 16px;">Loading withdrawal requests...</p>
+                    </div>
+                }
+                else if (!withdrawalRequests.Any())
+                {
+                    <div style="text-align: center; padding: 48px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+                        <p style="color: #6b7280;">No pending withdrawal requests</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var request in withdrawalRequests)
+                    {
+                        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 16px; background: #fef9c3;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 20px; align-items: center;">
+                                <div>
+                                    <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">CUSTOMER</div>
+                                    <div style="font-weight: 700; font-size: 16px;">@request.Customer?.FullName</div>
+                                    <div style="font-size: 12px; color: #6b7280;">@request.SavingsAccount?.AccountNumber</div>
+                                </div>
+
+                                <div>
+                                    <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">AMOUNT</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: #dc2626;">₱@request.RequestedAmount.ToString("N2")</div>
+                                    @if (request.IsEarlyWithdrawal)
+                                    {
+                                        <div style="font-size: 12px; color: #dc2626; margin-top: 4px;">
+                                            ⚠️ Early Withdrawal<br/>
+                                            Penalty: ₱@request.PenaltyAmount.ToString("N2")<br/>
+                                            Interest Forfeited: ₱@request.InterestForfeited.ToString("N2")<br/>
+                                            <strong>Net: ₱@request.NetWithdrawalAmount.ToString("N2")</strong>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div>
+                                    <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">REQUESTED</div>
+                                    <div style="font-size: 13px;">@request.RequestedDate.ToString("MMM dd, yyyy")</div>
+                                    <div style="font-size: 13px; color: #6b7280;">@request.RequestedDate.ToString("hh:mm tt")</div>
+                                    @if (!string.IsNullOrEmpty(request.CustomerReason))
+                                    {
+                                        <div style="font-size: 11px; color: #6b7280; margin-top: 6px; font-style: italic;">
+                                            "@request.CustomerReason"
+                                        </div>
+                                    }
+                                </div>
+
+                                <div style="display: flex; gap: 8px;">
+                                    <button @onclick="() => ShowApproveWithdrawalConfirm(request)" disabled="@isProcessing"
+                                            style="background: #10b981; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">
+                                        ✓ Approve
+                                    </button>
+                                    <button @onclick="() => ShowRejectWithdrawalConfirm(request)" disabled="@isProcessing"
+                                            style="background: #dc2626; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">
+                                        ✗ Reject
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Interest Batches -->
+        <div style="background: white; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden;">
+            <div style="background: #dbeafe; padding: 16px; border-bottom: 1px solid #60a5fa;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="margin: 0; font-weight: 700; color: #1e40af;">📊 Monthly Interest Posting Batches</h3>
+                        <p style="margin: 6px 0 0; color: #2563eb; font-size: 13px;">Review and approve interest computations before accountant release</p>
+                    </div>
+                    <button @onclick="LoadData" style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div style="padding: 24px;">
+                @if (isLoading)
+                {
+                    <div style="text-align: center; padding: 48px;">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p style="margin-top: 16px;">Loading interest batches...</p>
+                    </div>
+                }
+                else if (!interestBatches.Any())
+                {
+                    <div style="text-align: center; padding: 48px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+                        <p style="color: #6b7280;">No pending interest batches for approval</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var batch in interestBatches)
+                    {
+                        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 16px; background: #eff6ff;">
+                            <div style="display: grid; grid-template-columns: auto 1fr 1fr 1fr auto; gap: 20px; align-items: center;">
+                                <div style="text-align: center;">
+                                    <div style="width: 60px; height: 60px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700;">
+                                        #@batch.PostingId
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">PERIOD</div>
+                                    <div style="font-weight: 700; font-size: 15px;">@batch.PeriodStart.ToString("MMM dd") - @batch.PeriodEnd.ToString("MMM dd, yyyy")</div>
+                                    <div style="font-size: 12px; color: #6b7280;">Created: @batch.PostingDate.ToString("MMM dd, yyyy")</div>
+                                </div>
+
+                                <div>
+                                    <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">ACCOUNTS</div>
+                                    <div style="font-size: 24px; font-weight: 700; color: #10b981;">@batch.AccountsProcessed</div>
+                                    <div style="font-size: 12px; color: #6b7280;">savings accounts</div>
+                                </div>
+
+                                <div>
+                                    <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">TOTAL INTEREST</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: #059669;">₱@batch.TotalInterestPosted.ToString("N2")</div>
+                                    <div style="font-size: 12px; color: #6b7280;">to be posted</div>
+                                </div>
+
+                                <div>
+                                    <button @onclick="() => ShowApproveBatchConfirm(batch)" disabled="@isProcessing"
+                                            style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px 28px; border-radius: 10px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); white-space: nowrap;">
+                                        ✓ Approve Batch
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Approve Withdrawal Confirmation Modal -->
+@if (showApproveWithdrawalConfirm && selectedWithdrawal != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="width: 64px; height: 64px; background: #d1fae5; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                    <span style="font-size: 32px;">✅</span>
+                </div>
+                <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">Approve Withdrawal Request?</h2>
+                <p style="color: #6b7280; margin: 0;">This action will allow the customer to withdraw funds</p>
+            </div>
+            
+            <div style="background: #f9fafb; padding: 20px; border-radius: 12px; margin-bottom: 24px;">
+                <div style="display: grid; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                        <span style="color: #6b7280;">Request ID:</span>
+                        <span style="font-weight: 600; color: #1f2937;">#@selectedWithdrawal.RequestId</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                        <span style="color: #6b7280;">Customer:</span>
+                        <span style="font-weight: 600; color: #1f2937;">@selectedWithdrawal.Customer?.FullName</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                        <span style="color: #6b7280;">Account:</span>
+                        <span style="font-weight: 600; color: #1f2937;">@selectedWithdrawal.SavingsAccount?.AccountNumber</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                        <span style="color: #6b7280;">Requested Amount:</span>
+                        <span style="font-weight: 700; color: #dc2626;">₱@selectedWithdrawal.RequestedAmount.ToString("N2")</span>
+                    </div>
+                    @if (selectedWithdrawal.IsEarlyWithdrawal)
+                    {
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                            <span style="color: #6b7280;">Penalty:</span>
+                            <span style="font-weight: 600; color: #dc2626;">-₱@selectedWithdrawal.PenaltyAmount.ToString("N2")</span>
+                        </div>
+                    }
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                        <span style="color: #6b7280; font-weight: 600;">Net Withdrawal:</span>
+                        <span style="font-weight: 700; color: #10b981; font-size: 18px;">₱@selectedWithdrawal.NetWithdrawalAmount.ToString("N2")</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 12px;">
+                <button @onclick="CancelApproveWithdrawal" 
+                        disabled="@isProcessing"
+                        style="flex: 1; background: white; border: 2px solid #e5e7eb; color: #6b7280; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                    Cancel
+                </button>
+                <button @onclick="ConfirmApproveWithdrawal" 
+                        disabled="@isProcessing"
+                        style="flex: 1; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
+                    @(isProcessing ? "⏳ Processing..." : "✓ Confirm Approval")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Reject Withdrawal Confirmation Modal -->
+@if (showRejectWithdrawalConfirm && selectedWithdrawal != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="width: 64px; height: 64px; background: #fee2e2; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                    <span style="font-size: 32px;">❌</span>
+                </div>
+                <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">Reject Withdrawal Request?</h2>
+                <p style="color: #6b7280; margin: 0;">Please provide a reason for rejection</p>
+            </div>
+            
+            <div style="background: #f9fafb; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+                <div style="display: grid; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                        <span style="color: #6b7280;">Request ID:</span>
+                        <span style="font-weight: 600; color: #1f2937;">#@selectedWithdrawal.RequestId</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                        <span style="color: #6b7280;">Customer:</span>
+                        <span style="font-weight: 600; color: #1f2937;">@selectedWithdrawal.Customer?.FullName</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                        <span style="color: #6b7280;">Amount:</span>
+                        <span style="font-weight: 700; color: #dc2626;">₱@selectedWithdrawal.NetWithdrawalAmount.ToString("N2")</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Rejection Reason *</label>
+                <textarea @bind="rejectionReason" rows="4" 
+                          placeholder="Enter the reason for rejecting this withdrawal request..."
+                          style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 12px;">
+                <button @onclick="CancelRejectWithdrawal" 
+                        disabled="@isProcessing"
+                        style="flex: 1; background: white; border: 2px solid #e5e7eb; color: #6b7280; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                    Cancel
+                </button>
+                <button @onclick="ConfirmRejectWithdrawal" 
+                        disabled="@isProcessing"
+                        style="flex: 1; background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
+                    @(isProcessing ? "⏳ Processing..." : "✗ Confirm Rejection")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Approve Interest Batch Confirmation Modal -->
+@if (showApproveBatchConfirm && selectedBatch != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="width: 64px; height: 64px; background: #dbeafe; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                    <span style="font-size: 32px;">📊</span>
+                </div>
+                <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">Approve Interest Batch?</h2>
+                <p style="color: #6b7280; margin: 0;">This batch will be forwarded to Accountant for release</p>
+            </div>
+            
+            <div style="background: #f9fafb; padding: 20px; border-radius: 12px; margin-bottom: 24px;">
+                <div style="display: grid; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                        <span style="color: #6b7280;">Batch ID:</span>
+                        <span style="font-weight: 600; color: #1f2937;">#@selectedBatch.PostingId</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                        <span style="color: #6b7280;">Period:</span>
+                        <span style="font-weight: 600; color: #1f2937;">@selectedBatch.PeriodStart.ToString("MMM dd") - @selectedBatch.PeriodEnd.ToString("MMM dd, yyyy")</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                        <span style="color: #6b7280;">Accounts Affected:</span>
+                        <span style="font-weight: 700; color: #3b82f6; font-size: 18px;">@selectedBatch.AccountsProcessed</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                        <span style="color: #6b7280; font-weight: 600;">Total Interest:</span>
+                        <span style="font-weight: 700; color: #10b981; font-size: 20px;">₱@selectedBatch.TotalInterestPosted.ToString("N2")</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 12px;">
+                <button @onclick="CancelApproveBatch" 
+                        disabled="@isProcessing"
+                        style="flex: 1; background: white; border: 2px solid #e5e7eb; color: #6b7280; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                    Cancel
+                </button>
+                <button @onclick="ConfirmApproveBatch" 
+                        disabled="@isProcessing"
+                        style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                    @(isProcessing ? "⏳ Processing..." : "✓ Confirm Approval")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<SavingsWithdrawalRequest> withdrawalRequests = new();
+    private List<SavingsInterestPosting> interestBatches = new();
+    private string activeTab = "withdrawals";
+    private string successMessage = "";
+    private string errorMessage = "";
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    
+    // Confirmation dialogs
+    private bool showApproveWithdrawalConfirm = false;
+    private bool showRejectWithdrawalConfirm = false;
+    private bool showApproveBatchConfirm = false;
+    private SavingsWithdrawalRequest? selectedWithdrawal = null;
+    private SavingsInterestPosting? selectedBatch = null;
+    private string rejectionReason = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            withdrawalRequests = await SavingsService.GetPendingWithdrawalRequestsAsync();
+            interestBatches = await InterestService.GetPendingFMApprovalBatchesAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ShowApproveWithdrawalConfirm(SavingsWithdrawalRequest request)
+    {
+        selectedWithdrawal = request;
+        showApproveWithdrawalConfirm = true;
+        errorMessage = "";
+    }
+
+    private void CancelApproveWithdrawal()
+    {
+        showApproveWithdrawalConfirm = false;
+        selectedWithdrawal = null;
+    }
+
+    private async Task ConfirmApproveWithdrawal()
+    {
+        if (isProcessing || selectedWithdrawal == null) return;
+
+        isProcessing = true;
+        errorMessage = "";
+        successMessage = "";
+
+        try
+        {
+            var fmName = AuthService.FullName ?? "Finance Manager";
+            (bool success, string message) = await SavingsService.ApproveWithdrawalRequestAsync(selectedWithdrawal.RequestId, true, fmName, "");
+
+            if (success)
+            {
+                successMessage = $"✅ SUCCESS: Withdrawal request #{selectedWithdrawal.RequestId} approved!\n\nCustomer: {selectedWithdrawal.Customer?.FullName}\nAmount: ₱{selectedWithdrawal.NetWithdrawalAmount:N2}\nAccount: {selectedWithdrawal.SavingsAccount?.AccountNumber}\n\nStatus: Approved - Customer can now complete withdrawal at teller.";
+                showApproveWithdrawalConfirm = false;
+                selectedWithdrawal = null;
+                await LoadData();
+            }
+            else
+            {
+                errorMessage = $"❌ APPROVAL FAILED: {message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"❌ SYSTEM ERROR: Unable to approve withdrawal request.\n\nDetails: {ex.Message}\n\nPlease try again or contact system administrator if the problem persists.";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ShowRejectWithdrawalConfirm(SavingsWithdrawalRequest request)
+    {
+        selectedWithdrawal = request;
+        rejectionReason = "";
+        showRejectWithdrawalConfirm = true;
+        errorMessage = "";
+    }
+
+    private void CancelRejectWithdrawal()
+    {
+        showRejectWithdrawalConfirm = false;
+        selectedWithdrawal = null;
+        rejectionReason = "";
+    }
+
+    private async Task ConfirmRejectWithdrawal()
+    {
+        if (isProcessing || selectedWithdrawal == null) return;
+
+        if (string.IsNullOrWhiteSpace(rejectionReason))
+        {
+            errorMessage = "❌ Rejection reason is required. Please provide a reason for rejecting this withdrawal request.";
+            return;
+        }
+
+        isProcessing = true;
+        errorMessage = "";
+        successMessage = "";
+
+        try
+        {
+            var fmName = AuthService.FullName ?? "Finance Manager";
+            (bool success, string message) = await SavingsService.ApproveWithdrawalRequestAsync(selectedWithdrawal.RequestId, false, fmName, rejectionReason);
+
+            if (success)
+            {
+                successMessage = $"Withdrawal request #{selectedWithdrawal.RequestId} has been REJECTED.\n\nCustomer will be notified of the rejection.\nReason: {rejectionReason}";
+                showRejectWithdrawalConfirm = false;
+                selectedWithdrawal = null;
+                rejectionReason = "";
+                await LoadData();
+            }
+            else
+            {
+                errorMessage = $"❌ REJECTION FAILED: {message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"❌ SYSTEM ERROR: Unable to reject withdrawal request.\n\nDetails: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ShowApproveBatchConfirm(SavingsInterestPosting batch)
+    {
+        selectedBatch = batch;
+        showApproveBatchConfirm = true;
+        errorMessage = "";
+    }
+
+    private void CancelApproveBatch()
+    {
+        showApproveBatchConfirm = false;
+        selectedBatch = null;
+    }
+
+    private async Task ConfirmApproveBatch()
+    {
+        if (isProcessing || selectedBatch == null) return;
+
+        isProcessing = true;
+        errorMessage = "";
+        successMessage = "";
+
+        try
+        {
+            var fmName = AuthService.FullName ?? "Finance Manager";
+            (bool success, string message) = await InterestService.ApprovePostingBatchAsync(selectedBatch.PostingId, fmName);
+
+            if (success)
+            {
+                successMessage = $"✅ SUCCESS: Interest Batch #{selectedBatch.PostingId} APPROVED!\n\nPeriod: {selectedBatch.PeriodStart:MMM dd} - {selectedBatch.PeriodEnd:MMM dd, yyyy}\nTotal Interest: ₱{selectedBatch.TotalInterestPosted:N2}\nAccounts Affected: {selectedBatch.AccountsProcessed}\n\nStatus: Approved by Finance Manager\nNext Step: Forwarded to Accountant for release to customer accounts";
+                showApproveBatchConfirm = false;
+                selectedBatch = null;
+                await LoadData();
+            }
+            else
+            {
+                errorMessage = $"❌ APPROVAL FAILED: {message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"❌ SYSTEM ERROR: Unable to approve interest batch.\n\nDetails: {ex.Message}\n\nThe interest batch was not approved. Please try again or contact system administrator.";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private string GetTabStyle(string tab)
+    {
+        var isActive = activeTab == tab;
+        return $"padding: 12px 24px; border: none; background: {(isActive ? "#3b82f6" : "transparent")}; color: {(isActive ? "white" : "#6b7280")}; cursor: pointer; font-weight: 600; border-radius: 8px 8px 0 0; transition: all 0.3s;";
+    }
+}

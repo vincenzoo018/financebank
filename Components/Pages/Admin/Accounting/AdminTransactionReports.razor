@@ -263,7 +263,7 @@
             // Build query with filters
             var query = context.CustomerTransactions
                 .Include(t => t.Account)
-                .ThenInclude(a => a.Customer)
+                .ThenInclude(a => a!.Customer)
                 .Where(t => t.CreatedAt >= fromDate && t.CreatedAt <= toDate);
             
             // Filter by type
@@ -321,7 +321,7 @@
                 .GroupBy(t => t.Account!.Customer!.FullName)
                 .Select(g => new TopCustomer
                 {
-                    Name = g.Key,
+                    Name = g.Key ?? "",
                     TransactionCount = g.Count(),
                     TotalVolume = g.Sum(t => t.Amount)
                 })

@@ -99,6 +99,10 @@ namespace FinanceBank
             builder.Services.AddScoped<RewardPointsService>();
             builder.Services.AddScoped<AuditLogService>();
 
+            // Register Savings Account Services
+            builder.Services.AddScoped<SavingsAccountService>();
+            builder.Services.AddScoped<SavingsInterestService>();
+
             // Register Security and ERP Services
             builder.Services.AddScoped<PasswordHashingService>();
             builder.Services.AddScoped<TaxCalculationService>();

@@ -14,7 +14,7 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <div style="text-align: center;">
-                <img src="images/finsys-logo.png" alt="FINSYS Logo"
+                <img src="images/finebank-logo.png" alt="FINEBANK Logo"
                     style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
                 <div class="sidebar-logo">@customerName</div>
                 <div class="sidebar-subtitle">Banking Portal</div>
@@ -92,12 +92,20 @@
                     </svg>
                     <span>My Cards</span>
                 </a>
-                <a href="/customer/savings" class="sidebar-item @(IsActive("/customer/savings"))">
+                <a href="/customer/savings-accounts" class="sidebar-item @(IsActive("/customer/savings-accounts"))">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 21h18M3 10h18M5 6h14M7 3h10"></path>
                     </svg>
-                    <span>Savings Account</span>
+                    <span>My Savings Accounts</span>
+                </a>
+                <a href="/customer/savings-withdrawal" class="sidebar-item @(IsActive("/customer/savings-withdrawal"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="19" x2="12" y2="5"></line>
+                        <polyline points="5 12 12 5 19 12"></polyline>
+                    </svg>
+                    <span>Savings Withdrawal Request</span>
                 </a>
             </div>
 

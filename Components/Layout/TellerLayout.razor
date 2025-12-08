@@ -8,9 +8,9 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <div style="text-align: center;">
-                <img src="images/finsys-logo.png" alt="FINSYS Logo"
+                <img src="images/finebank-logo.png" alt="FINEBANK Logo"
                     style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
-                <div class="sidebar-logo">FINSYS Teller</div>
+                <div class="sidebar-logo">FINEBANK Teller</div>
                 <div class="sidebar-subtitle">Banking Services</div>
             </div>
         </div>
@@ -92,6 +92,26 @@
                         <path d="M15 19H6.5a1.5 1.5 0 0 1 0-3H15"></path>
                     </svg>
                     <span>Transaction History</span>
+                </a>
+            </div>
+
+            <!-- Savings Account Services -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">SAVINGS ACCOUNTS</div>
+                <a href="/teller/savings/open" class="sidebar-item @(IsActive("/teller/savings/open"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 21h18M3 10h18M5 6h14M7 3h10"></path>
+                    </svg>
+                    <span>Open Savings Account</span>
+                </a>
+                <a href="/teller/savings/history" class="sidebar-item @(IsActive("/teller/savings/history"))">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Savings Account History</span>
                 </a>
             </div>
 

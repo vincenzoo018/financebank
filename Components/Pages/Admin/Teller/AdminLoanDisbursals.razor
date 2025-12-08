@@ -471,10 +471,10 @@
             
             completedDisbursals = await dbContext.LoanDisbursals
                 .Include(d => d.Approval)
-                    .ThenInclude(a => a.Application)
+                    .ThenInclude(a => a!.Application)
                 .Include(d => d.Approval)
-                    .ThenInclude(a => a.Account)
-                        .ThenInclude(ac => ac.Customer)
+                    .ThenInclude(a => a!.Account)
+                        .ThenInclude(ac => ac!.Customer)
                 .OrderByDescending(d => d.DisbursalDate)
                 .Take(10)
                 .ToListAsync();

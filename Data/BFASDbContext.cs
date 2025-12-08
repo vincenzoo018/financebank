@@ -515,6 +515,15 @@ namespace FinanceBank.Data
         // System / Audit Tables
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<AccountingEntry> AccountingEntries { get; set; }
+
+        // Savings Account Module Tables
+        public DbSet<SavingsAccountType> SavingsAccountTypes { get; set; }
+        public DbSet<SavingsAccount> SavingsAccounts { get; set; }
+        public DbSet<SavingsTransaction> SavingsTransactions { get; set; }
+        public DbSet<SavingsInterest> SavingsInterestRecords { get; set; }
+        public DbSet<SavingsInterestPosting> SavingsInterestPostings { get; set; }
+        public DbSet<SavingsWithdrawalRequest> SavingsWithdrawalRequests { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

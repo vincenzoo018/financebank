@@ -65,6 +65,11 @@
                 <div style="font-size: 24px; font-weight: 700; color: #f59e0b; margin-top: 8px;">₱@totalDisbursements.ToString("N2")</div>
                 <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">@disbursementCount releases</div>
             </div>
+            <div style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #8b5cf6; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div style="font-size: 12px; color: #6b7280; font-weight: 600;">SAVINGS APPROVALS</div>
+                <div style="font-size: 24px; font-weight: 700; color: #8b5cf6; margin-top: 8px;">@pendingSavingsApprovals</div>
+                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">pending review</div>
+            </div>
         </div>
 
         <!-- Cash Flow Summary -->
@@ -284,6 +289,7 @@
     private int withdrawalCount = 0;
     private int loanPaymentCount = 0;
     private int disbursementCount = 0;
+    private int pendingSavingsApprovals = 0;
     
     // Filters
     private string filterType = "";
@@ -311,6 +317,12 @@
             var (start, end) = GetDateRange(selectedPeriod);
             
             allTransactions.Clear();
+            
+            // Get pending savings approvals count
+            pendingSavingsApprovals = await DbContext.SavingsWithdrawalRequests
+                .CountAsync(r => r.Status == "Pending") +
+                await DbContext.SavingsInterestPostings
+                .CountAsync(p => p.PostingStatus == "Pending");
             
             // Load Customer Transactions (Deposits & Withdrawals)
             var customerTransactions = await DbContext.CustomerTransactions

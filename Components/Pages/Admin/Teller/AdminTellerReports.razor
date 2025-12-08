@@ -477,7 +477,7 @@
                 {
                     EmployeeId = g.Key ?? 0,
                     FullName = g.First().ProcessedByEmployee != null 
-                        ? $"{g.First().ProcessedByEmployee.FirstName} {g.First().ProcessedByEmployee.LastName}" 
+                        ? $"{g.First().ProcessedByEmployee!.FirstName} {g.First().ProcessedByEmployee!.LastName}" 
                         : "Unknown",
                     Department = g.First().ProcessedByEmployee?.Department ?? "",
                     TransactionCount = g.Count(),

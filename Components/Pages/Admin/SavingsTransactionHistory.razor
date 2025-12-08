@@ -1,0 +1,412 @@
+@page "/admin/savings-history"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using FinanceBank.Data
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
+@inject AuthService AuthService
+@inject IJSRuntime JS
+
+<div style="padding: 24px; max-width: 1600px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="28" height="28" fill="none" stroke="white" stroke-width="2">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                <h1 style="font-size: 26px; font-weight: 700; margin: 0;">Savings Transaction History</h1>
+                <p style="margin: 6px 0 0; opacity: 0.9;">Complete transaction records with search and filter</p>
+            </div>
+            <button @onclick="ExportToCsv" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                📥 Export CSV
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div style="background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">SEARCH</label>
+                <input type="text" @bind="searchQuery" @bind:event="oninput" @onkeyup="ApplyFilters" placeholder="Account # or Customer Name"
+                       style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+            </div>
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">TRANSACTION TYPE</label>
+                <select @bind="filterType" @bind:event="onchange"
+                        style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                    <option value="">All Types</option>
+                    <option value="Deposit">Deposits</option>
+                    <option value="Withdrawal">Withdrawals</option>
+                    <option value="InterestPosting">Interest Postings</option>
+                    <option value="PenaltyCharge">Penalty Charges</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">STATUS</label>
+                <select @bind="filterStatus" @bind:event="onchange"
+                        style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                    <option value="">All Status</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">FROM DATE</label>
+                <input type="date" @bind="filterStartDate" @bind:event="onchange"
+                       style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+            </div>
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">TO DATE</label>
+                <input type="date" @bind="filterEndDate" @bind:event="onchange"
+                       style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #10b981;">
+            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">TOTAL DEPOSITS</div>
+            <div style="font-size: 24px; font-weight: 700; color: #10b981;">₱@totalDeposits.ToString("N2")</div>
+            <div style="font-size: 11px; color: #9ca3af;">@depositCount transactions</div>
+        </div>
+        <div style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #ef4444;">
+            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">TOTAL WITHDRAWALS</div>
+            <div style="font-size: 24px; font-weight: 700; color: #ef4444;">₱@totalWithdrawals.ToString("N2")</div>
+            <div style="font-size: 11px; color: #9ca3af;">@withdrawalCount transactions</div>
+        </div>
+        <div style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #3b82f6;">
+            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">INTEREST POSTED</div>
+            <div style="font-size: 24px; font-weight: 700; color: #3b82f6;">₱@totalInterest.ToString("N2")</div>
+            <div style="font-size: 11px; color: #9ca3af;">@interestCount postings</div>
+        </div>
+        <div style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #8b5cf6;">
+            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">NET CHANGE</div>
+            <div style="font-size: 24px; font-weight: 700; color: @(netChange >= 0 ? "#10b981" : "#ef4444");">₱@netChange.ToString("N2")</div>
+            <div style="font-size: 11px; color: #9ca3af;">@filteredTransactions.Count total txns</div>
+        </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div style="background: white; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden;">
+        <div style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-weight: 700; color: #1f2937;">Transaction Records (@filteredTransactions.Count)</h3>
+                <div style="display: flex; gap: 8px;">
+                    <button @onclick='() => { sortBy = "date_desc"; ApplyFilters(); }' 
+                            style="padding: 6px 12px; background: @(sortBy == "date_desc" ? "#8b5cf6" : "#f3f4f6"); color: @(sortBy == "date_desc" ? "white" : "#6b7280"); border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                        Date ↓
+                    </button>
+                    <button @onclick='() => { sortBy = "amount_desc"; ApplyFilters(); }' 
+                            style="padding: 6px 12px; background: @(sortBy == "amount_desc" ? "#8b5cf6" : "#f3f4f6"); color: @(sortBy == "amount_desc" ? "white" : "#6b7280"); border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                        Amount ↓
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        @if (isLoading)
+        {
+            <div style="text-align: center; padding: 60px;">
+                <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #8b5cf6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                <p style="margin-top: 16px; color: #6b7280;">Loading transactions...</p>
+            </div>
+        }
+        else if (!filteredTransactions.Any())
+        {
+            <div style="text-align: center; padding: 60px; color: #6b7280;">
+                <div style="font-size: 48px; margin-bottom: 16px;">📭</div>
+                <p>No transactions found matching your criteria</p>
+            </div>
+        }
+        else
+        {
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                            <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 600; color: #6b7280;">DATE & TIME</th>
+                            <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 600; color: #6b7280;">TXN #</th>
+                            <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 600; color: #6b7280;">ACCOUNT</th>
+                            <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 600; color: #6b7280;">CUSTOMER</th>
+                            <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 600; color: #6b7280;">TYPE</th>
+                            <th style="padding: 12px; text-align: right; font-size: 11px; font-weight: 600; color: #6b7280;">AMOUNT</th>
+                            <th style="padding: 12px; text-align: right; font-size: 11px; font-weight: 600; color: #6b7280;">BALANCE</th>
+                            <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 600; color: #6b7280;">STATUS</th>
+                            <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 600; color: #6b7280;">PROCESSED BY</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var txn in filteredTransactions.Take(100))
+                        {
+                            var typeStyle = GetTransactionTypeStyle(txn.TransactionType);
+                            <tr style="border-bottom: 1px solid #f3f4f6;">
+                                <td style="padding: 14px;">
+                                    <div style="font-weight: 600; color: #1f2937;">@txn.TransactionDate.ToString("MMM dd, yyyy")</div>
+                                    <div style="font-size: 11px; color: #6b7280;">@txn.TransactionDate.ToString("hh:mm tt")</div>
+                                </td>
+                                <td style="padding: 14px;">
+                                    <span style="font-family: monospace; font-size: 12px; color: #6b7280;">@txn.TransactionNumber</span>
+                                </td>
+                                <td style="padding: 14px;">
+                                    <div style="font-weight: 600; color: #1f2937;">@txn.AccountNumber</div>
+                                    <div style="font-size: 11px; color: #6b7280;">@txn.AccountType</div>
+                                </td>
+                                <td style="padding: 14px;">
+                                    <div style="font-weight: 600; color: #1f2937;">@txn.CustomerName</div>
+                                </td>
+                                <td style="padding: 14px;">
+                                    <span style="background: @typeStyle.bg; color: @typeStyle.text; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">
+                                        @typeStyle.icon @txn.TransactionType
+                                    </span>
+                                </td>
+                                <td style="padding: 14px; text-align: right;">
+                                    <span style="font-size: 16px; font-weight: 700; color: @typeStyle.text;">@typeStyle.prefix₱@txn.Amount.ToString("N2")</span>
+                                </td>
+                                <td style="padding: 14px; text-align: right;">
+                                    <div style="font-weight: 600; color: #1f2937;">₱@txn.BalanceAfter.ToString("N2")</div>
+                                    <div style="font-size: 11px; color: #6b7280;">from ₱@txn.BalanceBefore.ToString("N2")</div>
+                                </td>
+                                <td style="padding: 14px; text-align: center;">
+                                    <span style="background: @GetStatusColor(txn.Status).bg; color: @GetStatusColor(txn.Status).text; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;">
+                                        @txn.Status
+                                    </span>
+                                </td>
+                                <td style="padding: 14px;">
+                                    <div style="font-size: 12px; color: #1f2937;">@txn.ProcessedBy</div>
+                                    @if (txn.ProcessedAt.HasValue)
+                                    {
+                                        <div style="font-size: 10px; color: #9ca3af;">@txn.ProcessedAt.Value.ToString("MMM dd, hh:mm tt")</div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (filteredTransactions.Count > 100)
+            {
+                <div style="padding: 16px; text-align: center; background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                    <p style="margin: 0; color: #6b7280; font-size: 13px;">Showing first 100 of @filteredTransactions.Count transactions. Use filters to narrow results.</p>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    @@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+@code {
+    private List<SavingsTransactionRecord> allTransactions = new();
+    private List<SavingsTransactionRecord> filteredTransactions = new();
+    
+    private string searchQuery = "";
+    private string filterType = "";
+    private string filterStatus = "";
+    private DateTime? filterStartDate = DateTime.Today.AddMonths(-1);
+    private DateTime? filterEndDate = DateTime.Today;
+    private string sortBy = "date_desc";
+    
+    private decimal totalDeposits = 0;
+    private decimal totalWithdrawals = 0;
+    private decimal totalInterest = 0;
+    private decimal netChange = 0;
+    private int depositCount = 0;
+    private int withdrawalCount = 0;
+    private int interestCount = 0;
+    
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            
+            var transactions = await context.SavingsTransactions
+                .Include(t => t.SavingsAccount)
+                    .ThenInclude(sa => sa.AccountType)
+                .Include(t => t.SavingsAccount)
+                    .ThenInclude(sa => sa.Customer)
+                .OrderByDescending(t => t.TransactionDate)
+                .Take(10000) // Limit for performance
+                .Select(t => new SavingsTransactionRecord
+                {
+                    TransactionId = t.TransactionId,
+                    TransactionNumber = t.TransactionNumber,
+                    AccountNumber = t.SavingsAccount.AccountNumber,
+                    AccountType = t.SavingsAccount.AccountType.TypeName,
+                    CustomerName = t.SavingsAccount.Customer.FullName ?? "Unknown",
+                    TransactionType = t.TransactionType,
+                    Amount = t.Amount,
+                    BalanceBefore = t.BalanceBefore,
+                    BalanceAfter = t.BalanceAfter,
+                    Status = t.Status,
+                    ProcessedBy = t.ProcessedBy ?? "System",
+                    ProcessedAt = t.ProcessedAt,
+                    TransactionDate = t.TransactionDate,
+                    Description = t.Description
+                })
+                .ToListAsync();
+
+            allTransactions = transactions;
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading transactions: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        var result = allTransactions.AsEnumerable();
+
+        // Search filter
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            var search = searchQuery.ToLower();
+            result = result.Where(t => 
+                t.AccountNumber.ToLower().Contains(search) ||
+                t.CustomerName.ToLower().Contains(search) ||
+                t.TransactionNumber.ToLower().Contains(search));
+        }
+
+        // Type filter
+        if (!string.IsNullOrEmpty(filterType))
+        {
+            result = result.Where(t => t.TransactionType == filterType);
+        }
+
+        // Status filter
+        if (!string.IsNullOrEmpty(filterStatus))
+        {
+            result = result.Where(t => t.Status == filterStatus);
+        }
+
+        // Date range filter
+        if (filterStartDate.HasValue)
+        {
+            result = result.Where(t => t.TransactionDate.Date >= filterStartDate.Value.Date);
+        }
+
+        if (filterEndDate.HasValue)
+        {
+            result = result.Where(t => t.TransactionDate.Date <= filterEndDate.Value.Date);
+        }
+
+        // Sort
+        result = sortBy switch
+        {
+            "date_desc" => result.OrderByDescending(t => t.TransactionDate),
+            "date_asc" => result.OrderBy(t => t.TransactionDate),
+            "amount_desc" => result.OrderByDescending(t => t.Amount),
+            "amount_asc" => result.OrderBy(t => t.Amount),
+            _ => result.OrderByDescending(t => t.TransactionDate)
+        };
+
+        filteredTransactions = result.ToList();
+
+        // Calculate summaries
+        totalDeposits = filteredTransactions.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount);
+        totalWithdrawals = filteredTransactions.Where(t => t.TransactionType == "Withdrawal").Sum(t => t.Amount);
+        totalInterest = filteredTransactions.Where(t => t.TransactionType == "InterestPosting").Sum(t => t.Amount);
+        netChange = totalDeposits + totalInterest - totalWithdrawals;
+        
+        depositCount = filteredTransactions.Count(t => t.TransactionType == "Deposit");
+        withdrawalCount = filteredTransactions.Count(t => t.TransactionType == "Withdrawal");
+        interestCount = filteredTransactions.Count(t => t.TransactionType == "InterestPosting");
+    }
+
+    private (string bg, string text, string icon, string prefix) GetTransactionTypeStyle(string type)
+    {
+        return type switch
+        {
+            "Deposit" => ("#d1fae5", "#065f46", "💰", "+"),
+            "Withdrawal" => ("#fee2e2", "#991b1b", "💸", "-"),
+            "InterestPosting" => ("#dbeafe", "#1e40af", "📈", "+"),
+            "PenaltyCharge" => ("#fed7aa", "#92400e", "⚠️", "-"),
+            _ => ("#f3f4f6", "#6b7280", "📋", "")
+        };
+    }
+
+    private (string bg, string text) GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Completed" => ("#d1fae5", "#065f46"),
+            "Pending" => ("#fef3c7", "#92400e"),
+            "Approved" => ("#dbeafe", "#1e40af"),
+            "Rejected" => ("#fee2e2", "#991b1b"),
+            _ => ("#f3f4f6", "#6b7280")
+        };
+    }
+
+    private async Task ExportToCsv()
+    {
+        var sb = new System.Text.StringBuilder();
+        
+        sb.AppendLine("FINANCEBANK - SAVINGS TRANSACTION HISTORY");
+        sb.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        sb.AppendLine($"Total Records: {filteredTransactions.Count}");
+        sb.AppendLine();
+        
+        sb.AppendLine("Date,Time,Transaction Number,Account Number,Customer Name,Type,Amount,Balance Before,Balance After,Status,Processed By");
+        
+        foreach (var txn in filteredTransactions)
+        {
+            sb.AppendLine($"\"{txn.TransactionDate:yyyy-MM-dd}\",\"{txn.TransactionDate:HH:mm:ss}\",\"{txn.TransactionNumber}\",\"{txn.AccountNumber}\",\"{txn.CustomerName}\",\"{txn.TransactionType}\",{txn.Amount},{txn.BalanceBefore},{txn.BalanceAfter},\"{txn.Status}\",\"{txn.ProcessedBy}\"");
+        }
+        
+        var fileName = $"SavingsTransactionHistory_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+        var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+        var base64 = Convert.ToBase64String(bytes);
+        
+        await JS.InvokeVoidAsync("eval", $@"
+            var link = document.createElement('a');
+            link.download = '{fileName}';
+            link.href = 'data:text/csv;base64,{base64}';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        ");
+    }
+
+    private class SavingsTransactionRecord
+    {
+        public int TransactionId { get; set; }
+        public string TransactionNumber { get; set; } = "";
+        public string AccountNumber { get; set; } = "";
+        public string AccountType { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public string TransactionType { get; set; } = "";
+        public decimal Amount { get; set; }
+        public decimal BalanceBefore { get; set; }
+        public decimal BalanceAfter { get; set; }
+        public string Status { get; set; } = "";
+        public string ProcessedBy { get; set; } = "";
+        public DateTime? ProcessedAt { get; set; }
+        public DateTime TransactionDate { get; set; }
+        public string? Description { get; set; }
+    }
+}

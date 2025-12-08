@@ -1283,7 +1283,7 @@ public class LoanProcessService
         var contractContent = new System.Text.StringBuilder();
         contractContent.AppendLine("╔══════════════════════════════════════════════════════════════════════════════╗");
         contractContent.AppendLine("║                         LOAN AGREEMENT CONTRACT                               ║");
-        contractContent.AppendLine("║                    FINSYS BANKING CORPORATION                                 ║");
+        contractContent.AppendLine("║                    FINEBANK BANKING CORPORATION                               ║");
         contractContent.AppendLine("╚══════════════════════════════════════════════════════════════════════════════╝");
         contractContent.AppendLine();
         contractContent.AppendLine($"Contract Reference: CONTRACT-{approval.ApprovalId:D6}-{DateTime.Now:yyyyMMdd}");
@@ -1295,8 +1295,8 @@ public class LoanProcessService
         contractContent.AppendLine("═══════════════════════════════════════════════════════════════════════════════");
         contractContent.AppendLine();
         contractContent.AppendLine("CREDITOR (LENDER):");
-        contractContent.AppendLine("  Name: FINSYS Banking Corporation");
-        contractContent.AppendLine("  Address: FINSYS Tower, Makati City, Philippines");
+        contractContent.AppendLine("  Name: FINEBANK Banking Corporation");
+        contractContent.AppendLine("  Address: FINEBANK Tower, Makati City, Philippines");
         contractContent.AppendLine("  License: BSP Licensed Universal Bank");
         contractContent.AppendLine();
         contractContent.AppendLine("DEBTOR (BORROWER):");

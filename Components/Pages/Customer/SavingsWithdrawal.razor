@@ -1,0 +1,393 @@
+@page "/customer/savings-withdrawal"
+@layout CustomerLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@inject AuthService AuthService
+@inject SavingsAccountService SavingsService
+
+<div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="28" height="28" fill="none" stroke="white" stroke-width="2">
+                    <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                <h1 style="font-size: 26px; font-weight: 700; margin: 0;">Request Savings Withdrawal</h1>
+                <p style="margin: 6px 0 0; opacity: 0.9;">Submit withdrawal request for approval</p>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 20px; border-radius: 12px; margin-bottom: 20px; white-space: pre-line;">
+            @successMessage
+            <div style="margin-top: 16px;">
+                <button @onclick="ResetForm" style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">Request Another Withdrawal</button>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 20px; border-radius: 12px; margin-bottom: 20px; white-space: pre-line;">
+            @errorMessage
+        </div>
+    }
+
+    <!-- My Savings Accounts -->
+    <div style="background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
+        <h3 style="margin: 0 0 16px; font-weight: 700; color: #1f2937;">Select Savings Account</h3>
+        
+        @if (isLoadingAccounts)
+        {
+            <div style="text-align: center; padding: 40px;">
+                <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #f59e0b; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            </div>
+        }
+        else if (!myAccounts.Any())
+        {
+            <div style="text-align: center; padding: 40px; color: #6b7280;">
+                <p>You don't have any active savings accounts</p>
+            </div>
+        }
+        else
+        {
+            <div style="display: grid; gap: 16px;">
+                @foreach (var account in myAccounts)
+                {
+                    var isSelected = selectedAccountId == account.SavingsAccountId;
+                    <div @onclick="() => SelectAccount(account)" 
+                         style="padding: 20px; border: 2px solid @(isSelected ? "#f59e0b" : "#e5e7eb"); border-radius: 12px; cursor: pointer; transition: all 0.3s; background: @(isSelected ? "#fffbeb" : "white");">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                            <div>
+                                <div style="font-weight: 700; font-size: 18px; color: #1f2937;">@account.AccountNumber</div>
+                                <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">@account.AccountTypeName</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 24px; font-weight: 700; color: #059669;">₱@account.Balance.ToString("N2")</div>
+                                <div style="font-size: 11px; color: #6b7280;">Available Balance</div>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+                            <div>
+                                <div style="font-size: 11px; color: #6b7280;">Interest Rate</div>
+                                <div style="font-weight: 600; color: #1f2937;">@account.CurrentInterestRate%</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; color: #6b7280;">Lock-In Days</div>
+                                <div style="font-weight: 600; color: #1f2937;">@account.LockInPeriodDays days</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; color: #6b7280;">Maturity Date</div>
+                                <div style="font-weight: 600; color: #1f2937;">@(account.MaturityDate?.ToString("MMM dd, yyyy") ?? "None")</div>
+                            </div>
+                        </div>
+                        @if (account.IsBeforeMaturity)
+                        {
+                            <div style="margin-top: 12px; padding: 10px; background: #fef3c7; border-radius: 8px;">
+                                <span style="color: #92400e; font-size: 12px; font-weight: 600;">⚠️ Early withdrawal penalty may apply</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Withdrawal Request Form -->
+    @if (selectedAccountId > 0)
+    {
+        <div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid #e5e7eb;">
+            <h3 style="margin: 0 0 24px; font-weight: 700; color: #1f2937;">Withdrawal Details</h3>
+            
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Withdrawal Amount (₱)</label>
+                <input type="number" step="0.01" min="0" @bind="requestedAmount" @bind:event="oninput" @onkeyup="CalculateWithdrawal"
+                       style="width: 100%; padding: 14px; border: 2px solid #d1d5db; border-radius: 10px; font-size: 16px; font-weight: 600;" 
+                       placeholder="0.00" />
+                @if (requestedAmount > 0 && requestedAmount > selectedAccount!.Balance)
+                {
+                    <div style="margin-top: 8px; color: #dc2626; font-size: 13px;">⚠️ Amount exceeds available balance</div>
+                }
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Reason for Withdrawal (Optional)</label>
+                <textarea @bind="withdrawalReason" rows="3"
+                          style="width: 100%; padding: 12px; border: 2px solid #d1d5db; border-radius: 10px; font-size: 14px; resize: vertical;" 
+                          placeholder="Provide a reason for this withdrawal request..."></textarea>
+            </div>
+
+            @if (requestedAmount > 0)
+            {
+                <div style="background: #fffbeb; border: 2px solid #fbbf24; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                    <h4 style="margin: 0 0 16px; font-weight: 700; color: #92400e;">Withdrawal Summary</h4>
+                    
+                    <div style="display: grid; gap: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #6b7280;">Requested Amount:</span>
+                            <span style="font-size: 18px; font-weight: 700; color: #1f2937;">₱@requestedAmount.ToString("N2")</span>
+                        </div>
+                        
+                        @if (isEarlyWithdrawal)
+                        {
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #fbbf24;">
+                                <span style="color: #dc2626; font-weight: 600;">⚠️ Early Withdrawal Penalty (@penaltyRate%):</span>
+                                <span style="font-size: 16px; font-weight: 700; color: #dc2626;">-₱@penaltyAmount.ToString("N2")</span>
+                            </div>
+                            
+                            @if (interestForfeited > 0)
+                            {
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: #dc2626; font-weight: 600;">Interest Forfeited:</span>
+                                    <span style="font-size: 16px; font-weight: 700; color: #dc2626;">-₱@interestForfeited.ToString("N2")</span>
+                                </div>
+                            }
+                        }
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 2px solid #92400e;">
+                            <span style="font-weight: 700; color: #1f2937; font-size: 16px;">Net Withdrawal Amount:</span>
+                            <span style="font-size: 22px; font-weight: 700; color: #059669;">₱@netWithdrawalAmount.ToString("N2")</span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #6b7280;">Remaining Balance:</span>
+                            <span style="font-weight: 600; color: #1f2937;">₱@(selectedAccount!.Balance - requestedAmount).ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    @if (isEarlyWithdrawal)
+                    {
+                        <div style="margin-top: 16px; padding: 12px; background: #fee2e2; border-radius: 8px;">
+                            <p style="margin: 0; color: #991b1b; font-size: 13px; font-weight: 600;">
+                                ⚠️ This is an early withdrawal before maturity date. Penalty charges will apply.
+                            </p>
+                        </div>
+                    }
+                </div>
+            }
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="ResetForm" style="background: #f3f4f6; color: #6b7280; border: 2px solid #e5e7eb; padding: 14px 28px; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button @onclick="SubmitWithdrawalRequest" disabled="@(!CanSubmit())"
+                        style="background: @(CanSubmit() ? "linear-gradient(135deg, #f59e0b, #d97706)" : "#e5e7eb"); color: @(CanSubmit() ? "white" : "#9ca3af"); border: none; padding: 14px 28px; border-radius: 10px; font-weight: 600; cursor: @(CanSubmit() ? "pointer" : "not-allowed");">
+                    @if (isSubmitting)
+                    {
+                        <span>⏳ Submitting...</span>
+                    }
+                    else
+                    {
+                        <span>💳 Submit Withdrawal Request</span>
+                    }
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    @@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+@code {
+    private List<SavingsAccountInfo> myAccounts = new();
+    private SavingsAccountInfo? selectedAccount = null;
+    private int selectedAccountId = 0;
+    private decimal requestedAmount = 0;
+    private string withdrawalReason = "";
+    
+    private bool isEarlyWithdrawal = false;
+    private decimal penaltyAmount = 0;
+    private decimal penaltyRate = 0;
+    private decimal interestForfeited = 0;
+    private decimal netWithdrawalAmount = 0;
+    
+    private bool isLoadingAccounts = true;
+    private bool isSubmitting = false;
+    private string successMessage = "";
+    private string errorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMyAccounts();
+    }
+
+    private async Task LoadMyAccounts()
+    {
+        isLoadingAccounts = true;
+        try
+        {
+            var customerId = AuthService.CurrentUserId ?? 0;
+            if (customerId == 0)
+            {
+                errorMessage = "User not authenticated";
+                return;
+            }
+            var accounts = await SavingsService.GetSavingsAccountsByCustomerAsync(customerId);
+            
+            myAccounts = accounts.Where(a => a.Status == "ACTIVE")
+                .Select(a => new SavingsAccountInfo
+                {
+                    SavingsAccountId = a.SavingsAccountId,
+                    AccountNumber = a.AccountNumber,
+                    AccountTypeName = a.AccountType?.TypeName ?? "Unknown",
+                    Balance = a.Balance,
+                    CurrentInterestRate = a.CurrentInterestRate,
+                    LockInPeriodDays = a.LockInPeriodDays,
+                    MaturityDate = a.MaturityDate,
+                    OpenedDate = a.OpenedDate,
+                    IsBeforeMaturity = a.MaturityDate.HasValue && DateTime.Now < a.MaturityDate.Value
+                })
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading accounts: {ex.Message}";
+        }
+        finally
+        {
+            isLoadingAccounts = false;
+        }
+    }
+
+    private void SelectAccount(SavingsAccountInfo account)
+    {
+        selectedAccount = account;
+        selectedAccountId = account.SavingsAccountId;
+        requestedAmount = 0;
+        errorMessage = "";
+        CalculateWithdrawal();
+    }
+
+    private void CalculateWithdrawal()
+    {
+        if (selectedAccount == null || requestedAmount <= 0)
+        {
+            penaltyAmount = 0;
+            interestForfeited = 0;
+            netWithdrawalAmount = 0;
+            isEarlyWithdrawal = false;
+            return;
+        }
+
+        isEarlyWithdrawal = selectedAccount.IsBeforeMaturity;
+        
+        if (isEarlyWithdrawal)
+        {
+            // Calculate penalty (typically 2% of withdrawal amount)
+            penaltyRate = 2.00m; // Get from account type settings
+            penaltyAmount = requestedAmount * (penaltyRate / 100);
+            
+            // Forfeited interest (could be calculated from accrued interest)
+            interestForfeited = 0; // Simplified - should query actual accrued interest
+            
+            netWithdrawalAmount = requestedAmount - penaltyAmount - interestForfeited;
+        }
+        else
+        {
+            penaltyAmount = 0;
+            interestForfeited = 0;
+            netWithdrawalAmount = requestedAmount;
+        }
+    }
+
+    private bool CanSubmit()
+    {
+        return selectedAccountId > 0 &&
+               requestedAmount > 0 &&
+               requestedAmount <= selectedAccount!.Balance &&
+               !isSubmitting;
+    }
+
+    private async Task SubmitWithdrawalRequest()
+    {
+        if (!CanSubmit()) return;
+
+        isSubmitting = true;
+        errorMessage = "";
+        successMessage = "";
+
+        try
+        {
+            var customerId = AuthService.CurrentUserId ?? 0;
+            if (customerId == 0)
+            {
+                errorMessage = "User not authenticated";
+                return;
+            }
+            var result = await SavingsService.CreateWithdrawalRequestAsync(
+                selectedAccountId,
+                customerId,
+                requestedAmount,
+                withdrawalReason
+            );
+            var success = result.success;
+            var message = result.message;
+            var request = result.request;
+
+            if (success && request != null)
+            {
+                successMessage = $"✅ SUCCESS: Withdrawal Request Submitted!\n\n" +
+                               $"Request ID: #{request.RequestId}\n" +
+                               $"Account: {selectedAccount!.AccountNumber}\n" +
+                               $"Requested Amount: ₱{requestedAmount:N2}\n" +
+                               (isEarlyWithdrawal ? $"Penalty: ₱{penaltyAmount:N2}\n" : "") +
+                               $"Net Withdrawal: ₱{netWithdrawalAmount:N2}\n\n" +
+                               $"Status: Pending Finance Manager Approval\n" +
+                               $"Your request will be reviewed by the Finance Manager. You will be notified once approved.";
+                
+                // Reset form
+                selectedAccountId = 0;
+                selectedAccount = null;
+                requestedAmount = 0;
+                withdrawalReason = "";
+                await LoadMyAccounts();
+            }
+            else
+            {
+                errorMessage = $"❌ REQUEST FAILED: {message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"❌ SYSTEM ERROR: Unable to submit withdrawal request.\n\nDetails: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void ResetForm()
+    {
+        selectedAccountId = 0;
+        selectedAccount = null;
+        requestedAmount = 0;
+        withdrawalReason = "";
+        errorMessage = "";
+        successMessage = "";
+        isEarlyWithdrawal = false;
+        penaltyAmount = 0;
+        interestForfeited = 0;
+        netWithdrawalAmount = 0;
+    }
+
+    private class SavingsAccountInfo
+    {
+        public int SavingsAccountId { get; set; }
+        public string AccountNumber { get; set; } = "";
+        public string AccountTypeName { get; set; } = "";
+        public decimal Balance { get; set; }
+        public decimal CurrentInterestRate { get; set; }
+        public int LockInPeriodDays { get; set; }
+        public DateTime? MaturityDate { get; set; }
+        public DateTime OpenedDate { get; set; }
+        public bool IsBeforeMaturity { get; set; }
+    }
+}

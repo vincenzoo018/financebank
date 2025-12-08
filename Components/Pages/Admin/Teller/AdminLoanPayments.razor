@@ -297,7 +297,7 @@
             recentPayments = await db.LoanPayments
                 .Include(p => p.Loan)
                     .ThenInclude(l => l.Account)
-                        .ThenInclude(a => a.Customer)
+                    .ThenInclude(a => a!.Customer)
                 .OrderByDescending(p => p.PaymentDate)
                 .Take(20)
                 .ToListAsync();

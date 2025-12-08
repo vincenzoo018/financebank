@@ -78,6 +78,10 @@ public class TellerReportService
         analytics.TotalLoanPayments = loanPayments.Sum(p => p.PaymentAmount);
         analytics.LoanPaymentCount = loanPayments.Count;
         analytics.TotalPenaltiesCollected = loanPayments.Sum(p => p.PenaltyPaid);
+        
+        // Calculate savings account metrics
+        analytics.SavingsAccountsOpened = await _context.SavingsAccounts
+            .CountAsync(sa => sa.OpenedDate >= start && sa.OpenedDate <= end);
 
         // Calculate net cash flow
         analytics.NetCashFlow = analytics.TotalDeposits - analytics.TotalWithdrawals + analytics.TotalLoanPayments - analytics.TotalLoanDisbursements;
@@ -538,6 +542,9 @@ public class TellerDashboardAnalytics
     public decimal TotalLoanPayments { get; set; }
     public int LoanPaymentCount { get; set; }
     public decimal TotalPenaltiesCollected { get; set; }
+    
+    // Savings Account Metrics
+    public int SavingsAccountsOpened { get; set; }
 
     // Calculated Metrics
     public decimal NetCashFlow { get; set; }
