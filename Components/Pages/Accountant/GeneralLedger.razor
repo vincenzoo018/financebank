@@ -4,6 +4,7 @@
 @using FinanceBank.Models
 @inject AuthService AuthService
 @inject GeneralLedgerService GeneralLedgerService
+@inject IJSRuntime JSRuntime
 
 <!-- Page Header -->
 <div
@@ -85,6 +86,9 @@
         <button class="btn"
             style="background:#e5e7eb; color:#374151; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
             @onclick="ResetFilters">↻ Reset</button>
+        <button class="btn"
+            style="background:#3b82f6; color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
+            @onclick="ExportToCsv" disabled="@(!filteredTransactions.Any())">📥 Export CSV</button>
     </div>
 </div>
 
@@ -365,6 +369,7 @@
     private DateTime dateTo = DateTime.Today;
     private bool showViewModal = false;
     private GeneralLedgerTransaction? viewTransaction = null;
+    private string successMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -405,6 +410,43 @@
         dateTo = DateTime.Today;
         await Task.CompletedTask;
         StateHasChanged();
+    }
+
+    private async Task ExportToCsv()
+    {
+        if (!filteredTransactions.Any())
+        {
+            return;
+        }
+
+        try
+        {
+            var csv = new System.Text.StringBuilder();
+            csv.AppendLine($"FINEBANK GENERAL LEDGER");
+            csv.AppendLine($"Period: {dateFrom:MMM dd, yyyy} - {dateTo:MMM dd, yyyy}");
+            csv.AppendLine();
+            csv.AppendLine("Date,Reference,Account Code,Account Name,Type,Description,Debit,Credit,Running Balance");
+
+            foreach (var t in filteredTransactions.OrderByDescending(t => t.TransactionDate))
+            {
+                csv.AppendLine($"\"{t.TransactionDate:yyyy-MM-dd}\",\"{t.Reference}\",\"{t.AccountCode}\",\"{t.AccountName}\",\"{t.AccountType}\",\"{t.Description}\",\"{t.DebitAmount:N2}\",\"{t.CreditAmount:N2}\",\"{t.RunningBalance:N2}\"");
+            }
+
+            csv.AppendLine();
+            csv.AppendLine($"TOTALS,,,,,\"{filteredTransactions.Sum(t => t.DebitAmount):N2}\",\"{filteredTransactions.Sum(t => t.CreditAmount):N2}\",");
+
+            var fileName = $"GeneralLedger_{dateFrom:yyyyMMdd}_{dateTo:yyyyMMdd}.csv";
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+            var base64 = Convert.ToBase64String(bytes);
+
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, "text/csv", base64);
+            successMessage = $"✓ Exported {filteredTransactions.Count()} records to {fileName}";
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Export error: {ex.Message}");
+        }
     }
 
     private async Task ViewTransaction(GeneralLedgerTransaction transaction)
