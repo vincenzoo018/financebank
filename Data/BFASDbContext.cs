@@ -17,13 +17,17 @@ namespace FinanceBank.Data
         // Cloud availability caching
         private static bool _cloudAvailable = true;
         private static DateTime _lastCloudCheck = DateTime.MinValue;
-        private const int CLOUD_CHECK_INTERVAL_SECONDS = 30;
+        private const int CLOUD_CHECK_INTERVAL_SECONDS = 5; // Check every 5 seconds (FASTER)
 
         // Entity metadata cache for performance
         private static readonly ConcurrentDictionary<Type, EntityMetadataInfo> _metadataCache = new();
 
         // Enable/disable dual write (can be toggled)
         public static bool DualWriteEnabled { get; set; } = true;
+
+        // Retry configuration for dual-write
+        private const int MAX_RETRY_ATTEMPTS = 3;
+        private const int RETRY_DELAY_MS = 1000; // 1 second between retries
 
         public BFASDbContext(DbContextOptions<BFASDbContext> options) : base(options)
         {
@@ -179,7 +183,7 @@ namespace FinanceBank.Data
         }
 
         /// <summary>
-        /// Replicate changes to CLOUD database
+        /// Replicate changes to CLOUD database with retry logic
         /// </summary>
         private async Task ReplicateToCloudAsync(List<DualWriteChange> changes)
         {
@@ -192,49 +196,65 @@ namespace FinanceBank.Data
             int successCount = 0;
             int failCount = 0;
 
-            try
+            for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++)
             {
-                using var cloudConn = new SqlConnection(CloudConnectionString);
-                await cloudConn.OpenAsync();
-
-                foreach (var change in changes)
+                try
                 {
-                    try
+                    using var cloudConn = new SqlConnection(CloudConnectionString);
+                    await cloudConn.OpenAsync();
+
+                    foreach (var change in changes)
                     {
-                        switch (change.Operation)
+                        try
                         {
-                            case "INSERT":
-                                await ExecuteCloudInsertAsync(cloudConn, change);
-                                break;
-                            case "UPDATE":
-                                await ExecuteCloudUpdateAsync(cloudConn, change);
-                                break;
-                            case "DELETE":
-                                await ExecuteCloudDeleteAsync(cloudConn, change);
-                                break;
+                            switch (change.Operation)
+                            {
+                                case "INSERT":
+                                    await ExecuteCloudInsertAsync(cloudConn, change);
+                                    break;
+                                case "UPDATE":
+                                    await ExecuteCloudUpdateAsync(cloudConn, change);
+                                    break;
+                                case "DELETE":
+                                    await ExecuteCloudDeleteAsync(cloudConn, change);
+                                    break;
+                            }
+                            successCount++;
                         }
-                        successCount++;
+                        catch (Exception ex)
+                        {
+                            failCount++;
+                            System.Diagnostics.Debug.WriteLine($"⚠️ DUAL-WRITE: Failed {change.Operation} on {change.TableName}: {ex.Message}");
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        failCount++;
-                        System.Diagnostics.Debug.WriteLine($"⚠️ DUAL-WRITE: Failed {change.Operation} on {change.TableName}: {ex.Message}");
-                    }
-                }
 
-                if (successCount > 0)
-                {
-                    System.Diagnostics.Debug.WriteLine($"✅ DUAL-WRITE: Replicated {successCount} changes to CLOUD");
+                    if (successCount > 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"✅ DUAL-WRITE: Replicated {successCount} changes to CLOUD (attempt {attempt})");
+                    }
+                    if (failCount > 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ DUAL-WRITE: {failCount} changes failed to replicate");
+                    }
+
+                    // Success - exit retry loop
+                    break;
                 }
-                if (failCount > 0)
+                catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"⚠️ DUAL-WRITE: {failCount} changes failed to replicate");
+                    System.Diagnostics.Debug.WriteLine($"❌ DUAL-WRITE: Cloud connection failed (attempt {attempt}/{MAX_RETRY_ATTEMPTS}): {ex.Message}");
+
+                    if (attempt < MAX_RETRY_ATTEMPTS)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🔄 DUAL-WRITE: Retrying in {RETRY_DELAY_MS}ms...");
+                        await Task.Delay(RETRY_DELAY_MS);
+                    }
+                    else
+                    {
+                        _cloudAvailable = false;
+                        System.Diagnostics.Debug.WriteLine("❌ DUAL-WRITE: All retry attempts failed - marking cloud as unavailable");
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ DUAL-WRITE: Cloud connection failed: {ex.Message}");
-                _cloudAvailable = false;
             }
         }
 
@@ -477,7 +497,8 @@ namespace FinanceBank.Data
         public DbSet<JournalEntryLine> JournalEntryLines { get; set; }
         public DbSet<AccountsPayable> AccountsPayables { get; set; }
         public DbSet<AccountsReceivable> AccountsReceivables { get; set; }
-        public DbSet<GeneralLedgerEntry> GeneralLedgerEntries { get; set; }
+        public DbSet<GeneralLedger> GeneralLedger { get; set; }
+        public DbSet<GeneralLedgerTransaction> GeneralLedgerTransactions { get; set; }
         public DbSet<TrialBalanceEntry> TrialBalances { get; set; }
         public DbSet<FinancialStatement> FinancialStatements { get; set; }
 
@@ -515,6 +536,7 @@ namespace FinanceBank.Data
         // System / Audit Tables
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<AccountingEntry> AccountingEntries { get; set; }
+        public DbSet<UnifiedTransactionHistory> UnifiedTransactionHistory { get; set; }
 
         // Savings Account Module Tables
         public DbSet<SavingsAccountType> SavingsAccountTypes { get; set; }
@@ -694,20 +716,35 @@ namespace FinanceBank.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Configure GeneralLedgerEntry entity
-            modelBuilder.Entity<GeneralLedgerEntry>(entity =>
+            // Configure GeneralLedger entity (Chart of Accounts)
+            modelBuilder.Entity<GeneralLedger>(entity =>
             {
-                entity.HasKey(e => e.EntryId);
+                entity.HasKey(e => e.LedgerId);
+                entity.HasIndex(e => e.AccountCode).IsUnique();
+                entity.HasIndex(e => e.AccountType);
+                entity.HasIndex(e => e.IsActive);
+                
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
+            });
+
+            // Configure GeneralLedgerTransaction entity
+            modelBuilder.Entity<GeneralLedgerTransaction>(entity =>
+            {
+                entity.HasKey(e => e.GLTransactionId);
                 entity.HasIndex(e => e.AccountCode);
                 entity.HasIndex(e => e.TransactionDate);
-                entity.HasIndex(e => e.CreatedAt);
+                entity.HasIndex(e => e.JournalLineId);
 
-                entity.Property(e => e.Status).HasDefaultValue("Posted");
-                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
+                entity.HasOne(e => e.Account)
+                    .WithMany(a => a.Transactions)
+                    .HasForeignKey(e => e.AccountCode)
+                    .HasPrincipalKey(a => a.AccountCode)
+                    .OnDelete(DeleteBehavior.NoAction);
 
-                entity.HasOne(e => e.Journal)
+                entity.HasOne(e => e.JournalLine)
                     .WithMany()
-                    .HasForeignKey(e => e.JournalId)
+                    .HasForeignKey(e => e.JournalLineId)
                     .OnDelete(DeleteBehavior.NoAction);
             });
 

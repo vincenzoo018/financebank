@@ -31,8 +31,8 @@ namespace FinanceBank.Services
         private bool _isSyncing = false;
         private readonly object _syncLock = new();
         private DateTime _lastSyncTime = DateTime.MinValue;
-        private const int AUTO_SYNC_INTERVAL_SECONDS = 30; // Check every 30 seconds
-        private const int MIN_SYNC_INTERVAL_SECONDS = 60;  // Don't sync more than once per minute
+        private const int AUTO_SYNC_INTERVAL_SECONDS = 10; // Check every 10 seconds (FASTER)
+        private const int MIN_SYNC_INTERVAL_SECONDS = 20;  // Sync every 20 seconds (FASTER)
 
         // Pending changes queue for auto-sync
         private readonly ConcurrentQueue<PendingChange> _pendingChanges = new();
@@ -242,7 +242,7 @@ namespace FinanceBank.Services
 
         /// <summary>
         /// Sync schema changes from LOCAL to CLOUD
-        /// This includes new columns, modified columns, etc.
+        /// This includes creating missing tables, new columns, modified columns, etc.
         /// </summary>
         public async Task<List<string>> SyncSchemaChangesAsync(SqlConnection localConn, SqlConnection cloudConn, IProgress<string>? progress = null)
         {
@@ -257,8 +257,22 @@ namespace FinanceBank.Services
                     var localColumns = await GetDetailedColumnInfoAsync(localConn, tableName);
                     var cloudColumns = await GetDetailedColumnInfoAsync(cloudConn, tableName);
 
-                    if (localColumns.Count == 0 || cloudColumns.Count == 0)
+                    // If table doesn't exist in LOCAL, skip it
+                    if (localColumns.Count == 0)
                         continue;
+
+                    // If table doesn't exist in CLOUD, create it
+                    if (cloudColumns.Count == 0)
+                    {
+                        progress?.Report($"  📋 Table [{tableName}] not found in CLOUD - attempting to create...");
+                        var createSuccess = await TryCreateTableInCloudAsync(localConn, cloudConn, tableName, progress);
+                        if (createSuccess)
+                        {
+                            changes.Add($"Created table [{tableName}] in CLOUD");
+                            progress?.Report($"  ✓ Created table [{tableName}] in CLOUD");
+                        }
+                        continue;
+                    }
 
                     // Find new columns in local that don't exist in cloud
                     foreach (var localCol in localColumns)
@@ -372,6 +386,151 @@ namespace FinanceBank.Services
             }
 
             return columns;
+        }
+
+        /// <summary>
+        /// Try to create a missing table in CLOUD by copying structure from LOCAL
+        /// </summary>
+        private async Task<bool> TryCreateTableInCloudAsync(SqlConnection localConn, SqlConnection cloudConn, string tableName, IProgress<string>? progress = null)
+        {
+            try
+            {
+                // Get the CREATE TABLE script from LOCAL database
+                var createTableScript = await GetCreateTableScriptAsync(localConn, tableName);
+
+                if (string.IsNullOrEmpty(createTableScript))
+                {
+                    progress?.Report($"  ⚠ Could not generate CREATE script for [{tableName}]");
+                    return false;
+                }
+
+                // Execute the CREATE TABLE on CLOUD
+                using var cmd = new SqlCommand(createTableScript, cloudConn);
+                cmd.CommandTimeout = 120;
+                await cmd.ExecuteNonQueryAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                progress?.Report($"  ⚠ Error creating table [{tableName}]: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error creating table {tableName}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Get CREATE TABLE script from LOCAL database
+        /// </summary>
+        private async Task<string> GetCreateTableScriptAsync(SqlConnection conn, string tableName)
+        {
+            try
+            {
+                // Get table definition
+                var sql = @"
+                    SELECT 
+                        c.COLUMN_NAME,
+                        c.DATA_TYPE,
+                        c.CHARACTER_MAXIMUM_LENGTH,
+                        c.NUMERIC_PRECISION,
+                        c.NUMERIC_SCALE,
+                        c.IS_NULLABLE,
+                        c.COLUMN_DEFAULT,
+                        CASE WHEN pk.COLUMN_NAME IS NOT NULL THEN 1 ELSE 0 END AS IS_PRIMARY_KEY,
+                        CASE WHEN c.COLUMN_NAME LIKE '%ID' OR c.COLUMN_NAME LIKE '%Id' THEN 
+                            COLUMNPROPERTY(OBJECT_ID(c.TABLE_NAME), c.COLUMN_NAME, 'IsIdentity')
+                        ELSE 0 END AS IS_IDENTITY
+                    FROM INFORMATION_SCHEMA.COLUMNS c
+                    LEFT JOIN (
+                        SELECT ku.TABLE_NAME, ku.COLUMN_NAME
+                        FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+                        JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE ku
+                            ON tc.CONSTRAINT_NAME = ku.CONSTRAINT_NAME
+                        WHERE tc.CONSTRAINT_TYPE = 'PRIMARY KEY'
+                    ) pk ON c.TABLE_NAME = pk.TABLE_NAME AND c.COLUMN_NAME = pk.COLUMN_NAME
+                    WHERE c.TABLE_NAME = @tableName
+                    ORDER BY c.ORDINAL_POSITION";
+
+                var columns = new List<(string Name, string Definition, bool IsPK, bool IsIdentity)>();
+                var pkColumns = new List<string>();
+
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@tableName", tableName);
+                    using var reader = await cmd.ExecuteReaderAsync();
+
+                    while (await reader.ReadAsync())
+                    {
+                        var colName = reader["COLUMN_NAME"].ToString();
+                        var dataType = reader["DATA_TYPE"].ToString() ?? "nvarchar";
+                        var maxLength = reader["CHARACTER_MAXIMUM_LENGTH"] != DBNull.Value
+                            ? Convert.ToInt32(reader["CHARACTER_MAXIMUM_LENGTH"]) : (int?)null;
+                        var isNullable = reader["IS_NULLABLE"].ToString() == "YES";
+                        var isPK = Convert.ToInt32(reader["IS_PRIMARY_KEY"]) == 1;
+                        var isIdentity = Convert.ToInt32(reader["IS_IDENTITY"]) == 1;
+
+                        // Build column definition
+                        var colDef = $"[{colName}] ";
+
+                        // Data type
+                        if (dataType.ToLower() == "nvarchar" || dataType.ToLower() == "varchar" ||
+                            dataType.ToLower() == "nchar" || dataType.ToLower() == "char")
+                        {
+                            colDef += maxLength == -1 ? $"{dataType}(MAX)" : $"{dataType}({maxLength})";
+                        }
+                        else if (dataType.ToLower() == "decimal" || dataType.ToLower() == "numeric")
+                        {
+                            var precision = reader["NUMERIC_PRECISION"] != DBNull.Value
+                                ? Convert.ToInt32(reader["NUMERIC_PRECISION"]) : 18;
+                            var scale = reader["NUMERIC_SCALE"] != DBNull.Value
+                                ? Convert.ToInt32(reader["NUMERIC_SCALE"]) : 2;
+                            colDef += $"{dataType}({precision}, {scale})";
+                        }
+                        else
+                        {
+                            colDef += dataType;
+                        }
+
+                        // Identity
+                        if (isIdentity)
+                        {
+                            colDef += " IDENTITY(1,1)";
+                        }
+
+                        // Nullable
+                        colDef += isNullable ? " NULL" : " NOT NULL";
+
+                        columns.Add((colName!, colDef, isPK, isIdentity));
+
+                        if (isPK)
+                        {
+                            pkColumns.Add(colName!);
+                        }
+                    }
+                }
+
+                if (columns.Count == 0)
+                    return "";
+
+                // Build CREATE TABLE statement
+                var createScript = $"CREATE TABLE [dbo].[{tableName}] (\n";
+                createScript += string.Join(",\n", columns.Select(c => $"    {c.Definition}"));
+
+                // Add PRIMARY KEY constraint
+                if (pkColumns.Any())
+                {
+                    createScript += $",\n    PRIMARY KEY CLUSTERED ([{string.Join("], [", pkColumns)}] ASC)";
+                }
+
+                createScript += "\n)";
+
+                return createScript;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error generating CREATE script for {tableName}: {ex.Message}");
+                return "";
+            }
         }
 
         /// <summary>
@@ -620,6 +779,7 @@ namespace FinanceBank.Services
             ("SystemSettings", "SettingId"),                  // System config
             ("Seeders", "SeedID"),                            // Seed data tracking
             ("RolePermissions", "PermissionId"),              // Role permissions
+            ("SavingsAccountTypes", "TypeId"),                // Savings account types - PARENT TABLE
             
             // ============ LEVEL 2: User-related tables ============
             ("Employees", "EmployeeId"),                      // References Users
@@ -629,6 +789,7 @@ namespace FinanceBank.Services
             ("LoginHistory", "LoginId"),                      // References Users
             
             // ============ LEVEL 3: Customer-related tables ============
+            ("SavingsAccounts", "SavingsAccountId"),         // References Users, CustomerAccounts, SavingsAccountTypes
             ("CustomerTransactions", "TransactionId"),        // References CustomerAccounts
             ("CustomerCards", "CardId"),                      // References CustomerAccounts
             ("CustomerLoans", "LoanId"),                      // References CustomerAccounts
@@ -636,6 +797,12 @@ namespace FinanceBank.Services
             ("CustomerRewardPoints", "RewardId"),             // References CustomerAccounts
             ("Invoices", "InvoiceId"),                        // References CustomerAccounts
             ("FundTransfers", "TransferId"),                  // References CustomerAccounts
+            
+            // ============ LEVEL 3.5: Savings Module tables ============
+            ("SavingsTransactions", "TransactionId"),         // References SavingsAccounts, EmployeeAccounts
+            ("SavingsInterest", "InterestId"),                // References SavingsAccounts
+            ("SavingsInterestPostings", "PostingId"),         // References SavingsAccounts, EmployeeAccounts
+            ("SavingsWithdrawalRequests", "RequestId"),       // References SavingsAccounts, EmployeeAccounts
             
             // ============ LEVEL 4: Loan workflow (in order) ============
             ("LoanApplications", "ApplicationId"),            // References CustomerAccounts
@@ -953,6 +1120,13 @@ namespace FinanceBank.Services
                 { "CustomerAccounts", new HashSet<string> { "Users" } },
                 { "LoginHistory", new HashSet<string> { "Users" } },
                 
+                // Savings Module - SavingsAccounts depends on multiple parents
+                { "SavingsAccounts", new HashSet<string> { "Users", "CustomerAccounts", "SavingsAccountTypes" } },
+                { "SavingsTransactions", new HashSet<string> { "SavingsAccounts", "EmployeeAccounts" } },
+                { "SavingsInterest", new HashSet<string> { "SavingsAccounts" } },
+                { "SavingsInterestPostings", new HashSet<string> { "SavingsAccounts", "EmployeeAccounts" } },
+                { "SavingsWithdrawalRequests", new HashSet<string> { "SavingsAccounts", "EmployeeAccounts" } },
+                
                 // Customer sub-tables depend on CustomerAccounts
                 { "CustomerTransactions", new HashSet<string> { "CustomerAccounts" } },
                 { "CustomerCards", new HashSet<string> { "CustomerAccounts" } },
@@ -1023,20 +1197,31 @@ namespace FinanceBank.Services
                 progress?.Report(groupLabel);
                 progress?.Report("──────────────────────────────────");
 
-                // For tables at the same priority level, we can process them faster
-                // but must maintain order within parent-child relationships
-                foreach (var (tableName, primaryKey, _, diff) in group)
+                // PARALLEL PROCESSING: Process independent tables at same priority level concurrently
+                // Limit concurrency to 3 tables at a time for optimal performance
+                var semaphore = new System.Threading.SemaphoreSlim(3, 3);
+                var syncTasks = group.Select(async table =>
                 {
-                    string diffIndicator = diff > 0 ? $"(+{diff})" : diff < 0 ? $"({diff})" : "(=)";
-                    progress?.Report($"Syncing {tableName} {diffIndicator}...");
+                    await semaphore.WaitAsync();
+                    try
+                    {
+                        var (tableName, primaryKey, _, diff) = table;
+                        string diffIndicator = diff > 0 ? $"(+{diff})" : diff < 0 ? $"({diff})" : "(=)";
+                        progress?.Report($"⚡ Syncing {tableName} {diffIndicator} (parallel)...");
 
-                    // Use optimized batch sync for tables with differences
-                    var count = Math.Abs(diff) > 100
-                        ? await SyncTableBatchAsync(source, dest, tableName, primaryKey, progress)
-                        : await SyncTableAsync(source, dest, tableName, primaryKey, progress);
+                        // Use optimized batch sync for tables with differences
+                        return Math.Abs(diff) > 100
+                            ? await SyncTableBatchAsync(source, dest, tableName, primaryKey, progress)
+                            : await SyncTableAsync(source, dest, tableName, primaryKey, progress);
+                    }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
+                }).ToList();
 
-                    totalSynced += count;
-                }
+                var results = await Task.WhenAll(syncTasks);
+                totalSynced += results.Sum();
             }
 
             return totalSynced;
@@ -1049,7 +1234,7 @@ namespace FinanceBank.Services
         private async Task<int> SyncTableBatchAsync(SqlConnection source, SqlConnection dest, string tableName, string primaryKeyColumn, IProgress<string>? progress = null)
         {
             int syncedCount = 0;
-            const int batchSize = 500; // Process 500 records at a time
+            const int batchSize = 1000; // Process 1000 records at a time (FASTER!)
 
             try
             {
@@ -1092,7 +1277,7 @@ namespace FinanceBank.Services
                 var sourceData = new DataTable();
                 using (var cmd = new SqlCommand($"SELECT {columnList} FROM [{tableName}]", source))
                 {
-                    cmd.CommandTimeout = 180;
+                    cmd.CommandTimeout = 90; // Reduced for faster operations
                     using var adapter = new SqlDataAdapter(cmd);
                     adapter.Fill(sourceData);
                 }
@@ -1252,7 +1437,7 @@ namespace FinanceBank.Services
                 var sourceData = new DataTable();
                 using (var cmd = new SqlCommand($"SELECT {columnList} FROM [{tableName}]", source))
                 {
-                    cmd.CommandTimeout = 120;
+                    cmd.CommandTimeout = 60; // Optimized for speed
                     using var adapter = new SqlDataAdapter(cmd);
                     adapter.Fill(sourceData);
                 }
@@ -1269,7 +1454,7 @@ namespace FinanceBank.Services
                 var existingIds = new HashSet<object>();
                 using (var idCmd = new SqlCommand($"SELECT [{primaryKeyColumn}] FROM [{tableName}]", dest))
                 {
-                    idCmd.CommandTimeout = 60;
+                    idCmd.CommandTimeout = 30; // Fast primary key lookup
                     using var reader = await idCmd.ExecuteReaderAsync();
                     while (await reader.ReadAsync())
                     {

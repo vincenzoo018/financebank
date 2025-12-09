@@ -9,45 +9,57 @@
 @inject NavigationManager Navigation
 
 <!-- Header with Gradient -->
-<div style="background: linear-gradient(135deg, #059669, #10b981); border-radius: 16px; padding: 32px; margin-bottom: 32px; color: white;">
+<div
+    style="background: linear-gradient(135deg, #059669, #10b981); border-radius: 16px; padding: 32px; margin-bottom: 32px; color: white;">
     <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-            <svg style="width: 28px; height: 28px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <rect x="3" y="4" width="18" height="18" rx="2"/>
-                <path d="M16 2v4M8 2v4M3 10h18"/>
+        <div
+            style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            <svg style="width: 28px; height: 28px;" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18" />
             </svg>
         </div>
         <div>
             <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Daily Report</h1>
-            <p style="margin: 4px 0 0; opacity: 0.9; font-size: 14px;">SuperAdmin: View and export daily transaction summaries per teller</p>
+            <p style="margin: 4px 0 0; opacity: 0.9; font-size: 14px;">SuperAdmin: View and export daily transaction
+                summaries per teller</p>
         </div>
     </div>
 </div>
 
 <!-- Admin Notice -->
-<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px;">
-    <svg style="width: 20px; height: 20px; color: #d97706; flex-shrink: 0; margin-top: 2px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+<div
+    style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px;">
+    <svg style="width: 20px; height: 20px; color: #d97706; flex-shrink: 0; margin-top: 2px;" fill="none"
+        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
     </svg>
     <div>
         <p style="font-weight: 600; color: #92400e; margin: 0 0 4px 0;">Administrative Report Access</p>
-        <p style="font-size: 14px; color: #a16207; margin: 0;">You are viewing teller daily reports. Filter by date and teller to generate specific reports.</p>
+        <p style="font-size: 14px; color: #a16207; margin: 0;">You are viewing teller daily reports. Filter by date and
+            teller to generate specific reports.</p>
     </div>
 </div>
 
 <!-- Filter Controls -->
-<div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 24px;">
+<div
+    style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 24px;">
     <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
             <div>
-                <label style="font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 8px;">Report Date</label>
+                <label
+                    style="font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 8px;">Report
+                    Date</label>
                 <input type="date" @bind="reportDate"
-                       style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                    style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
             </div>
             <div>
-                <label style="font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 8px;">Teller</label>
+                <label
+                    style="font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 8px;">Teller</label>
                 <select @bind="selectedTellerId"
-                        style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white; min-width: 200px;">
+                    style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white; min-width: 200px;">
                     <option value="0">All Tellers</option>
                     @foreach (var teller in allTellers)
                     {
@@ -56,17 +68,20 @@
                 </select>
             </div>
             <button @onclick="GenerateReport"
-                    style="padding: 12px 24px; background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                style="padding: 12px 24px; background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    stroke-width="2">
+                    <path
+                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Generate Report
             </button>
         </div>
         <div style="display: flex; gap: 12px;">
             <button @onclick="PrintReport"
-                    style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    stroke-width="2">
                     <polyline points="6 9 6 2 18 2 18 9"></polyline>
                     <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
                     <rect x="6" y="14" width="12" height="8"></rect>
@@ -74,8 +89,9 @@
                 Print
             </button>
             <button @onclick="ExportReport"
-                    style="padding: 12px 24px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                style="padding: 12px 24px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="7 10 12 15 17 10"></polyline>
                     <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -91,19 +107,22 @@
     <!-- Selected Teller Details -->
     var selectedTeller = GetSelectedTeller();
     {
-        <div style="background: linear-gradient(135deg, #dcfce7, #bbf7d0); border: 2px solid #10b981; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+        <div
+            style="background: linear-gradient(135deg, #dcfce7, #bbf7d0); border: 2px solid #10b981; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 16px;">
-                    <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #059669, #10b981); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 24px;">
+                    <div
+                        style="width: 64px; height: 64px; background: linear-gradient(135deg, #059669, #10b981); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 24px;">
                         @(selectedTeller.FullName?.Substring(0, 1).ToUpper() ?? "T")
                     </div>
                     <div>
                         <h3 style="font-size: 20px; font-weight: 700; color: #166534; margin: 0;">@selectedTeller.FullName</h3>
-                        <p style="font-size: 14px; color: #15803d; margin: 4px 0 0 0;">@selectedTeller.Department • Daily Report for @reportDate.ToString("MMMM dd, yyyy")</p>
+                        <p style="font-size: 14px; color: #15803d; margin: 4px 0 0 0;">@selectedTeller.Department • Daily Report
+                            for @reportDate.ToString("MMMM dd, yyyy")</p>
                     </div>
                 </div>
                 <button @onclick="ClearTellerFilter"
-                        style="padding: 10px 20px; background: white; color: #059669; border: 2px solid #059669; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    style="padding: 10px 20px; background: white; color: #059669; border: 2px solid #059669; border-radius: 8px; font-weight: 600; cursor: pointer;">
                     ✕ Clear Filter
                 </button>
             </div>
@@ -115,60 +134,73 @@
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px;">
     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
         <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981, #34d399); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <svg style="width: 28px; height: 28px; color: white;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path d="M12 4v16m8-8H4"/>
+            <div
+                style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981, #34d399); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 28px; height: 28px; color: white;" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M12 4v16m8-8H4" />
                 </svg>
             </div>
             <div>
                 <p style="font-size: 14px; color: #6b7280; margin: 0;">Total Deposits</p>
-                <p style="font-size: 24px; font-weight: 700; color: #059669; margin: 4px 0 0 0;">₱@totalDeposits.ToString("N0")</p>
+                <p style="font-size: 24px; font-weight: 700; color: #059669; margin: 4px 0 0 0;">
+                    ₱@totalDeposits.ToString("N0")</p>
                 <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">@depositCount transactions</p>
             </div>
         </div>
     </div>
-    
+
     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
         <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #ef4444, #f87171); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <svg style="width: 28px; height: 28px; color: white;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path d="M20 12H4"/>
+            <div
+                style="width: 56px; height: 56px; background: linear-gradient(135deg, #ef4444, #f87171); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 28px; height: 28px; color: white;" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M20 12H4" />
                 </svg>
             </div>
             <div>
                 <p style="font-size: 14px; color: #6b7280; margin: 0;">Total Withdrawals</p>
-                <p style="font-size: 24px; font-weight: 700; color: #dc2626; margin: 4px 0 0 0;">₱@totalWithdrawals.ToString("N0")</p>
+                <p style="font-size: 24px; font-weight: 700; color: #dc2626; margin: 4px 0 0 0;">
+                    ₱@totalWithdrawals.ToString("N0")</p>
                 <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">@withdrawalCount transactions</p>
             </div>
         </div>
     </div>
-    
+
     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
         <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6, #60a5fa); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <svg style="width: 28px; height: 28px; color: white;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+            <div
+                style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6, #60a5fa); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 28px; height: 28px; color: white;" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
             </div>
             <div>
                 <p style="font-size: 14px; color: #6b7280; margin: 0;">Total Transfers</p>
-                <p style="font-size: 24px; font-weight: 700; color: #3b82f6; margin: 4px 0 0 0;">₱@totalTransfers.ToString("N0")</p>
+                <p style="font-size: 24px; font-weight: 700; color: #3b82f6; margin: 4px 0 0 0;">
+                    ₱@totalTransfers.ToString("N0")</p>
                 <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">@transferCount transactions</p>
             </div>
         </div>
     </div>
-    
+
     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
         <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, @(netCash >= 0 ? "#10b981" : "#ef4444"), @(netCash >= 0 ? "#34d399" : "#f87171")); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <svg style="width: 28px; height: 28px; color: white;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div
+                style="width: 56px; height: 56px; background: linear-gradient(135deg, @(netCash >= 0 ? "#10b981" : "#ef4444"), @(netCash >= 0 ? "#34d399" : "#f87171")); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 28px; height: 28px; color: white;" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
                     <line x1="12" y1="1" x2="12" y2="23"></line>
                     <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                 </svg>
             </div>
             <div>
                 <p style="font-size: 14px; color: #6b7280; margin: 0;">Net Cash Position</p>
-                <p style="font-size: 24px; font-weight: 700; color: @(netCash >= 0 ? "#059669" : "#dc2626"); margin: 4px 0 0 0;">@(netCash >= 0 ? "+" : "")₱@netCash.ToString("N0")</p>
+                <p
+                    style="font-size: 24px; font-weight: 700; color: @(netCash >= 0 ? "#059669" : "#dc2626"); margin: 4px 0 0 0;">
+                    @(netCash >= 0 ? "+" : "")₱@netCash.ToString("N0")</p>
                 <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">End of Day</p>
             </div>
         </div>
@@ -176,14 +208,17 @@
 </div>
 
 <!-- Transaction Details -->
-<div style="background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 24px;">
-    <div style="background: linear-gradient(135deg, #059669, #10b981); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
+<div
+    style="background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 24px;">
+    <div
+        style="background: linear-gradient(135deg, #059669, #10b981); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
         <h3 style="font-size: 18px; font-weight: 600; color: white; margin: 0;">Transaction Details</h3>
-        <span style="background: rgba(255,255,255,0.2); color: white; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 500;">
+        <span
+            style="background: rgba(255,255,255,0.2); color: white; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 500;">
             @transactions.Count transactions
         </span>
     </div>
-    
+
     @if (isLoading)
     {
         <div style="padding: 60px; text-align: center; color: #6b7280;">
@@ -196,24 +231,40 @@
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="background: #f9fafb;">
-                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Time</th>
-                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Reference</th>
-                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Type</th>
-                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Customer</th>
-                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Account</th>
-                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Amount</th>
-                        <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Teller</th>
+                        <th
+                            style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">
+                            Time</th>
+                        <th
+                            style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">
+                            Reference</th>
+                        <th
+                            style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">
+                            Type</th>
+                        <th
+                            style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">
+                            Customer</th>
+                        <th
+                            style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">
+                            Account</th>
+                        <th
+                            style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">
+                            Amount</th>
+                        <th
+                            style="padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">
+                            Teller</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var tx in transactions)
                     {
                         <tr style="border-bottom: 1px solid #e5e7eb;">
-                            <td style="padding: 16px; color: #4b5563; font-size: 14px;">@tx.TransactionDate.ToString("HH:mm:ss")</td>
+                            <td style="padding: 16px; color: #4b5563; font-size: 14px;">@tx.TransactionDate.ToString("HH:mm:ss")
+                            </td>
                             <td style="padding: 16px; font-weight: 600; color: #1f2937;">@tx.TransactionNumber</td>
                             <td style="padding: 16px;">
-                                <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
-                                             background: @GetTypeBgColor(tx.TransactionType); color: @GetTypeColor(tx.TransactionType);">
+                                <span
+                                    style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+                                                     background: @GetTypeBgColor(tx.TransactionType); color: @GetTypeColor(tx.TransactionType);">
                                     @tx.TransactionType
                                 </span>
                             </td>
@@ -232,8 +283,10 @@
     else
     {
         <div style="padding: 60px; text-align: center; color: #6b7280;">
-            <svg style="width: 48px; height: 48px; color: #d1d5db; margin: 0 auto 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            <svg style="width: 48px; height: 48px; color: #d1d5db; margin: 0 auto 16px;" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="1.5">
+                <path
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <p style="margin: 0; font-size: 16px;">No transactions found for @reportDate.ToString("MMMM dd, yyyy")</p>
         </div>
@@ -248,11 +301,14 @@
             <h3 style="font-size: 18px; font-weight: 600; color: white; margin: 0;">Hourly Distribution</h3>
         </div>
         <div style="padding: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; height: 150px; padding: 20px 0;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-end; height: 150px; padding: 20px 0;">
                 @foreach (var hour in hourlyData)
                 {
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                        <div style="width: 32px; background: linear-gradient(135deg, #10b981, #34d399); border-radius: 4px 4px 0 0; height: @(Math.Max(hour.Count * 6, 4))px;"></div>
+                        <div
+                            style="width: 32px; background: linear-gradient(135deg, #10b981, #34d399); border-radius: 4px 4px 0 0; height: @(Math.Max(hour.Count * 6, 4))px;">
+                        </div>
                         <span style="font-size: 11px; color: #6b7280;">@hour.Hour</span>
                         <span style="font-size: 10px; color: #9ca3af;">@hour.Count</span>
                     </div>
@@ -260,7 +316,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Cash Denomination -->
     <div style="background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow: hidden;">
         <div style="background: linear-gradient(135deg, #f59e0b, #fbbf24); padding: 20px 24px;">
@@ -281,14 +337,16 @@
                         <tr style="border-bottom: 1px solid #e5e7eb;">
                             <td style="padding: 12px; color: #4b5563;">₱@denom.Value.ToString("N0")</td>
                             <td style="padding: 12px; text-align: center; color: #4b5563;">@denom.Count</td>
-                            <td style="padding: 12px; text-align: right; color: #059669; font-weight: 600;">₱@(denom.Value * denom.Count).ToString("N0")</td>
+                            <td style="padding: 12px; text-align: right; color: #059669; font-weight: 600;">₱@(denom.Value *
+                                                        denom.Count).ToString("N0")</td>
                         </tr>
                     }
                 </tbody>
                 <tfoot>
                     <tr style="background: #f9fafb;">
                         <td colspan="2" style="padding: 12px; font-weight: 700; color: #1f2937;">Total</td>
-                        <td style="padding: 12px; text-align: right; font-weight: 700; color: #059669;">₱@denominations.Sum(d => d.Value * d.Count).ToString("N0")</td>
+                        <td style="padding: 12px; text-align: right; font-weight: 700; color: #059669;">
+                            ₱@denominations.Sum(d => d.Value * d.Count).ToString("N0")</td>
                     </tr>
                 </tfoot>
             </table>
@@ -311,29 +369,29 @@
 
     private List<TellerTransactionRecord> transactions = new();
     private List<TellerInfo> allTellers = new();
-    
+
     private List<HourlyData> hourlyData = new()
-    {
-        new() { Hour = "9AM", Count = 0 },
-        new() { Hour = "10AM", Count = 0 },
-        new() { Hour = "11AM", Count = 0 },
-        new() { Hour = "12PM", Count = 0 },
-        new() { Hour = "1PM", Count = 0 },
-        new() { Hour = "2PM", Count = 0 },
-        new() { Hour = "3PM", Count = 0 },
-        new() { Hour = "4PM", Count = 0 }
-    };
+{
+new() { Hour = "9AM", Count = 0 },
+new() { Hour = "10AM", Count = 0 },
+new() { Hour = "11AM", Count = 0 },
+new() { Hour = "12PM", Count = 0 },
+new() { Hour = "1PM", Count = 0 },
+new() { Hour = "2PM", Count = 0 },
+new() { Hour = "3PM", Count = 0 },
+new() { Hour = "4PM", Count = 0 }
+};
 
     private List<Denomination> denominations = new()
-    {
-        new() { Value = 1000, Count = 0 },
-        new() { Value = 500, Count = 0 },
-        new() { Value = 200, Count = 0 },
-        new() { Value = 100, Count = 0 },
-        new() { Value = 50, Count = 0 },
-        new() { Value = 20, Count = 0 }
-    };
-    
+{
+new() { Value = 1000, Count = 0 },
+new() { Value = 500, Count = 0 },
+new() { Value = 200, Count = 0 },
+new() { Value = 100, Count = 0 },
+new() { Value = 50, Count = 0 },
+new() { Value = 20, Count = 0 }
+};
+
     private class TellerInfo
     {
         public int EmployeeId { get; set; }
@@ -352,7 +410,7 @@
         public int Value { get; set; }
         public int Count { get; set; }
     }
-    
+
     private TellerInfo? GetSelectedTeller()
     {
         return allTellers.FirstOrDefault(t => t.EmployeeId == selectedTellerId);
@@ -374,18 +432,19 @@
         try
         {
             using var context = await DbContextFactory.CreateDbContextAsync();
-            
+
             // Get all employees who are tellers or have processed transactions
             var tellerIds = await context.CustomerTransactions
-                .Where(t => t.ProcessedByEmployeeId.HasValue)
-                .Select(t => t.ProcessedByEmployeeId!.Value)
-                .Distinct()
-                .ToListAsync();
-            
+            .Where(t => t.ProcessedByEmployeeId.HasValue)
+            .Select(t => t.ProcessedByEmployeeId!.Value)
+            .Distinct()
+            .ToListAsync();
+
             var employees = await context.Employees
-                .Where(e => e.IsActive && (e.Department.Contains("Teller") || e.Position == "Teller" || tellerIds.Contains(e.EmployeeId)))
-                .ToListAsync();
-            
+            .Where(e => e.IsActive && (e.Department.Contains("Teller") || e.Position == "Teller" ||
+            tellerIds.Contains(e.EmployeeId)))
+            .ToListAsync();
+
             allTellers = employees.Select(e => new TellerInfo
             {
                 EmployeeId = e.EmployeeId,
@@ -406,37 +465,38 @@
         {
             var startDate = reportDate.Date;
             var endDate = reportDate.Date.AddDays(1).AddSeconds(-1);
-            
+
             // Get transactions from service
             var allTransactions = await ReportService.GetAllTransactionsAsync(startDate, endDate);
-            
+
             // Filter by teller if selected
             if (selectedTellerId > 0)
             {
                 using var context = await DbContextFactory.CreateDbContextAsync();
                 var tellerName = allTellers.FirstOrDefault(t => t.EmployeeId == selectedTellerId)?.FullName ?? "";
-                transactions = allTransactions.Where(t => t.ProcessedBy?.Contains(tellerName.Split(' ')[0]) == true || t.ProcessedBy?.Contains(tellerName) == true).ToList();
+                transactions = allTransactions.Where(t => t.ProcessedBy?.Contains(tellerName.Split(' ')[0]) == true ||
+                t.ProcessedBy?.Contains(tellerName) == true).ToList();
             }
             else
             {
                 transactions = allTransactions;
             }
-            
+
             // Calculate totals
             totalDeposits = transactions.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount);
             depositCount = transactions.Count(t => t.TransactionType == "Deposit");
-            
+
             totalWithdrawals = transactions.Where(t => t.TransactionType == "Withdrawal").Sum(t => t.Amount);
             withdrawalCount = transactions.Count(t => t.TransactionType == "Withdrawal");
-            
+
             totalTransfers = transactions.Where(t => t.TransactionType == "Transfer").Sum(t => t.Amount);
             transferCount = transactions.Count(t => t.TransactionType == "Transfer");
-            
+
             netCash = totalDeposits - totalWithdrawals;
-            
+
             // Recalculate hourly data
             RecalculateHourlyData();
-            
+
             // Update denomination estimates based on cash movement
             UpdateDenominationEstimates();
         }
@@ -453,35 +513,35 @@
     private void RecalculateHourlyData()
     {
         var grouped = transactions
-            .GroupBy(t => t.TransactionDate.Hour)
-            .ToDictionary(g => g.Key, g => g.Count());
-        
+        .GroupBy(t => t.TransactionDate.Hour)
+        .ToDictionary(g => g.Key, g => g.Count());
+
         hourlyData = new List<HourlyData>
-        {
-            new() { Hour = "9AM", Count = grouped.GetValueOrDefault(9, 0) },
-            new() { Hour = "10AM", Count = grouped.GetValueOrDefault(10, 0) },
-            new() { Hour = "11AM", Count = grouped.GetValueOrDefault(11, 0) },
-            new() { Hour = "12PM", Count = grouped.GetValueOrDefault(12, 0) },
-            new() { Hour = "1PM", Count = grouped.GetValueOrDefault(13, 0) },
-            new() { Hour = "2PM", Count = grouped.GetValueOrDefault(14, 0) },
-            new() { Hour = "3PM", Count = grouped.GetValueOrDefault(15, 0) },
-            new() { Hour = "4PM", Count = grouped.GetValueOrDefault(16, 0) }
-        };
+{
+new() { Hour = "9AM", Count = grouped.GetValueOrDefault(9, 0) },
+new() { Hour = "10AM", Count = grouped.GetValueOrDefault(10, 0) },
+new() { Hour = "11AM", Count = grouped.GetValueOrDefault(11, 0) },
+new() { Hour = "12PM", Count = grouped.GetValueOrDefault(12, 0) },
+new() { Hour = "1PM", Count = grouped.GetValueOrDefault(13, 0) },
+new() { Hour = "2PM", Count = grouped.GetValueOrDefault(14, 0) },
+new() { Hour = "3PM", Count = grouped.GetValueOrDefault(15, 0) },
+new() { Hour = "4PM", Count = grouped.GetValueOrDefault(16, 0) }
+};
     }
-    
+
     private void UpdateDenominationEstimates()
     {
         // Estimate denomination distribution based on total deposits
         var totalCash = totalDeposits;
         denominations = new List<Denomination>
-        {
-            new() { Value = 1000, Count = (int)(totalCash * 0.40m / 1000) },
-            new() { Value = 500, Count = (int)(totalCash * 0.25m / 500) },
-            new() { Value = 200, Count = (int)(totalCash * 0.10m / 200) },
-            new() { Value = 100, Count = (int)(totalCash * 0.15m / 100) },
-            new() { Value = 50, Count = (int)(totalCash * 0.05m / 50) },
-            new() { Value = 20, Count = (int)(totalCash * 0.05m / 20) }
-        };
+{
+new() { Value = 1000, Count = (int)(totalCash * 0.40m / 1000) },
+new() { Value = 500, Count = (int)(totalCash * 0.25m / 500) },
+new() { Value = 200, Count = (int)(totalCash * 0.10m / 200) },
+new() { Value = 100, Count = (int)(totalCash * 0.15m / 100) },
+new() { Value = 50, Count = (int)(totalCash * 0.05m / 50) },
+new() { Value = 20, Count = (int)(totalCash * 0.05m / 20) }
+};
     }
 
     private string GetTypeBgColor(string type) => type switch
@@ -515,23 +575,23 @@
         _ => ""
     };
 
-    private async Task GenerateReport() 
+    private async Task GenerateReport()
     {
         await LoadReportData();
     }
-    
+
     private async Task ClearTellerFilter()
     {
         selectedTellerId = 0;
         await LoadReportData();
     }
-    
-    private void PrintReport() 
+
+    private void PrintReport()
     {
         Console.WriteLine("Print report triggered");
     }
-    
-    private void ExportReport() 
+
+    private void ExportReport()
     {
         Console.WriteLine("Export report triggered");
     }

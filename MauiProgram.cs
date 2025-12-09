@@ -81,6 +81,7 @@ namespace FinanceBank
             // Register Accounting Services
             builder.Services.AddScoped<JournalEntryService>();
             builder.Services.AddScoped<GeneralLedgerService>();
+            builder.Services.AddScoped<ChartOfAccountsService>();
             builder.Services.AddScoped<TrialBalanceService>();
             builder.Services.AddScoped<FinancialStatementService>();
             builder.Services.AddScoped<FinancialReportingService>();  // New enhanced service
@@ -121,6 +122,9 @@ namespace FinanceBank
             // Register Automatic GL Posting Service (real-time General Ledger posting)
             builder.Services.AddScoped<AutomaticGLPostingService>();
 
+            // Register Unified Transaction History Service (AR/AP tracking, journal entries)
+            builder.Services.AddScoped<TransactionHistoryService>();
+
             // Register Loan Process Services
             builder.Services.AddScoped<LoanProcessService>();
             builder.Services.AddScoped<LoanPaymentService>();
@@ -144,4 +148,3 @@ namespace FinanceBank
         }
     }
 }
-

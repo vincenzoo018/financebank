@@ -17,7 +17,7 @@
         <div>
             <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">General Ledger</h1>
             <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Real-time view of all account
-                transactions from deposits, withdrawals, loans</p>
+                transactions from deposits, withdrawals, fund transfers, loan payments, and savings</p>
         </div>
     </div>
 </div>
@@ -93,7 +93,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">
             Ledger Entries
-            <span style="font-size: 14px; font-weight: 400; color: #6b7280;">(@filteredEntries.Count() records)</span>
+            <span style="font-size: 14px; font-weight: 400; color: #6b7280;">(@filteredTransactions.Count() records)</span>
         </h2>
         <div style="display: flex; gap: 8px; font-size: 12px;">
             <span style="padding: 4px 8px; background: #dbeafe; color: #1e40af; border-radius: 4px;">Asset</span>
@@ -123,40 +123,47 @@
                         CREDIT</th>
                     <th style="padding: 12px; text-align: right; font-size: 12px; color: #6b7280; font-weight: 600;">
                         RUNNING BAL</th>
+                    <th style="padding: 12px; text-align: center; font-size: 12px; color: #6b7280; font-weight: 600;">
+                        ACTIONS</th>
                 </tr>
             </thead>
             <tbody>
-                @if (filteredEntries.Any())
+                @if (filteredTransactions.Any())
                 {
-                    @foreach (var entry in filteredEntries.OrderByDescending(e => e.TransactionDate).ThenByDescending(e =>
-                                    e.CreatedAt))
+                    @foreach (var transaction in filteredTransactions.OrderByDescending(t => t.TransactionDate).ThenByDescending(t =>
+                                    t.GLTransactionId))
                     {
-                        <tr style="border-bottom: 1px solid #e5e7eb; background: @GetRowBackground(entry.AccountType);">
+                        <tr style="border-bottom: 1px solid #e5e7eb; background: @GetRowBackground(transaction.AccountType ?? "");">
                             <td style="padding: 12px; font-size: 13px; color: #111827;">
-                                @entry.TransactionDate.ToString("yyyy-MM-dd")</td>
-                            <td style="padding: 12px; font-size: 13px; color: #3b82f6; font-weight: 500;">@entry.Reference</td>
+                                @transaction.TransactionDate.ToString("yyyy-MM-dd")</td>
+                            <td style="padding: 12px; font-size: 13px; color: #3b82f6; font-weight: 500;">@transaction.Reference</td>
                             <td style="padding: 12px; font-size: 13px;">
-                                <span style="font-weight: 600; color: #111827;">@entry.AccountCode</span>
-                                <span style="color: #6b7280;"> - @entry.AccountName</span>
+                                <span style="font-weight: 600; color: #111827;">@transaction.AccountCode</span>
+                                <span style="color: #6b7280;"> - @transaction.AccountName</span>
                             </td>
                             <td style="padding: 12px;">
                                 <span
-                                    style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: @GetTypeBadgeBackground(entry.AccountType); color: @GetTypeBadgeColor(entry.AccountType);">
-                                    @entry.AccountType
+                                    style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: @GetTypeBadgeBackground(transaction.AccountType ?? ""); color: @GetTypeBadgeColor(transaction.AccountType ?? "");">
+                                    @transaction.AccountType
                                 </span>
                             </td>
                             <td style="padding: 12px; font-size: 13px; color: #4b5563; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
-                                title="@entry.Description">@entry.Description</td>
+                                title="@transaction.Description">@transaction.Description</td>
                             <td
-                                style="padding: 12px; text-align: right; font-size: 13px; color: @(entry.DebitAmount > 0 ? "#10b981" : "#9ca3af"); font-weight: @(entry.DebitAmount > 0 ? "600" : "400");">
-                                @(entry.DebitAmount > 0 ? "₱" + entry.DebitAmount.ToString("N2") : "-")
+                                style="padding: 12px; text-align: right; font-size: 13px; color: @(transaction.DebitAmount > 0 ? "#10b981" : "#9ca3af"); font-weight: @(transaction.DebitAmount > 0 ? "600" : "400");">
+                                @(transaction.DebitAmount > 0 ? "₱" + transaction.DebitAmount.ToString("N2") : "-")
                             </td>
                             <td
-                                style="padding: 12px; text-align: right; font-size: 13px; color: @(entry.CreditAmount > 0 ? "#ef4444" : "#9ca3af"); font-weight: @(entry.CreditAmount > 0 ? "600" : "400");">
-                                @(entry.CreditAmount > 0 ? "₱" + entry.CreditAmount.ToString("N2") : "-")
+                                style="padding: 12px; text-align: right; font-size: 13px; color: @(transaction.CreditAmount > 0 ? "#ef4444" : "#9ca3af"); font-weight: @(transaction.CreditAmount > 0 ? "600" : "400");">
+                                @(transaction.CreditAmount > 0 ? "₱" + transaction.CreditAmount.ToString("N2") : "-")
                             </td>
                             <td style="padding: 12px; text-align: right; font-size: 13px; color: #111827; font-weight: 600;">
-                                ₱@entry.Balance.ToString("N2")
+                                ₱@transaction.RunningBalance.ToString("N2")
+                            </td>
+                            <td style="padding: 12px; text-align: center;">
+                                <button class="btn"
+                                    style="background: #059669; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600;"
+                                    @onclick="() => ViewTransaction(transaction)">View</button>
                             </td>
                         </tr>
                     }
@@ -164,26 +171,26 @@
                 else
                 {
                     <tr>
-                        <td colspan="8" style="padding: 48px; text-align: center;">
+                        <td colspan="9" style="padding: 48px; text-align: center;">
                             <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
                             <div style="font-size: 16px; color: #6b7280; margin-bottom: 8px;">No ledger entries found</div>
-                            <div style="font-size: 14px; color: #9ca3af;">Transactions from deposits, withdrawals, and loans
+                            <div style="font-size: 14px; color: #9ca3af;">Transactions from deposits, withdrawals, loans, and transfers
                                 will appear here automatically</div>
                         </td>
                     </tr>
                 }
             </tbody>
-            @if (filteredEntries.Any())
+            @if (filteredTransactions.Any())
             {
                 <tfoot>
                     <tr style="background: #f0fdf4; border-top: 2px solid #059669;">
                         <td colspan="5" style="padding: 12px; text-align: right; font-weight: 700; color: #111827;">TOTALS:
                         </td>
                         <td style="padding: 12px; text-align: right; font-weight: 700; color: #10b981;">
-                            ₱@filteredEntries.Sum(e => e.DebitAmount).ToString("N2")</td>
+                            ₱@filteredTransactions.Sum(t => t.DebitAmount).ToString("N2")</td>
                         <td style="padding: 12px; text-align: right; font-weight: 700; color: #ef4444;">
-                            ₱@filteredEntries.Sum(e => e.CreditAmount).ToString("N2")</td>
-                        <td style="padding: 12px;"></td>
+                            ₱@filteredTransactions.Sum(t => t.CreditAmount).ToString("N2")</td>
+                        <td colspan="2" style="padding: 12px;"></td>
                     </tr>
                 </tfoot>
             }
@@ -191,14 +198,173 @@
     </div>
 </div>
 
+<!-- View Transaction Modal -->
+@if (showViewModal && viewTransaction != null)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+        @onclick="CloseViewModal">
+        <div style="background: white; border-radius: 12px; padding: 24px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto;"
+            @onclick:stopPropagation="true">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-size: 18px; font-weight: 700; margin: 0;">General Ledger Transaction Details</h2>
+                <button class="btn" style="background: #e5e7eb; color: #111827; padding: 8px 16px; border-radius: 8px;"
+                    @onclick="CloseViewModal">✕</button>
+            </div>
+
+            <!-- Transaction Header -->
+            <div
+                style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; background: #f9fafb; padding: 16px; border-radius: 8px;">
+                <div>
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Transaction ID</div>
+                    <div style="font-size: 14px; color: #111827; font-weight: 500;">GLT-@viewTransaction.GLTransactionId</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Transaction Date</div>
+                    <div style="font-size: 14px; color: #111827; font-weight: 500;">
+                        @viewTransaction.TransactionDate.ToString("MMMM dd, yyyy")</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Reference</div>
+                    <div style="font-size: 14px; color: #111827; font-weight: 500;">@(viewTransaction.Reference ?? "-")</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Journal Line ID</div>
+                    <div style="font-size: 14px; color: #111827; font-weight: 500;">@(viewTransaction.JournalLineId?.ToString() ?? "-")</div>
+                </div>
+            </div>
+
+            <!-- Account Details -->
+            <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Account Information</h3>
+            <div
+                style="background: #f9fafb; padding: 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid @GetAccountColor(viewTransaction.AccountType ?? "");">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Account Code</div>
+                        <div style="font-size: 16px; color: #111827; font-weight: 700;">@viewTransaction.AccountCode</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Account Type</div>
+                        <div style="font-size: 14px;">
+                            <span
+                                style="display: inline-block; padding: 4px 12px; border-radius: 4px; font-weight: 600; background: @GetTypeBadgeBackground(viewTransaction.AccountType ?? ""); color: @GetTypeBadgeColor(viewTransaction.AccountType ?? "");">
+                                @viewTransaction.AccountType
+                            </span>
+                        </div>
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Account Name</div>
+                        <div style="font-size: 14px; color: #111827;">@viewTransaction.AccountName</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction Details -->
+            <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Transaction Details</h3>
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 12px; font-weight: 600; color: #6b7280; width: 30%;">Description</td>
+                            <td style="padding: 12px; color: #111827;">@(viewTransaction.Description ?? "-")</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 12px; font-weight: 600; color: #6b7280;">Debit Amount</td>
+                            <td style="padding: 12px; color: #10b981; font-weight: 700; font-size: 16px;">
+                                @(viewTransaction.DebitAmount > 0 ? "₱" + viewTransaction.DebitAmount.ToString("N2") : "-")
+                            </td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 12px; font-weight: 600; color: #6b7280;">Credit Amount</td>
+                            <td style="padding: 12px; color: #ef4444; font-weight: 700; font-size: 16px;">
+                                @(viewTransaction.CreditAmount > 0 ? "₱" + viewTransaction.CreditAmount.ToString("N2") : "-")
+                            </td>
+                        </tr>
+                        <tr style="background: #f0fdf4;">
+                            <td style="padding: 12px; font-weight: 700; color: #065f46;">Running Balance</td>
+                            <td style="padding: 12px; color: #059669; font-weight: 700; font-size: 18px;">
+                                ₱@viewTransaction.RunningBalance.ToString("N2")
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Related Journal Entry -->
+            @if (viewTransaction.JournalLine?.Journal != null)
+            {
+                var journal = viewTransaction.JournalLine.Journal;
+                <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Related Journal Entry</h3>
+                <div style="background: #fafbff; padding: 16px; border-radius: 8px; border: 1px solid #dbeafe; margin-bottom: 20px;">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Journal Number</div>
+                            <div style="font-size: 14px; color: #3b82f6; font-weight: 600;">@journal.JournalNumber</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Status</div>
+                            <div style="font-size: 14px;">
+                                <span style="padding: 2px 8px; background: #d1fae5; color: #065f46; border-radius: 4px; font-size: 12px; font-weight: 600;">
+                                    @journal.Status
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Journal Description</div>
+                        <div style="font-size: 14px; color: #111827;">@journal.Description</div>
+                    </div>
+                    
+                    @if (journal.Lines != null && journal.Lines.Any())
+                    {
+                        <div style="margin-top: 16px;">
+                            <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">All Journal Lines:</div>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                <thead>
+                                    <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                                        <th style="padding: 8px; text-align: left; font-size: 11px;">ACCOUNT</th>
+                                        <th style="padding: 8px; text-align: right; font-size: 11px;">DEBIT</th>
+                                        <th style="padding: 8px; text-align: right; font-size: 11px;">CREDIT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var line in journal.Lines)
+                                    {
+                                        <tr style="border-bottom: 1px solid #f3f4f6;">
+                                            <td style="padding: 8px;">@line.AccountCode - @line.AccountName</td>
+                                            <td style="padding: 8px; text-align: right; color: #10b981;">
+                                                @(line.DebitAmount > 0 ? "₱" + line.DebitAmount.ToString("N2") : "-")
+                                            </td>
+                                            <td style="padding: 8px; text-align: right; color: #ef4444;">
+                                                @(line.CreditAmount > 0 ? "₱" + line.CreditAmount.ToString("N2") : "-")
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            }
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="btn"
+                    style="background: #e5e7eb; color: #111827; padding: 10px 18px; border-radius: 8px; font-weight: 600;"
+                    @onclick="CloseViewModal">Close</button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    private List<GeneralLedgerEntry> allEntries = new();
+    private List<GeneralLedgerTransaction> allTransactions = new();
     private List<(string AccountCode, string AccountName, string AccountType, decimal Balance)> accountBalances = new();
     private List<string> accounts = new();
     private string selectedAccount = "";
     private string selectedAccountType = "";
     private DateTime dateFrom = DateTime.Today.AddMonths(-1);
     private DateTime dateTo = DateTime.Today;
+    private bool showViewModal = false;
+    private GeneralLedgerTransaction? viewTransaction = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -209,21 +375,21 @@
     {
         try
         {
-            allEntries = await GeneralLedgerService.GetAllAsync();
+            allTransactions = await GeneralLedgerService.GetAllAsync();
             accountBalances = await GeneralLedgerService.GetAccountBalancesAsync();
-            accounts = allEntries.Select(e => e.AccountName).Distinct().OrderBy(a => a).ToList();
+            accounts = allTransactions.Select(t => t.AccountName).Where(a => !string.IsNullOrEmpty(a)).Distinct().OrderBy(a => a).ToList()!;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error loading ledger: {ex.Message}");
-            allEntries = new List<GeneralLedgerEntry>();
+            allTransactions = new List<GeneralLedgerTransaction>();
         }
     }
 
-    private IEnumerable<GeneralLedgerEntry> filteredEntries => allEntries
-    .Where(e => string.IsNullOrEmpty(selectedAccount) || e.AccountName == selectedAccount)
-    .Where(e => string.IsNullOrEmpty(selectedAccountType) || e.AccountType == selectedAccountType)
-    .Where(e => e.TransactionDate >= dateFrom && e.TransactionDate <= dateTo);
+    private IEnumerable<GeneralLedgerTransaction> filteredTransactions => allTransactions
+        .Where(t => string.IsNullOrEmpty(selectedAccount) || t.AccountName == selectedAccount)
+        .Where(t => string.IsNullOrEmpty(selectedAccountType) || t.AccountType == selectedAccountType)
+        .Where(t => t.TransactionDate >= dateFrom && t.TransactionDate <= dateTo);
 
     private async Task ApplyFilters()
     {
@@ -239,6 +405,18 @@
         dateTo = DateTime.Today;
         await Task.CompletedTask;
         StateHasChanged();
+    }
+
+    private async Task ViewTransaction(GeneralLedgerTransaction transaction)
+    {
+        viewTransaction = await GeneralLedgerService.GetByIdWithDetailsAsync(transaction.GLTransactionId);
+        showViewModal = true;
+    }
+
+    private void CloseViewModal()
+    {
+        showViewModal = false;
+        viewTransaction = null;
     }
 
     private string GetAccountColor(string accountType) => accountType switch

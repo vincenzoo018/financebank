@@ -7,7 +7,7 @@ namespace FinanceBank.Services
 {
     /// <summary>
     /// Service for Teller and Admin to process customer deposits and withdrawals
-    /// Automatically posts to General Ledger for accounting.
+    /// Automatically posts to General Ledger and creates AR/AP entries for accounting.
     /// </summary>
     public class TellerBankingService
     {
@@ -15,13 +15,20 @@ namespace FinanceBank.Services
         private readonly AuthService _authService;
         private readonly InvoiceService _invoiceService;
         private readonly AutomaticGLPostingService _glPostingService;
+        private readonly TransactionHistoryService? _transactionHistoryService;
 
-        public TellerBankingService(IDbContextFactory<BFASDbContext> contextFactory, AuthService authService, InvoiceService invoiceService, AutomaticGLPostingService glPostingService)
+        public TellerBankingService(
+            IDbContextFactory<BFASDbContext> contextFactory,
+            AuthService authService,
+            InvoiceService invoiceService,
+            AutomaticGLPostingService glPostingService,
+            TransactionHistoryService? transactionHistoryService = null)
         {
             _contextFactory = contextFactory;
             _authService = authService;
             _invoiceService = invoiceService;
             _glPostingService = glPostingService;
+            _transactionHistoryService = transactionHistoryService;
         }
 
         /// <summary>
@@ -71,6 +78,7 @@ namespace FinanceBank.Services
 
         /// <summary>
         /// Process a deposit by Teller/Admin for a customer
+        /// Creates AR entry, unified transaction history, and journal entry automatically
         /// </summary>
         public async Task<(bool success, string message, CustomerTransaction? transaction, string receiptNumber)> ProcessDepositAsync(
             string accountNumber,
@@ -114,6 +122,8 @@ namespace FinanceBank.Services
 
                 // Get employee ID for the current user
                 int? employeeId = await GetEmployeeIdForCurrentUserAsync(context);
+                var processedBy = _authService.CurrentUser ?? "System";
+                var customerName = account.Customer?.FullName ?? $"Account #{account.AccountId}";
 
                 // Create transaction record
                 var customerTransaction = new CustomerTransaction
@@ -146,10 +156,35 @@ namespace FinanceBank.Services
 
                 await transaction.CommitAsync();
 
-                // Post to General Ledger automatically
+                // =============================================
+                // CREATE AR ENTRY + UNIFIED HISTORY + JOURNAL
+                // Deposit = Money IN = Accounts Receivable (AR)
+                // =============================================
                 try
                 {
-                    var customerName = account.Customer?.FullName ?? $"Account #{account.AccountId}";
+                    if (_transactionHistoryService != null)
+                    {
+                        await _transactionHistoryService.RecordDepositAsync(
+                            customerAccountId: account.AccountId,
+                            accountNumber: account.AccountNumber,
+                            customerName: customerName,
+                            amount: amount,
+                            depositMethod: depositMethod,
+                            sourceTransactionId: customerTransaction.TransactionId,
+                            processedBy: processedBy,
+                            processedByEmployeeId: employeeId,
+                            notes: notes);
+                    }
+                }
+                catch (Exception arEx)
+                {
+                    // AR/Journal creation failure should not affect transaction
+                    System.Diagnostics.Debug.WriteLine($"AR Entry creation failed: {arEx.Message}");
+                }
+
+                // Post to General Ledger automatically (legacy - kept for backward compatibility)
+                try
+                {
                     await _glPostingService.PostDepositAsync(
                         customerTransaction.TransactionId,
                         customerTransaction.TransactionNumber,
@@ -215,6 +250,7 @@ namespace FinanceBank.Services
 
         /// <summary>
         /// Process a withdrawal by Teller/Admin for a customer (with password verification)
+        /// Creates AP entry, unified transaction history, and journal entry automatically
         /// </summary>
         public async Task<(bool success, string message, CustomerTransaction? transaction, string receiptNumber)> ProcessWithdrawalAsync(
             string accountNumber,
@@ -265,6 +301,8 @@ namespace FinanceBank.Services
 
                 // Get employee ID for the current user
                 int? employeeId = await GetEmployeeIdForCurrentUserAsync(context);
+                var processedBy = _authService.CurrentUser ?? "System";
+                var customerName = account.Customer?.FullName ?? $"Account #{account.AccountId}";
 
                 // Create transaction record
                 var customerTransaction = new CustomerTransaction
@@ -297,10 +335,35 @@ namespace FinanceBank.Services
 
                 await transaction.CommitAsync();
 
-                // Post to General Ledger automatically
+                // =============================================
+                // CREATE AP ENTRY + UNIFIED HISTORY + JOURNAL
+                // Withdrawal = Money OUT = Accounts Payable (AP)
+                // =============================================
                 try
                 {
-                    var customerName = account.Customer?.FullName ?? $"Account #{account.AccountId}";
+                    if (_transactionHistoryService != null)
+                    {
+                        await _transactionHistoryService.RecordWithdrawalAsync(
+                            customerAccountId: account.AccountId,
+                            accountNumber: account.AccountNumber,
+                            customerName: customerName,
+                            amount: amount,
+                            withdrawalMethod: withdrawalMethod,
+                            sourceTransactionId: customerTransaction.TransactionId,
+                            processedBy: processedBy,
+                            processedByEmployeeId: employeeId,
+                            notes: notes);
+                    }
+                }
+                catch (Exception apEx)
+                {
+                    // AP/Journal creation failure should not affect transaction
+                    System.Diagnostics.Debug.WriteLine($"AP Entry creation failed: {apEx.Message}");
+                }
+
+                // Post to General Ledger automatically (legacy - kept for backward compatibility)
+                try
+                {
                     await _glPostingService.PostWithdrawalAsync(
                         customerTransaction.TransactionId,
                         customerTransaction.TransactionNumber,

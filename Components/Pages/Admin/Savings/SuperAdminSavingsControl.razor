@@ -1,0 +1,803 @@
+@page "/admin/savings/super-control"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using FinanceBank.Data
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
+@inject AuthService AuthService
+@inject SavingsAccountService SavingsService
+@inject SavingsInterestService InterestService
+
+<div style="padding: 24px; max-width: 1600px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="28" height="28" fill="none" stroke="white" stroke-width="2">
+                    <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                <h1 style="font-size: 26px; font-weight: 700; margin: 0;">🔐 Super Admin Savings Control</h1>
+                <p style="margin: 6px 0 0; opacity: 0.9;">Override all savings operations with justification</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 12px; opacity: 0.9;">Pending Approvals</div>
+                    <div style="font-size: 24px; font-weight: 700;">@totalPending</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 16px; border-radius: 12px; margin-bottom: 20px; white-space: pre-line;">
+            ✅ @successMessage
+            <button @onclick='() => successMessage = ""' style="margin-left: auto; background: none; border: none; color: #065f46; cursor: pointer; font-size: 18px;">×</button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 12px; margin-bottom: 20px; white-space: pre-line;">
+            ❌ @errorMessage
+        </div>
+    }
+
+    <!-- Tabs -->
+    <div style="margin-bottom: 24px; border-bottom: 2px solid #e5e7eb;">
+        <div style="display: flex; gap: 8px;">
+            <button @onclick='() => activeTab = "withdrawals"' style="@GetTabStyle("withdrawals")">
+                💸 Withdrawal Requests (@withdrawalRequests.Count)
+            </button>
+            <button @onclick='() => activeTab = "interest"' style="@GetTabStyle("interest")">
+                📊 Interest Batches (@interestBatches.Count)
+            </button>
+            <button @onclick='() => activeTab = "accounts"' style="@GetTabStyle("accounts")">
+                🏦 All Savings Accounts (@allAccounts.Count)
+            </button>
+            <button @onclick='() => activeTab = "history"' style="@GetTabStyle("history")">
+                📜 Transaction History
+            </button>
+        </div>
+    </div>
+
+    @if (activeTab == "withdrawals")
+    {
+        <!-- Withdrawal Requests -->
+        <div style="background: white; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden;">
+            <div style="background: #fef3c7; padding: 16px; border-bottom: 1px solid #fbbf24;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; font-weight: 700; color: #92400e;">Withdrawal Requests (All Statuses)</h3>
+                    <button @onclick="LoadData" style="background: #f59e0b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <div style="padding: 24px;">
+                @if (isLoading)
+                {
+                    <div style="text-align: center; padding: 40px;">⏳ Loading...</div>
+                }
+                else if (!withdrawalRequests.Any())
+                {
+                    <div style="text-align: center; padding: 40px; color: #6b7280;">No withdrawal requests found</div>
+                }
+                else
+                {
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                                <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280;">REQUEST ID</th>
+                                <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280;">ACCOUNT</th>
+                                <th style="padding: 12px; text-align: right; font-size: 11px; font-weight: 700; color: #6b7280;">AMOUNT</th>
+                                <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 700; color: #6b7280;">STATUS</th>
+                                <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 700; color: #6b7280;">REQUESTED</th>
+                                <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 700; color: #6b7280;">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var request in withdrawalRequests)
+                            {
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 12px; font-weight: 600;">WR-@request.RequestId</td>
+                                    <td style="padding: 12px;">
+                                        <div style="font-weight: 600;">@request.SavingsAccount?.AccountNumber</div>
+                                        <div style="font-size: 12px; color: #6b7280;">@request.SavingsAccount?.Customer?.FullName</div>
+                                    </td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 700; color: #f59e0b;">₱@request.RequestedAmount.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: center;">@GetStatusBadge(request.Status)</td>
+                                    <td style="padding: 12px; text-align: center; font-size: 13px;">@request.RequestedDate.ToString("MMM dd, yyyy")</td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        @if (request.Status == "Pending")
+                                        {
+                                            <div style="display: flex; gap: 8px; justify-content: center;">
+                                                <button @onclick="() => ShowApproveWithdrawal(request)" style="padding: 6px 12px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">✅ Approve</button>
+                                                <button @onclick="() => ShowRejectWithdrawal(request)" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">❌ Reject</button>
+                                            </div>
+                                        }
+                                        else if (request.Status == "FMApproved")
+                                        {
+                                            <button @onclick="() => ShowProcessWithdrawal(request)" style="padding: 6px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">💳 Process</button>
+                                        }
+                                        else
+                                        {
+                                            <span style="color: #6b7280; font-size: 12px;">@request.Status</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    }
+    else if (activeTab == "interest")
+    {
+        <!-- Interest Batches -->
+        <div style="background: white; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden;">
+            <div style="background: #dbeafe; padding: 16px; border-bottom: 1px solid #60a5fa;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; font-weight: 700; color: #1e40af;">Interest Batches (All Statuses)</h3>
+                    <button @onclick="LoadData" style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <div style="padding: 24px;">
+                @if (isLoading)
+                {
+                    <div style="text-align: center; padding: 40px;">⏳ Loading...</div>
+                }
+                else if (!interestBatches.Any())
+                {
+                    <div style="text-align: center; padding: 40px; color: #6b7280;">No interest batches found</div>
+                }
+                else
+                {
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                                <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280;">BATCH ID</th>
+                                <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280;">PERIOD</th>
+                                <th style="padding: 12px; text-align: right; font-size: 11px; font-weight: 700; color: #6b7280;">AMOUNT</th>
+                                <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 700; color: #6b7280;">ACCOUNTS</th>
+                                <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 700; color: #6b7280;">STATUS</th>
+                                <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 700; color: #6b7280;">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var batch in interestBatches)
+                            {
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 12px; font-weight: 600;">IB-@batch.PostingId</td>
+                                    <td style="padding: 12px; font-size: 13px;">@batch.PeriodStart.ToString("MMM dd") - @batch.PeriodEnd.ToString("MMM dd, yyyy")</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 700; color: #10b981;">₱@batch.TotalInterestPosted.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: center; font-weight: 600;">@batch.AccountsProcessed</td>
+                                    <td style="padding: 12px; text-align: center;">@GetStatusBadge(batch.PostingStatus)</td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        @if (batch.PostingStatus == "Pending")
+                                        {
+                                            <button @onclick="() => ShowApproveBatch(batch)" style="padding: 6px 12px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">✅ Approve for FM</button>
+                                        }
+                                        else if (batch.PostingStatus == "FMApproved")
+                                        {
+                                            <button @onclick="() => ShowReleaseBatch(batch)" style="padding: 6px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">💳 Release</button>
+                                        }
+                                        else
+                                        {
+                                            <span style="color: #6b7280; font-size: 12px;">@batch.PostingStatus</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    }
+    else if (activeTab == "accounts")
+    {
+        <!-- All Savings Accounts -->
+        <div style="background: white; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden;">
+            <div style="background: #f0fdf4; padding: 16px; border-bottom: 1px solid #86efac;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; font-weight: 700; color: #065f46;">All Savings Accounts</h3>
+                    <button @onclick="LoadData" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <div style="padding: 24px;">
+                @if (isLoading)
+                {
+                    <div style="text-align: center; padding: 40px;">⏳ Loading...</div>
+                }
+                else if (!allAccounts.Any())
+                {
+                    <div style="text-align: center; padding: 40px; color: #6b7280;">No savings accounts found</div>
+                }
+                else
+                {
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                                <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280;">ACCOUNT #</th>
+                                <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280;">CUSTOMER</th>
+                                <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280;">TYPE</th>
+                                <th style="padding: 12px; text-align: right; font-size: 11px; font-weight: 700; color: #6b7280;">BALANCE</th>
+                                <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 700; color: #6b7280;">STATUS</th>
+                                <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 700; color: #6b7280;">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var account in allAccounts.Take(50))
+                            {
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 12px; font-weight: 600;">@account.AccountNumber</td>
+                                    <td style="padding: 12px;">
+                                        <div style="font-weight: 600;">@account.Customer?.FullName</div>
+                                        <div style="font-size: 12px; color: #6b7280;">ID: @account.CustomerId</div>
+                                    </td>
+                                    <td style="padding: 12px;">@account.AccountType?.TypeName</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 700; color: #10b981;">₱@account.Balance.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: center;">@GetStatusBadge(account.Status)</td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <button @onclick="() => ViewAccountDetails(account)" style="padding: 6px 12px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">👁️ View</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    }
+    else if (activeTab == "history")
+    {
+        <!-- Transaction History -->
+        <div style="background: white; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden;">
+            <div style="background: #f3e8ff; padding: 16px; border-bottom: 1px solid #c084fc;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; font-weight: 700; color: #6b21a8;">All Savings Transactions</h3>
+                    <button @onclick="LoadTransactionHistory" style="background: #8b5cf6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <div style="padding: 24px;">
+                @if (isLoading)
+                {
+                    <div style="text-align: center; padding: 40px;">⏳ Loading...</div>
+                }
+                else if (!transactionHistory.Any())
+                {
+                    <div style="text-align: center; padding: 40px; color: #6b7280;">No transactions found</div>
+                }
+                else
+                {
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                                <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280;">DATE/TIME</th>
+                                <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280;">ACCOUNT</th>
+                                <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280;">TYPE</th>
+                                <th style="padding: 12px; text-align: right; font-size: 11px; font-weight: 700; color: #6b7280;">AMOUNT</th>
+                                <th style="padding: 12px; text-align: right; font-size: 11px; font-weight: 700; color: #6b7280;">BALANCE AFTER</th>
+                                <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 700; color: #6b7280;">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tx in transactionHistory.Take(100))
+                            {
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 12px; font-size: 13px;">@tx.TransactionDate.ToString("MMM dd, yyyy hh:mm tt")</td>
+                                    <td style="padding: 12px;">
+                                        <div style="font-weight: 600;">@tx.SavingsAccount?.AccountNumber</div>
+                                        <div style="font-size: 12px; color: #6b7280;">@tx.SavingsAccount?.Customer?.FullName</div>
+                                    </td>
+                                    <td style="padding: 12px;">
+                                        <span style="@GetTransactionTypeStyle(tx.TransactionType)">@tx.TransactionType</span>
+                                    </td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 700; color: @GetAmountColor(tx.TransactionType);">
+                                        @(tx.TransactionType == "Withdrawal" || tx.TransactionType == "PenaltyCharge" ? "-" : "+")₱@tx.Amount.ToString("N2")
+                                    </td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600;">₱@tx.BalanceAfter.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: center;">@GetStatusBadge(tx.Status)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Approve Withdrawal Modal -->
+@if (showApproveWithdrawalModal && selectedWithdrawal != null)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="background: white; border-radius: 16px; max-width: 600px; width: 90%; padding: 32px;">
+            <h2 style="margin: 0 0 16px; color: #1f2937;">✅ Approve Withdrawal (Super Admin Override)</h2>
+            <div style="background: #fef3c7; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <div><strong>Request ID:</strong> WR-@selectedWithdrawal.RequestId</div>
+                <div><strong>Account:</strong> @selectedWithdrawal.SavingsAccount?.AccountNumber</div>
+                <div><strong>Amount:</strong> ₱@selectedWithdrawal.RequestedAmount.ToString("N2")</div>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #dc2626;">Override Reason (Required) *</label>
+                <textarea @bind="overrideReason" rows="3" style="width: 100%; padding: 10px; border: 2px solid #dc2626; border-radius: 8px;" placeholder="Explain why Super Admin is overriding this approval..."></textarea>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CancelAction" style="padding: 10px 20px; background: #f3f4f6; color: #6b7280; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
+                <button @onclick="ConfirmApproveWithdrawal" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">✅ Approve</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Reject Withdrawal Modal -->
+@if (showRejectWithdrawalModal && selectedWithdrawal != null)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="background: white; border-radius: 16px; max-width: 600px; width: 90%; padding: 32px;">
+            <h2 style="margin: 0 0 16px; color: #1f2937;">❌ Reject Withdrawal (Super Admin Override)</h2>
+            <div style="background: #fee2e2; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <div><strong>Request ID:</strong> WR-@selectedWithdrawal.RequestId</div>
+                <div><strong>Account:</strong> @selectedWithdrawal.SavingsAccount?.AccountNumber</div>
+                <div><strong>Amount:</strong> ₱@selectedWithdrawal.RequestedAmount.ToString("N2")</div>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #dc2626;">Rejection Reason (Required) *</label>
+                <textarea @bind="overrideReason" rows="3" style="width: 100%; padding: 10px; border: 2px solid #dc2626; border-radius: 8px;" placeholder="Explain why this withdrawal is being rejected..."></textarea>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CancelAction" style="padding: 10px 20px; background: #f3f4f6; color: #6b7280; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
+                <button @onclick="ConfirmRejectWithdrawal" style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">❌ Reject</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Process Withdrawal Modal -->
+@if (showProcessWithdrawalModal && selectedWithdrawal != null)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="background: white; border-radius: 16px; max-width: 600px; width: 90%; padding: 32px;">
+            <h2 style="margin: 0 0 16px; color: #1f2937;">💳 Process Withdrawal (Super Admin Override)</h2>
+            <div style="background: #dbeafe; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <div><strong>Request ID:</strong> WR-@selectedWithdrawal.RequestId</div>
+                <div><strong>Account:</strong> @selectedWithdrawal.SavingsAccount?.AccountNumber</div>
+                <div><strong>Amount:</strong> ₱@selectedWithdrawal.RequestedAmount.ToString("N2")</div>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #dc2626;">Override Reason (Required) *</label>
+                <textarea @bind="overrideReason" rows="3" style="width: 100%; padding: 10px; border: 2px solid #dc2626; border-radius: 8px;" placeholder="Explain why Super Admin is processing this withdrawal..."></textarea>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CancelAction" style="padding: 10px 20px; background: #f3f4f6; color: #6b7280; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
+                <button @onclick="ConfirmProcessWithdrawal" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">💳 Process</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Approve Batch Modal -->
+@if (showApproveBatchModal && selectedBatch != null)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="background: white; border-radius: 16px; max-width: 600px; width: 90%; padding: 32px;">
+            <h2 style="margin: 0 0 16px; color: #1f2937;">✅ Approve Interest Batch (Super Admin Override)</h2>
+            <div style="background: #dbeafe; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <div><strong>Batch ID:</strong> IB-@selectedBatch.PostingId</div>
+                <div><strong>Period:</strong> @selectedBatch.PeriodStart.ToString("MMM dd") - @selectedBatch.PeriodEnd.ToString("MMM dd, yyyy")</div>
+                <div><strong>Total Interest:</strong> ₱@selectedBatch.TotalInterestPosted.ToString("N2")</div>
+                <div><strong>Accounts:</strong> @selectedBatch.AccountsProcessed</div>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #dc2626;">Override Reason (Required) *</label>
+                <textarea @bind="overrideReason" rows="3" style="width: 100%; padding: 10px; border: 2px solid #dc2626; border-radius: 8px;" placeholder="Explain why Super Admin is approving this batch..."></textarea>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CancelAction" style="padding: 10px 20px; background: #f3f4f6; color: #6b7280; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
+                <button @onclick="ConfirmApproveBatch" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">✅ Approve</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Release Batch Modal -->
+@if (showReleaseBatchModal && selectedBatch != null)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="background: white; border-radius: 16px; max-width: 600px; width: 90%; padding: 32px;">
+            <h2 style="margin: 0 0 16px; color: #1f2937;">💳 Release Interest Batch (Super Admin Override)</h2>
+            <div style="background: #f0fdf4; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <div><strong>Batch ID:</strong> IB-@selectedBatch.PostingId</div>
+                <div><strong>Period:</strong> @selectedBatch.PeriodStart.ToString("MMM dd") - @selectedBatch.PeriodEnd.ToString("MMM dd, yyyy")</div>
+                <div><strong>Total Interest:</strong> ₱@selectedBatch.TotalInterestPosted.ToString("N2")</div>
+                <div><strong>Accounts:</strong> @selectedBatch.AccountsProcessed</div>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #dc2626;">Override Reason (Required) *</label>
+                <textarea @bind="overrideReason" rows="3" style="width: 100%; padding: 10px; border: 2px solid #dc2626; border-radius: 8px;" placeholder="Explain why Super Admin is releasing this batch..."></textarea>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CancelAction" style="padding: 10px 20px; background: #f3f4f6; color: #6b7280; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
+                <button @onclick="ConfirmReleaseBatch" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">💳 Release</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<SavingsWithdrawalRequest> withdrawalRequests = new();
+    private List<SavingsInterestPosting> interestBatches = new();
+    private List<SavingsAccount> allAccounts = new();
+    private List<SavingsTransaction> transactionHistory = new();
+    
+    private string activeTab = "withdrawals";
+    private int totalPending = 0;
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private string successMessage = "";
+    private string errorMessage = "";
+    private string overrideReason = "";
+
+    // Modal states
+    private bool showApproveWithdrawalModal = false;
+    private bool showRejectWithdrawalModal = false;
+    private bool showProcessWithdrawalModal = false;
+    private bool showApproveBatchModal = false;
+    private bool showReleaseBatchModal = false;
+    private SavingsWithdrawalRequest? selectedWithdrawal = null;
+    private SavingsInterestPosting? selectedBatch = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+
+            // Load all withdrawal requests
+            withdrawalRequests = await context.SavingsWithdrawalRequests
+                .Include(r => r.SavingsAccount).ThenInclude(sa => sa!.Customer)
+                .Include(r => r.SavingsAccount).ThenInclude(sa => sa!.AccountType)
+                .OrderByDescending(r => r.RequestedDate)
+                .ToListAsync();
+
+            // Load all interest batches
+            interestBatches = await context.SavingsInterestPostings
+                .OrderByDescending(b => b.CreatedAt)
+                .ToListAsync();
+
+            // Load all savings accounts
+            allAccounts = await context.SavingsAccounts
+                .Include(sa => sa.Customer)
+                .Include(sa => sa.AccountType)
+                .OrderByDescending(sa => sa.OpenedDate)
+                .ToListAsync();
+
+            totalPending = withdrawalRequests.Count(r => r.Status == "Pending") + 
+                          interestBatches.Count(b => b.PostingStatus == "Pending");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadTransactionHistory()
+    {
+        isLoading = true;
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            transactionHistory = await context.SavingsTransactions
+                .Include(t => t.SavingsAccount).ThenInclude(sa => sa!.Customer)
+                .OrderByDescending(t => t.TransactionDate)
+                .Take(200)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading transaction history: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ShowApproveWithdrawal(SavingsWithdrawalRequest request)
+    {
+        selectedWithdrawal = request;
+        overrideReason = "";
+        showApproveWithdrawalModal = true;
+    }
+
+    private void ShowRejectWithdrawal(SavingsWithdrawalRequest request)
+    {
+        selectedWithdrawal = request;
+        overrideReason = "";
+        showRejectWithdrawalModal = true;
+    }
+
+    private void ShowProcessWithdrawal(SavingsWithdrawalRequest request)
+    {
+        selectedWithdrawal = request;
+        overrideReason = "";
+        showProcessWithdrawalModal = true;
+    }
+
+    private void ShowApproveBatch(SavingsInterestPosting batch)
+    {
+        selectedBatch = batch;
+        overrideReason = "";
+        showApproveBatchModal = true;
+    }
+
+    private void ShowReleaseBatch(SavingsInterestPosting batch)
+    {
+        selectedBatch = batch;
+        overrideReason = "";
+        showReleaseBatchModal = true;
+    }
+
+    private void CancelAction()
+    {
+        showApproveWithdrawalModal = false;
+        showRejectWithdrawalModal = false;
+        showProcessWithdrawalModal = false;
+        showApproveBatchModal = false;
+        showReleaseBatchModal = false;
+        selectedWithdrawal = null;
+        selectedBatch = null;
+        overrideReason = "";
+    }
+
+    private async Task ConfirmApproveWithdrawal()
+    {
+        if (string.IsNullOrWhiteSpace(overrideReason))
+        {
+            errorMessage = "Override reason is required for Super Admin actions.";
+            return;
+        }
+
+        isProcessing = true;
+        try
+        {
+            var adminName = $"{AuthService.FullName} (Super Admin Override)";
+            var (success, message) = await SavingsService.ApproveWithdrawalRequestAsync(
+                selectedWithdrawal!.RequestId, true, adminName, $"OVERRIDE: {overrideReason}");
+
+            if (success)
+            {
+                successMessage = $"✅ Withdrawal WR-{selectedWithdrawal.RequestId} approved\nReason: {overrideReason}";
+                await LoadData();
+                CancelAction();
+            }
+            else
+            {
+                errorMessage = $"Failed: {message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task ConfirmRejectWithdrawal()
+    {
+        if (string.IsNullOrWhiteSpace(overrideReason))
+        {
+            errorMessage = "Rejection reason is required for Super Admin actions.";
+            return;
+        }
+
+        isProcessing = true;
+        try
+        {
+            var adminName = $"{AuthService.FullName} (Super Admin Override)";
+            var (success, message) = await SavingsService.ApproveWithdrawalRequestAsync(
+                selectedWithdrawal!.RequestId, false, adminName, $"OVERRIDE: {overrideReason}");
+
+            if (success)
+            {
+                successMessage = $"❌ Withdrawal WR-{selectedWithdrawal.RequestId} rejected\nReason: {overrideReason}";
+                await LoadData();
+                CancelAction();
+            }
+            else
+            {
+                errorMessage = $"Failed: {message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task ConfirmProcessWithdrawal()
+    {
+        if (string.IsNullOrWhiteSpace(overrideReason))
+        {
+            errorMessage = "Override reason is required for Super Admin actions.";
+            return;
+        }
+
+        isProcessing = true;
+        try
+        {
+            var adminName = $"{AuthService.FullName} (Super Admin Override)";
+            var (success, message, transaction) = await SavingsService.ProcessWithdrawalAsync(
+                selectedWithdrawal!.RequestId, adminName);
+
+            if (success)
+            {
+                successMessage = $"💳 Withdrawal WR-{selectedWithdrawal.RequestId} processed\nReason: {overrideReason}";
+                await LoadData();
+                CancelAction();
+            }
+            else
+            {
+                errorMessage = $"Failed: {message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task ConfirmApproveBatch()
+    {
+        if (string.IsNullOrWhiteSpace(overrideReason))
+        {
+            errorMessage = "Override reason is required for Super Admin actions.";
+            return;
+        }
+
+        isProcessing = true;
+        try
+        {
+            var adminName = $"{AuthService.FullName} (Super Admin Override)";
+            var (success, message) = await InterestService.ApprovePostingBatchAsync(
+                selectedBatch!.PostingId, $"{adminName} - OVERRIDE: {overrideReason}");
+
+            if (success)
+            {
+                successMessage = $"✅ Interest Batch IB-{selectedBatch.PostingId} approved\nReason: {overrideReason}";
+                await LoadData();
+                CancelAction();
+            }
+            else
+            {
+                errorMessage = $"Failed: {message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task ConfirmReleaseBatch()
+    {
+        if (string.IsNullOrWhiteSpace(overrideReason))
+        {
+            errorMessage = "Override reason is required for Super Admin actions.";
+            return;
+        }
+
+        isProcessing = true;
+        try
+        {
+            var adminName = $"{AuthService.FullName} (Super Admin Override)";
+            var (success, message) = await InterestService.ReleaseInterestToAccountsAsync(
+                selectedBatch!.PostingId, $"{adminName} - OVERRIDE: {overrideReason}");
+
+            if (success)
+            {
+                successMessage = $"💳 Interest Batch IB-{selectedBatch.PostingId} released\nReason: {overrideReason}";
+                await LoadData();
+                CancelAction();
+            }
+            else
+            {
+                errorMessage = $"Failed: {message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ViewAccountDetails(SavingsAccount account)
+    {
+        // TODO: Show detailed account view with full transaction history
+        errorMessage = "Detailed account view coming soon";
+    }
+
+    private string GetTabStyle(string tab)
+    {
+        var isActive = activeTab == tab;
+        return $"padding: 12px 24px; border: none; background: {(isActive ? "#dc2626" : "transparent")}; color: {(isActive ? "white" : "#6b7280")}; cursor: pointer; font-weight: 600; border-radius: 8px 8px 0 0; transition: all 0.3s;";
+    }
+
+    private RenderFragment GetStatusBadge(string status) => builder =>
+    {
+        var (bgColor, textColor) = status switch
+        {
+            "Pending" => ("#fef3c7", "#92400e"),
+            "FMApproved" => ("#dbeafe", "#1e40af"),
+            "Completed" => ("#d1fae5", "#065f46"),
+            "Rejected" => ("#fee2e2", "#991b1b"),
+            "ACTIVE" => ("#d1fae5", "#065f46"),
+            "CLOSED" => ("#fee2e2", "#991b1b"),
+            _ => ("#f3f4f6", "#6b7280")
+        };
+
+        builder.OpenElement(0, "span");
+        builder.AddAttribute(1, "style", $"padding: 4px 12px; background: {bgColor}; color: {textColor}; border-radius: 12px; font-size: 11px; font-weight: 700;");
+        builder.AddContent(2, status);
+        builder.CloseElement();
+    };
+
+    private string GetTransactionTypeStyle(string type)
+    {
+        return type switch
+        {
+            "Deposit" => "padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 11px; font-weight: 600;",
+            "Withdrawal" => "padding: 4px 8px; background: #fee2e2; color: #991b1b; border-radius: 6px; font-size: 11px; font-weight: 600;",
+            "InterestPosting" => "padding: 4px 8px; background: #dbeafe; color: #1e40af; border-radius: 6px; font-size: 11px; font-weight: 600;",
+            _ => "padding: 4px 8px; background: #fef3c7; color: #92400e; border-radius: 6px; font-size: 11px; font-weight: 600;"
+        };
+    }
+
+    private string GetAmountColor(string type)
+    {
+        return type switch
+        {
+            "Withdrawal" or "PenaltyCharge" => "#dc2626",
+            _ => "#10b981"
+        };
+    }
+}

@@ -13,7 +13,7 @@ namespace FinanceBank.Services
     /// CustomerAccount and CustomerTransaction updates in a single
     /// database operation so the balance and history stay in sync.
     /// Auto-syncs changes to cloud when internet is available.
-    /// Automatically posts to General Ledger for accounting.
+    /// Automatically posts to General Ledger and creates AR/AP entries for accounting.
     /// </summary>
     public class CustomerBankingService
     {
@@ -21,13 +21,20 @@ namespace FinanceBank.Services
         private readonly AuthService _authService;
         private readonly DatabaseSyncService? _syncService;
         private readonly AutomaticGLPostingService? _glPostingService;
+        private readonly TransactionHistoryService? _transactionHistoryService;
 
-        public CustomerBankingService(BFASDbContext? context, AuthService authService, DatabaseSyncService? syncService = null, AutomaticGLPostingService? glPostingService = null)
+        public CustomerBankingService(
+            BFASDbContext? context,
+            AuthService authService,
+            DatabaseSyncService? syncService = null,
+            AutomaticGLPostingService? glPostingService = null,
+            TransactionHistoryService? transactionHistoryService = null)
         {
             _context = context;
             _authService = authService;
             _syncService = syncService;
             _glPostingService = glPostingService;
+            _transactionHistoryService = transactionHistoryService;
         }
 
         /// <summary>
@@ -468,7 +475,41 @@ namespace FinanceBank.Services
 
                     await transaction.CommitAsync();
 
-                    // Post transfer fee to General Ledger automatically
+                    // =============================================
+                    // CREATE AR/AP ENTRIES + UNIFIED HISTORY + JOURNAL
+                    // Transfer OUT = AP (sender), Transfer IN = AR (receiver)
+                    // =============================================
+                    try
+                    {
+                        var senderName = senderAccount.Customer?.FullName ?? $"Account #{senderAccount.AccountId}";
+                        var recipientName = recipientAccount.Customer?.FullName ?? $"Account #{recipientAccount.AccountId}";
+                        var processedBy = _authService.CurrentUser ?? "System";
+
+                        if (_transactionHistoryService != null)
+                        {
+                            await _transactionHistoryService.RecordTransferAsync(
+                                senderAccountId: senderAccount.AccountId,
+                                senderAccountNumber: senderAccount.AccountNumber,
+                                senderName: senderName,
+                                receiverAccountId: recipientAccount.AccountId,
+                                receiverAccountNumber: recipientAccount.AccountNumber,
+                                receiverName: recipientName,
+                                amount: amount,
+                                fee: TRANSFER_FEE,
+                                senderTransactionId: senderTransaction.TransactionId,
+                                receiverTransactionId: recipientTransaction.TransactionId,
+                                processedBy: processedBy,
+                                processedByEmployeeId: employeeId,
+                                purpose: purpose);
+                        }
+                    }
+                    catch (Exception arApEx)
+                    {
+                        // AR/AP creation failure should not affect transaction
+                        System.Diagnostics.Debug.WriteLine($"AR/AP Entry creation failed: {arApEx.Message}");
+                    }
+
+                    // Post transfer fee to General Ledger automatically (legacy - kept for backward compatibility)
                     try
                     {
                         var senderName = senderAccount.Customer?.FullName ?? $"Account #{senderAccount.AccountId}";

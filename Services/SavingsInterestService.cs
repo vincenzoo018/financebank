@@ -7,14 +7,17 @@ namespace FinanceBank.Services;
 /// <summary>
 /// Service for handling savings account interest calculation and posting
 /// Implements daily interest computation with monthly/quarterly posting
+/// Integrates with TransactionHistoryService for AR/AP tracking.
 /// </summary>
 public class SavingsInterestService
 {
     private readonly IDbContextFactory<BFASDbContext> _contextFactory;
+    private readonly TransactionHistoryService? _transactionHistoryService;
 
-    public SavingsInterestService(IDbContextFactory<BFASDbContext> contextFactory)
+    public SavingsInterestService(IDbContextFactory<BFASDbContext> contextFactory, TransactionHistoryService? transactionHistoryService = null)
     {
         _contextFactory = contextFactory;
+        _transactionHistoryService = transactionHistoryService;
     }
 
     // =============================================
@@ -45,7 +48,7 @@ public class SavingsInterestService
             {
                 // Check if already computed for this date
                 var existingComputation = await context.SavingsInterestRecords
-                    .AnyAsync(si => si.SavingsAccountId == account.SavingsAccountId && 
+                    .AnyAsync(si => si.SavingsAccountId == account.SavingsAccountId &&
                                    si.ComputationDate == targetDate);
 
                 if (existingComputation)
@@ -100,8 +103,8 @@ public class SavingsInterestService
         {
             // Get all unposted interest records for the period
             var unpostedInterest = await context.SavingsInterestRecords
-                .Where(si => !si.IsPosted && 
-                            si.ComputationDate >= periodStart.Date && 
+                .Where(si => !si.IsPosted &&
+                            si.ComputationDate >= periodStart.Date &&
                             si.ComputationDate <= periodEnd.Date)
                 .GroupBy(si => si.SavingsAccountId)
                 .Select(g => new
@@ -190,8 +193,8 @@ public class SavingsInterestService
 
             // Get all unposted interest for this batch
             var interestRecords = await context.SavingsInterestRecords
-                .Where(si => !si.IsPosted && 
-                            si.ComputationDate >= posting.PeriodStart.Date && 
+                .Where(si => !si.IsPosted &&
+                            si.ComputationDate >= posting.PeriodStart.Date &&
                             si.ComputationDate <= posting.PeriodEnd.Date)
                 .GroupBy(si => si.SavingsAccountId)
                 .ToListAsync();
@@ -244,9 +247,34 @@ public class SavingsInterestService
                 }
 
                 accountsUpdated++;
+
+                // Create AP entry via TransactionHistoryService (interest = money OUT = AP)
+                try
+                {
+                    if (_transactionHistoryService != null)
+                    {
+                        var customer = await context.Users.FindAsync(savingsAccount.CustomerId);
+                        var customerName = customer?.FullName ?? "Customer";
+
+                        await _transactionHistoryService.RecordSavingsInterestAsync(
+                            savingsAccountId: savingsAccountId,
+                            customerAccountId: savingsAccount.CustomerAccountId,
+                            accountNumber: savingsAccount.AccountNumber ?? "",
+                            customerName: customerName,
+                            interestAmount: totalInterest,
+                            interestRecordId: group.First().InterestId,
+                            processedBy: releasedBy,
+                            notes: $"Interest posting for period {posting.PeriodStart:yyyy-MM-dd} to {posting.PeriodEnd:yyyy-MM-dd}"
+                        );
+                    }
+                }
+                catch
+                {
+                    // AP tracking failure should not prevent interest posting from being recorded
+                }
             }
 
-            // Create Accounts Payable entry (Interest expense is a liability until paid)
+            // Create bulk Accounts Payable entry for audit purposes (Interest expense liability)
             var apEntry = new AccountsPayable
             {
                 VendorName = "Customer Interest Payable",
@@ -259,7 +287,12 @@ public class SavingsInterestService
                 Status = "Paid",
                 Description = $"Savings Interest Payment - Period {posting.PeriodStart:yyyy-MM-dd} to {posting.PeriodEnd:yyyy-MM-dd} | {accountsUpdated} accounts",
                 CreatedAt = DateTime.Now,
-                CreatedBy = releasedBy
+                CreatedBy = releasedBy,
+                TransactionType = "SavingsInterest",
+                SourceTable = "SavingsInterestPostings",
+                SourceTransactionId = postingId,
+                ReferenceNumber = $"INT-POST-{postingId:D6}",
+                ReviewStatus = "Completed"
             };
 
             context.AccountsPayables.Add(apEntry);
@@ -289,7 +322,7 @@ public class SavingsInterestService
     public async Task<List<SavingsInterestPosting>> GetInterestPostingBatchesAsync()
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         return await context.SavingsInterestPostings
             .OrderByDescending(p => p.PostingDate)
             .ToListAsync();
@@ -301,7 +334,7 @@ public class SavingsInterestService
     public async Task<List<SavingsInterestPosting>> GetPendingFMApprovalBatchesAsync()
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         return await context.SavingsInterestPostings
             .Where(p => p.PostingStatus == "Pending")
             .OrderByDescending(p => p.PostingDate)
@@ -314,7 +347,7 @@ public class SavingsInterestService
     public async Task<List<SavingsInterestPosting>> GetFMApprovedBatchesAsync()
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         return await context.SavingsInterestPostings
             .Where(p => p.PostingStatus == "FMApproved")
             .OrderByDescending(p => p.PostingDate)
@@ -327,7 +360,7 @@ public class SavingsInterestService
     public async Task<List<SavingsInterest>> GetInterestHistoryAsync(int savingsAccountId)
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         return await context.SavingsInterestRecords
             .Where(si => si.SavingsAccountId == savingsAccountId)
             .OrderByDescending(si => si.ComputationDate)
@@ -340,7 +373,7 @@ public class SavingsInterestService
     public async Task<decimal> GetUnpostedInterestAsync(int savingsAccountId)
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         return await context.SavingsInterestRecords
             .Where(si => si.SavingsAccountId == savingsAccountId && !si.IsPosted)
             .SumAsync(si => si.DailyInterestAmount);
@@ -412,9 +445,9 @@ public class SavingsInterestService
     public async Task<(decimal TotalAccrued, decimal TotalPosted, decimal TotalUnposted)> GetInterestSummaryAsync()
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         var allInterest = await context.SavingsInterestRecords.ToListAsync();
-        
+
         var totalAccrued = allInterest.Sum(si => si.DailyInterestAmount);
         var totalPosted = allInterest.Where(si => si.IsPosted).Sum(si => si.DailyInterestAmount);
         var totalUnposted = allInterest.Where(si => !si.IsPosted).Sum(si => si.DailyInterestAmount);
@@ -428,7 +461,7 @@ public class SavingsInterestService
     public async Task<decimal> ProjectNextMonthInterestAsync()
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         var activeAccounts = await context.SavingsAccounts
             .Where(sa => sa.Status == "ACTIVE" && sa.Balance > 0)
             .ToListAsync();
@@ -453,7 +486,7 @@ public class SavingsInterestService
     public async Task<decimal> GetTotalUnpostedInterestAsync()
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         var unpostedInterest = await context.SavingsInterestRecords
             .Where(si => !si.IsPosted)
             .SumAsync(si => si.DailyInterestAmount);

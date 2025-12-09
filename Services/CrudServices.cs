@@ -911,14 +911,57 @@ public class JournalEntryService
 
     public async Task<bool> PostAsync(int id, string postedBy)
     {
-        var entry = await _context.JournalEntries.FindAsync(id);
+        var entry = await _context.JournalEntries
+            .Include(je => je.Lines)
+            .FirstOrDefaultAsync(je => je.JournalId == id);
         if (entry == null) return false;
+
+        // Ensure entry is balanced before posting
+        if (entry.TotalDebit != entry.TotalCredit)
+            return false;
 
         entry.Status = "Posted";
         entry.PostedBy = postedBy;
         entry.PostedAt = DateTime.Now;
         await _context.SaveChangesAsync();
+
+        // Create GL entries for each line in the journal entry
+        if (entry.Lines != null && entry.Lines.Any())
+        {
+            foreach (var line in entry.Lines)
+            {
+                // Get account type from chart of accounts
+                var chartAccount = await _context.ChartOfAccounts
+                    .FirstOrDefaultAsync(c => c.AccountCode == line.AccountCode);
+
+                var glEntry = new GeneralLedgerTransaction
+                {
+                    JournalLineId = line.LineId,
+                    AccountCode = line.AccountCode,
+                    DebitAmount = line.DebitAmount,
+                    CreditAmount = line.CreditAmount,
+                    Description = line.Description ?? entry.Description,
+                    TransactionDate = entry.TransactionDate,
+                    RunningBalance = 0 // Will be calculated
+                };
+
+                _context.GeneralLedgerTransactions.Add(glEntry);
+            }
+            await _context.SaveChangesAsync();
+        }
+
         return true;
+    }
+
+    /// <summary>
+    /// Get all chart of accounts for dropdown
+    /// </summary>
+    public async Task<List<ChartOfAccounts>> GetChartOfAccountsAsync()
+    {
+        return await _context.ChartOfAccounts
+            .Where(c => c.IsActive)
+            .OrderBy(c => c.AccountCode)
+            .ToListAsync();
     }
 
     /// <summary>
@@ -970,334 +1013,170 @@ public class GeneralLedgerService
     }
 
     /// <summary>
-    /// Get all general ledger entries from real transactions
+    /// Get all general ledger transactions from the database table
+    /// Includes journal line details and account information
     /// </summary>
-    public async Task<List<FinanceBank.Models.GeneralLedgerEntry>> GetAllAsync()
+    public async Task<List<GeneralLedgerTransaction>> GetAllAsync()
     {
-        var entries = new List<FinanceBank.Models.GeneralLedgerEntry>();
-
-        // Get customer transactions
-        var transactions = await _context.CustomerTransactions
+        var transactions = await _context.GeneralLedgerTransactions
             .Include(t => t.Account)
-            .Where(t => t.Status == "Completed")
-            .OrderByDescending(t => t.CreatedAt)
+            .Include(t => t.JournalLine)
+                .ThenInclude(jl => jl!.Journal)
+            .OrderByDescending(t => t.TransactionDate)
+            .ThenByDescending(t => t.GLTransactionId)
             .ToListAsync();
 
-        foreach (var txn in transactions)
+        // Populate NotMapped properties from related entities
+        foreach (var trans in transactions)
         {
-            var glEntries = CreateGLEntriesFromTransaction(txn);
-            entries.AddRange(glEntries);
-        }
-
-        // Get loan payments
-        var loanPayments = await _context.LoanPayments
-            .Include(p => p.Loan)
-            .OrderByDescending(p => p.PaymentDate)
-            .ToListAsync();
-
-        foreach (var payment in loanPayments)
-        {
-            var glEntries = CreateGLEntriesFromLoanPayment(payment);
-            entries.AddRange(glEntries);
-        }
-
-        // Get loan disbursals
-        var disbursals = await _context.LoanDisbursals
-            .Include(d => d.Loan)
-            .Where(d => d.DisbursalStatus == "Completed")
-            .OrderByDescending(d => d.DisbursalDate)
-            .ToListAsync();
-
-        foreach (var disbursal in disbursals)
-        {
-            var glEntries = CreateGLEntriesFromLoanDisbursal(disbursal);
-            entries.AddRange(glEntries);
-        }
-
-        // Calculate running balances per account
-        var accountGroups = entries.GroupBy(e => e.AccountCode).ToList();
-        foreach (var group in accountGroups)
-        {
-            decimal runningBalance = 0;
-            foreach (var entry in group.OrderBy(e => e.TransactionDate).ThenBy(e => e.CreatedAt))
+            if (trans.Account != null)
             {
-                runningBalance += entry.DebitAmount - entry.CreditAmount;
-                entry.Balance = runningBalance;
+                trans.AccountName = trans.Account.AccountName;
+                trans.AccountType = trans.Account.AccountType;
+            }
+            
+            if (trans.JournalLine?.Journal != null)
+            {
+                trans.Reference = trans.JournalLine.Journal.Reference;
             }
         }
 
-        return entries.OrderByDescending(e => e.TransactionDate).ThenByDescending(e => e.CreatedAt).ToList();
+        return transactions;
     }
 
     /// <summary>
-    /// Get GL entries by account code
+    /// Get GL transaction by ID with full details
     /// </summary>
-    public async Task<List<FinanceBank.Models.GeneralLedgerEntry>> GetByAccountAsync(string accountCode, DateTime? fromDate = null, DateTime? toDate = null)
+    public async Task<GeneralLedgerTransaction?> GetByIdWithDetailsAsync(int id)
     {
-        var allEntries = await GetAllAsync();
-        var filtered = allEntries.Where(e => e.AccountCode == accountCode);
+        var transaction = await _context.GeneralLedgerTransactions
+            .Include(t => t.Account)
+            .Include(t => t.JournalLine)
+                .ThenInclude(jl => jl!.Journal)
+                    .ThenInclude(je => je!.Lines)
+            .FirstOrDefaultAsync(t => t.GLTransactionId == id);
+
+        if (transaction != null)
+        {
+            if (transaction.Account != null)
+            {
+                transaction.AccountName = transaction.Account.AccountName;
+                transaction.AccountType = transaction.Account.AccountType;
+            }
+            
+            if (transaction.JournalLine?.Journal != null)
+            {
+                transaction.Reference = transaction.JournalLine.Journal.Reference;
+            }
+        }
+
+        return transaction;
+    }
+
+    /// <summary>
+    /// Get GL transactions by account code
+    /// </summary>
+    public async Task<List<GeneralLedgerTransaction>> GetByAccountAsync(string accountCode, DateTime? fromDate = null, DateTime? toDate = null)
+    {
+        var query = _context.GeneralLedgerTransactions
+            .Include(t => t.Account)
+            .Where(t => t.AccountCode == accountCode);
 
         if (fromDate.HasValue)
-            filtered = filtered.Where(e => e.TransactionDate >= fromDate.Value);
+            query = query.Where(t => t.TransactionDate >= fromDate.Value);
         if (toDate.HasValue)
-            filtered = filtered.Where(e => e.TransactionDate <= toDate.Value);
+            query = query.Where(t => t.TransactionDate <= toDate.Value);
 
-        return filtered.OrderBy(e => e.TransactionDate).ToList();
+        var transactions = await query.OrderBy(t => t.TransactionDate).ToListAsync();
+
+        // Populate NotMapped properties
+        foreach (var trans in transactions)
+        {
+            if (trans.Account != null)
+            {
+                trans.AccountName = trans.Account.AccountName;
+                trans.AccountType = trans.Account.AccountType;
+            }
+        }
+
+        return transactions;
     }
 
     /// <summary>
-    /// Get account balances summary
+    /// Get account balances from the GeneralLedger table
     /// </summary>
     public async Task<List<(string AccountCode, string AccountName, string AccountType, decimal Balance)>> GetAccountBalancesAsync()
     {
-        var allEntries = await GetAllAsync();
-        var balances = allEntries
-            .GroupBy(e => new { e.AccountCode, e.AccountName, e.AccountType })
-            .Select(g => (
-                AccountCode: g.Key.AccountCode,
-                AccountName: g.Key.AccountName,
-                AccountType: g.Key.AccountType,
-                Balance: g.Sum(e => e.DebitAmount) - g.Sum(e => e.CreditAmount)
+        var accounts = await _context.GeneralLedger
+            .Where(a => a.IsActive)
+            .OrderBy(a => a.AccountCode)
+            .Select(a => new ValueTuple<string, string, string, decimal>(
+                a.AccountCode,
+                a.AccountName,
+                a.AccountType,
+                a.Balance
             ))
-            .OrderBy(b => b.AccountCode)
-            .ToList();
+            .ToListAsync();
 
-        return balances;
+        return accounts;
     }
 
-    private List<FinanceBank.Models.GeneralLedgerEntry> CreateGLEntriesFromTransaction(CustomerTransaction txn)
+    public async Task<GeneralLedgerTransaction?> GetByIdAsync(int id)
     {
-        var entries = new List<FinanceBank.Models.GeneralLedgerEntry>();
-        var customerName = txn.Account?.Customer?.FullName ?? $"Account #{txn.AccountId}";
-        var date = txn.ProcessedAt ?? txn.CreatedAt;
-
-        switch (txn.TransactionType.ToUpper())
-        {
-            case "DEPOSIT":
-                entries.Add(new FinanceBank.Models.GeneralLedgerEntry
-                {
-                    EntryNumber = $"GL-DEP-{txn.TransactionId}",
-                    AccountCode = "1010",
-                    AccountName = "Cash on Hand",
-                    AccountType = "Asset",
-                    TransactionDate = date,
-                    Reference = txn.TransactionNumber,
-                    Description = $"Deposit - {customerName}",
-                    DebitAmount = txn.Amount,
-                    CreditAmount = 0,
-                    CreatedAt = txn.CreatedAt
-                });
-                entries.Add(new FinanceBank.Models.GeneralLedgerEntry
-                {
-                    EntryNumber = $"GL-DEP-{txn.TransactionId}",
-                    AccountCode = "2010",
-                    AccountName = "Customer Deposits",
-                    AccountType = "Liability",
-                    TransactionDate = date,
-                    Reference = txn.TransactionNumber,
-                    Description = $"Deposit liability - {customerName}",
-                    DebitAmount = 0,
-                    CreditAmount = txn.Amount,
-                    CreatedAt = txn.CreatedAt
-                });
-                break;
-
-            case "WITHDRAWAL":
-                entries.Add(new FinanceBank.Models.GeneralLedgerEntry
-                {
-                    EntryNumber = $"GL-WD-{txn.TransactionId}",
-                    AccountCode = "2010",
-                    AccountName = "Customer Deposits",
-                    AccountType = "Liability",
-                    TransactionDate = date,
-                    Reference = txn.TransactionNumber,
-                    Description = $"Withdrawal - {customerName}",
-                    DebitAmount = txn.Amount,
-                    CreditAmount = 0,
-                    CreatedAt = txn.CreatedAt
-                });
-                entries.Add(new FinanceBank.Models.GeneralLedgerEntry
-                {
-                    EntryNumber = $"GL-WD-{txn.TransactionId}",
-                    AccountCode = "1010",
-                    AccountName = "Cash on Hand",
-                    AccountType = "Asset",
-                    TransactionDate = date,
-                    Reference = txn.TransactionNumber,
-                    Description = $"Cash disbursed - {customerName}",
-                    DebitAmount = 0,
-                    CreditAmount = txn.Amount,
-                    CreatedAt = txn.CreatedAt
-                });
-                break;
-
-            case "TRANSFER":
-                if (txn.Fee > 0)
-                {
-                    entries.Add(new FinanceBank.Models.GeneralLedgerEntry
-                    {
-                        EntryNumber = $"GL-TF-{txn.TransactionId}",
-                        AccountCode = "2010",
-                        AccountName = "Customer Deposits",
-                        AccountType = "Liability",
-                        TransactionDate = date,
-                        Reference = txn.TransactionNumber,
-                        Description = $"Transfer fee - {customerName}",
-                        DebitAmount = txn.Fee,
-                        CreditAmount = 0,
-                        CreatedAt = txn.CreatedAt
-                    });
-                    entries.Add(new FinanceBank.Models.GeneralLedgerEntry
-                    {
-                        EntryNumber = $"GL-TF-{txn.TransactionId}",
-                        AccountCode = "4020",
-                        AccountName = "Service Fee Income",
-                        AccountType = "Revenue",
-                        TransactionDate = date,
-                        Reference = txn.TransactionNumber,
-                        Description = $"Transfer fee income",
-                        DebitAmount = 0,
-                        CreditAmount = txn.Fee,
-                        CreatedAt = txn.CreatedAt
-                    });
-                }
-                break;
-        }
-
-        return entries;
+        return await _context.GeneralLedgerTransactions
+            .Include(t => t.Account)
+            .FirstOrDefaultAsync(t => t.GLTransactionId == id);
     }
 
-    private List<FinanceBank.Models.GeneralLedgerEntry> CreateGLEntriesFromLoanPayment(LoanPayment payment)
+    /// <summary>
+    /// Get all chart of accounts
+    /// </summary>
+    public async Task<List<GeneralLedger>> GetChartOfAccountsAsync()
     {
-        var entries = new List<FinanceBank.Models.GeneralLedgerEntry>();
-        var loanNumber = payment.Loan?.LoanNumber ?? $"Loan #{payment.LoanId}";
+        return await _context.GeneralLedger
+            .Where(a => a.IsActive)
+            .OrderBy(a => a.AccountCode)
+            .ToListAsync();
+    }
 
-        // Get interest from payment schedule if available
-        var interestAmount = payment.PaymentSchedule?.InterestAmount ?? 0;
-        var principalAmount = payment.PaymentSchedule?.PrincipalAmount ?? (payment.PaymentAmount - payment.PenaltyPaid);
+    /// <summary>
+    /// Get account by code
+    /// </summary>
+    public async Task<GeneralLedger?> GetAccountByCodeAsync(string accountCode)
+    {
+        return await _context.GeneralLedger
+            .FirstOrDefaultAsync(a => a.AccountCode == accountCode);
+    }
 
-        // Debit Cash
-        entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+    /// <summary>
+    /// Create GL entries from a posted journal entry
+    /// </summary>
+    public async Task CreateGLEntriesFromJournalAsync(JournalEntry journal)
+    {
+        if (journal.Lines == null || !journal.Lines.Any())
+            return;
+
+        foreach (var line in journal.Lines)
         {
-            EntryNumber = $"GL-LP-{payment.PaymentId}",
-            AccountCode = "1010",
-            AccountName = "Cash on Hand",
-            AccountType = "Asset",
-            TransactionDate = payment.PaymentDate,
-            Reference = $"LP-{payment.PaymentId}",
-            Description = $"Loan payment received - {loanNumber}",
-            DebitAmount = payment.PaymentAmount,
-            CreditAmount = 0,
-            CreatedAt = payment.PaymentDate
-        });
+            // Get account type from chart of accounts
+            var chartAccount = await _context.ChartOfAccounts
+                .FirstOrDefaultAsync(c => c.AccountCode == line.AccountCode);
 
-        // Credit Loans Receivable (Principal)
-        if (principalAmount > 0)
-        {
-            entries.Add(new FinanceBank.Models.GeneralLedgerEntry
+            var glEntry = new GeneralLedgerTransaction
             {
-                EntryNumber = $"GL-LP-{payment.PaymentId}",
-                AccountCode = "1110",
-                AccountName = "Loans Receivable",
-                AccountType = "Asset",
-                TransactionDate = payment.PaymentDate,
-                Reference = $"LP-{payment.PaymentId}",
-                Description = $"Principal collected - {loanNumber}",
-                DebitAmount = 0,
-                CreditAmount = principalAmount,
-                CreatedAt = payment.PaymentDate
-            });
+                JournalLineId = line.LineId,
+                AccountCode = line.AccountCode,
+                DebitAmount = line.DebitAmount,
+                CreditAmount = line.CreditAmount,
+                Description = line.Description ?? journal.Description,
+                TransactionDate = journal.TransactionDate,
+                RunningBalance = 0 // Will be calculated
+            };
+
+            _context.GeneralLedgerTransactions.Add(glEntry);
         }
 
-        // Credit Interest Income
-        if (interestAmount > 0)
-        {
-            entries.Add(new FinanceBank.Models.GeneralLedgerEntry
-            {
-                EntryNumber = $"GL-LP-{payment.PaymentId}",
-                AccountCode = "4010",
-                AccountName = "Interest Income",
-                AccountType = "Revenue",
-                TransactionDate = payment.PaymentDate,
-                Reference = $"LP-{payment.PaymentId}",
-                Description = $"Interest income - {loanNumber}",
-                DebitAmount = 0,
-                CreditAmount = interestAmount,
-                CreatedAt = payment.PaymentDate
-            });
-        }
-
-        // Credit Penalty Income
-        if (payment.PenaltyPaid > 0)
-        {
-            entries.Add(new FinanceBank.Models.GeneralLedgerEntry
-            {
-                EntryNumber = $"GL-LP-{payment.PaymentId}",
-                AccountCode = "4030",
-                AccountName = "Penalty Income",
-                AccountType = "Revenue",
-                TransactionDate = payment.PaymentDate,
-                Reference = $"LP-{payment.PaymentId}",
-                Description = $"Penalty income - {loanNumber}",
-                DebitAmount = 0,
-                CreditAmount = payment.PenaltyPaid,
-                CreatedAt = payment.PaymentDate
-            });
-        }
-
-        return entries;
-    }
-
-    private List<FinanceBank.Models.GeneralLedgerEntry> CreateGLEntriesFromLoanDisbursal(LoanDisbursal disbursal)
-    {
-        var entries = new List<FinanceBank.Models.GeneralLedgerEntry>();
-        var loanNumber = disbursal.Loan?.LoanNumber ?? $"Loan #{disbursal.LoanId}";
-
-        // Debit Loans Receivable
-        entries.Add(new FinanceBank.Models.GeneralLedgerEntry
-        {
-            EntryNumber = $"GL-LD-{disbursal.DisbursalId}",
-            AccountCode = "1110",
-            AccountName = "Loans Receivable",
-            AccountType = "Asset",
-            TransactionDate = disbursal.DisbursalDate,
-            Reference = disbursal.Reference ?? $"LD-{disbursal.DisbursalId}",
-            Description = $"Loan released - {loanNumber}",
-            DebitAmount = disbursal.DisbursalAmount,
-            CreditAmount = 0,
-            CreatedAt = disbursal.DisbursalDate
-        });
-
-        // Credit Cash
-        entries.Add(new FinanceBank.Models.GeneralLedgerEntry
-        {
-            EntryNumber = $"GL-LD-{disbursal.DisbursalId}",
-            AccountCode = "1010",
-            AccountName = "Cash on Hand",
-            AccountType = "Asset",
-            TransactionDate = disbursal.DisbursalDate,
-            Reference = disbursal.Reference ?? $"LD-{disbursal.DisbursalId}",
-            Description = $"Cash disbursed for loan - {loanNumber}",
-            DebitAmount = 0,
-            CreditAmount = disbursal.DisbursalAmount,
-            CreatedAt = disbursal.DisbursalDate
-        });
-
-        return entries;
-    }
-
-    public async Task<FinanceBank.Models.GeneralLedgerEntry?> GetByIdAsync(int id)
-    {
-        return await _context.GeneralLedgerEntries.FindAsync(id);
-    }
-
-    public async Task<FinanceBank.Models.GeneralLedgerEntry> CreateAsync(FinanceBank.Models.GeneralLedgerEntry entry)
-    {
-        entry.EntryNumber = $"GL-{DateTime.Now:yyyyMMdd}-{Random.Shared.Next(10000, 99999)}";
-        entry.CreatedAt = DateTime.Now;
-        _context.GeneralLedgerEntries.Add(entry);
         await _context.SaveChangesAsync();
-        return entry;
     }
 }
 
@@ -2429,6 +2308,285 @@ public class AuditLogService
         await _context.SaveChangesAsync();
     }
 
+    // ==================== COMPREHENSIVE AUDIT LOGGING METHODS ====================
+
+    /// <summary>
+    /// Log successful login attempts
+    /// </summary>
+    public async Task LogLoginSuccessAsync(string userId, string userName, string ipAddress = "", string userAgent = "")
+    {
+        await CreateAsync(new AuditLog
+        {
+            UserId = userId,
+            Action = "LOGIN_SUCCESS",
+            Module = "Authentication",
+            Description = $"User '{userName}' logged in successfully",
+            IpAddress = ipAddress,
+            UserAgent = userAgent
+        });
+    }
+
+    /// <summary>
+    /// Log failed login attempts - CRITICAL for security monitoring
+    /// </summary>
+    public async Task LogLoginFailureAsync(string attemptedUserId, string reason, string ipAddress = "", string userAgent = "")
+    {
+        await CreateAsync(new AuditLog
+        {
+            UserId = attemptedUserId ?? "UNKNOWN",
+            Action = "LOGIN_FAILED",
+            Module = "Authentication",
+            Description = $"Failed login attempt. Reason: {reason}",
+            IpAddress = ipAddress,
+            UserAgent = userAgent
+        });
+
+        // Check for suspicious activity
+        await CheckSuspiciousLoginActivity(attemptedUserId, ipAddress);
+    }
+
+    /// <summary>
+    /// Log logout events
+    /// </summary>
+    public async Task LogLogoutAsync(string userId, string userName)
+    {
+        await CreateAsync(new AuditLog
+        {
+            UserId = userId,
+            Action = "LOGOUT",
+            Module = "Authentication",
+            Description = $"User '{userName}' logged out"
+        });
+    }
+
+    /// <summary>
+    /// Log page navigation/access
+    /// </summary>
+    public async Task LogPageAccessAsync(string userId, string userName, string pageName, string module)
+    {
+        await CreateAsync(new AuditLog
+        {
+            UserId = userId,
+            Action = "PAGE_ACCESS",
+            Module = module,
+            Description = $"User '{userName}' accessed page: {pageName}"
+        });
+    }
+
+    /// <summary>
+    /// Log financial transactions with amount and balance tracking
+    /// </summary>
+    public async Task LogTransactionAsync(
+        string userId,
+        string userName,
+        string action,
+        string module,
+        string description,
+        decimal? amount = null,
+        decimal? balanceBefore = null,
+        decimal? balanceAfter = null,
+        string? oldValues = null,
+        string? newValues = null)
+    {
+        await CreateAsync(new AuditLog
+        {
+            UserId = userId,
+            Action = action,
+            Module = module,
+            Description = description,
+            Amount = amount,
+            BalanceBefore = balanceBefore,
+            BalanceAfter = balanceAfter,
+            OldValues = oldValues,
+            NewValues = newValues
+        });
+
+        // Check for suspicious transaction patterns
+        if (amount.HasValue && amount.Value > 100000) // Large transaction threshold
+        {
+            await LogSuspiciousActivityAsync(userId, "LARGE_TRANSACTION",
+                $"Large transaction detected: ₱{amount.Value:N2}");
+        }
+    }
+
+    /// <summary>
+    /// Log data modifications (Create, Update, Delete)
+    /// </summary>
+    public async Task LogDataChangeAsync(
+        string userId,
+        string userName,
+        string action, // CREATE, UPDATE, DELETE
+        string module,
+        string entityName,
+        string entityId,
+        string? oldValues = null,
+        string? newValues = null)
+    {
+        await CreateAsync(new AuditLog
+        {
+            UserId = userId,
+            Action = $"{action}_{entityName.ToUpper()}",
+            Module = module,
+            Description = $"User '{userName}' {action.ToLower()}d {entityName} (ID: {entityId})",
+            OldValues = oldValues,
+            NewValues = newValues
+        });
+    }
+
+    /// <summary>
+    /// Log approval actions (Loan approvals, withdrawal approvals, etc.)
+    /// </summary>
+    public async Task LogApprovalActionAsync(
+        string userId,
+        string userName,
+        string action, // APPROVE, REJECT, OVERRIDE
+        string module,
+        string approvalType,
+        string requestId,
+        string? reason = null,
+        decimal? amount = null)
+    {
+        await CreateAsync(new AuditLog
+        {
+            UserId = userId,
+            Action = $"{action}_{approvalType.ToUpper()}",
+            Module = module,
+            Description = $"User '{userName}' {action.ToLower()}d {approvalType} (Request ID: {requestId}). Reason: {reason ?? "N/A"}",
+            Amount = amount
+        });
+
+        // Log Super Admin overrides as potentially suspicious
+        if (action == "OVERRIDE")
+        {
+            await LogSuspiciousActivityAsync(userId, "ADMIN_OVERRIDE",
+                $"Super Admin override on {approvalType} (Request: {requestId})");
+        }
+    }
+
+    /// <summary>
+    /// Log suspicious activity for security monitoring
+    /// </summary>
+    public async Task LogSuspiciousActivityAsync(string userId, string activityType, string description)
+    {
+        await CreateAsync(new AuditLog
+        {
+            UserId = userId,
+            Action = "SUSPICIOUS_ACTIVITY",
+            Module = "Security",
+            Description = $"[{activityType}] {description}"
+        });
+    }
+
+    /// <summary>
+    /// Check for suspicious login patterns
+    /// </summary>
+    private async Task CheckSuspiciousLoginActivity(string userId, string ipAddress)
+    {
+        // Check failed login attempts in last 15 minutes
+        var recentFailures = await _context.AuditLogs
+            .Where(a => a.UserId == userId
+                     && a.Action == "LOGIN_FAILED"
+                     && a.CreatedAt >= DateTime.Now.AddMinutes(-15))
+            .CountAsync();
+
+        if (recentFailures >= 3)
+        {
+            await LogSuspiciousActivityAsync(userId, "MULTIPLE_FAILED_LOGINS",
+                $"Multiple failed login attempts detected: {recentFailures} attempts in 15 minutes from IP: {ipAddress}");
+        }
+    }
+
+    /// <summary>
+    /// Get recent audit logs for a specific user
+    /// </summary>
+    public async Task<List<AuditLog>> GetUserAuditLogsAsync(string userId, int limit = 100)
+    {
+        return await _context.AuditLogs
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(limit)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Get suspicious activities for security dashboard
+    /// </summary>
+    public async Task<List<AuditLog>> GetSuspiciousActivitiesAsync(int limit = 50)
+    {
+        return await _context.AuditLogs
+            .Where(a => a.Action == "SUSPICIOUS_ACTIVITY" || a.Action == "LOGIN_FAILED")
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(limit)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Get audit logs by module
+    /// </summary>
+    public async Task<List<AuditLog>> GetLogsByModuleAsync(string module, DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var query = _context.AuditLogs.Where(a => a.Module == module);
+
+        if (startDate.HasValue)
+            query = query.Where(a => a.CreatedAt >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(a => a.CreatedAt <= endDate.Value);
+
+        return await query.OrderByDescending(a => a.CreatedAt).ToListAsync();
+    }
+
+    /// <summary>
+    /// Get financial transaction logs with amounts
+    /// </summary>
+    public async Task<List<AuditLog>> GetFinancialTransactionLogsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var query = _context.AuditLogs.Where(a => a.Amount != null);
+
+        if (startDate.HasValue)
+            query = query.Where(a => a.CreatedAt >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(a => a.CreatedAt <= endDate.Value);
+
+        return await query.OrderByDescending(a => a.CreatedAt).ToListAsync();
+    }
+
+    /// <summary>
+    /// Get login history
+    /// </summary>
+    public async Task<List<AuditLog>> GetLoginHistoryAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var query = _context.AuditLogs.Where(a =>
+            a.Action == "LOGIN_SUCCESS" ||
+            a.Action == "LOGIN_FAILED" ||
+            a.Action == "LOGOUT");
+
+        if (startDate.HasValue)
+            query = query.Where(a => a.CreatedAt >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(a => a.CreatedAt <= endDate.Value);
+
+        return await query.OrderByDescending(a => a.CreatedAt).ToListAsync();
+    }
+
+    /// <summary>
+    /// Helper to get client IP address (if available) - Not available in MAUI
+    /// </summary>
+    public string GetClientIpAddress()
+    {
+        return "MAUI_APP"; // MAUI apps don't have HTTP context
+    }
+
+    /// <summary>
+    /// Helper to get user agent (if available) - Not available in MAUI
+    /// </summary>
+    public string GetUserAgent()
+    {
+        return "MAUI_APP"; // MAUI apps don't have HTTP context
+    }
+
     public async Task ClearAllAsync()
     {
         _context.AuditLogs.RemoveRange(_context.AuditLogs);
@@ -2450,68 +2608,42 @@ public class AuditLogService
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
     }
+}
 
-    public async Task<List<AuditLog>> GetByDateRangeAsync(DateTime from, DateTime to)
+/// <summary>
+/// Chart of Accounts Service - Manages account codes for journal entries
+/// </summary>
+public class ChartOfAccountsService
+{
+    private readonly IDbContextFactory<BFASDbContext> _contextFactory;
+
+    public ChartOfAccountsService(IDbContextFactory<BFASDbContext> contextFactory)
     {
-        return await _context.AuditLogs
-            .Where(a => a.CreatedAt >= from && a.CreatedAt <= to)
-            .OrderByDescending(a => a.CreatedAt)
+        _contextFactory = contextFactory;
+    }
+
+    /// <summary>
+    /// Get all active chart of accounts for dropdowns
+    /// </summary>
+    public async Task<List<ChartOfAccounts>> GetAllActiveAsync()
+    {
+        using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.ChartOfAccounts
+            .Where(c => c.IsActive)
+            .OrderBy(c => c.AccountCode)
             .ToListAsync();
     }
 
-    // Enhanced audit methods for transactions and security
-    public async Task LogTransaction(
-        int? accountId,
-        string transactionType,
-        decimal amount,
-        bool success,
-        string details,
-        string performedBy,
-        string ipAddress = "")
+    /// <summary>
+    /// Get account by code
+    /// </summary>
+    public async Task<ChartOfAccounts?> GetByCodeAsync(string accountCode)
     {
-        var auditLog = new AuditLog
-        {
-            UserId = performedBy,
-            Action = $"{transactionType}_{(success ? "SUCCESS" : "FAILURE")}",
-            Module = "TRANSACTION",
-            Description = $"Amount: ₱{amount:N2} | {details}",
-            IpAddress = ipAddress,
-            CreatedAt = DateTime.Now
-        };
-
-        await CreateAsync(auditLog);
-    }
-
-    public async Task LogAuthentication(
-        string username,
-        bool success,
-        string details,
-        string ipAddress = "")
-    {
-        var auditLog = new AuditLog
-        {
-            UserId = username,
-            Action = success ? "LOGIN_SUCCESS" : "LOGIN_FAILURE",
-            Module = "AUTHENTICATION",
-            Description = details,
-            IpAddress = ipAddress,
-            CreatedAt = DateTime.Now
-        };
-
-        await CreateAsync(auditLog);
-    }
-
-    public async Task<List<AuditLog>> GetFailedLoginAttempts(string username, TimeSpan timeWindow)
-    {
-        var cutoffTime = DateTime.Now.Subtract(timeWindow);
-
-        return await _context.AuditLogs
-            .Where(a => a.UserId == username
-                && a.Action == "LOGIN_FAILURE"
-                && a.CreatedAt >= cutoffTime)
-            .OrderByDescending(a => a.CreatedAt)
-            .ToListAsync();
+        using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.ChartOfAccounts
+            .FirstOrDefaultAsync(c => c.AccountCode == accountCode && c.IsActive);
     }
 }
+
 
 

@@ -121,8 +121,10 @@ namespace FinanceBank.Services
 
                 if (user == null)
                 {
-                    // Log failed attempt
+                    // Log failed attempt to LoginHistory
                     await LogFailedLoginAsync(username, "Invalid credentials", ipAddress, userAgent);
+                    // Log failed attempt to AuditLogs
+                    await LogAuditFailedLoginAsync(username, "User not found or inactive", ipAddress ?? "Unknown", userAgent ?? "Unknown");
                     return (false, "Invalid username or password");
                 }
 
@@ -131,11 +133,15 @@ namespace FinanceBank.Services
                 if (!isPasswordValid)
                 {
                     await LogFailedLoginAsync(username, "Invalid password", ipAddress, userAgent);
+                    // Log failed password to AuditLogs
+                    await LogAuditFailedLoginAsync(username, "Invalid password", ipAddress ?? "Unknown", userAgent ?? "Unknown");
                     return (false, "Invalid username or password");
                 }
 
                 // Successful login
                 await LoginAsyncInternal(user, ipAddress, userAgent);
+                // Log successful login to AuditLogs
+                await LogAuditSuccessfulLoginAsync(user.UserId.ToString(), user.FullName ?? user.Username, ipAddress ?? "Unknown", userAgent ?? "Unknown");
                 return (true, "Login successful");
             }
             catch (Exception ex)
@@ -335,6 +341,28 @@ namespace FinanceBank.Services
             catch { /* Ignore logging errors */ }
         }
 
+        public async Task LogoutAsync()
+        {
+            // Log logout to AuditLogs before clearing session
+            if (_contextFactory != null && CurrentUserId.HasValue)
+            {
+                await LogAuditLogoutAsync(CurrentUserId.Value.ToString(), FullName ?? CurrentUser ?? "Unknown");
+            }
+
+            IsAuthenticated = false;
+            CurrentUserId = null;
+            CurrentUser = null;
+            CurrentRole = null;
+            FullName = null;
+            Email = null;
+            EmployeeId = null;
+            Department = null;
+            Permissions.Clear();
+
+            // Notify authentication state changed
+            OnAuthStateChanged?.Invoke();
+        }
+
         public void Logout()
         {
             IsAuthenticated = false;
@@ -349,6 +377,56 @@ namespace FinanceBank.Services
 
             // Notify authentication state changed
             OnAuthStateChanged?.Invoke();
+        }
+
+        // ==================== AUDIT LOGGING HELPERS ====================
+
+        /// <summary>
+        /// Log successful login to AuditLogs table
+        /// </summary>
+        private async Task LogAuditSuccessfulLoginAsync(string userId, string userName, string ipAddress, string userAgent)
+        {
+            if (_contextFactory == null) return;
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var auditService = new AuditLogService(context);
+                await auditService.LogLoginSuccessAsync(userId, userName, ipAddress, userAgent);
+            }
+            catch { /* Ignore logging errors */ }
+        }
+
+        /// <summary>
+        /// Log failed login attempt to AuditLogs table
+        /// </summary>
+        private async Task LogAuditFailedLoginAsync(string attemptedUserId, string reason, string ipAddress, string userAgent)
+        {
+            if (_contextFactory == null) return;
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var auditService = new AuditLogService(context);
+                await auditService.LogLoginFailureAsync(attemptedUserId, reason, ipAddress, userAgent);
+            }
+            catch { /* Ignore logging errors */ }
+        }
+
+        /// <summary>
+        /// Log logout to AuditLogs table
+        /// </summary>
+        private async Task LogAuditLogoutAsync(string userId, string userName)
+        {
+            if (_contextFactory == null) return;
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var auditService = new AuditLogService(context);
+                await auditService.LogLogoutAsync(userId, userName);
+            }
+            catch { /* Ignore logging errors */ }
         }
 
         // Check if user has permission to access a module

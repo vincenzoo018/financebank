@@ -4,6 +4,7 @@
 @using FinanceBank.Models
 @inject AuthService AuthService
 @inject JournalEntryService JournalEntryService
+@inject ChartOfAccountsService ChartOfAccountsService
 
 <!-- Page Header -->
 <div
@@ -107,96 +108,233 @@
     </div>
 </div>
 
-<!-- Create Modal -->
-@if (showModal)
+<!-- Manual Entry Creation Modal -->
+@if (showManualModal)
 {
     <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;"
-        @onclick="CloseModal">
-        <div style="background: white; border-radius: 12px; padding: 24px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto;"
+        @onclick="CloseManualModal">
+        <div style="background: white; border-radius: 12px; padding: 24px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto;"
             @onclick:stopPropagation="true">
-            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 20px;">@(isEditing ? "Edit Journal Entry" : "New Journal Entry")</h2>
+            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #1e293b;">
+                <span class="material-symbols-outlined" style="vertical-align: middle;">add_circle</span>
+                Create Manual Journal Entry
+            </h2>
+
+            @if (!string.IsNullOrEmpty(validationError))
+            {
+                <div
+                    style="background: #fee2e2; border-left: 4px solid #ef4444; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; color: #991b1b;">
+                    <strong>❌ Validation Error:</strong> @validationError
+                </div>
+            }
 
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px;">
                 <div>
-                    <label style="font-size: 12px; font-weight: 600; color: #6b7280;">Date</label>
-                    <input type="date" @bind="formData.TransactionDate"
-                        style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px;" />
+                    <label
+                        style="font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin-bottom: 4px;">Entry
+                        Date</label>
+                    <input type="date" @bind="manualEntry.TransactionDate"
+                        style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px;" />
                 </div>
                 <div>
-                    <label style="font-size: 12px; font-weight: 600; color: #6b7280;">Reference</label>
-                    <input type="text" @bind="formData.Reference" placeholder="REF-001"
-                        style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px;" />
+                    <label
+                        style="font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin-bottom: 4px;">Reference
+                        Number</label>
+                    <input type="text" @bind="manualEntry.Reference" placeholder="MJE-001"
+                        style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px;" />
                 </div>
             </div>
 
-            <div style="margin-bottom: 16px;">
-                <label style="font-size: 12px; font-weight: 600; color: #6b7280;">Description</label>
-                <input type="text" @bind="formData.Description" placeholder="Entry description"
-                    style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px;" />
+            <div style="margin-bottom: 20px;">
+                <label
+                    style="font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin-bottom: 4px;">Description</label>
+                <textarea @bind="manualEntry.Description" placeholder="Describe this journal entry..." rows="2"
+                    style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
             </div>
 
             <div style="margin-bottom: 16px;">
-                <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Line Items</h3>
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
-                    <thead>
-                        <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
-                            <th style="padding: 8px; text-align: left; font-size: 12px;">Account Code</th>
-                            <th style="padding: 8px; text-align: right; font-size: 12px;">Debit</th>
-                            <th style="padding: 8px; text-align: right; font-size: 12px;">Credit</th>
-                            <th style="padding: 8px; text-align: center; font-size: 12px;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var line in lineItems)
-                        {
-                            <tr style="border-bottom: 1px solid #e5e7eb;">
-                                <td style="padding: 8px;">@line.AccountCode</td>
-                                <td style="padding: 8px; text-align: right;">@line.DebitAmount.ToString("N2")</td>
-                                <td style="padding: 8px; text-align: right;">@line.CreditAmount.ToString("N2")</td>
-                                <td style="padding: 8px; text-align: center;">
-                                    <button class="btn"
-                                        style="background: #f3f4f6; color: #111827; padding: 4px 8px; font-size: 12px;"
-                                        @onclick="() => RemoveLine(line)">Remove</button>
-                                </td>
-                            </tr>
-                        }
-                        <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
-                            <td style="padding: 8px;"><input type="text" @bind="newLine.AccountCode" placeholder="ACC-001"
-                                    style="width: 100%; padding: 6px; border: 1px solid #e5e7eb; border-radius: 4px;" />
-                            </td>
-                            <td style="padding: 8px;"><input type="number" @bind="newLine.DebitAmount" step="0.01"
-                                    placeholder="0.00"
-                                    style="width: 100%; padding: 6px; border: 1px solid #e5e7eb; border-radius: 4px; text-align: right;" />
-                            </td>
-                            <td style="padding: 8px;"><input type="number" @bind="newLine.CreditAmount" step="0.01"
-                                    placeholder="0.00"
-                                    style="width: 100%; padding: 6px; border: 1px solid #e5e7eb; border-radius: 4px; text-align: right;" />
-                            </td>
-                            <td style="padding: 8px; text-align: center;">
-                                <button class="btn"
-                                    style="background: #3b82f6; color: white; padding: 4px 8px; font-size: 12px;"
-                                    @onclick="AddLineItem">Add</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="font-size: 14px; font-weight: 600; color: #1e293b; margin: 0;">Journal Lines (Min: 2
+                        lines)</h3>
+                    <span style="font-size: 12px; color: #64748b;">
+                        Current: @manualLines.Count line@(manualLines.Count != 1 ? "s" : "")
+                    </span>
+                </div>
 
+                <!-- Existing Lines -->
+                @if (manualLines.Any())
+                {
+                    <div style="margin-bottom: 12px; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                                    <th
+                                        style="padding: 10px 12px; text-align: left; font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase;">
+                                        ACCOUNT</th>
+                                    <th
+                                        style="padding: 10px 12px; text-align: left; font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase;">
+                                        DESCRIPTION</th>
+                                    <th
+                                        style="padding: 10px 12px; text-align: right; font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase;">
+                                        DEBIT</th>
+                                    <th
+                                        style="padding: 10px 12px; text-align: right; font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase;">
+                                        CREDIT</th>
+                                    <th
+                                        style="padding: 10px 12px; text-align: center; font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; width: 80px;">
+                                        ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var line in manualLines)
+                                {
+                                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                                        <td style="padding: 10px 12px; font-size: 13px;">
+                                            <div style="font-weight: 600; color: #3b82f6;">@line.AccountCode</div>
+                                            <div style="font-size: 11px; color: #64748b;">@line.AccountName</div>
+                                        </td>
+                                        <td style="padding: 10px 12px; font-size: 13px; color: #475569;">@line.Description</td>
+                                        <td
+                                            style="padding: 10px 12px; text-align: right; font-size: 13px; font-family: 'JetBrains Mono', monospace;">
+                                            @if (line.DebitAmount > 0)
+                                            {
+                                                <span style="color: #ef4444; font-weight: 600;">₱@line.DebitAmount.ToString("N2")</span>
+                                            }
+                                            else
+                                            {
+                                                <span style="color: #cbd5e1;">-</span>
+                                            }
+                                        </td>
+                                        <td
+                                            style="padding: 10px 12px; text-align: right; font-size: 13px; font-family: 'JetBrains Mono', monospace;">
+                                            @if (line.CreditAmount > 0)
+                                            {
+                                                <span
+                                                    style="color: #10b981; font-weight: 600;">₱@line.CreditAmount.ToString("N2")</span>
+                                            }
+                                            else
+                                            {
+                                                <span style="color: #cbd5e1;">-</span>
+                                            }
+                                        </td>
+                                        <td style="padding: 10px 12px; text-align: center;">
+                                            <button class="btn"
+                                                style="background: #fee2e2; color: #991b1b; padding: 4px 10px; font-size: 12px; border-radius: 4px; font-weight: 500;"
+                                                @onclick="() => RemoveManualLine(line)">
+                                                <span class="material-symbols-outlined"
+                                                    style="font-size: 14px; vertical-align: middle;">delete</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <!-- Add New Line Form -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
+                    <h4 style="font-size: 13px; font-weight: 600; color: #475569; margin: 0 0 12px 0;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">add</span>
+                        Add Line Item
+                    </h4>
+                    <div style="display: grid; grid-template-columns: 2fr 2fr 1fr 1fr auto; gap: 12px; align-items: end;">
+                        <div>
+                            <label
+                                style="font-size: 11px; font-weight: 500; color: #64748b; display: block; margin-bottom: 4px;">Account
+                                *</label>
+                            <select @bind="newManualLine.AccountCode"
+                                style="width: 100%; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; background: white;">
+                                <option value="">-- Select Account --</option>
+                                @foreach (var account in chartOfAccounts)
+                                {
+                                    <option value="@account.AccountCode">@account.AccountCode - @account.AccountName</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                style="font-size: 11px; font-weight: 500; color: #64748b; display: block; margin-bottom: 4px;">Description</label>
+                            <input type="text" @bind="newManualLine.Description" placeholder="Line description"
+                                style="width: 100%; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px;" />
+                        </div>
+                        <div>
+                            <label
+                                style="font-size: 11px; font-weight: 500; color: #64748b; display: block; margin-bottom: 4px;">Debit</label>
+                            <input type="number" @bind="newManualLine.DebitAmount" step="0.01" min="0" placeholder="0.00"
+                                style="width: 100%; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; text-align: right;" />
+                        </div>
+                        <div>
+                            <label
+                                style="font-size: 11px; font-weight: 500; color: #64748b; display: block; margin-bottom: 4px;">Credit</label>
+                            <input type="number" @bind="newManualLine.CreditAmount" step="0.01" min="0" placeholder="0.00"
+                                style="width: 100%; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; text-align: right;" />
+                        </div>
+                        <div>
+                            <button class="btn"
+                                style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600;"
+                                @onclick="AddManualLine">
+                                <span class="material-symbols-outlined"
+                                    style="font-size: 16px; vertical-align: middle;">add_circle</span>
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Balance Summary -->
                 <div
-                    style="display: flex; justify-content: flex-end; gap: 24px; padding: 12px; background: #f9fafb; border-radius: 6px;">
-                    <div><strong>Debit Total:</strong> ₱@lineItems.Sum(l => l.DebitAmount).ToString("N2")</div>
-                    <div><strong>Credit Total:</strong> ₱@lineItems.Sum(l => l.CreditAmount).ToString("N2")</div>
-                    <div style="color: @(IsBalanced() ? "#10b981" : "#ef4444");"><strong>@(IsBalanced() ? "✓ Balanced" : "✗ Out of Balance")</strong></div>
+                    style="margin-top: 16px; padding: 16px; border-radius: 8px; background: @(falseEntryBalanced() ? "#f0fdf4" : "#fef2f2"); border: 2px solid @(falseEntryBalanced() ? "#10b981" : "#ef4444");">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 11px; color: #64748b; font-weight: 600; margin-bottom: 4px;">TOTALS</div>
+                            <div style="display: flex; gap: 24px;">
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b;">Debit:</span>
+                                    <span
+                                        style="font-size: 16px; font-weight: 700; color: #ef4444; margin-left: 6px; font-family: 'JetBrains Mono', monospace;">₱@manualLines.Sum(l
+                                                                            => l.DebitAmount).ToString("N2")</span>
+                            </div>
+                            <div>
+                                <span style="font-size: 12px; color: #64748b;">Credit:</span>
+                                <span
+                                    style="font-size: 16px; font-weight: 700; color: #10b981; margin-left: 6px; font-family: 'JetBrains Mono', monospace;">₱@manualLines.Sum(l
+                                                                        => l.CreditAmount).ToString("N2")</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        @if (falseEntryBalanced())
+                            {
+                                <div
+                                    style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #dcfce7; color: #166534; border-radius: 6px; font-weight: 600; font-size: 14px;">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">check_circle</span>
+                                    Balanced
+                                </div>
+                            }
+                            else
+                            {
+                                <div
+                                    style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #fee2e2; color: #991b1b; border-radius: 6px; font-weight: 600; font-size: 14px;">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">cancel</span>
+                                    Out of Balance
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <div
+                style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #e5e7eb;">
                 <button class="btn"
-                    style="background: #e5e7eb; color: #111827; padding: 10px 18px; border-radius: 8px; font-weight: 600;"
-                    @onclick="CloseModal">Cancel</button>
+                    style="background: #f1f5f9; color: #475569; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 14px;"
+                    @onclick="CloseManualModal">Cancel</button>
                 <button class="btn"
-                    style="background: #059669; color: white; padding: 10px 18px; border-radius: 8px; font-weight: 600;"
-                    @onclick="SaveEntry" disabled="@(!IsBalanced())">
-                    @(isEditing ? "Update" : "Create") Entry
+                    style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 14px; opacity: @(CanSaveManualEntry() ? "1" : "0.5");"
+                    @onclick="SaveManualEntry" disabled="@(!CanSaveManualEntry())">
+                    <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">save</span>
+                    Create Entry
                 </button>
             </div>
         </div>
@@ -208,8 +346,11 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Journal Entries</h2>
         <button class="btn"
-            style="background: #059669; color: white; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600;"
-            @onclick="OpenNewEntryModal">+ New Entry</button>
+            style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600;"
+            @onclick="OpenManualEntryModal">
+            <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">add_circle</span>
+            New Manual Entry
+        </button>
     </div>
 
     <div style="overflow-x: auto;">
@@ -230,23 +371,25 @@
                 {
                     @foreach (var entry in GetPagedEntries())
                     {
-                        var isAutoGenerated = entry.JournalId < 0 || entry.JournalNumber?.StartsWith("AUTO-") == true;
-                        <tr style="border-bottom: 1px solid #e5e7eb; @(isAutoGenerated ? "background: #fefce8;" : "")">
+                        // Manual entry checking removed - SourceType property does not exist in database
+                        <tr style="border-bottom: 1px solid #e5e7eb; @(false ? "background: #fef3c7;" : "")">
                             <td style="padding: 12px; font-size: 13px; color: #111827;">
                                 @entry.TransactionDate.ToString("yyyy-MM-dd")
-                                @if (isAutoGenerated)
+                                @if (false)
                                 {
                                     <span
-                                        style="display: inline-block; margin-left: 6px; font-size: 10px; background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px;">AUTO</span>
+                                        style="display: inline-block; margin-left: 6px; font-size: 10px; background: #f59e0b; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 600;">MANUAL</span>
                                 }
                             </td>
                             <td style="padding: 12px; font-size: 13px; color: #4b5563;">@entry.Reference</td>
                             <td style="padding: 12px; font-size: 13px; color: #4b5563; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
                                 title="@entry.Description">@entry.Description</td>
-                            <td style="padding: 12px; text-align: right; font-size: 13px; color: #10b981; font-weight: 600;">
-                                @(entry.TotalDebit > 0 ? "₱" + entry.TotalDebit.ToString("N2") : "")</td>
-                            <td style="padding: 12px; text-align: right; font-size: 13px; color: #ef4444; font-weight: 600;">
-                                @(entry.TotalCredit > 0 ? "₱" + entry.TotalCredit.ToString("N2") : "")</td>
+                            <td
+                                style="padding: 12px; text-align: right; font-size: 13px; color: #ef4444; font-weight: 600; font-family: 'JetBrains Mono', monospace;">
+                                @(entry.TotalDebit > 0 ? "₱" + entry.TotalDebit.ToString("N2") : "-")</td>
+                            <td
+                                style="padding: 12px; text-align: right; font-size: 13px; color: #10b981; font-weight: 600; font-family: 'JetBrains Mono', monospace;">
+                                @(entry.TotalCredit > 0 ? "₱" + entry.TotalCredit.ToString("N2") : "-")</td>
                             <td style="padding: 12px;">
                                 <span
                                     style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: @GetStatusBg(entry.Status); color: @GetStatusColor(entry.Status);">
@@ -254,14 +397,11 @@
                                 </span>
                             </td>
                             <td style="padding: 12px; text-align: center;">
-                                @if (!isAutoGenerated && entry.Status == "Draft")
+                                @if (false && entry.Status == "Draft")
                                 {
                                     <button class="btn"
-                                        style="background: #059669; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; margin-right: 4px; font-weight: 600;"
-                                        @onclick="() => EditEntry(entry)">Edit</button>
-                                    <button class="btn"
-                                        style="background: #10b981; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600;"
-                                        @onclick="() => PostEntry(entry)">Post</button>
+                                        style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; margin-right: 4px; font-weight: 600;"
+                                        @onclick="() => PostJournalEntry(entry)">Post</button>
                                 }
                                 <button class="btn"
                                     style="background: #e5e7eb; color: #111827; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600;"
@@ -282,7 +422,7 @@
                     <tr>
                         <td colspan="7" style="padding: 24px; text-align: center; font-size: 14px; color: #6b7280;">
                             Loading entries... (Found @(depositCount + withdrawalCount + loanPaymentCount) transactions)
-                            <br /><a href="#" style="color: #8b5cf6;" @onclick="OpenNewEntryModal">Or create a manual
+                            <br /><a href="#" style="color: #8b5cf6;" @onclick="OpenManualEntryModal">Or create a manual
                                 entry</a>
                         </td>
                     </tr>
@@ -294,9 +434,11 @@
     <!-- Pagination Controls -->
     @if (entries.Any() && TotalPages > 1)
     {
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
             <div style="font-size: 14px; color: #6b7280;">
-                Showing @((currentPage - 1) * pageSize + 1) to @Math.Min(currentPage * pageSize, entries.Count) of @entries.Count entries
+                Showing @((currentPage - 1) * pageSize + 1) to @Math.Min(currentPage * pageSize, entries.Count) of
+                @entries.Count entries
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
                 <button class="btn"
@@ -351,25 +493,34 @@
             <div
                 style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; background: #f9fafb; padding: 16px; border-radius: 8px;">
                 <div>
-                    <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Journal Number</div>
-                    <div style="font-size: 14px; color: #111827; font-weight: 500;">@viewEntry.JournalNumber</div>
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Journal Entry ID</div>
+                    <div style="font-size: 14px; color: #111827; font-weight: 500;">@viewEntry.JournalId</div>
                 </div>
                 <div>
-                    <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Transaction Date</div>
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Reference Number</div>
+                    <div style="font-size: 14px; color: #111827; font-weight: 500;">@viewEntry.Reference</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Entry Date</div>
                     <div style="font-size: 14px; color: #111827; font-weight: 500;">
                         @viewEntry.TransactionDate.ToString("MMMM dd, yyyy")</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Entry Type</div>
+                    <div style="font-size: 14px; color: #111827; font-weight: 500;">@("System" ?? "System")
+                    </div>
                 </div>
                 <div style="grid-column: span 2;">
                     <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Description</div>
                     <div style="font-size: 14px; color: #111827;">@viewEntry.Description</div>
                 </div>
                 <div>
-                    <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Reference</div>
-                    <div style="font-size: 14px; color: #111827;">@(viewEntry.Reference ?? "-")</div>
-                </div>
-                <div>
                     <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Created By</div>
                     <div style="font-size: 14px; color: #111827;">@viewEntry.CreatedBy</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Posted By</div>
+                    <div style="font-size: 14px; color: #111827;">@(viewEntry.PostedBy ?? "-")</div>
                 </div>
             </div>
 
@@ -395,11 +546,11 @@
                                 </td>
                                 <td style="padding: 10px; font-size: 13px; color: #6b7280;">@line.Description</td>
                                 <td
-                                    style="padding: 10px; text-align: right; font-size: 13px; color: @(line.DebitAmount > 0 ? "#10b981" : "#9ca3af"); font-weight: @(line.DebitAmount > 0 ? "600" : "400");">
+                                    style="padding: 10px; text-align: right; font-size: 13px; color: @(line.DebitAmount > 0 ? "#ef4444" : "#9ca3af"); font-weight: @(line.DebitAmount > 0 ? "600" : "400"); font-family: 'JetBrains Mono', monospace;">
                                     @(line.DebitAmount > 0 ? "₱" + line.DebitAmount.ToString("N2") : "-")
                                 </td>
                                 <td
-                                    style="padding: 10px; text-align: right; font-size: 13px; color: @(line.CreditAmount > 0 ? "#ef4444" : "#9ca3af"); font-weight: @(line.CreditAmount > 0 ? "600" : "400");">
+                                    style="padding: 10px; text-align: right; font-size: 13px; color: @(line.CreditAmount > 0 ? "#10b981" : "#9ca3af"); font-weight: @(line.CreditAmount > 0 ? "600" : "400"); font-family: 'JetBrains Mono', monospace;">
                                     @(line.CreditAmount > 0 ? "₱" + line.CreditAmount.ToString("N2") : "-")
                                 </td>
                             </tr>
@@ -410,9 +561,11 @@
                     <tr style="background: #f0fdf4; border-top: 2px solid #059669;">
                         <td colspan="2" style="padding: 12px; text-align: right; font-weight: 700; color: #111827;">TOTALS:
                         </td>
-                        <td style="padding: 12px; text-align: right; font-weight: 700; color: #10b981;">
+                        <td
+                            style="padding: 12px; text-align: right; font-weight: 700; color: #ef4444; font-family: 'JetBrains Mono', monospace;">
                             ₱@viewEntry.TotalDebit.ToString("N2")</td>
-                        <td style="padding: 12px; text-align: right; font-weight: 700; color: #ef4444;">
+                        <td
+                            style="padding: 12px; text-align: right; font-weight: 700; color: #10b981; font-family: 'JetBrains Mono', monospace;">
                             ₱@viewEntry.TotalCredit.ToString("N2")</td>
                     </tr>
                 </tfoot>
@@ -434,18 +587,19 @@
 
 @code {
     private List<JournalEntry> entries = new();
-    private JournalEntry formData = new();
-    private List<JournalEntryLine> lineItems = new();
-    private JournalEntryLine newLine = new();
-    private bool showModal = false;
+    private List<ChartOfAccounts> chartOfAccounts = new();
+    private bool showManualModal = false;
     private bool showViewModal = false;
     private JournalEntry? viewEntry = null;
-    private bool isEditing = false;
-    private int editingId = 0;
     private int postedThisMonth = 0;
-    private int pendingCount = 0;
     private bool showAutoGenerated = true;
     private string errorMessage = "";
+    private string validationError = "";
+
+    // Manual Entry Form
+    private JournalEntry manualEntry = new();
+    private List<JournalEntryLine> manualLines = new();
+    private JournalEntryLine newManualLine = new();
 
     // Pagination variables
     private int currentPage = 1;
@@ -464,8 +618,21 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadChartOfAccounts();
         await LoadEntries();
         await LoadTransactionStats();
+    }
+
+    private async Task LoadChartOfAccounts()
+    {
+        try
+        {
+            chartOfAccounts = await ChartOfAccountsService.GetAllActiveAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading chart of accounts: {ex.Message}");
+        }
     }
 
     private async Task LoadEntries()
@@ -473,23 +640,15 @@
         try
         {
             errorMessage = "";
-            // Always load with transactions to show all entries
-            entries = await JournalEntryService.GetAllWithTransactionsAsync();
+            entries = await JournalEntryService.GetAllAsync();
             CalculateStats();
-            System.Diagnostics.Debug.WriteLine($"Loaded {entries.Count} entries");
-
-            if (entries.Count == 0)
-            {
-                errorMessage = "No journal entries found. Transactions may not be available yet.";
-            }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading entries: {ex.Message}");
+            Console.WriteLine($"Error loading entries: {ex.Message}");
             errorMessage = $"Error loading entries: {ex.Message}";
             entries = new List<JournalEntry>();
         }
-        StateHasChanged();
     }
 
     private async Task LoadTransactionStats()
@@ -508,7 +667,7 @@
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading stats: {ex.Message}");
+            Console.WriteLine($"Error loading stats: {ex.Message}");
         }
     }
 
@@ -526,27 +685,121 @@
 
         postedThisMonth = entries.Count(e => e.TransactionDate >= monthStart && e.TransactionDate <= monthEnd && e.Status ==
         "Posted");
-        pendingCount = entries.Count(e => e.Status == "Draft");
     }
 
-    private void OpenNewEntryModal()
+    private void OpenManualEntryModal()
     {
-        formData = new JournalEntry { TransactionDate = DateTime.Today, Status = "Draft" };
-        lineItems = new List<JournalEntryLine>();
-        newLine = new JournalEntryLine();
-        isEditing = false;
-        editingId = 0;
-        showModal = true;
+        manualEntry = new JournalEntry
+        {
+            TransactionDate = DateTime.Today,
+            Status = "Draft",
+            // SourceType = "Manual", // Property does not exist in database
+            Reference = $"MJE-{DateTime.Now:yyyyMMddHHmmss}"
+        };
+        manualLines = new List<JournalEntryLine>();
+        newManualLine = new JournalEntryLine();
+        validationError = "";
+        showManualModal = true;
     }
 
-    private void EditEntry(JournalEntry entry)
+    private void AddManualLine()
     {
-        formData = entry;
-        lineItems = entry.Lines?.ToList() ?? new List<JournalEntryLine>();
-        newLine = new JournalEntryLine();
-        isEditing = true;
-        editingId = entry.JournalId;
-        showModal = true;
+        validationError = "";
+
+        if (string.IsNullOrEmpty(newManualLine.AccountCode))
+        {
+            validationError = "Please select an account.";
+            return;
+        }
+
+        if (newManualLine.DebitAmount == 0 && newManualLine.CreditAmount == 0)
+        {
+            validationError = "Line must have either a debit or credit amount.";
+            return;
+        }
+
+        if (newManualLine.DebitAmount > 0 && newManualLine.CreditAmount > 0)
+        {
+            validationError = "A line cannot have both debit and credit amounts.";
+            return;
+        }
+
+        var selectedAccount = chartOfAccounts.FirstOrDefault(a => a.AccountCode == newManualLine.AccountCode);
+        if (selectedAccount != null)
+        {
+            manualLines.Add(new JournalEntryLine
+            {
+                AccountCode = newManualLine.AccountCode,
+                AccountName = selectedAccount.AccountName,
+                Description = newManualLine.Description ?? selectedAccount.AccountName,
+                DebitAmount = newManualLine.DebitAmount,
+                CreditAmount = newManualLine.CreditAmount
+            });
+
+            newManualLine = new JournalEntryLine();
+        }
+    }
+
+    private void RemoveManualLine(JournalEntryLine line)
+    {
+        manualLines.Remove(line);
+    }
+
+    private bool falseEntryBalanced()
+    {
+        return manualLines.Any() && manualLines.Sum(l => l.DebitAmount) == manualLines.Sum(l => l.CreditAmount);
+    }
+
+    private bool CanSaveManualEntry()
+    {
+        return manualLines.Count >= 2 && falseEntryBalanced() && !string.IsNullOrEmpty(manualEntry.Description);
+    }
+
+    private async Task SaveManualEntry()
+    {
+        validationError = "";
+
+        if (manualLines.Count < 2)
+        {
+            validationError = "A journal entry must have at least 2 lines.";
+            return;
+        }
+
+        if (!falseEntryBalanced())
+        {
+            validationError = "Total debits must equal total credits.";
+            return;
+        }
+
+        try
+        {
+            manualEntry.Lines = manualLines;
+            manualEntry.TotalDebit = manualLines.Sum(l => l.DebitAmount);
+            manualEntry.TotalCredit = manualLines.Sum(l => l.CreditAmount);
+            manualEntry.CreatedBy = AuthService.CurrentUser ?? "accountant";
+
+            await JournalEntryService.CreateAsync(manualEntry);
+            await LoadEntries();
+            CloseManualModal();
+        }
+        catch (Exception ex)
+        {
+            validationError = $"Error creating entry: {ex.Message}";
+            Console.WriteLine($"Error saving manual entry: {ex.Message}");
+        }
+    }
+
+    private async Task PostJournalEntry(JournalEntry entry)
+    {
+        try
+        {
+            await JournalEntryService.PostAsync(entry.JournalId, AuthService.CurrentUser ?? "accountant");
+            await LoadEntries();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error posting entry: {ex.Message}");
+        }
     }
 
     private void ViewEntry(JournalEntry entry)
@@ -561,80 +814,10 @@
         viewEntry = null;
     }
 
-    private async Task SaveEntry()
+    private void CloseManualModal()
     {
-        try
-        {
-            formData.Lines = lineItems;
-            formData.TotalDebit = lineItems.Sum(l => l.DebitAmount);
-            formData.TotalCredit = lineItems.Sum(l => l.CreditAmount);
-            formData.CreatedBy = AuthService.CurrentUser ?? "accountant";
-
-            if (isEditing)
-            {
-                await JournalEntryService.UpdateAsync(formData);
-            }
-            else
-            {
-                await JournalEntryService.CreateAsync(formData);
-            }
-
-            await LoadEntries();
-            CloseModal();
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error saving entry: {ex.Message}");
-        }
-    }
-
-    private async Task PostEntry(JournalEntry entry)
-    {
-        try
-        {
-            if (entry.TotalDebit == entry.TotalCredit)
-            {
-                await JournalEntryService.PostAsync(entry.JournalId, AuthService.CurrentUser ?? "accountant");
-                await LoadEntries();
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("Cannot post unbalanced entry");
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error posting entry: {ex.Message}");
-        }
-    }
-
-    private void AddLineItem()
-    {
-        if (!string.IsNullOrEmpty(newLine.AccountCode))
-        {
-            lineItems.Add(new JournalEntryLine
-            {
-                AccountCode = newLine.AccountCode,
-                DebitAmount = newLine.DebitAmount,
-                CreditAmount = newLine.CreditAmount
-            });
-            newLine = new JournalEntryLine();
-        }
-    }
-
-    private void RemoveLine(JournalEntryLine line)
-    {
-        lineItems.Remove(line);
-    }
-
-    private bool IsBalanced()
-    {
-        return lineItems.Sum(l => l.DebitAmount) == lineItems.Sum(l => l.CreditAmount) && lineItems.Count > 0;
-    }
-
-    private void CloseModal()
-    {
-        showModal = false;
+        showManualModal = false;
+        validationError = "";
     }
 
     private string GetStatusBg(string status)
@@ -663,9 +846,9 @@
     private IEnumerable<JournalEntry> GetPagedEntries()
     {
         return entries
-            .OrderByDescending(e => e.TransactionDate)
-            .Skip((currentPage - 1) * pageSize)
-            .Take(pageSize);
+        .OrderByDescending(e => e.TransactionDate)
+        .Skip((currentPage - 1) * pageSize)
+        .Take(pageSize);
     }
 
     private void NextPage()

@@ -198,11 +198,11 @@ namespace FinanceBank.Services
         }
 
         // General Ledger
-        public async Task<List<GeneralLedgerEntry>> GetAllGeneralLedgerEntriesAsync()
+        public async Task<List<GeneralLedgerTransaction>> GetAllGeneralLedgerEntriesAsync()
         {
             try
             {
-                return await _context.GeneralLedgerEntries.ToListAsync();
+                return await _context.GeneralLedgerTransactions.ToListAsync();
             }
             catch (Exception ex)
             {
@@ -210,11 +210,11 @@ namespace FinanceBank.Services
             }
         }
 
-        public async Task<GeneralLedgerEntry?> GetGeneralLedgerEntryByIdAsync(int id)
+        public async Task<GeneralLedgerTransaction?> GetGeneralLedgerEntryByIdAsync(int id)
         {
             try
             {
-                return await _context.GeneralLedgerEntries.FindAsync(id);
+                return await _context.GeneralLedgerTransactions.FindAsync(id);
             }
             catch (Exception ex)
             {

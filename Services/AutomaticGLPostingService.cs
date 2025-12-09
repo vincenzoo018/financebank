@@ -89,50 +89,34 @@ public class AutomaticGLPostingService
         context.JournalEntries.Add(journal);
         await context.SaveChangesAsync();
 
-        // Create GL Entries
-        var glEntries = new List<GeneralLedgerEntry>
+        // Create Journal Entry Lines
+        var journalLines = new List<JournalEntryLine>
         {
             // Debit Cash on Hand
-            new GeneralLedgerEntry
+            new JournalEntryLine
             {
-                EntryNumber = $"GL-DEP-{transactionId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_CASH_ON_HAND,
-                AccountName = "Cash on Hand",
-                AccountType = "Asset",
-                TransactionDate = transactionDate,
-                Reference = transactionNumber,
-                Description = $"Deposit received - {customerName}",
                 DebitAmount = amount,
                 CreditAmount = 0,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Deposit received - {customerName}"
             },
             // Credit Customer Deposits
-            new GeneralLedgerEntry
+            new JournalEntryLine
             {
-                EntryNumber = $"GL-DEP-{transactionId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_CUSTOMER_DEPOSITS,
-                AccountName = "Customer Deposits",
-                AccountType = "Liability",
-                TransactionDate = transactionDate,
-                Reference = transactionNumber,
-                Description = $"Deposit liability - {customerName}",
                 DebitAmount = 0,
                 CreditAmount = amount,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Deposit liability - {customerName}"
             }
         };
 
-        context.GeneralLedgerEntries.AddRange(glEntries);
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
 
-        // Update Chart of Accounts balances
-        await UpdateAccountBalanceAsync(context, ACCOUNT_CASH_ON_HAND, amount, true);
-        await UpdateAccountBalanceAsync(context, ACCOUNT_CUSTOMER_DEPOSITS, amount, false);
+        // Create corresponding GL Transactions
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, transactionDate, transactionNumber);
 
         await context.SaveChangesAsync();
     }
@@ -178,50 +162,34 @@ public class AutomaticGLPostingService
         context.JournalEntries.Add(journal);
         await context.SaveChangesAsync();
 
-        // Create GL Entries
-        var glEntries = new List<GeneralLedgerEntry>
+        // Create Journal Entry Lines
+        var journalLines = new List<JournalEntryLine>
         {
             // Debit Customer Deposits (decrease liability)
-            new GeneralLedgerEntry
+            new JournalEntryLine
             {
-                EntryNumber = $"GL-WDR-{transactionId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_CUSTOMER_DEPOSITS,
-                AccountName = "Customer Deposits",
-                AccountType = "Liability",
-                TransactionDate = transactionDate,
-                Reference = transactionNumber,
-                Description = $"Withdrawal - {customerName}",
                 DebitAmount = amount,
                 CreditAmount = 0,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Withdrawal - {customerName}"
             },
             // Credit Cash on Hand (decrease asset)
-            new GeneralLedgerEntry
+            new JournalEntryLine
             {
-                EntryNumber = $"GL-WDR-{transactionId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_CASH_ON_HAND,
-                AccountName = "Cash on Hand",
-                AccountType = "Asset",
-                TransactionDate = transactionDate,
-                Reference = transactionNumber,
-                Description = $"Cash disbursed - {customerName}",
                 DebitAmount = 0,
                 CreditAmount = amount,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Cash disbursed - {customerName}"
             }
         };
 
-        context.GeneralLedgerEntries.AddRange(glEntries);
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
 
-        // Update Chart of Accounts balances
-        await UpdateAccountBalanceAsync(context, ACCOUNT_CUSTOMER_DEPOSITS, amount, true); // Debit decreases liability
-        await UpdateAccountBalanceAsync(context, ACCOUNT_CASH_ON_HAND, amount, false); // Credit decreases asset
+        // Create corresponding GL Transactions
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, transactionDate, transactionNumber);
 
         await context.SaveChangesAsync();
     }
@@ -271,50 +239,34 @@ public class AutomaticGLPostingService
         context.JournalEntries.Add(journal);
         await context.SaveChangesAsync();
 
-        // Create GL Entries for the transfer fee
-        var glEntries = new List<GeneralLedgerEntry>
+        // Create Journal Entry Lines for the transfer fee
+        var journalLines = new List<JournalEntryLine>
         {
             // Debit Customer Deposits (fee deducted from customer)
-            new GeneralLedgerEntry
+            new JournalEntryLine
             {
-                EntryNumber = $"GL-TRF-{transactionId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_CUSTOMER_DEPOSITS,
-                AccountName = "Customer Deposits",
-                AccountType = "Liability",
-                TransactionDate = transactionDate,
-                Reference = transactionNumber,
-                Description = $"Transfer fee - {senderName}",
                 DebitAmount = fee,
                 CreditAmount = 0,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Transfer fee - {senderName}"
             },
             // Credit Service Fee Income
-            new GeneralLedgerEntry
+            new JournalEntryLine
             {
-                EntryNumber = $"GL-TRF-{transactionId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_SERVICE_FEE_INCOME,
-                AccountName = "Service Fee Income",
-                AccountType = "Revenue",
-                TransactionDate = transactionDate,
-                Reference = transactionNumber,
-                Description = $"Transfer fee income",
                 DebitAmount = 0,
                 CreditAmount = fee,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Transfer fee income"
             }
         };
 
-        context.GeneralLedgerEntries.AddRange(glEntries);
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
 
-        // Update Chart of Accounts balances
-        await UpdateAccountBalanceAsync(context, ACCOUNT_CUSTOMER_DEPOSITS, fee, true);
-        await UpdateAccountBalanceAsync(context, ACCOUNT_SERVICE_FEE_INCOME, fee, false);
+        // Create corresponding GL Transactions
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, transactionDate, transactionNumber);
 
         await context.SaveChangesAsync();
     }
@@ -361,50 +313,34 @@ public class AutomaticGLPostingService
         context.JournalEntries.Add(journal);
         await context.SaveChangesAsync();
 
-        // Create GL Entries
-        var glEntries = new List<GeneralLedgerEntry>
+        // Create Journal Entry Lines
+        var journalLines = new List<JournalEntryLine>
         {
             // Debit Customer Deposits (money deducted from customer account)
-            new GeneralLedgerEntry
+            new JournalEntryLine
             {
-                EntryNumber = $"GL-BILL-{transactionId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_CUSTOMER_DEPOSITS,
-                AccountName = "Customer Deposits",
-                AccountType = "Liability",
-                TransactionDate = transactionDate,
-                Reference = transactionNumber,
-                Description = $"Bill payment - {customerName} to {billerName}",
                 DebitAmount = amount,
                 CreditAmount = 0,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Bill payment - {customerName} to {billerName}"
             },
             // Credit Cash on Hand (cash paid to biller)
-            new GeneralLedgerEntry
+            new JournalEntryLine
             {
-                EntryNumber = $"GL-BILL-{transactionId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_CASH_ON_HAND,
-                AccountName = "Cash on Hand",
-                AccountType = "Asset",
-                TransactionDate = transactionDate,
-                Reference = transactionNumber,
-                Description = $"Cash paid to {billerName}",
                 DebitAmount = 0,
                 CreditAmount = amount,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Cash paid to {billerName}"
             }
         };
 
-        context.GeneralLedgerEntries.AddRange(glEntries);
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
 
-        // Update Chart of Accounts balances
-        await UpdateAccountBalanceAsync(context, ACCOUNT_CUSTOMER_DEPOSITS, amount, true);
-        await UpdateAccountBalanceAsync(context, ACCOUNT_CASH_ON_HAND, amount, false);
+        // Create corresponding GL Transactions
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, transactionDate, transactionNumber);
 
         await context.SaveChangesAsync();
     }
@@ -450,50 +386,34 @@ public class AutomaticGLPostingService
         context.JournalEntries.Add(journal);
         await context.SaveChangesAsync();
 
-        // Create GL Entries
-        var glEntries = new List<GeneralLedgerEntry>
+        // Create Journal Entry Lines
+        var journalLines = new List<JournalEntryLine>
         {
             // Debit Loans Receivable
-            new GeneralLedgerEntry
+            new JournalEntryLine
             {
-                EntryNumber = $"GL-LD-{disbursalId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_LOANS_RECEIVABLE,
-                AccountName = "Loans Receivable",
-                AccountType = "Asset",
-                TransactionDate = disbursalDate,
-                Reference = loanNumber,
-                Description = $"Loan released - {loanNumber} - {customerName}",
                 DebitAmount = amount,
                 CreditAmount = 0,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Loan released - {loanNumber} - {customerName}"
             },
             // Credit Cash on Hand
-            new GeneralLedgerEntry
+            new JournalEntryLine
             {
-                EntryNumber = $"GL-LD-{disbursalId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_CASH_ON_HAND,
-                AccountName = "Cash on Hand",
-                AccountType = "Asset",
-                TransactionDate = disbursalDate,
-                Reference = loanNumber,
-                Description = $"Cash disbursed for loan - {customerName}",
                 DebitAmount = 0,
                 CreditAmount = amount,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Cash disbursed for loan - {customerName}"
             }
         };
 
-        context.GeneralLedgerEntries.AddRange(glEntries);
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
 
-        // Update Chart of Accounts balances
-        await UpdateAccountBalanceAsync(context, ACCOUNT_LOANS_RECEIVABLE, amount, true);
-        await UpdateAccountBalanceAsync(context, ACCOUNT_CASH_ON_HAND, amount, false);
+        // Create corresponding GL Transactions
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, disbursalDate, loanNumber);
 
         await context.SaveChangesAsync();
     }
@@ -544,99 +464,62 @@ public class AutomaticGLPostingService
         context.JournalEntries.Add(journal);
         await context.SaveChangesAsync();
 
-        var glEntries = new List<GeneralLedgerEntry>();
+        var journalLines = new List<JournalEntryLine>();
 
         // Debit Cash on Hand (total payment received)
-        glEntries.Add(new GeneralLedgerEntry
+        journalLines.Add(new JournalEntryLine
         {
-            EntryNumber = $"GL-LP-{paymentId}",
             JournalId = journal.JournalId,
             AccountCode = ACCOUNT_CASH_ON_HAND,
-            AccountName = "Cash on Hand",
-            AccountType = "Asset",
-            TransactionDate = paymentDate,
-            Reference = $"LP-{paymentId}",
-            Description = $"Loan payment received - {loanNumber}",
             DebitAmount = totalPayment,
             CreditAmount = 0,
-            CreatedAt = DateTime.Now,
-            CreatedBy = "System",
-            Status = "Posted"
+            Description = $"Loan payment received - {loanNumber}"
         });
 
         // Credit Loans Receivable (principal portion)
         if (principalAmount > 0)
         {
-            glEntries.Add(new GeneralLedgerEntry
+            journalLines.Add(new JournalEntryLine
             {
-                EntryNumber = $"GL-LP-{paymentId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_LOANS_RECEIVABLE,
-                AccountName = "Loans Receivable",
-                AccountType = "Asset",
-                TransactionDate = paymentDate,
-                Reference = $"LP-{paymentId}",
-                Description = $"Principal collected - {loanNumber}",
                 DebitAmount = 0,
                 CreditAmount = principalAmount,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Principal collected - {loanNumber}"
             });
         }
 
         // Credit Interest Income
         if (interestAmount > 0)
         {
-            glEntries.Add(new GeneralLedgerEntry
+            journalLines.Add(new JournalEntryLine
             {
-                EntryNumber = $"GL-LP-{paymentId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_INTEREST_INCOME,
-                AccountName = "Interest Income",
-                AccountType = "Revenue",
-                TransactionDate = paymentDate,
-                Reference = $"LP-{paymentId}",
-                Description = $"Interest income - {loanNumber}",
                 DebitAmount = 0,
                 CreditAmount = interestAmount,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Interest income - {loanNumber}"
             });
         }
 
         // Credit Penalty Income
         if (penaltyAmount > 0)
         {
-            glEntries.Add(new GeneralLedgerEntry
+            journalLines.Add(new JournalEntryLine
             {
-                EntryNumber = $"GL-LP-{paymentId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_PENALTY_INCOME,
-                AccountName = "Penalty Income",
-                AccountType = "Revenue",
-                TransactionDate = paymentDate,
-                Reference = $"LP-{paymentId}",
-                Description = $"Penalty income - {loanNumber}",
                 DebitAmount = 0,
                 CreditAmount = penaltyAmount,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Penalty income - {loanNumber}"
             });
         }
 
-        context.GeneralLedgerEntries.AddRange(glEntries);
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
 
-        // Update Chart of Accounts balances
-        await UpdateAccountBalanceAsync(context, ACCOUNT_CASH_ON_HAND, totalPayment, true);
-        if (principalAmount > 0)
-            await UpdateAccountBalanceAsync(context, ACCOUNT_LOANS_RECEIVABLE, principalAmount, false);
-        if (interestAmount > 0)
-            await UpdateAccountBalanceAsync(context, ACCOUNT_INTEREST_INCOME, interestAmount, false);
-        if (penaltyAmount > 0)
-            await UpdateAccountBalanceAsync(context, ACCOUNT_PENALTY_INCOME, penaltyAmount, false);
+        // Create corresponding GL Transactions
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, paymentDate, $"LP-{paymentId}");
 
         await context.SaveChangesAsync();
     }
@@ -683,49 +566,33 @@ public class AutomaticGLPostingService
         context.JournalEntries.Add(journal);
         await context.SaveChangesAsync();
 
-        var glEntries = new List<GeneralLedgerEntry>
+        var journalLines = new List<JournalEntryLine>
         {
             // Debit (either deducted from loan proceeds or collected as cash)
-            new GeneralLedgerEntry
+            new JournalEntryLine
             {
-                EntryNumber = $"GL-LPF-{loanId}",
                 JournalId = journal.JournalId,
                 AccountCode = deductedFromLoan ? ACCOUNT_LOANS_RECEIVABLE : ACCOUNT_CASH_ON_HAND,
-                AccountName = deductedFromLoan ? "Loans Receivable" : "Cash on Hand",
-                AccountType = "Asset",
-                TransactionDate = feeDate,
-                Reference = loanNumber,
-                Description = $"Processing fee - {loanNumber}",
                 DebitAmount = feeAmount,
                 CreditAmount = 0,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Processing fee - {loanNumber}"
             },
             // Credit Loan Processing Fee Income
-            new GeneralLedgerEntry
+            new JournalEntryLine
             {
-                EntryNumber = $"GL-LPF-{loanId}",
                 JournalId = journal.JournalId,
                 AccountCode = ACCOUNT_LOAN_PROCESSING_FEE,
-                AccountName = "Loan Processing Fee Income",
-                AccountType = "Revenue",
-                TransactionDate = feeDate,
-                Reference = loanNumber,
-                Description = $"Processing fee income - {loanNumber}",
                 DebitAmount = 0,
                 CreditAmount = feeAmount,
-                CreatedAt = DateTime.Now,
-                CreatedBy = "System",
-                Status = "Posted"
+                Description = $"Processing fee income - {loanNumber}"
             }
         };
 
-        context.GeneralLedgerEntries.AddRange(glEntries);
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
 
-        // Update Chart of Accounts balances
-        await UpdateAccountBalanceAsync(context, deductedFromLoan ? ACCOUNT_LOANS_RECEIVABLE : ACCOUNT_CASH_ON_HAND, feeAmount, true);
-        await UpdateAccountBalanceAsync(context, ACCOUNT_LOAN_PROCESSING_FEE, feeAmount, false);
+        // Create corresponding GL Transactions
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, feeDate, loanNumber);
 
         await context.SaveChangesAsync();
     }
@@ -875,6 +742,54 @@ public class AutomaticGLPostingService
                     transactionDate);
                 break;
         }
+    }
+
+    /// <summary>
+    /// Create GeneralLedgerTransactions from JournalEntryLines
+    /// This ensures GL transactions are properly linked to journal lines
+    /// </summary>
+    private async Task CreateGLTransactionsFromJournalLinesAsync(
+        BFASDbContext context,
+        List<JournalEntryLine> journalLines,
+        DateTime transactionDate,
+        string reference)
+    {
+        foreach (var line in journalLines)
+        {
+            // Get account details
+            var account = await context.GeneralLedger
+                .FirstOrDefaultAsync(a => a.AccountCode == line.AccountCode);
+
+            if (account == null) continue;
+
+            // Create GL Transaction
+            var glTransaction = new GeneralLedgerTransaction
+            {
+                JournalLineId = line.LineId,
+                AccountCode = line.AccountCode,
+                TransactionDate = transactionDate,
+                Description = line.Description,
+                DebitAmount = line.DebitAmount,
+                CreditAmount = line.CreditAmount,
+                RunningBalance = 0 // Will be calculated by triggers or stored procedures
+            };
+
+            context.GeneralLedgerTransactions.Add(glTransaction);
+
+            // Update account balance in GeneralLedger table
+            if (account.AccountType == "Asset" || account.AccountType == "Expense")
+            {
+                // Normal debit balance accounts
+                account.Balance += line.DebitAmount - line.CreditAmount;
+            }
+            else
+            {
+                // Normal credit balance accounts (Liability, Equity, Revenue)
+                account.Balance += line.CreditAmount - line.DebitAmount;
+            }
+        }
+
+        await context.SaveChangesAsync();
     }
 
     #endregion

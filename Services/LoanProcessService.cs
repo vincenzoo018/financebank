@@ -7,11 +7,13 @@ namespace FinanceBank.Services;
 /// <summary>
 /// Complete Loan Process Service - Handles all stages from application to payment
 /// Automatically posts to General Ledger for loan disbursements.
+/// Integrates with TransactionHistoryService for AR/AP tracking.
 /// </summary>
 public class LoanProcessService
 {
     private readonly IDbContextFactory<BFASDbContext> _contextFactory;
     private readonly AutomaticGLPostingService? _glPostingService;
+    private readonly TransactionHistoryService? _transactionHistoryService;
     private const decimal DAILY_PENALTY_RATE = 0.0005m; // 0.05% daily (BPI Standard)
 
     // =====================================================================
@@ -49,10 +51,11 @@ public class LoanProcessService
         public const string DISBURSED = "DISBURSED";
     }
 
-    public LoanProcessService(IDbContextFactory<BFASDbContext> contextFactory, AutomaticGLPostingService? glPostingService = null)
+    public LoanProcessService(IDbContextFactory<BFASDbContext> contextFactory, AutomaticGLPostingService? glPostingService = null, TransactionHistoryService? transactionHistoryService = null)
     {
         _contextFactory = contextFactory;
         _glPostingService = glPostingService;
+        _transactionHistoryService = transactionHistoryService;
     }
 
     // =====================================================================
@@ -701,6 +704,30 @@ public class LoanProcessService
                 // GL posting failure should not prevent disbursement from being recorded
             }
 
+            // Create AP entry (loan release = money OUT = AP)
+            try
+            {
+                if (_transactionHistoryService != null)
+                {
+                    var accountNumber = customerAccount?.AccountNumber ?? "";
+
+                    await _transactionHistoryService.RecordLoanReleaseAsync(
+                        customerAccountId: accountId,
+                        accountNumber: accountNumber,
+                        customerName: disbursedTo,
+                        loanId: loan.LoanId,
+                        amount: disbursalAmount,
+                        disbursalId: disbursal.DisbursalId,
+                        processedBy: processedBy,
+                        notes: $"Loan#{loan.LoanNumber} | Term: {loan.TermMonths} months | Rate: {loan.InterestRate}%"
+                    );
+                }
+            }
+            catch
+            {
+                // AP tracking failure should not prevent disbursement from being recorded
+            }
+
             return (loan, disbursal);
         }
         catch (Exception ex)
@@ -1020,6 +1047,36 @@ public class LoanProcessService
                 balanceAfter: balanceAfter,
                 notes: isFullyPaid ? "LOAN FULLY PAID - Thank you!" : null
             );
+
+            // Create AR entry (loan payment = money IN = AR)
+            try
+            {
+                if (_transactionHistoryService != null)
+                {
+                    // Get account number and calculate interest from schedule
+                    var accountNumber = loan.Account?.AccountNumber ?? "";
+                    var interestAmount = schedule.InterestAmount;
+                    var principalPaid = paymentAmount - interestAmount - penaltyAmount;
+                    if (principalPaid < 0) principalPaid = 0;
+
+                    await _transactionHistoryService.RecordLoanPaymentAsync(
+                        customerAccountId: loan.AccountId,
+                        accountNumber: accountNumber,
+                        customerName: customerName,
+                        loanId: loanId,
+                        principalAmount: principalPaid,
+                        interestAmount: interestAmount,
+                        penaltyAmount: penaltyAmount,
+                        paymentId: payment.PaymentId,
+                        processedBy: processedBy,
+                        notes: $"Payment Method: {paymentMethod}. Outstanding: ₱{balanceAfter:N2}"
+                    );
+                }
+            }
+            catch
+            {
+                // AR tracking failure should not prevent payment from being recorded
+            }
 
             return payment;
         }

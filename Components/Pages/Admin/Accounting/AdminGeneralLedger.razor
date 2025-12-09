@@ -119,7 +119,7 @@
             <tbody>
                 @if (filteredEntries.Any())
                 {
-                    @foreach (var entry in filteredEntries.OrderByDescending(e => e.TransactionDate).ThenByDescending(e => e.CreatedAt))
+                    @foreach (var entry in filteredEntries.OrderByDescending(e => e.TransactionDate).ThenByDescending(e => e.GLTransactionId))
                     {
                         <tr style="border-bottom: 1px solid #e5e7eb; background: @GetRowBackground(entry.AccountType);">
                             <td style="padding: 12px; font-size: 13px; color: #111827;">@entry.TransactionDate.ToString("yyyy-MM-dd")</td>
@@ -140,7 +140,7 @@
                             <td style="padding: 12px; text-align: right; font-size: 13px; color: @(entry.CreditAmount > 0 ? "#ef4444" : "#9ca3af"); font-weight: @(entry.CreditAmount > 0 ? "600" : "400");">
                                 @(entry.CreditAmount > 0 ? "₱" + entry.CreditAmount.ToString("N2") : "-")
                             </td>
-                            <td style="padding: 12px; text-align: right; font-size: 13px; color: #111827; font-weight: 600;">₱@entry.Balance.ToString("N2")</td>
+                            <td style="padding: 12px; text-align: right; font-size: 13px; color: #111827; font-weight: 600;">₱@entry.RunningBalance.ToString("N2")</td>
                         </tr>
                     }
                 }
@@ -171,7 +171,7 @@
 </div>
 
 @code {
-    private List<GeneralLedgerEntry> allEntries = new();
+    private List<GeneralLedgerTransaction> allEntries = new();
     private List<(string AccountCode, string AccountName, string AccountType, decimal Balance)> accountBalances = new();
     private List<string> accounts = new();
     private string selectedAccount = "";
@@ -190,16 +190,16 @@
         {
             allEntries = await GeneralLedgerService.GetAllAsync();
             accountBalances = await GeneralLedgerService.GetAccountBalancesAsync();
-            accounts = allEntries.Select(e => e.AccountName).Distinct().OrderBy(a => a).ToList();
+            accounts = allEntries.Select(e => e.AccountName).Where(a => !string.IsNullOrEmpty(a)).Distinct().OrderBy(a => a).ToList()!;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error loading ledger: {ex.Message}");
-            allEntries = new List<GeneralLedgerEntry>();
+            allEntries = new List<GeneralLedgerTransaction>();
         }
     }
 
-    private IEnumerable<GeneralLedgerEntry> filteredEntries => allEntries
+    private IEnumerable<GeneralLedgerTransaction> filteredEntries => allEntries
         .Where(e => string.IsNullOrEmpty(selectedAccount) || e.AccountName == selectedAccount)
         .Where(e => string.IsNullOrEmpty(selectedAccountType) || e.AccountType == selectedAccountType)
         .Where(e => e.TransactionDate >= dateFrom && e.TransactionDate <= dateTo);

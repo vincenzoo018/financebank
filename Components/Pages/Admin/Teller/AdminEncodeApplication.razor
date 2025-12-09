@@ -8,7 +8,8 @@
 <div class="sidebar-content">
     <!-- Page Header - Matching Teller page style -->
     <div class="card" style="margin-bottom: 24px;">
-        <div class="card-header" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 24px; border-radius: 12px 12px 0 0;">
+        <div class="card-header"
+            style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 24px; border-radius: 12px 12px 0 0;">
             <div style="display: flex; align-items: center; gap: 16px;">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -23,19 +24,22 @@
     </div>
 
     <!-- Admin Notice -->
-    <div style="background: #ede9fe; border: 1px solid #8b5cf6; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div
+        style="background: #ede9fe; border: 1px solid #8b5cf6; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
         <div style="display: flex; align-items: start; gap: 12px;">
             <span style="font-size: 24px;">🔐</span>
             <div style="flex: 1;">
                 <p style="margin: 0; font-weight: 600; color: #5b21b6;">SuperAdmin Access - Teller Functions</p>
-                <p style="margin: 4px 0 0; font-size: 13px; color: #7c3aed;">You are encoding a loan application as SuperAdmin. All actions are logged for audit purposes.</p>
+                <p style="margin: 4px 0 0; font-size: 13px; color: #7c3aed;">You are encoding a loan application as
+                    SuperAdmin. All actions are logged for audit purposes.</p>
             </div>
         </div>
     </div>
 
     @if (!string.IsNullOrEmpty(message))
     {
-        <div style="background: @(isError ? "#fef2f2" : "#d1fae5"); border: 1px solid @(isError ? "#fecaca" : "#a7f3d0"); border-radius: 12px; padding: 16px; margin-bottom: 20px; color: @(isError ? "#dc2626" : "#059669");">
+        <div
+            style="background: @(isError ? "#fef2f2" : "#d1fae5"); border: 1px solid @(isError ? "#fecaca" : "#a7f3d0"); border-radius: 12px; padding: 16px; margin-bottom: 20px; color: @(isError ? "#dc2626" : "#059669");">
             @message
         </div>
     }
@@ -43,21 +47,33 @@
     <div class="card" style="border-radius: 16px; border: 1px solid #e5e7eb;">
         <div class="card-body" style="padding: 24px;">
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #374151;">Admin Reason <span style="color: #dc2626;">*</span></label>
-                <textarea @bind="adminReason" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" rows="2" placeholder="Enter reason for encoding this loan application..."></textarea>
+                <label
+                    style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #374151;">Admin
+                    Reason <span style="color: #dc2626;">*</span></label>
+                <textarea @bind="adminReason"
+                    style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
+                    rows="2" placeholder="Enter reason for encoding this loan application..."></textarea>
             </div>
-            
+
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
-            
+
             <h5 style="font-size: 16px; font-weight: 600; color: #111827; margin-bottom: 16px;">Customer Selection</h5>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px;">
                 <div>
-                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Search Customer</label>
-                    <input type="text" @bind="customerSearch" @bind:event="oninput" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" placeholder="Search by name or account number..." />
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Search
+                        Customer</label>
+                    <input type="text" @bind="customerSearch" @bind:event="oninput"
+                        style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
+                        placeholder="Search by name or account number..." />
                 </div>
                 <div>
-                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Select Customer Account</label>
-                    <select @bind="selectedAccountId" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Select
+                        Customer Account</label>
+                    <select @bind="selectedAccountId"
+                        style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
                         <option value="0">-- Select Customer --</option>
                         @foreach (var account in filteredAccounts)
                         {
@@ -66,12 +82,16 @@
                     </select>
                 </div>
             </div>
-            
+
             <h5 style="font-size: 16px; font-weight: 600; color: #111827; margin-bottom: 16px;">Loan Details</h5>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
                 <div>
-                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Loan Type</label>
-                    <select @bind="loanType" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Loan
+                        Type</label>
+                    <select @bind="loanType"
+                        style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
                         <option value="">Select Loan Type</option>
                         <option value="Personal">Personal Loan</option>
                         <option value="Home">Home Loan</option>
@@ -82,15 +102,23 @@
                     </select>
                 </div>
                 <div>
-                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Requested Amount</label>
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Requested
+                        Amount</label>
                     <div style="display: flex; align-items: center;">
-                        <span style="background: #f3f4f6; padding: 10px 12px; border: 1px solid #e5e7eb; border-right: none; border-radius: 8px 0 0 8px; font-size: 14px;">₱</span>
-                        <input type="number" @bind="requestedAmount" style="flex: 1; padding: 10px; border: 1px solid #e5e7eb; border-radius: 0 8px 8px 0; font-size: 14px;" step="1000" min="0" />
+                        <span
+                            style="background: #f3f4f6; padding: 10px 12px; border: 1px solid #e5e7eb; border-right: none; border-radius: 8px 0 0 8px; font-size: 14px;">₱</span>
+                        <input type="number" @bind="requestedAmount"
+                            style="flex: 1; padding: 10px; border: 1px solid #e5e7eb; border-radius: 0 8px 8px 0; font-size: 14px;"
+                            step="1000" min="0" />
                     </div>
                 </div>
                 <div>
-                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Term (Months)</label>
-                    <select @bind="loanTerm" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Term
+                        (Months)</label>
+                    <select @bind="loanTerm"
+                        style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
                         <option value="6">6 Months</option>
                         <option value="12">12 Months</option>
                         <option value="24">24 Months</option>
@@ -100,22 +128,34 @@
                     </select>
                 </div>
             </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
                 <div>
-                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Interest Rate (%)</label>
-                    <input type="number" @bind="interestRate" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" step="0.1" min="0" max="30" />
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Interest
+                        Rate (%)</label>
+                    <input type="number" @bind="interestRate"
+                        style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
+                        step="0.1" min="0" max="30" />
                 </div>
                 <div>
-                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Estimated Monthly Payment</label>
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Estimated
+                        Monthly Payment</label>
                     <div style="display: flex; align-items: center;">
-                        <span style="background: #f3f4f6; padding: 10px 12px; border: 1px solid #e5e7eb; border-right: none; border-radius: 8px 0 0 8px; font-size: 14px;">₱</span>
-                        <input type="text" value="@CalculateMonthlyPayment().ToString("N2")" style="flex: 1; padding: 10px; border: 1px solid #e5e7eb; border-radius: 0 8px 8px 0; font-size: 14px; background: #f9fafb;" readonly />
+                        <span
+                            style="background: #f3f4f6; padding: 10px 12px; border: 1px solid #e5e7eb; border-right: none; border-radius: 8px 0 0 8px; font-size: 14px;">₱</span>
+                        <input type="text" value="@CalculateMonthlyPayment().ToString("N2")"
+                            style="flex: 1; padding: 10px; border: 1px solid #e5e7eb; border-radius: 0 8px 8px 0; font-size: 14px; background: #f9fafb;"
+                            readonly />
                     </div>
                 </div>
                 <div>
-                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Priority</label>
-                    <select @bind="priority" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Priority</label>
+                    <select @bind="priority"
+                        style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
                         <option value="Low">Low</option>
                         <option value="Medium">Medium</option>
                         <option value="High">High</option>
@@ -123,22 +163,36 @@
                     </select>
                 </div>
             </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px;">
+
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px;">
                 <div>
-                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Purpose of Loan</label>
-                    <textarea @bind="loanPurpose" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" rows="2" placeholder="Describe the purpose..."></textarea>
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Purpose
+                        of Loan</label>
+                    <textarea @bind="loanPurpose"
+                        style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
+                        rows="2" placeholder="Describe the purpose..."></textarea>
                 </div>
                 <div>
-                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Notes / Comments</label>
-                    <textarea @bind="notes" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" rows="2" placeholder="Additional notes..."></textarea>
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #6b7280;">Notes
+                        / Comments</label>
+                    <textarea @bind="notes"
+                        style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
+                        rows="2" placeholder="Additional notes..."></textarea>
                 </div>
             </div>
-            
+
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                <button @onclick="ClearForm" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Clear</button>
-                <button @onclick="SubmitApplication" disabled="@isSubmitting" style="padding: 12px 24px; background: @(isSubmitting ? "#9ca3af" : "#10b981"); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: @(isSubmitting ? "not-allowed" : "pointer");">
-                    @if (isSubmitting) { <span class="spinner-border spinner-border-sm"></span> }
+                <button @onclick="ClearForm"
+                    style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Clear</button>
+                <button @onclick="SubmitApplication" disabled="@isSubmitting"
+                    style="padding: 12px 24px; background: @(isSubmitting ? "#9ca3af" : "#10b981"); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: @(isSubmitting ? "not-allowed" : "pointer");">
+                    @if (isSubmitting)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                    }
                     Submit Application
                 </button>
             </div>
@@ -157,17 +211,17 @@
     private string priority = "Medium";
     private string loanPurpose = "";
     private string notes = "";
-    
+
     private bool isSubmitting = false;
     private string message = "";
     private bool isError = false;
-    
+
     private List<CustomerAccountInfo> customerAccounts = new();
     private List<CustomerAccountInfo> filteredAccounts => customerAccounts
-        .Where(a => string.IsNullOrEmpty(customerSearch) || 
-            a.CustomerName.Contains(customerSearch, StringComparison.OrdinalIgnoreCase) ||
-            a.AccountNumber.Contains(customerSearch, StringComparison.OrdinalIgnoreCase))
-        .ToList();
+    .Where(a => string.IsNullOrEmpty(customerSearch) ||
+    a.CustomerName.Contains(customerSearch, StringComparison.OrdinalIgnoreCase) ||
+    a.AccountNumber.Contains(customerSearch, StringComparison.OrdinalIgnoreCase))
+    .ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -176,28 +230,28 @@
             Navigation.NavigateTo("/admin/dashboard");
             return;
         }
-        
+
         await LoadCustomerAccounts();
     }
-    
+
     private async Task LoadCustomerAccounts()
     {
         try
         {
             using var context = DbContextFactory.CreateDbContext();
             customerAccounts = await context.CustomerAccounts
-                .Where(a => a.IsActive)
-                .Join(context.Users,
-                    a => a.CustomerId,
-                    u => u.UserId,
-                    (a, u) => new CustomerAccountInfo
-                    {
-                        AccountId = a.AccountId,
-                        CustomerId = a.CustomerId,
-                        AccountNumber = a.AccountNumber,
-                        CustomerName = u.FullName
-                    })
-                .ToListAsync();
+            .Where(a => a.IsActive)
+            .Join(context.Users,
+            a => a.CustomerId,
+            u => u.UserId,
+            (a, u) => new CustomerAccountInfo
+            {
+                AccountId = a.AccountId,
+                CustomerId = a.CustomerId,
+                AccountNumber = a.AccountNumber,
+                CustomerName = u.FullName
+            })
+            .ToListAsync();
         }
         catch (Exception ex)
         {
@@ -205,29 +259,29 @@
             isError = true;
         }
     }
-    
+
     private decimal CalculateMonthlyPayment()
     {
         if (requestedAmount <= 0 || loanTerm <= 0 || interestRate <= 0) return 0;
-        
+
         var monthlyRate = interestRate / 100 / 12;
-        var monthlyPayment = requestedAmount * 
-            (monthlyRate * (decimal)Math.Pow((double)(1 + monthlyRate), loanTerm)) / 
-            ((decimal)Math.Pow((double)(1 + monthlyRate), loanTerm) - 1);
+        var monthlyPayment = requestedAmount *
+        (monthlyRate * (decimal)Math.Pow((double)(1 + monthlyRate), loanTerm)) /
+        ((decimal)Math.Pow((double)(1 + monthlyRate), loanTerm) - 1);
         return monthlyPayment;
     }
 
     private async Task SubmitApplication()
     {
         message = "";
-        
+
         if (string.IsNullOrWhiteSpace(adminReason))
         {
             message = "Admin reason is required.";
             isError = true;
             return;
         }
-        
+
         if (selectedAccountId == 0 || string.IsNullOrWhiteSpace(loanType) || requestedAmount <= 0)
         {
             message = "Please select a customer and fill in all required loan fields.";
@@ -239,7 +293,7 @@
         try
         {
             using var context = DbContextFactory.CreateDbContext();
-            
+
             var account = await context.CustomerAccounts.FindAsync(selectedAccountId);
             if (account == null)
             {
@@ -247,11 +301,11 @@
                 isError = true;
                 return;
             }
-            
+
             // Generate unique loan number
             var loanNumber = $"LN-{DateTime.Now:yyyyMMdd}-{account.CustomerId}-{new Random().Next(1000, 9999)}";
             var monthlyPayment = CalculateMonthlyPayment();
-            
+
             // Create loan record
             var loan = new Loan
             {
@@ -273,7 +327,7 @@
 
             context.Loans.Add(loan);
             await context.SaveChangesAsync();
-            
+
             // Create approval queue entry
             var approval = new ApprovalQueueEntity
             {
@@ -290,7 +344,7 @@
 
             context.ApprovalQueues.Add(approval);
             await context.SaveChangesAsync();
-            
+
             message = $"Loan application submitted successfully. Loan #: {loanNumber}";
             isError = false;
             ClearForm();
@@ -318,7 +372,7 @@
         loanPurpose = "";
         notes = "";
     }
-    
+
     private class CustomerAccountInfo
     {
         public int AccountId { get; set; }

@@ -64,7 +64,7 @@ namespace FinanceBank.Services
                 .ToListAsync();
 
             // Get all general ledger entries for this account
-            var glEntries = await _context.GeneralLedgerEntries
+            var glEntries = await _context.GeneralLedgerTransactions
                 .Where(g => g.AccountCode == accountCode)
                 .ToListAsync();
 
@@ -118,7 +118,7 @@ namespace FinanceBank.Services
                 .SumAsync(t => t.Fee);
 
             // Get other revenues from general ledger
-            var otherRevenues = await _context.GeneralLedgerEntries
+            var otherRevenues = await _context.GeneralLedgerTransactions
                 .Where(e => e.AccountType == "Revenue" &&
                            e.TransactionDate >= periodStart &&
                            e.TransactionDate <= periodEnd)
@@ -131,7 +131,7 @@ namespace FinanceBank.Services
                 .ToListAsync();
 
             // Get expenses
-            var expenses = await _context.GeneralLedgerEntries
+            var expenses = await _context.GeneralLedgerTransactions
                 .Where(e => e.AccountType == "Expense" &&
                            e.TransactionDate >= periodStart &&
                            e.TransactionDate <= periodEnd)

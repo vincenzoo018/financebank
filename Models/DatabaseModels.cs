@@ -664,7 +664,7 @@ public class AccountsPayable
     public decimal OutstandingAmount { get; set; }
 
     [Required, MaxLength(50)]
-    public string Status { get; set; } = "Pending"; // Pending, Partially Paid, Paid, Overdue
+    public string Status { get; set; } = "Pending"; // Pending, Partially Paid, Paid, Overdue, Approved
 
     [MaxLength(500)]
     public string? Description { get; set; }
@@ -673,6 +673,66 @@ public class AccountsPayable
 
     [Required, MaxLength(50)]
     public string CreatedBy { get; set; } = string.Empty;
+
+    // =============================================
+    // NEW FIELDS FOR AR/AP TRACKING
+    // =============================================
+
+    /// <summary>
+    /// Transaction type: Withdrawal, LoanRelease, Transfer, SavingsWithdrawal, InterestPayout, BillPayment
+    /// </summary>
+    [MaxLength(50)]
+    public string? TransactionType { get; set; }
+
+    /// <summary>
+    /// Source transaction ID from CustomerTransactions, LoanDisbursals, SavingsTransactions, etc.
+    /// </summary>
+    public int? SourceTransactionId { get; set; }
+
+    /// <summary>
+    /// Source table name for tracking: CustomerTransactions, LoanDisbursals, SavingsTransactions
+    /// </summary>
+    [MaxLength(50)]
+    public string? SourceTable { get; set; }
+
+    /// <summary>
+    /// Customer account ID for linking
+    /// </summary>
+    public int? CustomerAccountId { get; set; }
+
+    /// <summary>
+    /// Reference number in standardized format: {TYPE}-{YYYYMMDD}-{SEQUENCE}
+    /// </summary>
+    [MaxLength(50)]
+    public string? ReferenceNumber { get; set; }
+
+    /// <summary>
+    /// FM Review status: Pending, Approved, Rejected
+    /// </summary>
+    [MaxLength(50)]
+    public string? ReviewStatus { get; set; } = "Pending";
+
+    /// <summary>
+    /// FM who reviewed this entry
+    /// </summary>
+    [MaxLength(100)]
+    public string? ReviewedBy { get; set; }
+
+    /// <summary>
+    /// Date/time of FM review
+    /// </summary>
+    public DateTime? ReviewedAt { get; set; }
+
+    /// <summary>
+    /// Review notes/comments
+    /// </summary>
+    [MaxLength(500)]
+    public string? ReviewNotes { get; set; }
+
+    /// <summary>
+    /// Related Journal Entry ID after posting to GL
+    /// </summary>
+    public int? JournalEntryId { get; set; }
 }
 
 [Table("AccountsReceivable")]
@@ -710,7 +770,7 @@ public class AccountsReceivable
     public decimal PenaltyAmount { get; set; } = 0;
 
     [Required, MaxLength(100)]
-    public string Status { get; set; } = "Pending"; // Pending, Pending Review, FM Approved - Pending Accountant, Partially Paid, Paid, Overdue
+    public string Status { get; set; } = "Pending"; // Pending, Pending Review, FM Approved, Partially Paid, Paid, Overdue
 
     [MaxLength(1000)]
     public string? Description { get; set; }
@@ -719,12 +779,333 @@ public class AccountsReceivable
 
     [Required, MaxLength(50)]
     public string CreatedBy { get; set; } = string.Empty;
+
+    // =============================================
+    // NEW FIELDS FOR AR/AP TRACKING
+    // =============================================
+
+    /// <summary>
+    /// Transaction type: Deposit, LoanPayment, Transfer, SavingsDeposit, BillPayment
+    /// </summary>
+    [MaxLength(50)]
+    public string? TransactionType { get; set; }
+
+    /// <summary>
+    /// Source transaction ID from CustomerTransactions, LoanPayments, SavingsTransactions, etc.
+    /// </summary>
+    public int? SourceTransactionId { get; set; }
+
+    /// <summary>
+    /// Source table name for tracking: CustomerTransactions, LoanPayments, SavingsTransactions
+    /// </summary>
+    [MaxLength(50)]
+    public string? SourceTable { get; set; }
+
+    /// <summary>
+    /// Customer account ID for linking
+    /// </summary>
+    public int? CustomerAccountId { get; set; }
+
+    /// <summary>
+    /// Reference number in standardized format: {TYPE}-{YYYYMMDD}-{SEQUENCE}
+    /// </summary>
+    [MaxLength(50)]
+    public string? ReferenceNumber { get; set; }
+
+    /// <summary>
+    /// FM Review status: Pending, Approved, Rejected
+    /// </summary>
+    [MaxLength(50)]
+    public string? ReviewStatus { get; set; } = "Pending";
+
+    /// <summary>
+    /// FM who reviewed this entry
+    /// </summary>
+    [MaxLength(100)]
+    public string? ReviewedBy { get; set; }
+
+    /// <summary>
+    /// Date/time of FM review
+    /// </summary>
+    public DateTime? ReviewedAt { get; set; }
+
+    /// <summary>
+    /// Review notes/comments
+    /// </summary>
+    [MaxLength(500)]
+    public string? ReviewNotes { get; set; }
+
+    /// <summary>
+    /// Related Journal Entry ID after posting to GL
+    /// </summary>
+    public int? JournalEntryId { get; set; }
 }
 
+// =============================================
+// UNIFIED TRANSACTION HISTORY MODEL
+// =============================================
+
+/// <summary>
+/// Unified Transaction History - Consolidates ALL financial transactions
+/// for auditing, reporting, and AR/AP tracking
+/// </summary>
+[Table("UnifiedTransactionHistory")]
+public class UnifiedTransactionHistory
+{
+    [Key]
+    public int TransactionHistoryId { get; set; }
+
+    /// <summary>
+    /// Standardized reference: {TYPE}-{YYYYMMDD}-{SEQUENCE}
+    /// DEP, WTH, TRF, LNP, LNR, SVD, SVW, SVI, BIL
+    /// </summary>
+    [Required, MaxLength(50)]
+    public string ReferenceNumber { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Transaction type: Deposit, Withdrawal, Transfer, LoanPayment, LoanRelease, 
+    /// SavingsDeposit, SavingsWithdrawal, SavingsInterest, BillPayment
+    /// </summary>
+    [Required, MaxLength(50)]
+    public string TransactionType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// AR/AP Classification: AR (Accounts Receivable) or AP (Accounts Payable)
+    /// </summary>
+    [Required, MaxLength(10)]
+    public string ARAPClassification { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Transaction amount
+    /// </summary>
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal Amount { get; set; }
+
+    /// <summary>
+    /// Fee amount if applicable
+    /// </summary>
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal FeeAmount { get; set; } = 0;
+
+    /// <summary>
+    /// Interest amount if applicable
+    /// </summary>
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal InterestAmount { get; set; } = 0;
+
+    /// <summary>
+    /// Penalty amount if applicable
+    /// </summary>
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal PenaltyAmount { get; set; } = 0;
+
+    /// <summary>
+    /// Total amount (Amount + Fee + Interest + Penalty)
+    /// </summary>
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalAmount { get; set; }
+
+    /// <summary>
+    /// Primary customer account ID
+    /// </summary>
+    public int? CustomerAccountId { get; set; }
+
+    /// <summary>
+    /// Customer account number
+    /// </summary>
+    [MaxLength(50)]
+    public string? AccountNumber { get; set; }
+
+    /// <summary>
+    /// Customer name
+    /// </summary>
+    [MaxLength(200)]
+    public string? CustomerName { get; set; }
+
+    /// <summary>
+    /// Secondary account ID (for transfers)
+    /// </summary>
+    public int? SecondaryAccountId { get; set; }
+
+    /// <summary>
+    /// Secondary account number (for transfers)
+    /// </summary>
+    [MaxLength(50)]
+    public string? SecondaryAccountNumber { get; set; }
+
+    /// <summary>
+    /// Source table: CustomerTransactions, LoanPayments, LoanDisbursals, SavingsTransactions
+    /// </summary>
+    [MaxLength(50)]
+    public string? SourceTable { get; set; }
+
+    /// <summary>
+    /// Source record ID
+    /// </summary>
+    public int? SourceRecordId { get; set; }
+
+    /// <summary>
+    /// Related AR entry ID
+    /// </summary>
+    public int? AccountsReceivableId { get; set; }
+
+    /// <summary>
+    /// Related AP entry ID
+    /// </summary>
+    public int? AccountsPayableId { get; set; }
+
+    /// <summary>
+    /// Related Journal Entry ID
+    /// </summary>
+    public int? JournalEntryId { get; set; }
+
+    /// <summary>
+    /// Transaction description
+    /// </summary>
+    [MaxLength(500)]
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// Transaction method: Cash, Check, BankTransfer, Online
+    /// </summary>
+    [MaxLength(50)]
+    public string? TransactionMethod { get; set; }
+
+    /// <summary>
+    /// Transaction status: Completed, Pending, Failed, Reversed
+    /// </summary>
+    [Required, MaxLength(50)]
+    public string Status { get; set; } = "Completed";
+
+    /// <summary>
+    /// Employee/Teller who processed the transaction
+    /// </summary>
+    [MaxLength(100)]
+    public string? ProcessedBy { get; set; }
+
+    /// <summary>
+    /// Employee ID who processed the transaction
+    /// </summary>
+    public int? ProcessedByEmployeeId { get; set; }
+
+    /// <summary>
+    /// Transaction date/time
+    /// </summary>
+    public DateTime TransactionDate { get; set; } = DateTime.Now;
+
+    /// <summary>
+    /// Record creation timestamp
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    /// <summary>
+    /// Additional notes
+    /// </summary>
+    [MaxLength(500)]
+    public string? Notes { get; set; }
+
+    // Navigation properties
+    [ForeignKey("CustomerAccountId")]
+    public virtual CustomerAccount? CustomerAccount { get; set; }
+
+    [ForeignKey("SecondaryAccountId")]
+    public virtual CustomerAccount? SecondaryAccount { get; set; }
+
+    [ForeignKey("AccountsReceivableId")]
+    public virtual AccountsReceivable? AccountsReceivable { get; set; }
+
+    [ForeignKey("AccountsPayableId")]
+    public virtual AccountsPayable? AccountsPayable { get; set; }
+
+    [ForeignKey("JournalEntryId")]
+    public virtual JournalEntry? JournalEntry { get; set; }
+}
+
+// Chart of Accounts Master Table
 [Table("GeneralLedger")]
+public class GeneralLedger
+{
+    [Key]
+    public int LedgerId { get; set; }
+
+    [Required, MaxLength(50)]
+    public string AccountCode { get; set; } = "";
+
+    [Required, MaxLength(100)]
+    public string AccountName { get; set; } = "";
+
+    [Required, MaxLength(50)]
+    public string AccountType { get; set; } = ""; // Asset, Liability, Revenue, Expense, Equity
+
+    [MaxLength(50)]
+    public string? ParentAccountCode { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal Balance { get; set; } = 0;
+
+    public bool IsActive { get; set; } = true;
+
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    // Navigation
+    public virtual ICollection<GeneralLedgerTransaction>? Transactions { get; set; }
+}
+
+// General Ledger Transactions Table
+[Table("GeneralLedgerTransactions")]
+public class GeneralLedgerTransaction
+{
+    [Key]
+    public int GLTransactionId { get; set; }
+
+    public int? JournalLineId { get; set; }
+
+    [Required, MaxLength(50)]
+    public string AccountCode { get; set; } = "";
+
+    public DateTime TransactionDate { get; set; }
+
+    [MaxLength(500)]
+    public string? Description { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal DebitAmount { get; set; } = 0;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal CreditAmount { get; set; } = 0;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal RunningBalance { get; set; } = 0;
+
+    // Navigation
+    [ForeignKey("AccountCode")]
+    public virtual GeneralLedger? Account { get; set; }
+
+    [ForeignKey("JournalLineId")]
+    public virtual JournalEntryLine? JournalLine { get; set; }
+
+    // Additional details for display (not mapped to database columns)
+    [NotMapped]
+    public string? AccountName { get; set; }
+
+    [NotMapped]
+    public string? AccountType { get; set; }
+
+    [NotMapped]
+    public string? Reference { get; set; }
+
+    [NotMapped]
+    public string? CustomerName { get; set; }
+
+    [NotMapped]
+    public int? CustomerAccountId { get; set; }
+}
+
+// Legacy model - kept for backward compatibility (view model only, not mapped to database)
 public class GeneralLedgerEntry
 {
     [Key]
+    [Column("GLTransactionId")]
     public int EntryId { get; set; }
 
     [Required, MaxLength(50)]
@@ -771,6 +1152,12 @@ public class GeneralLedgerEntry
 
     [Required, MaxLength(50)]
     public string Status { get; set; } = "Posted"; // Posted, Reversed
+
+    // Customer details for quick reference
+    public int? CustomerAccountId { get; set; }
+
+    [MaxLength(200)]
+    public string? CustomerName { get; set; }
 
     // Navigation
     [ForeignKey("JournalId")]
@@ -951,6 +1338,12 @@ public class AuditLog
     [MaxLength(500)]
     public string? Description { get; set; }
 
+    [MaxLength(4000)]
+    public string? OldValues { get; set; }
+
+    [MaxLength(4000)]
+    public string? NewValues { get; set; }
+
     [MaxLength(50)]
     public string? IpAddress { get; set; }
 
@@ -958,6 +1351,15 @@ public class AuditLog
     public string? UserAgent { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? Amount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? BalanceBefore { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? BalanceAfter { get; set; }
 }
 
 // =============================================

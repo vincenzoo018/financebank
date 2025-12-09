@@ -7,14 +7,17 @@ namespace FinanceBank.Services;
 /// <summary>
 /// Core service for Savings Account operations
 /// Handles account opening, deposits, withdrawals, and account management
+/// Integrates with TransactionHistoryService for AR/AP tracking.
 /// </summary>
 public class SavingsAccountService
 {
     private readonly IDbContextFactory<BFASDbContext> _contextFactory;
+    private readonly TransactionHistoryService? _transactionHistoryService;
 
-    public SavingsAccountService(IDbContextFactory<BFASDbContext> contextFactory)
+    public SavingsAccountService(IDbContextFactory<BFASDbContext> contextFactory, TransactionHistoryService? transactionHistoryService = null)
     {
         _contextFactory = contextFactory;
+        _transactionHistoryService = transactionHistoryService;
     }
 
     // =============================================
@@ -71,7 +74,7 @@ public class SavingsAccountService
                 AccountTypeId = accountTypeId,
                 Balance = initialDeposit,
                 TotalDeposits = initialDeposit,
-                CurrentInterestRate = accountType.InterestRateMin, // Start with minimum rate
+                CurrentInterestRate = accountType.InterestRateMin,
                 LockInPeriodDays = lockInDays,
                 MaturityDate = maturityDate,
                 Status = "ACTIVE",
@@ -83,7 +86,7 @@ public class SavingsAccountService
             context.SavingsAccounts.Add(savingsAccount);
             await context.SaveChangesAsync();
 
-            // Create initial deposit transaction
+
             var transaction = new SavingsTransaction
             {
                 TransactionNumber = SavingsTransaction.GenerateTransactionNumber(),
@@ -118,7 +121,7 @@ public class SavingsAccountService
     public async Task<List<SavingsAccount>> GetSavingsAccountsByCustomerAsync(int customerId)
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         return await context.SavingsAccounts
             .Include(sa => sa.AccountType)
             .Include(sa => sa.LinkedAccount)
@@ -134,7 +137,7 @@ public class SavingsAccountService
     public async Task<SavingsAccount?> GetSavingsAccountByNumberAsync(string accountNumber)
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         return await context.SavingsAccounts
             .Include(sa => sa.AccountType)
             .Include(sa => sa.LinkedAccount)
@@ -148,7 +151,7 @@ public class SavingsAccountService
     public async Task<List<SavingsAccount>> GetAllSavingsAccountsAsync()
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         return await context.SavingsAccounts
             .Include(sa => sa.AccountType)
             .Include(sa => sa.LinkedAccount)
@@ -230,6 +233,31 @@ public class SavingsAccountService
             context.SavingsTransactions.Add(transaction);
             await context.SaveChangesAsync();
 
+            // Create AR entry (savings deposit = money IN = AR)
+            try
+            {
+                if (_transactionHistoryService != null)
+                {
+                    var customer = await context.Users.FindAsync(savingsAccount.CustomerId);
+                    var customerName = customer?.FullName ?? "Customer";
+
+                    await _transactionHistoryService.RecordSavingsDepositAsync(
+                        savingsAccountId: savingsAccountId,
+                        customerAccountId: savingsAccount.CustomerAccountId,
+                        accountNumber: savingsAccount.AccountNumber ?? "",
+                        customerName: customerName,
+                        amount: amount,
+                        transactionId: transaction.TransactionId,
+                        processedBy: processedBy,
+                        notes: description
+                    );
+                }
+            }
+            catch
+            {
+                // AR tracking failure should not prevent deposit from being recorded
+            }
+
             return (true, $"Successfully deposited ₱{amount:N2}", transaction);
         }
         catch (Exception ex)
@@ -283,7 +311,7 @@ public class SavingsAccountService
             {
                 // Calculate penalty
                 penaltyAmount = requestedAmount * savingsAccount.AccountType.EarlyWithdrawalPenaltyRate;
-                
+
                 // Forfeit all interest earned
                 interestForfeited = savingsAccount.TotalInterestEarned;
             }
@@ -438,6 +466,31 @@ public class SavingsAccountService
 
             await context.SaveChangesAsync();
 
+            // Create AP entry (savings withdrawal = money OUT = AP)
+            try
+            {
+                if (_transactionHistoryService != null)
+                {
+                    var customer = await context.Users.FindAsync(savingsAccount.CustomerId);
+                    var customerName = customer?.FullName ?? "Customer";
+
+                    await _transactionHistoryService.RecordSavingsWithdrawalAsync(
+                        savingsAccountId: savingsAccount.SavingsAccountId,
+                        customerAccountId: savingsAccount.CustomerAccountId,
+                        accountNumber: savingsAccount.AccountNumber ?? "",
+                        customerName: customerName,
+                        amount: request.RequestedAmount,
+                        transactionId: transaction.TransactionId,
+                        processedBy: processedBy,
+                        notes: $"Withdrawal Request #{request.RequestId}. Penalty: ₱{request.PenaltyAmount:N2}"
+                    );
+                }
+            }
+            catch
+            {
+                // AP tracking failure should not prevent withdrawal from being recorded
+            }
+
             return (true, $"Withdrawal processed successfully. Net amount: ₱{request.NetWithdrawalAmount:N2}", transaction);
         }
         catch (Exception ex)
@@ -456,7 +509,7 @@ public class SavingsAccountService
     public async Task<List<SavingsTransaction>> GetTransactionHistoryAsync(int savingsAccountId)
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         return await context.SavingsTransactions
             .Where(st => st.SavingsAccountId == savingsAccountId)
             .OrderByDescending(st => st.TransactionDate)
@@ -469,7 +522,7 @@ public class SavingsAccountService
     public async Task<List<SavingsWithdrawalRequest>> GetPendingWithdrawalRequestsAsync()
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         return await context.SavingsWithdrawalRequests
             .Include(r => r.SavingsAccount)
             .ThenInclude(sa => sa!.Customer)
@@ -486,7 +539,7 @@ public class SavingsAccountService
     public async Task<List<SavingsWithdrawalRequest>> GetWithdrawalRequestsByCustomerAsync(int customerId)
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         return await context.SavingsWithdrawalRequests
             .Include(r => r.SavingsAccount)
             .Where(r => r.CustomerId == customerId)
@@ -504,7 +557,7 @@ public class SavingsAccountService
     public async Task<List<SavingsAccountType>> GetAccountTypesAsync()
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         return await context.SavingsAccountTypes
             .Where(t => t.IsActive)
             .OrderBy(t => t.TypeId)
@@ -538,7 +591,7 @@ public class SavingsAccountService
     public async Task<(decimal TotalSavings, int ActiveAccounts, decimal TotalInterestEarned)> GetSavingsSummaryAsync()
     {
         using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         var accounts = await context.SavingsAccounts
             .Where(sa => sa.Status == "ACTIVE")
             .ToListAsync();
