@@ -40,7 +40,7 @@ namespace FinanceBank.Models
         public int? EmployeeId_FK { get; set; }
 
         [MaxLength(255)]
-        public string? TransferPinHash { get; set; }
+        public string? TransferPinHash { get; set; }  // Also used as Security PIN for account recovery
 
         // Profile Picture stored as binary data (VARBINARY in SQL Server)
         [Column(TypeName = "varbinary(max)")]

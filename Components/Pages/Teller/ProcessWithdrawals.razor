@@ -396,6 +396,103 @@
     </div>
 }
 
+<!-- Customer Security PIN Modal (for unlocking account after malicious attempt detection) -->
+@if (showCustomerPinModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1002;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
+            <!-- Modal Header -->
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #dc2626, #ef4444); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <h3 style="font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">Account Security Alert</h3>
+                <p style="font-size: 14px; color: #6b7280; line-height: 1.5;">
+                    Customer account has been locked due to multiple failed password attempts. 
+                    Customer must enter their <strong>4-digit security PIN</strong> to unlock the account and continue the transaction.
+                </p>
+                <p style="font-size: 13px; color: #dc2626; margin-top: 8px; font-weight: 600;">
+                    ⚠️ This has been flagged as a potential malicious attempt.
+                </p>
+            </div>
+
+            <!-- Customer Info -->
+            <div style="background: #f3f4f6; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: #6b7280; font-size: 13px;">Customer:</span>
+                    <span style="font-weight: 600; color: #1f2937;">@customerName</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #6b7280; font-size: 13px;">Account:</span>
+                    <span style="font-weight: 600; color: #1f2937;">@accountNumber</span>
+                </div>
+            </div>
+
+            <!-- PIN Input -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Customer Security PIN (4 digits)</label>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    @for (int i = 0; i < 4; i++)
+                    {
+                        var index = i;
+                        <input type="password" 
+                               maxlength="1" 
+                               @bind="customerPinDigits[index]"
+                               @oninput="(e) => HandleCustomerPinInput(e, index)"
+                               id="customer-pin-@index"
+                               style="width: 56px; height: 56px; text-align: center; font-size: 24px; font-weight: 700; border: 2px solid #e5e7eb; border-radius: 12px; outline: none; transition: all 0.2s;"
+                               onfocus="this.style.borderColor='#dc2626'; this.style.boxShadow='0 0 0 3px rgba(220,38,38,0.1)';"
+                               onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';" />
+                    }
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            @if (!string.IsNullOrEmpty(customerPinError))
+            {
+                <div style="padding: 12px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px; margin-bottom: 16px;">
+                    @customerPinError
+                </div>
+            }
+
+            <!-- Success Message -->
+            @if (!string.IsNullOrEmpty(customerPinSuccess))
+            {
+                <div style="padding: 12px; background: #d1fae5; border: 1px solid #a7f3d0; border-radius: 8px; color: #065f46; font-size: 13px; margin-bottom: 16px;">
+                    @customerPinSuccess
+                </div>
+            }
+
+            <!-- Modal Buttons -->
+            <div style="display: flex; gap: 12px;">
+                <button @onclick="CloseCustomerPinModal" 
+                        style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: #374151; cursor: pointer;">
+                    Cancel Transaction
+                </button>
+                <button @onclick="VerifyCustomerSecurityPin" 
+                        disabled="@isCustomerPinLoading"
+                        style="flex: 1; padding: 12px; background: linear-gradient(135deg, #dc2626, #ef4444); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: white; cursor: pointer;">
+                    @if (isCustomerPinLoading)
+                    {
+                        <span>Verifying...</span>
+                    }
+                    else
+                    {
+                        <span>Unlock Account</span>
+                    }
+                </button>
+            </div>
+
+            <!-- Note -->
+            <p style="font-size: 11px; color: #6b7280; text-align: center; margin-top: 16px;">
+                Note: No password reset will occur. Only account unlock for this transaction.
+            </p>
+        </div>
+    </div>
+}
+
 <!-- Confirmation Modal -->
 @if (showConfirmationModal)
 {
@@ -461,6 +558,8 @@
 @code {
     private string accountNumber = "";
     private string customerName = "";
+    private string customerUsername = "";
+    private int currentCustomerId = 0;
     private string availableBalance = "₱0.00";
     private decimal currentAccountBalance = 0;
     private decimal withdrawalAmount = 0;
@@ -478,6 +577,13 @@
     private string passwordError = "";
     private int passwordAttempts = 0;
     private bool passwordVerified = false;
+
+    // Customer PIN modal fields (for unlocking account after 5 failed attempts)
+    private bool showCustomerPinModal = false;
+    private string[] customerPinDigits = new string[4] { "", "", "", "" };
+    private string customerPinError = "";
+    private string customerPinSuccess = "";
+    private bool isCustomerPinLoading = false;
 
     // Teller PIN verification fields
     private string tellerPin = "";
@@ -531,13 +637,29 @@
         if (success && account != null)
         {
             customerName = account.Customer?.FullName ?? "";
+            customerUsername = account.Customer?.Username ?? "";
+            currentCustomerId = account.Customer?.UserId ?? 0;
             currentAccountBalance = account.Balance;
             availableBalance = $"₱{account.Balance:N2}";
+            
+            // Check if customer account is locked
+            if (currentCustomerId > 0)
+            {
+                var (isLocked, lockType, reason) = await AuthService.IsAccountLockedAsync(customerUsername);
+                if (isLocked)
+                {
+                    passwordError = $"⚠️ Customer account is locked ({lockType}). {reason ?? "Customer must verify their security PIN to unlock."}";
+                    showCustomerPinModal = true;
+                }
+            }
+            
             StateHasChanged();
         }
         else
         {
             customerName = "";
+            customerUsername = "";
+            currentCustomerId = 0;
             currentAccountBalance = 0;
             availableBalance = "₱0.00";
             StateHasChanged();
@@ -555,14 +677,15 @@
 
         if (passwordAttempts >= 5)
         {
-            passwordError = "Maximum attempts exceeded. Please try again later.";
+            passwordError = "Maximum attempts exceeded. Customer must verify their security PIN.";
+            showCustomerPinModal = true;
             await InvokeAsync(StateHasChanged);
             return;
         }
 
         try
         {
-            var (success, message, _) = await TellerBankingService.VerifyCustomerPasswordAsync(accountNumber, customerPassword);
+            var (success, message, customerId) = await TellerBankingService.VerifyCustomerPasswordAsync(accountNumber, customerPassword);
 
             if (success)
             {
@@ -570,11 +693,40 @@
                 passwordError = "";
                 customerPassword = "";
                 successMessage = "✓ Customer password verified. Now enter your teller PIN.";
+                
+                // Reset failed attempts for the customer on successful verification
+                if (currentCustomerId > 0)
+                {
+                    await AuthService.ResetFailedAttemptsAsync(currentCustomerId);
+                }
+                
                 await InvokeAsync(StateHasChanged);
             }
             else
             {
                 passwordAttempts++;
+                
+                // Log failed attempt to AuthService for tracking
+                if (currentCustomerId > 0)
+                {
+                    await AuthService.LogTellerTransactionFailedPasswordAsync(
+                        currentCustomerId, 
+                        customerName, 
+                        AuthService.CurrentUser ?? "Unknown Teller", 
+                        "Withdrawal"
+                    );
+                    
+                    // Check if account is now locked (5 attempts)
+                    var (isLocked, lockType, reason) = await AuthService.IsAccountLockedAsync(accountNumber.Contains("@") ? accountNumber : customerUsername);
+                    if (isLocked)
+                    {
+                        passwordError = $"Account locked ({lockType}) due to multiple failed attempts. {reason ?? "Customer must verify security PIN."}";
+                        showCustomerPinModal = true;
+                        await InvokeAsync(StateHasChanged);
+                        return;
+                    }
+                }
+                
                 passwordError = $"Invalid password. {5 - passwordAttempts} attempts remaining.";
                 customerPassword = "";
                 await InvokeAsync(StateHasChanged);
@@ -972,6 +1124,8 @@ Please keep this receipt for your records.
     {
         accountNumber = "";
         customerName = "";
+        customerUsername = "";
+        currentCustomerId = 0;
         availableBalance = "₱0.00";
         currentAccountBalance = 0;
         withdrawalAmount = 0;
@@ -988,6 +1142,13 @@ Please keep this receipt for your records.
         passwordAttempts = 0;
         passwordVerified = false;
         
+        // Reset customer PIN modal
+        showCustomerPinModal = false;
+        customerPinDigits = new string[4] { "", "", "", "" };
+        customerPinError = "";
+        customerPinSuccess = "";
+        isCustomerPinLoading = false;
+        
         // Reset teller PIN verification
         tellerPin = "";
         tellerPinError = "";
@@ -996,5 +1157,86 @@ Please keep this receipt for your records.
         
         // Generate new reference number
         GenerateReferenceNumber();
+    }
+
+    // Customer Security PIN Modal Methods
+    private void HandleCustomerPinInput(ChangeEventArgs e, int index)
+    {
+        var value = e.Value?.ToString() ?? "";
+        if (value.Length > 0 && char.IsDigit(value[0]))
+        {
+            customerPinDigits[index] = value[0].ToString();
+            StateHasChanged();
+        }
+        else
+        {
+            customerPinDigits[index] = "";
+        }
+    }
+
+    private async Task VerifyCustomerSecurityPin()
+    {
+        customerPinError = "";
+        customerPinSuccess = "";
+
+        // Validate PIN
+        var pin = string.Join("", customerPinDigits);
+        if (pin.Length != 4)
+        {
+            customerPinError = "Please enter all 4 digits of the security PIN.";
+            return;
+        }
+
+        isCustomerPinLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            // First verify the PIN
+            var (pinSuccess, pinMessage, attemptsRemaining) = await AuthService.VerifySecurityPinAsync(customerUsername, pin);
+
+            if (pinSuccess)
+            {
+                // Then unlock the account
+                var (unlockSuccess, unlockMessage) = await AuthService.UnlockAccountWithPinAsync(customerUsername);
+                
+                if (unlockSuccess)
+                {
+                    customerPinSuccess = "Account unlocked successfully! Customer can now verify their password.";
+                    passwordAttempts = 0;
+                    passwordError = "";
+                    
+                    await Task.Delay(1500);
+                    CloseCustomerPinModal();
+                }
+                else
+                {
+                    customerPinError = unlockMessage;
+                }
+            }
+            else
+            {
+                customerPinError = pinMessage;
+            }
+        }
+        catch (Exception ex)
+        {
+            customerPinError = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isCustomerPinLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CloseCustomerPinModal()
+    {
+        showCustomerPinModal = false;
+        customerPinDigits = new string[4] { "", "", "", "" };
+        customerPinError = "";
+        customerPinSuccess = "";
+        isCustomerPinLoading = false;
+        StateHasChanged();
     }
 }

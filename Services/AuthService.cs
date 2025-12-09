@@ -128,13 +128,93 @@ namespace FinanceBank.Services
                     return (false, "Invalid username or password");
                 }
 
+                // Check if account is fully locked (2 failed PIN attempts - needs SuperAdmin)
+                var isFullyLocked = await context.AuditLogs
+                    .Where(a => a.CustomerAccountId == user.UserId && 
+                               a.Action == "PIN_VERIFICATION_FAILED" && 
+                               a.PinAttemptCount >= 2 &&
+                               a.CreatedAt >= DateTime.Now.AddHours(-24))
+                    .AnyAsync();
+
+                if (isFullyLocked)
+                {
+                    // Check if SuperAdmin unlocked
+                    var adminUnlock = await context.AuditLogs
+                        .Where(a => a.CustomerAccountId == user.UserId && 
+                                   a.Action == "ADMIN_ACCOUNT_UNLOCK" && 
+                                   a.CreatedAt >= DateTime.Now.AddHours(-24))
+                        .OrderByDescending(a => a.CreatedAt)
+                        .FirstOrDefaultAsync();
+
+                    var lastPinFailure = await context.AuditLogs
+                        .Where(a => a.CustomerAccountId == user.UserId && 
+                                   a.Action == "PIN_VERIFICATION_FAILED" && 
+                                   a.CreatedAt >= DateTime.Now.AddHours(-24))
+                        .OrderByDescending(a => a.CreatedAt)
+                        .FirstOrDefaultAsync();
+
+                    if (adminUnlock == null || (lastPinFailure != null && adminUnlock.CreatedAt < lastPinFailure.CreatedAt))
+                    {
+                        return (false, "ACCOUNT_FULLY_LOCKED");
+                    }
+                }
+
+                // Check if account is locked (5 failed password attempts - needs PIN)
+                var recentMaliciousAttempt = await context.AuditLogs
+                    .Where(a => a.CustomerAccountId == user.UserId && 
+                               a.IsAccountLocked == true && 
+                               a.Action == "MALICIOUS_ATTEMPT" &&
+                               a.CreatedAt >= DateTime.Now.AddHours(-24))
+                    .OrderByDescending(a => a.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                if (recentMaliciousAttempt != null)
+                {
+                    // Check if there's a subsequent unlock
+                    var wasUnlocked = await context.AuditLogs
+                        .AnyAsync(a => a.CustomerAccountId == user.UserId && 
+                                      (a.Action == "ACCOUNT_UNLOCKED" || a.Action == "ADMIN_ACCOUNT_UNLOCK") &&
+                                      a.CreatedAt > recentMaliciousAttempt.CreatedAt);
+
+                    if (!wasUnlocked)
+                    {
+                        await LogAuditFailedLoginAsync(username, "Account locked - requires PIN verification", ipAddress ?? "Unknown", userAgent ?? "Unknown");
+                        return (false, "ACCOUNT_LOCKED");
+                    }
+                }
+
                 // Verify password using BCrypt
                 bool isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
                 if (!isPasswordValid)
                 {
+                    // Count recent failed attempts from AuditLogs (using new columns)
+                    var failedAttempts = await context.AuditLogs
+                        .Where(a => a.CustomerAccountId == user.UserId && 
+                                   a.Action == "LOGIN_FAILED" && 
+                                   a.CreatedAt >= DateTime.Now.AddHours(-1))
+                        .CountAsync();
+
+                    failedAttempts++; // Include current attempt
+
+                    // Check if customer has exceeded 5 failed attempts
+                    if (user.Role == Roles.Customer && failedAttempts >= 5)
+                    {
+                        // Log as malicious attempt
+                        await LogMaliciousAttemptAsync(user.UserId.ToString(), user.Username, "5 failed login attempts", ipAddress, userAgent, user.UserId);
+
+                        await LogFailedLoginAsync(username, "Account locked after 5 failed attempts", ipAddress, userAgent);
+                        return (false, "MALICIOUS_ATTEMPT");
+                    }
+
                     await LogFailedLoginAsync(username, "Invalid password", ipAddress, userAgent);
-                    // Log failed password to AuditLogs
-                    await LogAuditFailedLoginAsync(username, "Invalid password", ipAddress ?? "Unknown", userAgent ?? "Unknown");
+                    // Log failed password to AuditLogs with new columns
+                    await LogAuditFailedLoginWithColumnsAsync(user.UserId, username, $"Invalid password (Attempt {failedAttempts}/5)", ipAddress ?? "Unknown", userAgent ?? "Unknown", failedAttempts);
+                    
+                    int remainingAttempts = 5 - failedAttempts;
+                    if (user.Role == Roles.Customer && remainingAttempts > 0 && remainingAttempts <= 2)
+                    {
+                        return (false, $"Invalid password. {remainingAttempts} attempt(s) remaining before account is locked.");
+                    }
                     return (false, "Invalid username or password");
                 }
 
@@ -411,6 +491,621 @@ namespace FinanceBank.Services
                 await auditService.LogLoginFailureAsync(attemptedUserId, reason, ipAddress, userAgent);
             }
             catch { /* Ignore logging errors */ }
+        }
+
+        /// <summary>
+        /// Log failed login attempt with new security columns
+        /// </summary>
+        private async Task LogAuditFailedLoginWithColumnsAsync(int userId, string username, string reason, string ipAddress, string userAgent, int failedAttemptCount)
+        {
+            if (_contextFactory == null) return;
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var auditLog = new AuditLog
+                {
+                    UserId = userId.ToString(),
+                    Action = "LOGIN_FAILED",
+                    Module = "Authentication",
+                    Description = $"Failed login attempt for '{username}': {reason}",
+                    IpAddress = ipAddress,
+                    UserAgent = userAgent,
+                    CreatedAt = DateTime.Now,
+                    // New security columns
+                    IsMalicious = failedAttemptCount >= 3,
+                    CustomerAccountId = userId,
+                    AccountStatus = failedAttemptCount >= 5 ? "Locked" : "Active",
+                    FailedAttemptCount = failedAttemptCount,
+                    PinAttemptCount = 0,
+                    IsAccountLocked = failedAttemptCount >= 5
+                };
+                context.AuditLogs.Add(auditLog);
+                await context.SaveChangesAsync();
+            }
+            catch { /* Ignore logging errors */ }
+        }
+
+        /// <summary>
+        /// Log malicious attempt to AuditLogs (5+ failed login attempts)
+        /// Uses new security columns: IsMalicious, CustomerAccountId, AccountStatus, IsAccountLocked, LockReason
+        /// </summary>
+        private async Task LogMaliciousAttemptAsync(string userId, string username, string reason, string? ipAddress, string? userAgent, int? customerAccountId = null)
+        {
+            if (_contextFactory == null) return;
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var auditLog = new AuditLog
+                {
+                    UserId = userId,
+                    Action = "MALICIOUS_ATTEMPT",
+                    Module = "Security",
+                    Description = $"[LOCKED] Malicious login attempt detected for user '{username}'. Reason: {reason}",
+                    IpAddress = ipAddress ?? "Unknown",
+                    UserAgent = userAgent ?? "Unknown",
+                    CreatedAt = DateTime.Now,
+                    // New security columns
+                    IsMalicious = true,
+                    CustomerAccountId = customerAccountId,
+                    AccountStatus = "Locked",
+                    FailedAttemptCount = 5,
+                    PinAttemptCount = 0,
+                    IsAccountLocked = true,
+                    LockReason = $"5 failed login attempts - {reason}"
+                };
+                context.AuditLogs.Add(auditLog);
+                await context.SaveChangesAsync();
+            }
+            catch { /* Ignore logging errors */ }
+        }
+
+        /// <summary>
+        /// Verify customer's 4-digit security PIN (uses TransferPinHash)
+        /// Tracks PIN attempts (max 2 attempts before full account lock)
+        /// </summary>
+        public async Task<(bool success, string message, int attemptsRemaining)> VerifySecurityPinAsync(string username, string pin)
+        {
+            if (_contextFactory == null) return (false, "Database not available", 0);
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var user = await context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+                if (user == null)
+                    return (false, "User not found", 0);
+
+                if (string.IsNullOrEmpty(user.TransferPinHash))
+                    return (false, "NO_PIN_SET", 0);
+
+                // Count recent PIN attempts
+                var recentPinAttempts = await context.AuditLogs
+                    .Where(a => a.CustomerAccountId == user.UserId && 
+                               a.Action == "PIN_VERIFICATION_FAILED" && 
+                               a.CreatedAt >= DateTime.Now.AddHours(-24))
+                    .CountAsync();
+
+                // Check if already fully locked (2 failed PIN attempts)
+                if (recentPinAttempts >= 2)
+                {
+                    return (false, "ACCOUNT_FULLY_LOCKED", 0);
+                }
+
+                // Verify PIN using BCrypt
+                bool isPinValid = BCrypt.Net.BCrypt.Verify(pin, user.TransferPinHash);
+                if (!isPinValid)
+                {
+                    recentPinAttempts++;
+                    int attemptsRemaining = 2 - recentPinAttempts;
+
+                    // Log failed PIN attempt
+                    var failedPinLog = new AuditLog
+                    {
+                        UserId = user.UserId.ToString(),
+                        Action = "PIN_VERIFICATION_FAILED",
+                        Module = "Security",
+                        Description = $"Failed PIN verification for user '{username}' (Attempt {recentPinAttempts}/2)",
+                        CreatedAt = DateTime.Now,
+                        IsMalicious = true,
+                        CustomerAccountId = user.UserId,
+                        AccountStatus = attemptsRemaining <= 0 ? "FullyLocked" : "PinPending",
+                        PinAttemptCount = recentPinAttempts,
+                        IsAccountLocked = attemptsRemaining <= 0,
+                        LockReason = attemptsRemaining <= 0 ? "2 failed PIN attempts - requires SuperAdmin intervention" : null
+                    };
+                    context.AuditLogs.Add(failedPinLog);
+                    await context.SaveChangesAsync();
+
+                    if (attemptsRemaining <= 0)
+                    {
+                        return (false, "ACCOUNT_FULLY_LOCKED", 0);
+                    }
+
+                    return (false, $"Invalid security PIN. {attemptsRemaining} attempt(s) remaining.", attemptsRemaining);
+                }
+
+                // Log successful PIN verification
+                var successLog = new AuditLog
+                {
+                    UserId = user.UserId.ToString(),
+                    Action = "PIN_VERIFICATION_SUCCESS",
+                    Module = "Security",
+                    Description = $"Successful PIN verification for user '{username}'",
+                    CreatedAt = DateTime.Now,
+                    IsMalicious = false,
+                    CustomerAccountId = user.UserId,
+                    AccountStatus = "Active",
+                    PinAttemptCount = 0,
+                    IsAccountLocked = false
+                };
+                context.AuditLogs.Add(successLog);
+                await context.SaveChangesAsync();
+
+                return (true, "PIN verified successfully", 2);
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Verification error: {ex.Message}", 0);
+            }
+        }
+
+        /// <summary>
+        /// Reset customer password after PIN verification
+        /// </summary>
+        public async Task<(bool success, string message)> ResetPasswordWithPinAsync(string username, string newPassword)
+        {
+            if (_contextFactory == null) return (false, "Database not available");
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var user = await context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+                if (user == null)
+                    return (false, "User not found");
+
+                // Hash and update the new password
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+                await context.SaveChangesAsync();
+
+                // Log password reset with new security columns
+                var auditLog = new AuditLog
+                {
+                    UserId = user.UserId.ToString(),
+                    Action = "PASSWORD_RESET",
+                    Module = "Security",
+                    Description = $"Password reset via security PIN for user '{username}'",
+                    CreatedAt = DateTime.Now,
+                    IsMalicious = false,
+                    CustomerAccountId = user.UserId,
+                    AccountStatus = "Active",
+                    FailedAttemptCount = 0,
+                    PinAttemptCount = 0,
+                    IsAccountLocked = false
+                };
+                context.AuditLogs.Add(auditLog);
+                await context.SaveChangesAsync();
+
+                return (true, "Password reset successfully");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Reset error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Unlock account after PIN verification (clears all security flags)
+        /// </summary>
+        public async Task<(bool success, string message)> UnlockAccountWithPinAsync(string username)
+        {
+            if (_contextFactory == null) return (false, "Database not available");
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var user = await context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+                if (user == null)
+                    return (false, "User not found");
+
+                // Log account unlock with new security columns
+                var auditLog = new AuditLog
+                {
+                    UserId = user.UserId.ToString(),
+                    Action = "ACCOUNT_UNLOCKED",
+                    Module = "Security",
+                    Description = $"Account unlocked via security PIN for user '{username}'",
+                    CreatedAt = DateTime.Now,
+                    IsMalicious = false,
+                    CustomerAccountId = user.UserId,
+                    AccountStatus = "Active",
+                    FailedAttemptCount = 0,
+                    PinAttemptCount = 0,
+                    IsAccountLocked = false
+                };
+                context.AuditLogs.Add(auditLog);
+                await context.SaveChangesAsync();
+
+                return (true, "Account unlocked successfully");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Unlock error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// SuperAdmin: Unlock a fully locked account (after 2 failed PIN attempts)
+        /// </summary>
+        public async Task<(bool success, string message)> AdminUnlockAccountAsync(int userId, string adminUsername, string? newPassword = null)
+        {
+            if (_contextFactory == null) return (false, "Database not available");
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var user = await context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+
+                if (user == null)
+                    return (false, "User not found");
+
+                // Update password if provided
+                if (!string.IsNullOrEmpty(newPassword))
+                {
+                    user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+                }
+
+                await context.SaveChangesAsync();
+
+                // Log admin unlock with new security columns
+                var auditLog = new AuditLog
+                {
+                    UserId = userId.ToString(),
+                    Action = "ADMIN_ACCOUNT_UNLOCK",
+                    Module = "Security",
+                    Description = $"Account unlocked by SuperAdmin '{adminUsername}' for user '{user.Username}'" + 
+                                 (!string.IsNullOrEmpty(newPassword) ? " - Password reset" : ""),
+                    CreatedAt = DateTime.Now,
+                    IsMalicious = false,
+                    CustomerAccountId = userId,
+                    AccountStatus = "Active",
+                    FailedAttemptCount = 0,
+                    PinAttemptCount = 0,
+                    IsAccountLocked = false,
+                    LockReason = null
+                };
+                context.AuditLogs.Add(auditLog);
+                await context.SaveChangesAsync();
+
+                return (true, "Account unlocked by administrator");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Admin unlock error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// SuperAdmin: Deactivate a user account
+        /// </summary>
+        public async Task<(bool success, string message)> AdminDeactivateAccountAsync(int userId, string adminUsername, string reason)
+        {
+            if (_contextFactory == null) return (false, "Database not available");
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var user = await context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+
+                if (user == null)
+                    return (false, "User not found");
+
+                user.IsActive = false;
+                await context.SaveChangesAsync();
+
+                // Log deactivation with new security columns
+                var auditLog = new AuditLog
+                {
+                    UserId = userId.ToString(),
+                    Action = "ADMIN_ACCOUNT_DEACTIVATE",
+                    Module = "Security",
+                    Description = $"Account deactivated by SuperAdmin '{adminUsername}' for user '{user.Username}'. Reason: {reason}",
+                    CreatedAt = DateTime.Now,
+                    IsMalicious = false,
+                    CustomerAccountId = userId,
+                    AccountStatus = "Deactivated",
+                    IsAccountLocked = true,
+                    LockReason = reason
+                };
+                context.AuditLogs.Add(auditLog);
+                await context.SaveChangesAsync();
+
+                return (true, "Account deactivated");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Deactivation error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// SuperAdmin: Activate a user account
+        /// </summary>
+        public async Task<(bool success, string message)> AdminActivateAccountAsync(int userId, string adminUsername)
+        {
+            if (_contextFactory == null) return (false, "Database not available");
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var user = await context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+
+                if (user == null)
+                    return (false, "User not found");
+
+                user.IsActive = true;
+                await context.SaveChangesAsync();
+
+                // Log activation with new security columns
+                var auditLog = new AuditLog
+                {
+                    UserId = userId.ToString(),
+                    Action = "ADMIN_ACCOUNT_ACTIVATE",
+                    Module = "Security",
+                    Description = $"Account activated by SuperAdmin '{adminUsername}' for user '{user.Username}'",
+                    CreatedAt = DateTime.Now,
+                    IsMalicious = false,
+                    CustomerAccountId = userId,
+                    AccountStatus = "Active",
+                    IsAccountLocked = false,
+                    LockReason = null
+                };
+                context.AuditLogs.Add(auditLog);
+                await context.SaveChangesAsync();
+
+                return (true, "Account activated");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Activation error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Set or update security PIN for a user (uses TransferPinHash)
+        /// </summary>
+        public async Task<(bool success, string message)> SetSecurityPinAsync(string username, string pin)
+        {
+            if (_contextFactory == null) return (false, "Database not available");
+
+            if (pin.Length != 4 || !pin.All(char.IsDigit))
+                return (false, "PIN must be exactly 4 digits");
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var user = await context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+                if (user == null)
+                    return (false, "User not found");
+
+                // Hash and store the PIN in TransferPinHash
+                user.TransferPinHash = BCrypt.Net.BCrypt.HashPassword(pin);
+                await context.SaveChangesAsync();
+
+                return (true, "Security PIN set successfully");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error setting PIN: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Get user's failed login attempts count from AuditLogs
+        /// </summary>
+        public async Task<int> GetFailedLoginAttemptsAsync(string username)
+        {
+            if (_contextFactory == null) return 0;
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var user = await context.Users.FirstOrDefaultAsync(u => u.Username == username);
+                if (user == null) return 0;
+
+                // Count recent failed attempts from AuditLogs
+                var failedAttempts = await context.AuditLogs
+                    .Where(a => a.UserId == user.UserId.ToString() && 
+                               a.Action == "LOGIN_FAILED" && 
+                               a.CreatedAt >= DateTime.Now.AddHours(-1))
+                    .CountAsync();
+
+                return failedAttempts;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Check if user account is locked (uses new IsAccountLocked column)
+        /// </summary>
+        public async Task<(bool isLocked, string lockType, string? reason)> IsAccountLockedAsync(string username)
+        {
+            if (_contextFactory == null) return (false, "", null);
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var user = await context.Users.FirstOrDefaultAsync(u => u.Username == username);
+                if (user == null) return (false, "", null);
+
+                // Check for recent security events (within 24 hours)
+                var recentLockEvent = await context.AuditLogs
+                    .Where(a => a.CustomerAccountId == user.UserId && 
+                               a.IsAccountLocked == true && 
+                               a.CreatedAt >= DateTime.Now.AddHours(-24))
+                    .OrderByDescending(a => a.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                if (recentLockEvent != null)
+                {
+                    // Check if account was unlocked after the lock event
+                    var unlockEvent = await context.AuditLogs
+                        .Where(a => a.CustomerAccountId == user.UserId && 
+                                   a.Action == "ACCOUNT_UNLOCKED" && 
+                                   a.CreatedAt > recentLockEvent.CreatedAt)
+                        .FirstOrDefaultAsync();
+
+                    if (unlockEvent == null)
+                    {
+                        // Determine lock type
+                        string lockType = recentLockEvent.Action == "PIN_VERIFICATION_FAILED" && recentLockEvent.PinAttemptCount >= 2
+                            ? "FULLY_LOCKED" // 2 failed PIN attempts - needs SuperAdmin
+                            : "PIN_REQUIRED"; // 5 failed password attempts - needs PIN
+
+                        return (true, lockType, recentLockEvent.LockReason);
+                    }
+                }
+
+                return (false, "", null);
+            }
+            catch
+            {
+                return (false, "", null);
+            }
+        }
+
+        /// <summary>
+        /// Check if account is fully locked (requires SuperAdmin intervention)
+        /// </summary>
+        public async Task<bool> IsAccountFullyLockedAsync(string username)
+        {
+            if (_contextFactory == null) return false;
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                var user = await context.Users.FirstOrDefaultAsync(u => u.Username == username);
+                if (user == null) return false;
+
+                // Check for 2 failed PIN attempts (fully locked)
+                var pinFailures = await context.AuditLogs
+                    .Where(a => a.CustomerAccountId == user.UserId && 
+                               a.Action == "PIN_VERIFICATION_FAILED" && 
+                               a.CreatedAt >= DateTime.Now.AddHours(-24))
+                    .CountAsync();
+
+                if (pinFailures >= 2)
+                {
+                    // Check if SuperAdmin unlocked after
+                    var adminUnlock = await context.AuditLogs
+                        .Where(a => a.CustomerAccountId == user.UserId && 
+                                   a.Action == "ADMIN_ACCOUNT_UNLOCK" && 
+                                   a.CreatedAt >= DateTime.Now.AddHours(-24))
+                        .OrderByDescending(a => a.CreatedAt)
+                        .FirstOrDefaultAsync();
+
+                    var lastPinFailure = await context.AuditLogs
+                        .Where(a => a.CustomerAccountId == user.UserId && 
+                                   a.Action == "PIN_VERIFICATION_FAILED" && 
+                                   a.CreatedAt >= DateTime.Now.AddHours(-24))
+                        .OrderByDescending(a => a.CreatedAt)
+                        .FirstOrDefaultAsync();
+
+                    return adminUnlock == null || (lastPinFailure != null && adminUnlock.CreatedAt < lastPinFailure.CreatedAt);
+                }
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Log failed password verification for teller transactions
+        /// </summary>
+        public async Task LogTellerTransactionFailedPasswordAsync(int customerId, string customerUsername, string tellerUsername, string transactionType)
+        {
+            if (_contextFactory == null) return;
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                
+                // Count recent failed attempts from AuditLogs
+                var failedAttempts = await context.AuditLogs
+                    .Where(a => a.UserId == customerId.ToString() && 
+                               (a.Action == "FAILED_PASSWORD_VERIFICATION" || a.Action == "LOGIN_FAILED") && 
+                               a.CreatedAt >= DateTime.Now.AddHours(-1))
+                    .CountAsync();
+
+                failedAttempts++; // Include current attempt
+
+                // Check if 5 failed attempts reached
+                if (failedAttempts >= 5)
+                {
+                    // Log as malicious attempt
+                    var auditLog = new AuditLog
+                    {
+                        UserId = customerId.ToString(),
+                        Action = "MALICIOUS_ATTEMPT",
+                        Module = "Teller Banking",
+                        Description = $"[LOCKED] UserId:{customerId} Malicious attempt: 5 failed password verifications during {transactionType} by teller '{tellerUsername}' for customer '{customerUsername}'",
+                        CreatedAt = DateTime.Now
+                    };
+                    context.AuditLogs.Add(auditLog);
+                }
+                else
+                {
+                    // Log regular failed attempt
+                    var auditLog = new AuditLog
+                    {
+                        UserId = customerId.ToString(),
+                        Action = "FAILED_PASSWORD_VERIFICATION",
+                        Module = "Teller Banking",
+                        Description = $"UserId:{customerId} Failed password verification during {transactionType} (Attempt {failedAttempts}/5) by teller '{tellerUsername}'",
+                        CreatedAt = DateTime.Now
+                    };
+                    context.AuditLogs.Add(auditLog);
+                }
+
+                await context.SaveChangesAsync();
+            }
+            catch { /* Ignore logging errors */ }
+        }
+
+        /// <summary>
+        /// Reset customer's failed attempts after successful transaction (logs success to clear attempts)
+        /// </summary>
+        public async Task ResetFailedAttemptsAsync(int customerId)
+        {
+            if (_contextFactory == null) return;
+
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                
+                // Log successful verification to mark end of failed attempt series
+                var auditLog = new AuditLog
+                {
+                    UserId = customerId.ToString(),
+                    Action = "SUCCESSFUL_VERIFICATION",
+                    Module = "Security",
+                    Description = $"UserId:{customerId} Successful password verification - failed attempts reset",
+                    CreatedAt = DateTime.Now
+                };
+                context.AuditLogs.Add(auditLog);
+                await context.SaveChangesAsync();
+            }
+            catch { /* Ignore errors */ }
         }
 
         /// <summary>

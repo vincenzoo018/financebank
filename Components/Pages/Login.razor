@@ -109,6 +109,231 @@
     </div>
 </div>
 
+<!-- PIN Verification Modal for Account Recovery -->
+@if (showPinModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 450px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto;">
+            <!-- Modal Header -->
+            <div style="text-align: center; margin-bottom: 24px;">
+                @if (isAccountFullyLocked)
+                {
+                    <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #dc2626, #991b1b); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <h3 style="font-size: 20px; font-weight: 700; color: #dc2626; margin-bottom: 8px;">Account Fully Locked</h3>
+                    <p style="font-size: 14px; color: #6b7280; line-height: 1.5;">
+                        Your account has been fully locked due to multiple failed PIN attempts.
+                        Please contact the SuperAdmin to unlock your account.
+                    </p>
+                }
+                else if (!pinVerified)
+                {
+                    <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <h3 style="font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">Account Locked</h3>
+                    <p style="font-size: 14px; color: #6b7280; line-height: 1.5;">
+                        Your account has been locked due to 5 failed login attempts. 
+                        Enter your 4-digit security PIN to unlock.
+                    </p>
+                    <p style="font-size: 12px; color: #dc2626; margin-top: 8px; font-weight: 600;">
+                        ⚠️ You have @pinAttemptsRemaining attempt(s) remaining
+                    </p>
+                }
+                else
+                {
+                    <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #059669, #10b981); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <h3 style="font-size: 20px; font-weight: 700; color: #059669; margin-bottom: 8px;">PIN Verified!</h3>
+                    <p style="font-size: 14px; color: #6b7280; line-height: 1.5;">
+                        Your PIN has been verified. Choose what you want to do:
+                    </p>
+                }
+            </div>
+
+            @if (isAccountFullyLocked)
+            {
+                <!-- Fully Locked - Contact Admin -->
+                <div style="padding: 16px; background: #fef2f2; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="font-size: 13px; color: #991b1b; margin: 0;">
+                        <strong>What to do:</strong><br/>
+                        1. Contact your branch or call customer service<br/>
+                        2. Visit the SuperAdmin to unlock your account<br/>
+                        3. You may need to provide identification
+                    </p>
+                </div>
+                <button @onclick="ClosePinModal" 
+                        style="width: 100%; padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: #374151; cursor: pointer;">
+                    Close
+                </button>
+            }
+            else if (!pinVerified)
+            {
+                <!-- PIN Input -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Security PIN (4 digits)</label>
+                    <div style="display: flex; gap: 12px; justify-content: center;">
+                        @for (int i = 0; i < 4; i++)
+                        {
+                            var index = i;
+                            <input type="password" 
+                                   maxlength="1" 
+                                   @bind="pinDigits[index]"
+                                   @oninput="(e) => HandlePinInput(e, index)"
+                                   id="pin-@index"
+                                   style="width: 56px; height: 56px; text-align: center; font-size: 24px; font-weight: 700; border: 2px solid #e5e7eb; border-radius: 12px; outline: none; transition: all 0.2s;"
+                                   onfocus="this.style.borderColor='#059669'; this.style.boxShadow='0 0 0 3px rgba(5,150,105,0.1)';"
+                                   onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';" />
+                        }
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                @if (!string.IsNullOrEmpty(pinErrorMessage))
+                {
+                    <div style="padding: 12px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px; margin-bottom: 16px;">
+                        @pinErrorMessage
+                    </div>
+                }
+
+                <!-- No PIN Set Warning -->
+                @if (noPinSet)
+                {
+                    <div style="padding: 12px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; color: #92400e; font-size: 13px; margin-bottom: 16px;">
+                        <strong>No PIN Set:</strong> You don't have a security PIN configured. Please contact the SuperAdmin to unlock your account and set up a PIN.
+                    </div>
+                    <button @onclick="ClosePinModal" 
+                            style="width: 100%; padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: #374151; cursor: pointer;">
+                        Close
+                    </button>
+                }
+                else
+                {
+                    <!-- Modal Buttons -->
+                    <div style="display: flex; gap: 12px;">
+                        <button @onclick="ClosePinModal" 
+                                style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: #374151; cursor: pointer;">
+                            Cancel
+                        </button>
+                        <button @onclick="HandlePinVerificationOnly" 
+                                disabled="@isPinLoading"
+                                style="flex: 1; padding: 12px; background: linear-gradient(135deg, #059669, #10b981); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: white; cursor: pointer;">
+                            @if (isPinLoading)
+                            {
+                                <span>Verifying...</span>
+                            }
+                            else
+                            {
+                                <span>Verify PIN</span>
+                            }
+                        </button>
+                    </div>
+                }
+            }
+            else
+            {
+                <!-- PIN Verified - Show Options -->
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Option 1: Change Password -->
+                    <div style="border: 2px solid @(selectedOption == "change" ? "#059669" : "#e5e7eb"); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s;" @onclick='() => selectedOption = "change"'>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 24px; height: 24px; border: 2px solid @(selectedOption == "change" ? "#059669" : "#d1d5db"); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                @if (selectedOption == "change")
+                                {
+                                    <div style="width: 12px; height: 12px; background: #059669; border-radius: 50%;"></div>
+                                }
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: #1f2937;">Change Password</div>
+                                <div style="font-size: 12px; color: #6b7280;">Reset your password and then continue to dashboard</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Option 2: Continue to Dashboard -->
+                    <div style="border: 2px solid @(selectedOption == "continue" ? "#059669" : "#e5e7eb"); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s;" @onclick='() => selectedOption = "continue"'>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 24px; height: 24px; border: 2px solid @(selectedOption == "continue" ? "#059669" : "#d1d5db"); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                @if (selectedOption == "continue")
+                                {
+                                    <div style="width: 12px; height: 12px; background: #059669; border-radius: 50%;"></div>
+                                }
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: #1f2937;">Continue to Dashboard</div>
+                                <div style="font-size: 12px; color: #6b7280;">Keep current password and go to customer dashboard</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Fields (show only if Change Password selected) -->
+                    @if (selectedOption == "change")
+                    {
+                        <div style="margin-top: 8px;">
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">New Password</label>
+                                <input type="password" 
+                                       @bind="newPassword" 
+                                       placeholder="Enter new password"
+                                       style="width: 100%; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Confirm New Password</label>
+                                <input type="password" 
+                                       @bind="confirmNewPassword" 
+                                       placeholder="Confirm new password"
+                                       style="width: 100%; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Error/Success Messages -->
+                    @if (!string.IsNullOrEmpty(pinErrorMessage))
+                    {
+                        <div style="padding: 12px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px;">
+                            @pinErrorMessage
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(pinSuccessMessage))
+                    {
+                        <div style="padding: 12px; background: #d1fae5; border: 1px solid #a7f3d0; border-radius: 8px; color: #065f46; font-size: 13px;">
+                            @pinSuccessMessage
+                        </div>
+                    }
+
+                    <!-- Action Button -->
+                    <button @onclick="HandleSelectedOption" 
+                            disabled="@(isPinLoading || string.IsNullOrEmpty(selectedOption))"
+                            style="width: 100%; padding: 14px; background: linear-gradient(135deg, #059669, #10b981); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: white; cursor: pointer; opacity: @(string.IsNullOrEmpty(selectedOption) ? "0.5" : "1");">
+                        @if (isPinLoading)
+                        {
+                            <span>Processing...</span>
+                        }
+                        else if (selectedOption == "change")
+                        {
+                            <span>Reset Password & Continue</span>
+                        }
+                        else
+                        {
+                            <span>Continue to Dashboard</span>
+                        }
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
 <style>
     @@keyframes slideUp {
         from {
@@ -204,6 +429,21 @@
     private bool isLoading = false;
     private bool showPassword = false;
 
+    // PIN Modal state
+    private bool showPinModal = false;
+    private string[] pinDigits = new string[4] { "", "", "", "" };
+    private string newPassword = "";
+    private string confirmNewPassword = "";
+    private string pinErrorMessage = "";
+    private string pinSuccessMessage = "";
+    private bool isPinLoading = false;
+    private string lockedUsername = "";
+    private bool pinVerified = false;
+    private string selectedOption = "";
+    private int pinAttemptsRemaining = 2;
+    private bool isAccountFullyLocked = false;
+    private bool noPinSet = false;
+
     private async Task HandleLogin()
     {
         showError = true;
@@ -245,7 +485,32 @@
 
             if (!success)
             {
-                errorMessage = message;
+                // Check if account is fully locked (2 failed PIN attempts)
+                if (message == "ACCOUNT_FULLY_LOCKED")
+                {
+                    lockedUsername = username;
+                    isAccountFullyLocked = true;
+                    showPinModal = true;
+                    pinErrorMessage = "";
+                    pinSuccessMessage = "";
+                    errorMessage = "";
+                }
+                // Check if account is locked (5 failed password attempts) - needs PIN
+                else if (message == "MALICIOUS_ATTEMPT" || message == "ACCOUNT_LOCKED")
+                {
+                    lockedUsername = username;
+                    isAccountFullyLocked = false;
+                    pinVerified = false;
+                    noPinSet = false;
+                    showPinModal = true;
+                    pinErrorMessage = "";
+                    pinSuccessMessage = "";
+                    errorMessage = "";
+                }
+                else
+                {
+                    errorMessage = message;
+                }
                 isLoading = false;
                 StateHasChanged();
                 return;
@@ -288,5 +553,198 @@
             isLoading = false;
             StateHasChanged();
         }
+    }
+
+    private void HandlePinInput(ChangeEventArgs e, int index)
+    {
+        var value = e.Value?.ToString() ?? "";
+        if (value.Length > 0 && char.IsDigit(value[0]))
+        {
+            pinDigits[index] = value[0].ToString();
+            StateHasChanged();
+        }
+        else
+        {
+            pinDigits[index] = "";
+        }
+    }
+
+    private async Task HandlePinVerificationOnly()
+    {
+        pinErrorMessage = "";
+        pinSuccessMessage = "";
+
+        // Validate PIN
+        var pin = string.Join("", pinDigits);
+        if (pin.Length != 4)
+        {
+            pinErrorMessage = "Please enter all 4 digits of your security PIN.";
+            return;
+        }
+
+        isPinLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var (success, message, attemptsRemaining) = await AuthService.VerifySecurityPinAsync(lockedUsername, pin);
+
+            if (success)
+            {
+                // PIN verified - show options
+                pinVerified = true;
+                pinErrorMessage = "";
+                selectedOption = "";
+            }
+            else if (message == "NO_PIN_SET")
+            {
+                noPinSet = true;
+                pinErrorMessage = "";
+            }
+            else if (message == "ACCOUNT_FULLY_LOCKED")
+            {
+                isAccountFullyLocked = true;
+                pinErrorMessage = "";
+            }
+            else
+            {
+                pinAttemptsRemaining = attemptsRemaining;
+                pinErrorMessage = message;
+                // Clear PIN inputs
+                pinDigits = new string[4] { "", "", "", "" };
+            }
+        }
+        catch (Exception ex)
+        {
+            pinErrorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isPinLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleSelectedOption()
+    {
+        if (string.IsNullOrEmpty(selectedOption))
+        {
+            pinErrorMessage = "Please select an option.";
+            return;
+        }
+
+        pinErrorMessage = "";
+        pinSuccessMessage = "";
+
+        if (selectedOption == "change")
+        {
+            // Validate passwords
+            if (string.IsNullOrEmpty(newPassword))
+            {
+                pinErrorMessage = "Please enter a new password.";
+                return;
+            }
+
+            if (newPassword.Length < 6)
+            {
+                pinErrorMessage = "Password must be at least 6 characters.";
+                return;
+            }
+
+            if (newPassword != confirmNewPassword)
+            {
+                pinErrorMessage = "Passwords do not match.";
+                return;
+            }
+
+            isPinLoading = true;
+            StateHasChanged();
+
+            try
+            {
+                // Reset password (PIN already verified)
+                var (success, message) = await AuthService.ResetPasswordWithPinAsync(lockedUsername, newPassword);
+
+                if (success)
+                {
+                    // Unlock account
+                    await AuthService.UnlockAccountWithPinAsync(lockedUsername);
+                    
+                    pinSuccessMessage = "Password reset successfully! Logging you in...";
+                    StateHasChanged();
+                    await Task.Delay(1500);
+
+                    // Auto-login with new password
+                    password = newPassword;
+                    ClosePinModal();
+                    await HandleLogin();
+                }
+                else
+                {
+                    pinErrorMessage = message;
+                }
+            }
+            catch (Exception ex)
+            {
+                pinErrorMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                isPinLoading = false;
+                StateHasChanged();
+            }
+        }
+        else if (selectedOption == "continue")
+        {
+            isPinLoading = true;
+            StateHasChanged();
+
+            try
+            {
+                // Just unlock account and continue
+                var (success, message) = await AuthService.UnlockAccountWithPinAsync(lockedUsername);
+
+                if (success)
+                {
+                    pinSuccessMessage = "Account unlocked! Redirecting to dashboard...";
+                    StateHasChanged();
+                    await Task.Delay(1500);
+
+                    // Try to login again with original credentials
+                    ClosePinModal();
+                    await HandleLogin();
+                }
+                else
+                {
+                    pinErrorMessage = message;
+                }
+            }
+            catch (Exception ex)
+            {
+                pinErrorMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                isPinLoading = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void ClosePinModal()
+    {
+        showPinModal = false;
+        pinDigits = new string[4] { "", "", "", "" };
+        newPassword = "";
+        confirmNewPassword = "";
+        pinErrorMessage = "";
+        pinSuccessMessage = "";
+        lockedUsername = "";
+        pinVerified = false;
+        selectedOption = "";
+        pinAttemptsRemaining = 2;
+        isAccountFullyLocked = false;
+        noPinSet = false;
+        StateHasChanged();
     }
 }

@@ -1338,10 +1338,10 @@ public class AuditLog
     [MaxLength(500)]
     public string? Description { get; set; }
 
-    [MaxLength(4000)]
+    [MaxLength(2000)]
     public string? OldValues { get; set; }
 
-    [MaxLength(4000)]
+    [MaxLength(2000)]
     public string? NewValues { get; set; }
 
     [MaxLength(50)]
@@ -1360,6 +1360,23 @@ public class AuditLog
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal? BalanceAfter { get; set; }
+
+    // Security Enhancement Columns
+    public bool IsMalicious { get; set; } = false;
+
+    public int? CustomerAccountId { get; set; }
+
+    [MaxLength(50)]
+    public string? AccountStatus { get; set; }
+
+    public int? FailedAttemptCount { get; set; } = 0;
+
+    public int? PinAttemptCount { get; set; } = 0;
+
+    public bool IsAccountLocked { get; set; } = false;
+
+    [MaxLength(255)]
+    public string? LockReason { get; set; }
 }
 
 // =============================================

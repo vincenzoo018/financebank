@@ -1,0 +1,541 @@
+@page "/customer/security-logs"
+@layout CustomerLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using FinanceBank.Data
+@using Microsoft.EntityFrameworkCore
+@inject AuthService AuthService
+@inject AuditLogService AuditLogService
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #dc2626, #991b1b); border-radius: 16px; padding: 32px; margin-bottom: 24px; color: white;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <svg width="28" height="28" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Security & Login History</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Monitor your account security and login activities</p>
+        </div>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div style="text-align: center; padding: 60px;">
+        <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #dc2626; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <p style="color: #6b7280; margin-top: 16px;">Loading security data...</p>
+    </div>
+}
+else
+{
+    <!-- Security Status Cards -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+        <div style="background: @(accountStatus == "LOCKED" ? "linear-gradient(135deg, #fee2e2, #fecaca)" : accountStatus == "WARNING" ? "linear-gradient(135deg, #fef3c7, #fde68a)" : "linear-gradient(135deg, #d1fae5, #a7f3d0)"); border-radius: 16px; padding: 20px; border: 2px solid @(accountStatus == "LOCKED" ? "#dc2626" : accountStatus == "WARNING" ? "#f59e0b" : "#10b981");">
+            <div style="font-size: 13px; color: @(accountStatus == "LOCKED" ? "#991b1b" : accountStatus == "WARNING" ? "#92400e" : "#065f46"); margin-bottom: 4px;">
+                @(accountStatus == "LOCKED" ? "🔒 Account Status" : accountStatus == "WARNING" ? "⚠️ Account Status" : "✅ Account Status")
+            </div>
+            <div style="font-size: 24px; font-weight: 800; color: @(accountStatus == "LOCKED" ? "#dc2626" : accountStatus == "WARNING" ? "#f59e0b" : "#10b981");">
+                @(accountStatus == "LOCKED" ? "LOCKED" : accountStatus == "WARNING" ? "WARNING" : "SECURE")
+            </div>
+            <div style="font-size: 11px; color: @(accountStatus == "LOCKED" ? "#7f1d1d" : accountStatus == "WARNING" ? "#78350f" : "#064e3b"); margin-top: 4px;">
+                @statusMessage
+            </div>
+        </div>
+
+        <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb;">
+            <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Total Logins</div>
+            <div style="font-size: 28px; font-weight: 700; color: #1f2937;">@totalLogins</div>
+            <div style="font-size: 11px; color: #9ca3af; margin-top: 4px;">Last 30 days</div>
+        </div>
+
+        <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb;">
+            <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Failed Attempts</div>
+            <div style="font-size: 28px; font-weight: 700; color: @(failedAttempts > 0 ? "#f59e0b" : "#10b981");">@failedAttempts</div>
+            <div style="font-size: 11px; color: #9ca3af; margin-top: 4px;">Last 24 hours</div>
+        </div>
+
+        <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb;">
+            <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Last Login</div>
+            <div style="font-size: 16px; font-weight: 700; color: #1f2937;">@(lastLoginTime?.ToString("MMM dd, HH:mm") ?? "N/A")</div>
+            <div style="font-size: 11px; color: #9ca3af; margin-top: 4px;">@(lastLoginIp ?? "Unknown IP")</div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+        <button style="padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; background: @(activeTab == "recent" ? "#dc2626" : "#f3f4f6"); color: @(activeTab == "recent" ? "white" : "#374151");"
+                @onclick='() => SetActiveTab("recent")'>
+            🔐 Recent Activity
+        </button>
+        <button style="padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; background: @(activeTab == "logins" ? "#3b82f6" : "#f3f4f6"); color: @(activeTab == "logins" ? "white" : "#374151");"
+                @onclick='() => SetActiveTab("logins")'>
+            📋 Login History
+        </button>
+        <button style="padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; background: @(activeTab == "security" ? "#f59e0b" : "#f3f4f6"); color: @(activeTab == "security" ? "white" : "#374151");"
+                @onclick='() => SetActiveTab("security")'>
+            ⚠️ Security Events
+        </button>
+    </div>
+
+    @if (activeTab == "recent")
+    {
+        <!-- Recent Activity -->
+        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb; margin-bottom: 24px;">
+            <h3 style="font-size: 18px; font-weight: 700; margin: 0 0 20px 0; color: #1f2937;">📊 Recent Account Activity</h3>
+
+            @if (recentLogs.Any())
+            {
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    @foreach (var log in recentLogs.Take(15))
+                    {
+                        var isSecurityEvent = log.Action.Contains("FAIL") || log.Action.Contains("MALICIOUS") || log.Action.Contains("LOCK");
+                        <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: @(isSecurityEvent ? "#fef2f2" : "#f9fafb"); border-radius: 12px; border: 1px solid @(isSecurityEvent ? "#fecaca" : "#e5e7eb");">
+                            <div style="width: 48px; height: 48px; background: @GetActivityIconBackground(log.Action); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                                @GetActivityIcon(log.Action)
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">@GetActivityTitle(log.Action)</div>
+                                <div style="font-size: 13px; color: #6b7280;">@log.Description</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 13px; font-weight: 600; color: #374151;">@log.CreatedAt.ToString("MMM dd")</div>
+                                <div style="font-size: 12px; color: #9ca3af;">@log.CreatedAt.ToString("HH:mm:ss")</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div style="text-align: center; padding: 40px; color: #6b7280;">
+                    <svg width="48" height="48" fill="none" stroke="#9ca3af" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 16px;">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <p>No recent activity found</p>
+                </div>
+            }
+        </div>
+    }
+
+    @if (activeTab == "logins")
+    {
+        <!-- Login History Table -->
+        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb; margin-bottom: 24px;">
+            <h3 style="font-size: 18px; font-weight: 700; margin: 0 0 20px 0; color: #1f2937;">📋 Login History</h3>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e5e7eb; background: #f9fafb;">
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #374151;">DATE & TIME</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #374151;">STATUS</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #374151;">IP ADDRESS</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #374151;">DETAILS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (loginLogs.Any())
+                    {
+                        @foreach (var log in loginLogs.Take(30))
+                        {
+                            var isSuccess = log.Action == "LOGIN_SUCCESS";
+                            <tr style="border-bottom: 1px solid #e5e7eb; background: @(isSuccess ? "white" : "#fef2f2");">
+                                <td style="padding: 16px;">
+                                    <div style="font-weight: 600; color: #1f2937;">@log.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                    <div style="font-size: 12px; color: #6b7280;">@log.CreatedAt.ToString("HH:mm:ss")</div>
+                                </td>
+                                <td style="padding: 16px;">
+                                    <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(isSuccess ? "#d1fae5" : "#fee2e2"); color: @(isSuccess ? "#065f46" : "#991b1b");">
+                                        @(isSuccess ? "✓ Success" : "✗ Failed")
+                                    </span>
+                                </td>
+                                <td style="padding: 16px; font-family: monospace; font-size: 12px; color: #374151;">
+                                    @(log.IpAddress ?? "Unknown")
+                                </td>
+                                <td style="padding: 16px; font-size: 13px; color: #6b7280;">
+                                    @(log.Description ?? "Login attempt")
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" style="padding: 40px; text-align: center; color: #6b7280;">
+                                No login history available
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (activeTab == "security")
+    {
+        <!-- Security Events -->
+        <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #f59e0b; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-size: 18px; font-weight: 700; margin: 0; color: #92400e;">⚠️ Security Events & Alerts</h3>
+                <span style="font-size: 12px; color: #6b7280;">Events that may indicate suspicious activity</span>
+            </div>
+
+            @if (securityEvents.Any())
+            {
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #fde68a; background: #fef3c7;">
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #92400e;">DATE & TIME</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #92400e;">EVENT TYPE</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #92400e;">SEVERITY</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #92400e;">DETAILS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in securityEvents.Take(20))
+                        {
+                            var severity = GetSeverity(log.Action);
+                            <tr style="border-bottom: 1px solid #fde68a; background: @GetSeverityBackground(severity);">
+                                <td style="padding: 16px;">
+                                    <div style="font-weight: 600; color: #1f2937;">@log.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                    <div style="font-size: 12px; color: #6b7280;">@log.CreatedAt.ToString("HH:mm:ss")</div>
+                                </td>
+                                <td style="padding: 16px;">
+                                    <span style="font-weight: 600; color: @GetSeverityColor(severity);">
+                                        @GetSecurityEventTitle(log.Action)
+                                    </span>
+                                </td>
+                                <td style="padding: 16px;">
+                                    <span style="padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; background: @GetSeverityBadgeBackground(severity); color: @GetSeverityColor(severity);">
+                                        @severity
+                                    </span>
+                                </td>
+                                <td style="padding: 16px; font-size: 13px; color: #6b7280;">
+                                    @log.Description
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div style="text-align: center; padding: 40px; color: #065f46; background: #d1fae5; border-radius: 12px;">
+                    <svg width="48" height="48" fill="none" stroke="#10b981" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 16px;">
+                        <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                    <p style="font-weight: 600; margin: 0;">✅ No security events detected</p>
+                    <p style="font-size: 13px; margin-top: 8px;">Your account has no suspicious activity</p>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Security Tips -->
+    <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 16px; padding: 24px; border: 1px solid #93c5fd;">
+        <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 16px 0; color: #1e40af;">💡 Security Tips</h3>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                <div style="width: 32px; height: 32px; background: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0;">🔑</div>
+                <div>
+                    <div style="font-weight: 600; color: #1e40af; font-size: 14px;">Use Strong Passwords</div>
+                    <div style="font-size: 12px; color: #3b82f6;">Combine letters, numbers, and symbols</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                <div style="width: 32px; height: 32px; background: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0;">📱</div>
+                <div>
+                    <div style="font-weight: 600; color: #1e40af; font-size: 14px;">Set Up Transfer PIN</div>
+                    <div style="font-size: 12px; color: #3b82f6;">Add an extra layer of security</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                <div style="width: 32px; height: 32px; background: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0;">👁️</div>
+                <div>
+                    <div style="font-weight: 600; color: #1e40af; font-size: 14px;">Monitor Your Activity</div>
+                    <div style="font-size: 12px; color: #3b82f6;">Check this page regularly</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                <div style="width: 32px; height: 32px; background: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0;">🚫</div>
+                <div>
+                    <div style="font-weight: 600; color: #1e40af; font-size: 14px;">Never Share Credentials</div>
+                    <div style="font-size: 12px; color: #3b82f6;">Keep your login details private</div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+@code {
+    private bool isLoading = true;
+    private string activeTab = "recent";
+    private string accountStatus = "SECURE";
+    private string statusMessage = "Your account is secure";
+    
+    // Stats
+    private int totalLogins = 0;
+    private int failedAttempts = 0;
+    private DateTime? lastLoginTime;
+    private string? lastLoginIp;
+    
+    // Log collections
+    private List<AuditLog> recentLogs = new();
+    private List<AuditLog> loginLogs = new();
+    private List<AuditLog> securityEvents = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSecurityData();
+        isLoading = false;
+    }
+
+    private async Task LoadSecurityData()
+    {
+        try
+        {
+            var userId = AuthService.CurrentUserId;
+            if (userId == null) return;
+
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            
+            // Get all logs for this user
+            var userIdString = userId.ToString();
+            var thirtyDaysAgo = DateTime.Now.AddDays(-30);
+            var twentyFourHoursAgo = DateTime.Now.AddHours(-24);
+            
+            // Get recent logs (all activity for this user)
+            recentLogs = await context.AuditLogs
+                .Where(a => a.UserId == userIdString || 
+                           (a.CustomerAccountId != null && a.CustomerAccountId == userId))
+                .Where(a => a.CreatedAt >= thirtyDaysAgo)
+                .OrderByDescending(a => a.CreatedAt)
+                .Take(50)
+                .ToListAsync();
+            
+            // Get login-related logs
+            loginLogs = await context.AuditLogs
+                .Where(a => (a.UserId == userIdString || 
+                            (a.CustomerAccountId != null && a.CustomerAccountId == userId)) &&
+                           (a.Action == "LOGIN_SUCCESS" || a.Action == "LOGIN_FAILED"))
+                .OrderByDescending(a => a.CreatedAt)
+                .Take(50)
+                .ToListAsync();
+            
+            // Get security events (failed logins, malicious attempts, locks)
+            securityEvents = await context.AuditLogs
+                .Where(a => (a.UserId == userIdString || 
+                            (a.CustomerAccountId != null && a.CustomerAccountId == userId)) &&
+                           (a.Action.Contains("FAIL") || 
+                            a.Action.Contains("MALICIOUS") || 
+                            a.Action.Contains("LOCK") ||
+                            a.Action.Contains("PIN") ||
+                            a.IsMalicious))
+                .OrderByDescending(a => a.CreatedAt)
+                .Take(30)
+                .ToListAsync();
+            
+            // Calculate stats
+            totalLogins = loginLogs.Count(l => l.Action == "LOGIN_SUCCESS");
+            failedAttempts = await context.AuditLogs
+                .CountAsync(a => (a.UserId == userIdString || 
+                                 (a.CustomerAccountId != null && a.CustomerAccountId == userId)) &&
+                                a.Action == "LOGIN_FAILED" &&
+                                a.CreatedAt >= twentyFourHoursAgo);
+            
+            var lastLogin = loginLogs.FirstOrDefault(l => l.Action == "LOGIN_SUCCESS");
+            lastLoginTime = lastLogin?.CreatedAt;
+            lastLoginIp = lastLogin?.IpAddress;
+            
+            // Check account status
+            await CheckAccountStatus(context, userId.Value);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading security data: {ex.Message}");
+        }
+    }
+
+    private async Task CheckAccountStatus(BFASDbContext context, int userId)
+    {
+        try
+        {
+            var user = await context.Users.FindAsync(userId);
+            if (user == null) return;
+
+            // Check if account is locked
+            var (isLocked, lockType, reason) = await AuthService.IsAccountLockedAsync(user.Username);
+            
+            if (isLocked)
+            {
+                if (lockType == "FULL")
+                {
+                    accountStatus = "LOCKED";
+                    statusMessage = reason ?? "Account is locked. Contact support.";
+                }
+                else
+                {
+                    accountStatus = "WARNING";
+                    statusMessage = reason ?? "Multiple failed login attempts detected";
+                }
+            }
+            else if (failedAttempts > 0)
+            {
+                accountStatus = "WARNING";
+                statusMessage = $"{failedAttempts} failed login attempt(s) in the last 24 hours";
+            }
+            else
+            {
+                accountStatus = "SECURE";
+                statusMessage = "Your account is secure";
+            }
+        }
+        catch
+        {
+            accountStatus = "SECURE";
+            statusMessage = "Your account is secure";
+        }
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private string GetActivityIcon(string action)
+    {
+        return action switch
+        {
+            "LOGIN_SUCCESS" => "✓",
+            "LOGIN_FAILED" => "✗",
+            "LOGOUT" => "🚪",
+            "MALICIOUS_ATTEMPT" => "🚨",
+            "ACCOUNT_LOCKED" => "🔒",
+            "ACCOUNT_UNLOCKED" => "🔓",
+            "PASSWORD_RESET" => "🔑",
+            "PIN_VERIFIED" => "📱",
+            "PIN_FAILED" => "⚠️",
+            "TRANSFER" => "💸",
+            "DEPOSIT" => "📥",
+            "WITHDRAWAL" => "📤",
+            _ when action.Contains("TRANSFER") => "💸",
+            _ when action.Contains("DEPOSIT") => "📥",
+            _ when action.Contains("WITHDRAW") => "📤",
+            _ when action.Contains("LOAN") => "🏦",
+            _ when action.Contains("BILL") => "📄",
+            _ => "📋"
+        };
+    }
+
+    private string GetActivityIconBackground(string action)
+    {
+        return action switch
+        {
+            "LOGIN_SUCCESS" => "#d1fae5",
+            "LOGIN_FAILED" => "#fee2e2",
+            "LOGOUT" => "#dbeafe",
+            "MALICIOUS_ATTEMPT" => "#fee2e2",
+            "ACCOUNT_LOCKED" => "#fef3c7",
+            "ACCOUNT_UNLOCKED" => "#d1fae5",
+            "PASSWORD_RESET" => "#dbeafe",
+            "PIN_VERIFIED" => "#d1fae5",
+            "PIN_FAILED" => "#fef3c7",
+            _ => "#f3f4f6"
+        };
+    }
+
+    private string GetActivityTitle(string action)
+    {
+        return action switch
+        {
+            "LOGIN_SUCCESS" => "Successful Login",
+            "LOGIN_FAILED" => "Failed Login Attempt",
+            "LOGOUT" => "Logged Out",
+            "MALICIOUS_ATTEMPT" => "Suspicious Activity Detected",
+            "ACCOUNT_LOCKED" => "Account Locked",
+            "ACCOUNT_UNLOCKED" => "Account Unlocked",
+            "PASSWORD_RESET" => "Password Changed",
+            "PIN_VERIFIED" => "PIN Verified",
+            "PIN_FAILED" => "PIN Verification Failed",
+            _ when action.Contains("TRANSFER") => "Fund Transfer",
+            _ when action.Contains("DEPOSIT") => "Deposit Made",
+            _ when action.Contains("WITHDRAW") => "Withdrawal Made",
+            _ when action.Contains("LOAN") => "Loan Activity",
+            _ when action.Contains("BILL") => "Bill Payment",
+            _ => action.Replace("_", " ")
+        };
+    }
+
+    private string GetSecurityEventTitle(string action)
+    {
+        return action switch
+        {
+            "LOGIN_FAILED" => "Failed Login Attempt",
+            "MALICIOUS_ATTEMPT" => "Suspicious Activity",
+            "ACCOUNT_LOCKED" => "Account Locked",
+            "ACCOUNT_FULLY_LOCKED" => "Account Fully Locked",
+            "PIN_FAILED" => "PIN Verification Failed",
+            _ => action.Replace("_", " ")
+        };
+    }
+
+    private string GetSeverity(string action)
+    {
+        return action switch
+        {
+            "MALICIOUS_ATTEMPT" => "HIGH",
+            "ACCOUNT_LOCKED" => "HIGH",
+            "ACCOUNT_FULLY_LOCKED" => "CRITICAL",
+            "LOGIN_FAILED" => "MEDIUM",
+            "PIN_FAILED" => "MEDIUM",
+            _ => "LOW"
+        };
+    }
+
+    private string GetSeverityColor(string severity)
+    {
+        return severity switch
+        {
+            "CRITICAL" => "#7f1d1d",
+            "HIGH" => "#991b1b",
+            "MEDIUM" => "#92400e",
+            "LOW" => "#065f46",
+            _ => "#374151"
+        };
+    }
+
+    private string GetSeverityBackground(string severity)
+    {
+        return severity switch
+        {
+            "CRITICAL" => "#fee2e2",
+            "HIGH" => "#fef2f2",
+            "MEDIUM" => "#fef3c7",
+            "LOW" => "#f9fafb",
+            _ => "white"
+        };
+    }
+
+    private string GetSeverityBadgeBackground(string severity)
+    {
+        return severity switch
+        {
+            "CRITICAL" => "#fee2e2",
+            "HIGH" => "#fecaca",
+            "MEDIUM" => "#fde68a",
+            "LOW" => "#d1fae5",
+            _ => "#f3f4f6"
+        };
+    }
+}

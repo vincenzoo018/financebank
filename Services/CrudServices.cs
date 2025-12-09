@@ -2923,12 +2923,9 @@ public class AuditLogService
             UserId = userId,
             Action = action,
             Module = module,
-            Description = description,
-            Amount = amount,
-            BalanceBefore = balanceBefore,
-            BalanceAfter = balanceAfter,
-            OldValues = oldValues,
-            NewValues = newValues
+            Description = $"{description}" + (amount.HasValue ? $" Amount: ₱{amount.Value:N2}" : "") +
+                         (balanceBefore.HasValue ? $" Balance Before: ₱{balanceBefore.Value:N2}" : "") +
+                         (balanceAfter.HasValue ? $" Balance After: ₱{balanceAfter.Value:N2}" : "")
         });
 
         // Check for suspicious transaction patterns
@@ -2957,9 +2954,7 @@ public class AuditLogService
             UserId = userId,
             Action = $"{action}_{entityName.ToUpper()}",
             Module = module,
-            Description = $"User '{userName}' {action.ToLower()}d {entityName} (ID: {entityId})",
-            OldValues = oldValues,
-            NewValues = newValues
+            Description = $"User '{userName}' {action.ToLower()}d {entityName} (ID: {entityId})"
         });
     }
 
@@ -2981,8 +2976,8 @@ public class AuditLogService
             UserId = userId,
             Action = $"{action}_{approvalType.ToUpper()}",
             Module = module,
-            Description = $"User '{userName}' {action.ToLower()}d {approvalType} (Request ID: {requestId}). Reason: {reason ?? "N/A"}",
-            Amount = amount
+            Description = $"User '{userName}' {action.ToLower()}d {approvalType} (Request ID: {requestId}). Reason: {reason ?? "N/A"}" +
+                         (amount.HasValue ? $" Amount: ₱{amount.Value:N2}" : "")
         });
 
         // Log Super Admin overrides as potentially suspicious
@@ -3067,11 +3062,12 @@ public class AuditLogService
     }
 
     /// <summary>
-    /// Get financial transaction logs with amounts
+    /// Get financial transaction logs (transactions with financial actions)
     /// </summary>
     public async Task<List<AuditLog>> GetFinancialTransactionLogsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
-        var query = _context.AuditLogs.Where(a => a.Amount != null);
+        var financialActions = new[] { "DEPOSIT", "WITHDRAWAL", "TRANSFER", "LOAN_DISBURSEMENT", "LOAN_PAYMENT", "INTEREST_POSTING" };
+        var query = _context.AuditLogs.Where(a => financialActions.Contains(a.Action) || a.Description.Contains("Amount:"));
 
         if (startDate.HasValue)
             query = query.Where(a => a.CreatedAt >= startDate.Value);
@@ -3138,9 +3134,70 @@ public class AuditLogService
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
     }
-}
 
-/// <summary>
+    /// <summary>
+    /// Get all malicious attempts (IsMalicious = true)
+    /// </summary>
+    public async Task<List<AuditLog>> GetMaliciousAttemptsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        // Use Action = "MALICIOUS_ATTEMPT" instead of IsMalicious flag
+        var query = _context.AuditLogs.Where(a => a.Action == "MALICIOUS_ATTEMPT");
+
+        if (startDate.HasValue)
+            query = query.Where(a => a.CreatedAt >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(a => a.CreatedAt <= endDate.Value);
+
+        return await query.OrderByDescending(a => a.CreatedAt).ToListAsync();
+    }
+
+    /// <summary>
+    /// Get security-related audit logs
+    /// </summary>
+    public async Task<List<AuditLog>> GetSecurityLogsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var securityActions = new[] { "LOGIN_SUCCESS", "LOGIN_FAILED", "LOGOUT", "MALICIOUS_ATTEMPT", 
+                                      "ACCOUNT_LOCKED", "ACCOUNT_UNLOCKED", "PASSWORD_RESET", 
+                                      "FAILED_PASSWORD_VERIFICATION", "SUSPICIOUS_ACTIVITY" };
+        var query = _context.AuditLogs.Where(a => securityActions.Contains(a.Action) || a.Module == "Security");
+
+        if (startDate.HasValue)
+            query = query.Where(a => a.CreatedAt >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(a => a.CreatedAt <= endDate.Value);
+
+        return await query.OrderByDescending(a => a.CreatedAt).ToListAsync();
+    }
+
+    /// <summary>
+    /// Get customer-specific audit logs by UserId
+    /// </summary>
+    public async Task<List<AuditLog>> GetCustomerLogsAsync(int customerAccountId, DateTime? startDate = null, DateTime? endDate = null)
+    {
+        // Use UserId field instead of CustomerAccountId
+        var query = _context.AuditLogs.Where(a => a.UserId == customerAccountId.ToString());
+
+        if (startDate.HasValue)
+            query = query.Where(a => a.CreatedAt >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(a => a.CreatedAt <= endDate.Value);
+
+        return await query.OrderByDescending(a => a.CreatedAt).ToListAsync();
+    }
+
+    /// <summary>
+    /// Get count of malicious attempts in the last 24 hours
+    /// </summary>
+    public async Task<int> GetRecentMaliciousAttemptsCountAsync()
+    {
+        return await _context.AuditLogs
+            .Where(a => a.Action == "MALICIOUS_ATTEMPT" && a.CreatedAt >= DateTime.Now.AddHours(-24))
+            .CountAsync();
+    }
+}
 /// Chart of Accounts Service - Manages account codes for journal entries
 /// </summary>
 public class ChartOfAccountsService
