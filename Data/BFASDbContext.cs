@@ -723,7 +723,7 @@ namespace FinanceBank.Data
                 entity.HasIndex(e => e.AccountCode).IsUnique();
                 entity.HasIndex(e => e.AccountType);
                 entity.HasIndex(e => e.IsActive);
-                
+
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
             });

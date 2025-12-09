@@ -47,6 +47,15 @@ public class AutomaticGLPostingService
 
     // Expenses
     public const string ACCOUNT_BILL_PAYMENT_EXPENSE = "5010";
+    public const string ACCOUNT_INTEREST_EXPENSE = "5020";
+    public const string ACCOUNT_UTILITIES_EXPENSE = "5030";
+    public const string ACCOUNT_RENT_EXPENSE = "5040";
+    public const string ACCOUNT_SUPPLIES_EXPENSE = "5050";
+    public const string ACCOUNT_SALARIES_EXPENSE = "5060";
+    public const string ACCOUNT_MAINTENANCE_EXPENSE = "5070";
+    public const string ACCOUNT_INSURANCE_EXPENSE = "5080";
+    public const string ACCOUNT_PROFESSIONAL_FEES = "5090";
+    public const string ACCOUNT_TAX_EXPENSE = "5100";
 
     #endregion
 
@@ -599,6 +608,530 @@ public class AutomaticGLPostingService
 
     #endregion
 
+    #region Savings Account Transactions
+
+    /// <summary>
+    /// Post GL entries for savings deposit
+    /// Debit: Cash on Hand (Asset increases)
+    /// Credit: Customer Deposits (Liability increases)
+    /// </summary>
+    public async Task PostSavingsDepositAsync(
+        int transactionId,
+        string transactionNumber,
+        decimal amount,
+        string customerName,
+        string savingsAccountNumber,
+        DateTime transactionDate)
+    {
+        if (amount <= 0) return;
+
+        using var context = await _contextFactory.CreateDbContextAsync();
+
+        var journalNumber = await GenerateJournalNumberAsync(context, "SD");
+
+        var journal = new JournalEntry
+        {
+            JournalNumber = journalNumber,
+            TransactionDate = transactionDate,
+            Description = $"Savings deposit - {customerName} ({savingsAccountNumber})",
+            Reference = transactionNumber,
+            TotalDebit = amount,
+            TotalCredit = amount,
+            Status = "Posted",
+            CreatedAt = DateTime.Now,
+            CreatedBy = "System",
+            PostedAt = DateTime.Now,
+            PostedBy = "System"
+        };
+
+        context.JournalEntries.Add(journal);
+        await context.SaveChangesAsync();
+
+        var journalLines = new List<JournalEntryLine>
+        {
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_CASH_ON_HAND,
+                DebitAmount = amount,
+                CreditAmount = 0,
+                Description = $"Savings deposit received - {customerName}"
+            },
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_CUSTOMER_DEPOSITS,
+                DebitAmount = 0,
+                CreditAmount = amount,
+                Description = $"Savings deposit liability - {customerName}"
+            }
+        };
+
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
+
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, transactionDate, transactionNumber);
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Post GL entries for savings withdrawal
+    /// Debit: Customer Deposits (Liability decreases)
+    /// Credit: Cash on Hand (Asset decreases)
+    /// </summary>
+    public async Task PostSavingsWithdrawalAsync(
+        int transactionId,
+        string transactionNumber,
+        decimal amount,
+        decimal penaltyAmount,
+        string customerName,
+        string savingsAccountNumber,
+        DateTime transactionDate)
+    {
+        if (amount <= 0) return;
+
+        using var context = await _contextFactory.CreateDbContextAsync();
+
+        var journalNumber = await GenerateJournalNumberAsync(context, "SW");
+        var netAmount = amount - penaltyAmount;
+
+        var journal = new JournalEntry
+        {
+            JournalNumber = journalNumber,
+            TransactionDate = transactionDate,
+            Description = $"Savings withdrawal - {customerName} ({savingsAccountNumber})",
+            Reference = transactionNumber,
+            TotalDebit = amount,
+            TotalCredit = amount,
+            Status = "Posted",
+            CreatedAt = DateTime.Now,
+            CreatedBy = "System",
+            PostedAt = DateTime.Now,
+            PostedBy = "System"
+        };
+
+        context.JournalEntries.Add(journal);
+        await context.SaveChangesAsync();
+
+        var journalLines = new List<JournalEntryLine>
+        {
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_CUSTOMER_DEPOSITS,
+                DebitAmount = amount,
+                CreditAmount = 0,
+                Description = $"Savings withdrawal - {customerName}"
+            },
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_CASH_ON_HAND,
+                DebitAmount = 0,
+                CreditAmount = netAmount,
+                Description = $"Cash disbursed - {customerName}"
+            }
+        };
+
+        // If there's a penalty, record it as income
+        if (penaltyAmount > 0)
+        {
+            journalLines.Add(new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_PENALTY_INCOME,
+                DebitAmount = 0,
+                CreditAmount = penaltyAmount,
+                Description = $"Early withdrawal penalty - {customerName}"
+            });
+        }
+
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
+
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, transactionDate, transactionNumber);
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Post GL entries for savings interest payout
+    /// Debit: Interest Expense (Expense increases)
+    /// Credit: Cash on Hand or Customer Deposits (cash paid out or credited to account)
+    /// </summary>
+    public async Task PostSavingsInterestPayoutAsync(
+        int transactionId,
+        string transactionNumber,
+        decimal amount,
+        string customerName,
+        string savingsAccountNumber,
+        DateTime transactionDate,
+        bool paidToCash = false)
+    {
+        if (amount <= 0) return;
+
+        using var context = await _contextFactory.CreateDbContextAsync();
+
+        var journalNumber = await GenerateJournalNumberAsync(context, "SI");
+
+        var journal = new JournalEntry
+        {
+            JournalNumber = journalNumber,
+            TransactionDate = transactionDate,
+            Description = $"Savings interest payout - {customerName} ({savingsAccountNumber})",
+            Reference = transactionNumber,
+            TotalDebit = amount,
+            TotalCredit = amount,
+            Status = "Posted",
+            CreatedAt = DateTime.Now,
+            CreatedBy = "System",
+            PostedAt = DateTime.Now,
+            PostedBy = "System"
+        };
+
+        context.JournalEntries.Add(journal);
+        await context.SaveChangesAsync();
+
+        // Interest expense account - use 5020 for interest expense paid to customers
+        const string ACCOUNT_INTEREST_EXPENSE = "5020";
+
+        var journalLines = new List<JournalEntryLine>
+        {
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_INTEREST_EXPENSE,
+                DebitAmount = amount,
+                CreditAmount = 0,
+                Description = $"Interest expense - {customerName}"
+            },
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = paidToCash ? ACCOUNT_CASH_ON_HAND : ACCOUNT_CUSTOMER_DEPOSITS,
+                DebitAmount = 0,
+                CreditAmount = amount,
+                Description = paidToCash ? $"Interest paid in cash - {customerName}" : $"Interest credited to savings - {customerName}"
+            }
+        };
+
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
+
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, transactionDate, transactionNumber);
+        await context.SaveChangesAsync();
+    }
+
+    #endregion
+
+    #region Accounts Payable Transactions
+
+    /// <summary>
+    /// Post GL entries for accounts payable payment
+    /// Debit: Accounts Payable (Liability decreases)
+    /// Credit: Cash on Hand (Asset decreases)
+    /// </summary>
+    public async Task PostAccountsPayablePaymentAsync(
+        int payableId,
+        string vendorName,
+        string invoiceNumber,
+        decimal amount,
+        DateTime paymentDate,
+        string paymentMethod = "Cash")
+    {
+        if (amount <= 0) return;
+
+        using var context = await _contextFactory.CreateDbContextAsync();
+
+        var journalNumber = await GenerateJournalNumberAsync(context, "AP");
+
+        var journal = new JournalEntry
+        {
+            JournalNumber = journalNumber,
+            TransactionDate = paymentDate,
+            Description = $"AP Payment - {vendorName} (Inv: {invoiceNumber})",
+            Reference = $"AP-{payableId}",
+            TotalDebit = amount,
+            TotalCredit = amount,
+            Status = "Posted",
+            CreatedAt = DateTime.Now,
+            CreatedBy = "System",
+            PostedAt = DateTime.Now,
+            PostedBy = "System"
+        };
+
+        context.JournalEntries.Add(journal);
+        await context.SaveChangesAsync();
+
+        var journalLines = new List<JournalEntryLine>
+        {
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_ACCOUNTS_PAYABLE,
+                DebitAmount = amount,
+                CreditAmount = 0,
+                Description = $"Payment to {vendorName}"
+            },
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = paymentMethod == "Bank" ? ACCOUNT_CASH_IN_BANK : ACCOUNT_CASH_ON_HAND,
+                DebitAmount = 0,
+                CreditAmount = amount,
+                Description = $"Cash paid to {vendorName}"
+            }
+        };
+
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
+
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, paymentDate, $"AP-{payableId}");
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Post GL entries for creating accounts payable (expense recognition)
+    /// Debit: Expense Account
+    /// Credit: Accounts Payable (Liability increases)
+    /// </summary>
+    public async Task PostAccountsPayableCreationAsync(
+        int payableId,
+        string vendorName,
+        string invoiceNumber,
+        decimal amount,
+        string expenseCategory,
+        DateTime invoiceDate)
+    {
+        if (amount <= 0) return;
+
+        using var context = await _contextFactory.CreateDbContextAsync();
+
+        var journalNumber = await GenerateJournalNumberAsync(context, "APE");
+
+        // Map expense category to account code
+        var expenseAccountCode = GetExpenseAccountCode(expenseCategory);
+
+        var journal = new JournalEntry
+        {
+            JournalNumber = journalNumber,
+            TransactionDate = invoiceDate,
+            Description = $"AP Created - {vendorName} (Inv: {invoiceNumber}) - {expenseCategory}",
+            Reference = $"APE-{payableId}",
+            TotalDebit = amount,
+            TotalCredit = amount,
+            Status = "Posted",
+            CreatedAt = DateTime.Now,
+            CreatedBy = "System",
+            PostedAt = DateTime.Now,
+            PostedBy = "System"
+        };
+
+        context.JournalEntries.Add(journal);
+        await context.SaveChangesAsync();
+
+        var journalLines = new List<JournalEntryLine>
+        {
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = expenseAccountCode,
+                DebitAmount = amount,
+                CreditAmount = 0,
+                Description = $"{expenseCategory} expense from {vendorName}"
+            },
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_ACCOUNTS_PAYABLE,
+                DebitAmount = 0,
+                CreditAmount = amount,
+                Description = $"Payable to {vendorName}"
+            }
+        };
+
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
+
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, invoiceDate, $"APE-{payableId}");
+        await context.SaveChangesAsync();
+    }
+
+    #endregion
+
+    #region Accounts Receivable Transactions
+
+    /// <summary>
+    /// Post GL entries for accounts receivable receipt
+    /// Debit: Cash on Hand (Asset increases)
+    /// Credit: Accounts Receivable (Asset decreases)
+    /// </summary>
+    public async Task PostAccountsReceivableReceiptAsync(
+        int receivableId,
+        string customerName,
+        string invoiceNumber,
+        decimal amount,
+        DateTime receiptDate,
+        string paymentMethod = "Cash")
+    {
+        if (amount <= 0) return;
+
+        using var context = await _contextFactory.CreateDbContextAsync();
+
+        var journalNumber = await GenerateJournalNumberAsync(context, "AR");
+
+        var journal = new JournalEntry
+        {
+            JournalNumber = journalNumber,
+            TransactionDate = receiptDate,
+            Description = $"AR Receipt - {customerName} (Inv: {invoiceNumber})",
+            Reference = $"AR-{receivableId}",
+            TotalDebit = amount,
+            TotalCredit = amount,
+            Status = "Posted",
+            CreatedAt = DateTime.Now,
+            CreatedBy = "System",
+            PostedAt = DateTime.Now,
+            PostedBy = "System"
+        };
+
+        context.JournalEntries.Add(journal);
+        await context.SaveChangesAsync();
+
+        var journalLines = new List<JournalEntryLine>
+        {
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = paymentMethod == "Bank" ? ACCOUNT_CASH_IN_BANK : ACCOUNT_CASH_ON_HAND,
+                DebitAmount = amount,
+                CreditAmount = 0,
+                Description = $"Receipt from {customerName}"
+            },
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_ACCOUNTS_RECEIVABLE,
+                DebitAmount = 0,
+                CreditAmount = amount,
+                Description = $"Receivable collected from {customerName}"
+            }
+        };
+
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
+
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, receiptDate, $"AR-{receivableId}");
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Post GL entries for creating accounts receivable (revenue recognition)
+    /// Debit: Accounts Receivable (Asset increases)
+    /// Credit: Revenue Account
+    /// </summary>
+    public async Task PostAccountsReceivableCreationAsync(
+        int receivableId,
+        string customerName,
+        string invoiceNumber,
+        decimal amount,
+        string revenueCategory,
+        DateTime invoiceDate)
+    {
+        if (amount <= 0) return;
+
+        using var context = await _contextFactory.CreateDbContextAsync();
+
+        var journalNumber = await GenerateJournalNumberAsync(context, "ARE");
+
+        // Map revenue category to account code
+        var revenueAccountCode = GetRevenueAccountCode(revenueCategory);
+
+        var journal = new JournalEntry
+        {
+            JournalNumber = journalNumber,
+            TransactionDate = invoiceDate,
+            Description = $"AR Created - {customerName} (Inv: {invoiceNumber}) - {revenueCategory}",
+            Reference = $"ARE-{receivableId}",
+            TotalDebit = amount,
+            TotalCredit = amount,
+            Status = "Posted",
+            CreatedAt = DateTime.Now,
+            CreatedBy = "System",
+            PostedAt = DateTime.Now,
+            PostedBy = "System"
+        };
+
+        context.JournalEntries.Add(journal);
+        await context.SaveChangesAsync();
+
+        var journalLines = new List<JournalEntryLine>
+        {
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_ACCOUNTS_RECEIVABLE,
+                DebitAmount = amount,
+                CreditAmount = 0,
+                Description = $"Receivable from {customerName}"
+            },
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = revenueAccountCode,
+                DebitAmount = 0,
+                CreditAmount = amount,
+                Description = $"{revenueCategory} income from {customerName}"
+            }
+        };
+
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
+
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, invoiceDate, $"ARE-{receivableId}");
+        await context.SaveChangesAsync();
+    }
+
+    #endregion
+
+    #region Expense Account Mapping
+
+    /// <summary>
+    /// Map expense category to GL account code
+    /// </summary>
+    private string GetExpenseAccountCode(string category)
+    {
+        return category?.ToUpper() switch
+        {
+            "UTILITIES" => "5030",
+            "RENT" => "5040",
+            "SUPPLIES" => "5050",
+            "SALARIES" => "5060",
+            "MAINTENANCE" => "5070",
+            "INSURANCE" => "5080",
+            "PROFESSIONAL FEES" => "5090",
+            "TAXES" => "5100",
+            "INTEREST EXPENSE" => "5020",
+            _ => "5010" // Default - Bill Payment Expense
+        };
+    }
+
+    /// <summary>
+    /// Map revenue category to GL account code
+    /// </summary>
+    private string GetRevenueAccountCode(string category)
+    {
+        return category?.ToUpper() switch
+        {
+            "INTEREST INCOME" => ACCOUNT_INTEREST_INCOME,
+            "SERVICE FEE" => ACCOUNT_SERVICE_FEE_INCOME,
+            "PENALTY" => ACCOUNT_PENALTY_INCOME,
+            "LOAN PROCESSING FEE" => ACCOUNT_LOAN_PROCESSING_FEE,
+            _ => ACCOUNT_SERVICE_FEE_INCOME // Default
+        };
+    }
+
+    #endregion
+
     #region Helper Methods
 
     /// <summary>
@@ -646,17 +1179,30 @@ public class AutomaticGLPostingService
 
         var requiredAccounts = new List<(string Code, string Name, string Type)>
         {
+            // Assets
             (ACCOUNT_CASH_ON_HAND, "Cash on Hand", "Asset"),
             (ACCOUNT_CASH_IN_BANK, "Cash in Bank", "Asset"),
             (ACCOUNT_LOANS_RECEIVABLE, "Loans Receivable", "Asset"),
             (ACCOUNT_ACCOUNTS_RECEIVABLE, "Accounts Receivable", "Asset"),
+            // Liabilities
             (ACCOUNT_CUSTOMER_DEPOSITS, "Customer Deposits", "Liability"),
             (ACCOUNT_ACCOUNTS_PAYABLE, "Accounts Payable", "Liability"),
+            // Revenue
             (ACCOUNT_INTEREST_INCOME, "Interest Income", "Revenue"),
             (ACCOUNT_SERVICE_FEE_INCOME, "Service Fee Income", "Revenue"),
             (ACCOUNT_PENALTY_INCOME, "Penalty Income", "Revenue"),
             (ACCOUNT_LOAN_PROCESSING_FEE, "Loan Processing Fee Income", "Revenue"),
-            (ACCOUNT_BILL_PAYMENT_EXPENSE, "Bill Payment Expense", "Expense")
+            // Expenses
+            (ACCOUNT_BILL_PAYMENT_EXPENSE, "Bill Payment Expense", "Expense"),
+            (ACCOUNT_INTEREST_EXPENSE, "Interest Expense (Savings)", "Expense"),
+            (ACCOUNT_UTILITIES_EXPENSE, "Utilities Expense", "Expense"),
+            (ACCOUNT_RENT_EXPENSE, "Rent Expense", "Expense"),
+            (ACCOUNT_SUPPLIES_EXPENSE, "Office Supplies Expense", "Expense"),
+            (ACCOUNT_SALARIES_EXPENSE, "Salaries and Wages Expense", "Expense"),
+            (ACCOUNT_MAINTENANCE_EXPENSE, "Maintenance Expense", "Expense"),
+            (ACCOUNT_INSURANCE_EXPENSE, "Insurance Expense", "Expense"),
+            (ACCOUNT_PROFESSIONAL_FEES, "Professional Fees Expense", "Expense"),
+            (ACCOUNT_TAX_EXPENSE, "Tax Expense", "Expense")
         };
 
         foreach (var (code, name, type) in requiredAccounts)
@@ -675,6 +1221,25 @@ public class AutomaticGLPostingService
                     IsActive = true,
                     CreatedBy = "System",
                     CreatedAt = DateTime.Now
+                });
+            }
+        }
+
+        // Also ensure GeneralLedger accounts exist for GL transactions
+        foreach (var (code, name, type) in requiredAccounts)
+        {
+            var glExists = await context.GeneralLedger
+                .AnyAsync(gl => gl.AccountCode == code);
+
+            if (!glExists)
+            {
+                context.GeneralLedger.Add(new GeneralLedger
+                {
+                    AccountCode = code,
+                    AccountName = name,
+                    AccountType = type,
+                    Balance = 0,
+                    IsActive = true
                 });
             }
         }
@@ -739,6 +1304,66 @@ public class AutomaticGLPostingService
                     transaction.Amount,
                     customerName,
                     transaction.BillerName ?? "Unknown Biller",
+                    transactionDate);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Post GL entry for any SavingsTransaction automatically
+    /// Call this method after saving a SavingsTransaction to ensure GL is updated
+    /// </summary>
+    public async Task PostSavingsTransactionAsync(SavingsTransaction transaction, string customerName, string accountNumber)
+    {
+        if (transaction == null) return;
+
+        var transactionDate = transaction.ProcessedAt ?? transaction.TransactionDate;
+
+        switch (transaction.TransactionType?.ToUpper())
+        {
+            case "DEPOSIT":
+                await PostSavingsDepositAsync(
+                    transaction.TransactionId,
+                    transaction.TransactionNumber,
+                    transaction.Amount,
+                    customerName,
+                    accountNumber,
+                    transactionDate);
+                break;
+
+            case "WITHDRAWAL":
+                await PostSavingsWithdrawalAsync(
+                    transaction.TransactionId,
+                    transaction.TransactionNumber,
+                    transaction.Amount,
+                    0, // Penalty tracked separately
+                    customerName,
+                    accountNumber,
+                    transactionDate);
+                break;
+
+            case "INTERESTPOSTING":
+            case "INTEREST":
+                await PostSavingsInterestPayoutAsync(
+                    transaction.TransactionId,
+                    transaction.TransactionNumber,
+                    transaction.Amount,
+                    customerName,
+                    accountNumber,
+                    transactionDate,
+                    false); // Credited to account by default
+                break;
+
+            case "PENALTYCHARGE":
+            case "PENALTY":
+                // Penalty is revenue for the bank
+                await PostSavingsWithdrawalAsync(
+                    transaction.TransactionId,
+                    transaction.TransactionNumber,
+                    0, // Net withdrawal
+                    transaction.Amount, // Penalty amount
+                    customerName,
+                    accountNumber,
                     transactionDate);
                 break;
         }

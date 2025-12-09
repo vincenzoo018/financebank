@@ -405,10 +405,12 @@ public class CardManagementService
 public class AccountsPayableService
 {
     private readonly BFASDbContext _context;
+    private readonly AutomaticGLPostingService? _glPostingService;
 
-    public AccountsPayableService(BFASDbContext context)
+    public AccountsPayableService(BFASDbContext context, AutomaticGLPostingService? glPostingService = null)
     {
         _context = context;
+        _glPostingService = glPostingService;
     }
     public async Task<List<AccountsPayable>> GetAllAsync()
     {
@@ -431,6 +433,26 @@ public class AccountsPayableService
 
         _context.AccountsPayables.Add(payable);
         await _context.SaveChangesAsync();
+
+        // Post to General Ledger - AP Creation (expense recognition)
+        try
+        {
+            if (_glPostingService != null)
+            {
+                await _glPostingService.PostAccountsPayableCreationAsync(
+                    payable.PayableId,
+                    payable.VendorName,
+                    payable.InvoiceNumber,
+                    payable.Amount,
+                    payable.Description ?? "General Expense",
+                    payable.InvoiceDate);
+            }
+        }
+        catch
+        {
+            // GL posting failure should not prevent AP creation
+        }
+
         return payable;
     }
 
@@ -461,6 +483,25 @@ public class AccountsPayableService
             payable.Status = "Partially Paid";
 
         await _context.SaveChangesAsync();
+
+        // Post to General Ledger - AP Payment
+        try
+        {
+            if (_glPostingService != null)
+            {
+                await _glPostingService.PostAccountsPayablePaymentAsync(
+                    payableId,
+                    payable.VendorName,
+                    payable.InvoiceNumber,
+                    paymentAmount,
+                    DateTime.Now);
+            }
+        }
+        catch
+        {
+            // GL posting failure should not prevent payment recording
+        }
+
         return payable;
     }
 
@@ -511,10 +552,12 @@ public class AccountsPayableService
 public class AccountsReceivableService
 {
     private readonly BFASDbContext _context;
+    private readonly AutomaticGLPostingService? _glPostingService;
 
-    public AccountsReceivableService(BFASDbContext context)
+    public AccountsReceivableService(BFASDbContext context, AutomaticGLPostingService? glPostingService = null)
     {
         _context = context;
+        _glPostingService = glPostingService;
     }
     public async Task<List<AccountsReceivable>> GetAllAsync()
     {
@@ -537,6 +580,26 @@ public class AccountsReceivableService
 
         _context.AccountsReceivables.Add(receivable);
         await _context.SaveChangesAsync();
+
+        // Post to General Ledger - AR Creation (revenue recognition)
+        try
+        {
+            if (_glPostingService != null)
+            {
+                await _glPostingService.PostAccountsReceivableCreationAsync(
+                    receivable.ReceivableId,
+                    receivable.CustomerName,
+                    receivable.InvoiceNumber,
+                    receivable.Amount,
+                    receivable.Description ?? "Service Income",
+                    receivable.InvoiceDate);
+            }
+        }
+        catch
+        {
+            // GL posting failure should not prevent AR creation
+        }
+
         return receivable;
     }
 
@@ -567,6 +630,25 @@ public class AccountsReceivableService
             receivable.Status = "Partially Paid";
 
         await _context.SaveChangesAsync();
+
+        // Post to General Ledger - AR Receipt
+        try
+        {
+            if (_glPostingService != null)
+            {
+                await _glPostingService.PostAccountsReceivableReceiptAsync(
+                    receivableId,
+                    receivable.CustomerName,
+                    receivable.InvoiceNumber,
+                    receiptAmount,
+                    DateTime.Now);
+            }
+        }
+        catch
+        {
+            // GL posting failure should not prevent receipt recording
+        }
+
         return receivable;
     }
 
@@ -1013,12 +1095,15 @@ public class GeneralLedgerService
     }
 
     /// <summary>
-    /// Get all general ledger transactions from the database table
+    /// Get all general ledger transactions - from DB table plus auto-generated from transactions
     /// Includes journal line details and account information
     /// </summary>
     public async Task<List<GeneralLedgerTransaction>> GetAllAsync()
     {
-        var transactions = await _context.GeneralLedgerTransactions
+        var allEntries = new List<GeneralLedgerTransaction>();
+
+        // Get existing GL transactions from database
+        var dbTransactions = await _context.GeneralLedgerTransactions
             .Include(t => t.Account)
             .Include(t => t.JournalLine)
                 .ThenInclude(jl => jl!.Journal)
@@ -1027,21 +1112,442 @@ public class GeneralLedgerService
             .ToListAsync();
 
         // Populate NotMapped properties from related entities
-        foreach (var trans in transactions)
+        foreach (var trans in dbTransactions)
         {
             if (trans.Account != null)
             {
                 trans.AccountName = trans.Account.AccountName;
                 trans.AccountType = trans.Account.AccountType;
             }
-            
+
             if (trans.JournalLine?.Journal != null)
             {
                 trans.Reference = trans.JournalLine.Journal.Reference;
             }
         }
+        allEntries.AddRange(dbTransactions);
 
-        return transactions;
+        // If no DB entries, auto-generate from existing transactions
+        if (dbTransactions.Count == 0)
+        {
+            var autoEntries = await GenerateGLFromTransactionsAsync();
+            allEntries.AddRange(autoEntries);
+        }
+
+        return allEntries.OrderByDescending(t => t.TransactionDate).ThenByDescending(t => t.GLTransactionId).ToList();
+    }
+
+    /// <summary>
+    /// Generate GL entries from existing CustomerTransactions, LoanPayments, LoanDisbursals, SavingsTransactions
+    /// </summary>
+    private async Task<List<GeneralLedgerTransaction>> GenerateGLFromTransactionsAsync()
+    {
+        var entries = new List<GeneralLedgerTransaction>();
+        int tempId = -1;
+
+        try
+        {
+            // Generate from Customer Transactions (Deposits, Withdrawals, Bills)
+            var customerTransactions = await _context.CustomerTransactions
+                .Include(t => t.Account)
+                .ThenInclude(a => a!.Customer)
+                .Where(t => t.Status == "Completed")
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
+
+            foreach (var txn in customerTransactions)
+            {
+                var customerName = txn.Account?.Customer?.FullName ?? $"Account #{txn.AccountId}";
+                var txnDate = txn.ProcessedAt ?? txn.CreatedAt;
+                var reference = txn.TransactionNumber ?? $"TXN-{txn.TransactionId}";
+
+                switch (txn.TransactionType.ToUpper())
+                {
+                    case "DEPOSIT":
+                        // Debit Cash, Credit Customer Deposits
+                        entries.Add(new GeneralLedgerTransaction
+                        {
+                            GLTransactionId = tempId--,
+                            AccountCode = "1010",
+                            AccountName = "Cash on Hand",
+                            AccountType = "Asset",
+                            DebitAmount = txn.Amount,
+                            CreditAmount = 0,
+                            Description = $"Cash received - {customerName}",
+                            TransactionDate = txnDate,
+                            Reference = reference
+                        });
+                        entries.Add(new GeneralLedgerTransaction
+                        {
+                            GLTransactionId = tempId--,
+                            AccountCode = "2010",
+                            AccountName = "Customer Deposits",
+                            AccountType = "Liability",
+                            DebitAmount = 0,
+                            CreditAmount = txn.Amount,
+                            Description = $"Deposit liability - {customerName}",
+                            TransactionDate = txnDate,
+                            Reference = reference
+                        });
+                        break;
+
+                    case "WITHDRAWAL":
+                        // Debit Customer Deposits, Credit Cash
+                        entries.Add(new GeneralLedgerTransaction
+                        {
+                            GLTransactionId = tempId--,
+                            AccountCode = "2010",
+                            AccountName = "Customer Deposits",
+                            AccountType = "Liability",
+                            DebitAmount = txn.Amount,
+                            CreditAmount = 0,
+                            Description = $"Withdrawal - {customerName}",
+                            TransactionDate = txnDate,
+                            Reference = reference
+                        });
+                        entries.Add(new GeneralLedgerTransaction
+                        {
+                            GLTransactionId = tempId--,
+                            AccountCode = "1010",
+                            AccountName = "Cash on Hand",
+                            AccountType = "Asset",
+                            DebitAmount = 0,
+                            CreditAmount = txn.Amount,
+                            Description = $"Cash disbursed - {customerName}",
+                            TransactionDate = txnDate,
+                            Reference = reference
+                        });
+                        break;
+
+                    case "BILLS":
+                    case "BILLSPAYMENT":
+                        // Debit Customer Deposits, Credit Cash
+                        entries.Add(new GeneralLedgerTransaction
+                        {
+                            GLTransactionId = tempId--,
+                            AccountCode = "2010",
+                            AccountName = "Customer Deposits",
+                            AccountType = "Liability",
+                            DebitAmount = txn.Amount,
+                            CreditAmount = 0,
+                            Description = $"Bills Payment - {txn.BillerName ?? "Biller"}",
+                            TransactionDate = txnDate,
+                            Reference = reference
+                        });
+                        entries.Add(new GeneralLedgerTransaction
+                        {
+                            GLTransactionId = tempId--,
+                            AccountCode = "1010",
+                            AccountName = "Cash on Hand",
+                            AccountType = "Asset",
+                            DebitAmount = 0,
+                            CreditAmount = txn.Amount,
+                            Description = $"Cash paid to biller - {txn.BillerName ?? "Biller"}",
+                            TransactionDate = txnDate,
+                            Reference = reference
+                        });
+                        break;
+
+                    case "TRANSFER":
+                        // Internal transfer
+                        entries.Add(new GeneralLedgerTransaction
+                        {
+                            GLTransactionId = tempId--,
+                            AccountCode = "2010",
+                            AccountName = "Customer Deposits (Sender)",
+                            AccountType = "Liability",
+                            DebitAmount = txn.Amount,
+                            CreditAmount = 0,
+                            Description = $"Transfer out - {customerName}",
+                            TransactionDate = txnDate,
+                            Reference = reference
+                        });
+                        entries.Add(new GeneralLedgerTransaction
+                        {
+                            GLTransactionId = tempId--,
+                            AccountCode = "2010",
+                            AccountName = "Customer Deposits (Receiver)",
+                            AccountType = "Liability",
+                            DebitAmount = 0,
+                            CreditAmount = txn.Amount,
+                            Description = $"Transfer in - {txn.ToAccountName ?? "Receiver"}",
+                            TransactionDate = txnDate,
+                            Reference = reference
+                        });
+                        break;
+                }
+            }
+
+            // Generate from Loan Payments
+            var loanPayments = await _context.LoanPayments
+                .Include(p => p.Loan)
+                .Include(p => p.PaymentSchedule)
+                .OrderByDescending(p => p.PaymentDate)
+                .ToListAsync();
+
+            foreach (var payment in loanPayments)
+            {
+                var loanNumber = payment.Loan?.LoanNumber ?? $"Loan #{payment.LoanId}";
+                var principalAmount = payment.PaymentSchedule?.PrincipalAmount ?? (payment.PaymentAmount - payment.PenaltyPaid);
+                var interestAmount = payment.PaymentSchedule?.InterestAmount ?? 0;
+                var reference = $"LP-{payment.PaymentId:D6}";
+
+                // Debit Cash
+                entries.Add(new GeneralLedgerTransaction
+                {
+                    GLTransactionId = tempId--,
+                    AccountCode = "1010",
+                    AccountName = "Cash on Hand",
+                    AccountType = "Asset",
+                    DebitAmount = payment.PaymentAmount,
+                    CreditAmount = 0,
+                    Description = $"Loan payment received - {loanNumber}",
+                    TransactionDate = payment.PaymentDate,
+                    Reference = reference
+                });
+
+                // Credit Loans Receivable (Principal)
+                if (principalAmount > 0)
+                {
+                    entries.Add(new GeneralLedgerTransaction
+                    {
+                        GLTransactionId = tempId--,
+                        AccountCode = "1110",
+                        AccountName = "Loans Receivable",
+                        AccountType = "Asset",
+                        DebitAmount = 0,
+                        CreditAmount = principalAmount,
+                        Description = $"Principal collection - {loanNumber}",
+                        TransactionDate = payment.PaymentDate,
+                        Reference = reference
+                    });
+                }
+
+                // Credit Interest Income
+                if (interestAmount > 0)
+                {
+                    entries.Add(new GeneralLedgerTransaction
+                    {
+                        GLTransactionId = tempId--,
+                        AccountCode = "4010",
+                        AccountName = "Interest Income",
+                        AccountType = "Revenue",
+                        DebitAmount = 0,
+                        CreditAmount = interestAmount,
+                        Description = $"Interest collection - {loanNumber}",
+                        TransactionDate = payment.PaymentDate,
+                        Reference = reference
+                    });
+                }
+
+                // Credit Penalty Income
+                if (payment.PenaltyPaid > 0)
+                {
+                    entries.Add(new GeneralLedgerTransaction
+                    {
+                        GLTransactionId = tempId--,
+                        AccountCode = "4030",
+                        AccountName = "Penalty Income",
+                        AccountType = "Revenue",
+                        DebitAmount = 0,
+                        CreditAmount = payment.PenaltyPaid,
+                        Description = $"Penalty collection - {loanNumber}",
+                        TransactionDate = payment.PaymentDate,
+                        Reference = reference
+                    });
+                }
+            }
+
+            // Generate from Loan Disbursals
+            var loanDisbursals = await _context.LoanDisbursals
+                .Include(d => d.Loan)
+                .Where(d => d.DisbursalStatus == "Completed")
+                .OrderByDescending(d => d.DisbursalDate)
+                .ToListAsync();
+
+            foreach (var disbursal in loanDisbursals)
+            {
+                var loanNumber = disbursal.Loan?.LoanNumber ?? $"Loan #{disbursal.LoanId}";
+                var reference = disbursal.Reference ?? $"LD-{disbursal.DisbursalId:D6}";
+
+                // Debit Loans Receivable
+                entries.Add(new GeneralLedgerTransaction
+                {
+                    GLTransactionId = tempId--,
+                    AccountCode = "1110",
+                    AccountName = "Loans Receivable",
+                    AccountType = "Asset",
+                    DebitAmount = disbursal.DisbursalAmount,
+                    CreditAmount = 0,
+                    Description = $"Loan disbursed - {loanNumber} to {disbursal.DisbursedTo}",
+                    TransactionDate = disbursal.DisbursalDate,
+                    Reference = reference
+                });
+
+                // Credit Cash
+                entries.Add(new GeneralLedgerTransaction
+                {
+                    GLTransactionId = tempId--,
+                    AccountCode = "1010",
+                    AccountName = "Cash on Hand",
+                    AccountType = "Asset",
+                    DebitAmount = 0,
+                    CreditAmount = disbursal.DisbursalAmount,
+                    Description = $"Cash disbursed for loan - {loanNumber}",
+                    TransactionDate = disbursal.DisbursalDate,
+                    Reference = reference
+                });
+            }
+
+            // Generate from Savings Transactions
+            var savingsTransactions = await _context.SavingsTransactions
+                .Include(s => s.SavingsAccount)
+                .Where(s => s.Status == "Completed")
+                .OrderByDescending(s => s.TransactionDate)
+                .ToListAsync();
+
+            foreach (var stxn in savingsTransactions)
+            {
+                var reference = stxn.TransactionNumber ?? $"SAV-{stxn.TransactionId}";
+
+                if (stxn.TransactionType == "Deposit")
+                {
+                    // Debit Cash, Credit Savings Deposits
+                    entries.Add(new GeneralLedgerTransaction
+                    {
+                        GLTransactionId = tempId--,
+                        AccountCode = "1010",
+                        AccountName = "Cash on Hand",
+                        AccountType = "Asset",
+                        DebitAmount = stxn.Amount,
+                        CreditAmount = 0,
+                        Description = $"Savings deposit received - {reference}",
+                        TransactionDate = stxn.TransactionDate,
+                        Reference = reference
+                    });
+                    entries.Add(new GeneralLedgerTransaction
+                    {
+                        GLTransactionId = tempId--,
+                        AccountCode = "2101",
+                        AccountName = "Savings Deposits",
+                        AccountType = "Liability",
+                        DebitAmount = 0,
+                        CreditAmount = stxn.Amount,
+                        Description = $"Savings liability - {reference}",
+                        TransactionDate = stxn.TransactionDate,
+                        Reference = reference
+                    });
+                }
+                else if (stxn.TransactionType == "Withdrawal")
+                {
+                    // Debit Savings Deposits, Credit Cash
+                    entries.Add(new GeneralLedgerTransaction
+                    {
+                        GLTransactionId = tempId--,
+                        AccountCode = "2101",
+                        AccountName = "Savings Deposits",
+                        AccountType = "Liability",
+                        DebitAmount = stxn.Amount,
+                        CreditAmount = 0,
+                        Description = $"Savings withdrawal - {reference}",
+                        TransactionDate = stxn.TransactionDate,
+                        Reference = reference
+                    });
+                    entries.Add(new GeneralLedgerTransaction
+                    {
+                        GLTransactionId = tempId--,
+                        AccountCode = "1010",
+                        AccountName = "Cash on Hand",
+                        AccountType = "Asset",
+                        DebitAmount = 0,
+                        CreditAmount = stxn.Amount,
+                        Description = $"Cash paid out - {reference}",
+                        TransactionDate = stxn.TransactionDate,
+                        Reference = reference
+                    });
+                }
+            }
+
+            // Generate from Accounts Payable payments
+            var apPayments = await _context.AccountsPayables
+                .Where(ap => ap.PaidAmount > 0)
+                .OrderByDescending(ap => ap.CreatedAt)
+                .ToListAsync();
+
+            foreach (var ap in apPayments)
+            {
+                var reference = ap.InvoiceNumber ?? $"AP-{ap.PayableId}";
+
+                // Debit AP, Credit Cash
+                entries.Add(new GeneralLedgerTransaction
+                {
+                    GLTransactionId = tempId--,
+                    AccountCode = "2000",
+                    AccountName = "Accounts Payable",
+                    AccountType = "Liability",
+                    DebitAmount = ap.PaidAmount,
+                    CreditAmount = 0,
+                    Description = $"AP Payment - {ap.VendorName}",
+                    TransactionDate = ap.DueDate,
+                    Reference = reference
+                });
+                entries.Add(new GeneralLedgerTransaction
+                {
+                    GLTransactionId = tempId--,
+                    AccountCode = "1010",
+                    AccountName = "Cash on Hand",
+                    AccountType = "Asset",
+                    DebitAmount = 0,
+                    CreditAmount = ap.PaidAmount,
+                    Description = $"Cash paid for AP - {ap.VendorName}",
+                    TransactionDate = ap.DueDate,
+                    Reference = reference
+                });
+            }
+
+            // Generate from Accounts Receivable receipts
+            var arReceipts = await _context.AccountsReceivables
+                .Where(ar => ar.ReceivedAmount > 0)
+                .OrderByDescending(ar => ar.CreatedAt)
+                .ToListAsync();
+
+            foreach (var ar in arReceipts)
+            {
+                var reference = ar.InvoiceNumber ?? $"AR-{ar.ReceivableId}";
+
+                // Debit Cash, Credit AR
+                entries.Add(new GeneralLedgerTransaction
+                {
+                    GLTransactionId = tempId--,
+                    AccountCode = "1010",
+                    AccountName = "Cash on Hand",
+                    AccountType = "Asset",
+                    DebitAmount = ar.ReceivedAmount,
+                    CreditAmount = 0,
+                    Description = $"AR Receipt - {ar.CustomerName}",
+                    TransactionDate = ar.DueDate,
+                    Reference = reference
+                });
+                entries.Add(new GeneralLedgerTransaction
+                {
+                    GLTransactionId = tempId--,
+                    AccountCode = "1200",
+                    AccountName = "Accounts Receivable",
+                    AccountType = "Asset",
+                    DebitAmount = 0,
+                    CreditAmount = ar.ReceivedAmount,
+                    Description = $"AR collected - {ar.CustomerName}",
+                    TransactionDate = ar.DueDate,
+                    Reference = reference
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error generating GL from transactions: {ex.Message}");
+        }
+
+        return entries;
     }
 
     /// <summary>
@@ -1063,7 +1569,7 @@ public class GeneralLedgerService
                 transaction.AccountName = transaction.Account.AccountName;
                 transaction.AccountType = transaction.Account.AccountType;
             }
-            
+
             if (transaction.JournalLine?.Journal != null)
             {
                 transaction.Reference = transaction.JournalLine.Journal.Reference;
@@ -1103,10 +1609,11 @@ public class GeneralLedgerService
     }
 
     /// <summary>
-    /// Get account balances from the GeneralLedger table
+    /// Get account balances - from GeneralLedger table or computed from transactions
     /// </summary>
     public async Task<List<(string AccountCode, string AccountName, string AccountType, decimal Balance)>> GetAccountBalancesAsync()
     {
+        // First try to get from GeneralLedger table
         var accounts = await _context.GeneralLedger
             .Where(a => a.IsActive)
             .OrderBy(a => a.AccountCode)
@@ -1117,6 +1624,29 @@ public class GeneralLedgerService
                 a.Balance
             ))
             .ToListAsync();
+
+        // If no accounts with balances, compute from auto-generated entries
+        if (!accounts.Any() || accounts.All(a => a.Item4 == 0))
+        {
+            var allEntries = await GetAllAsync();
+            var computedBalances = allEntries
+                .GroupBy(e => new { e.AccountCode, e.AccountName, e.AccountType })
+                .Select(g => new ValueTuple<string, string, string, decimal>(
+                    g.Key.AccountCode,
+                    g.Key.AccountName ?? "Unknown",
+                    g.Key.AccountType ?? "Asset",
+                    // For Assets/Expenses: Debit increases, Credit decreases
+                    // For Liabilities/Revenue: Credit increases, Debit decreases
+                    (g.Key.AccountType == "Asset" || g.Key.AccountType == "Expense")
+                        ? g.Sum(e => e.DebitAmount) - g.Sum(e => e.CreditAmount)
+                        : g.Sum(e => e.CreditAmount) - g.Sum(e => e.DebitAmount)
+                ))
+                .OrderBy(b => b.Item1)
+                .ToList();
+
+            if (computedBalances.Any())
+                return computedBalances;
+        }
 
         return accounts;
     }

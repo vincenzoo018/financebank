@@ -8,16 +8,22 @@ namespace FinanceBank.Services;
 /// Core service for Savings Account operations
 /// Handles account opening, deposits, withdrawals, and account management
 /// Integrates with TransactionHistoryService for AR/AP tracking.
+/// Integrates with AutomaticGLPostingService for General Ledger posting.
 /// </summary>
 public class SavingsAccountService
 {
     private readonly IDbContextFactory<BFASDbContext> _contextFactory;
     private readonly TransactionHistoryService? _transactionHistoryService;
+    private readonly AutomaticGLPostingService? _glPostingService;
 
-    public SavingsAccountService(IDbContextFactory<BFASDbContext> contextFactory, TransactionHistoryService? transactionHistoryService = null)
+    public SavingsAccountService(
+        IDbContextFactory<BFASDbContext> contextFactory,
+        TransactionHistoryService? transactionHistoryService = null,
+        AutomaticGLPostingService? glPostingService = null)
     {
         _contextFactory = contextFactory;
         _transactionHistoryService = transactionHistoryService;
+        _glPostingService = glPostingService;
     }
 
     // =============================================
@@ -232,6 +238,28 @@ public class SavingsAccountService
 
             context.SavingsTransactions.Add(transaction);
             await context.SaveChangesAsync();
+
+            // Post to General Ledger
+            try
+            {
+                if (_glPostingService != null)
+                {
+                    var customer = await context.Users.FindAsync(savingsAccount.CustomerId);
+                    var customerName = customer?.FullName ?? "Customer";
+
+                    await _glPostingService.PostSavingsDepositAsync(
+                        transaction.TransactionId,
+                        transaction.TransactionNumber,
+                        amount,
+                        customerName,
+                        savingsAccount.AccountNumber ?? "",
+                        DateTime.Now);
+                }
+            }
+            catch
+            {
+                // GL posting failure should not prevent deposit from being recorded
+            }
 
             // Create AR entry (savings deposit = money IN = AR)
             try
@@ -465,6 +493,29 @@ public class SavingsAccountService
             request.ProcessedByTellerAt = DateTime.Now;
 
             await context.SaveChangesAsync();
+
+            // Post to General Ledger
+            try
+            {
+                if (_glPostingService != null)
+                {
+                    var customer = await context.Users.FindAsync(savingsAccount.CustomerId);
+                    var customerName = customer?.FullName ?? "Customer";
+
+                    await _glPostingService.PostSavingsWithdrawalAsync(
+                        transaction.TransactionId,
+                        transaction.TransactionNumber,
+                        request.NetWithdrawalAmount, // Net amount after penalty
+                        request.PenaltyAmount,
+                        customerName,
+                        savingsAccount.AccountNumber ?? "",
+                        DateTime.Now);
+                }
+            }
+            catch
+            {
+                // GL posting failure should not prevent withdrawal from being recorded
+            }
 
             // Create AP entry (savings withdrawal = money OUT = AP)
             try

@@ -89,40 +89,6 @@
                 </a>
             </div>
 
-            <!-- Loan Processing - Accountant Only -->
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">LOAN PROCESSING</div>
-                <a href="/accountant/review-assessment"
-                    class="sidebar-item @(IsActive("/accountant/review-assessment"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                    </svg>
-                    <span>Review Assessment</span>
-                </a>
-                <a href="/accountant/loan-recording" class="sidebar-item @(IsActive("/accountant/loan-recording"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <path d="M9 9h6"></path>
-                        <path d="M9 13h6"></path>
-                        <path d="M9 17h2"></path>
-                    </svg>
-                    <span>Loan Recording</span>
-                </a>
-                <a href="/accountant/clearance-certificate"
-                    class="sidebar-item @(IsActive("/accountant/clearance-certificate"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                    </svg>
-                    <span>Clearance Certificate</span>
-                </a>
-            </div>
-
             <!-- Savings Interest Posting -->
             <div class="sidebar-section">
                 <div class="sidebar-section-title">SAVINGS PROCESSING</div>
@@ -223,9 +189,8 @@
         if (path.Contains("/trial-balance")) return "Trial Balance";
         if (path.Contains("/financial-statements")) return "Financial Statements";
         if (path.Contains("/chart-of-accounts")) return "Chart of Accounts";
-        if (path.Contains("/review-assessment")) return "Review Loan Assessment";
-        if (path.Contains("/loan-recording")) return "Loan Recording";
-        if (path.Contains("/clearance-certificate")) return "Clearance Certificate";
+        if (path.Contains("/savings-interest-posting")) return "Savings Interest Posting";
+        if (path.Contains("/reports")) return "Reports";
         return "Accountant Portal";
     }
 
