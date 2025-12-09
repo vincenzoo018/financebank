@@ -38,7 +38,7 @@
                 Refresh
             </button>
             <button @onclick="OpenHistoryModal"
-                style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); transition: all 0.2s;">
+                style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); transition: all 0.2s;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
@@ -52,22 +52,22 @@
     <div
         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <div
-            style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 12px; padding: 20px; border: 1px solid #bfdbfe;">
+            style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 20px; border: 1px solid #6ee7b7;">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div
-                    style="width: 48px; height: 48px; background: #3b82f6; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    style="width: 48px; height: 48px; background: #059669; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                         <path d="M12 2v20M2 12h20"></path>
                     </svg>
                 </div>
                 <div>
-                    <p style="margin: 0; color: #3b82f6; font-size: 12px; font-weight: 600; text-transform: uppercase;">
+                    <p style="margin: 0; color: #059669; font-size: 12px; font-weight: 600; text-transform: uppercase;">
                         Total Outstanding</p>
-                    <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #1e40af;">
+                    <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #047857;">
                         ₱@totalOutstanding.ToString("N2")</p>
                 </div>
             </div>
-            <p style="margin: 12px 0 0 0; font-size: 12px; color: #2563eb;">@pendingInvoices invoices pending</p>
+            <p style="margin: 12px 0 0 0; font-size: 12px; color: #059669;">@pendingInvoices invoices pending</p>
         </div>
         <div
             style="background: linear-gradient(135deg, #fefce8, #fef9c3); border-radius: 12px; padding: 20px; border: 1px solid #fde047;">
@@ -264,10 +264,16 @@
                                             @payment.DueDate.ToString("MMM dd, yyyy")
                                         </td>
                                         <td style="padding: 16px; text-align: center;">
-                                            <button @onclick="() => StartFMReview(payment)"
-                                                style="background: linear-gradient(135deg, #a855f7, #9333ea); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);">
-                                                🔍 Review & Approve
-                                            </button>
+                                            <div style="display: flex; gap: 8px; justify-content: center;">
+                                                <button @onclick="() => StartFMReview(payment)"
+                                                    style="background: linear-gradient(135deg, #a855f7, #9333ea); color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);">
+                                                    🔍 Review
+                                                </button>
+                                                <button @onclick="() => RecordPayment(payment)"
+                                                    style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
+                                                    💰 Receive Payment
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -372,7 +378,7 @@
                                         </td>
                                         <td style="padding: 16px; text-align: right;">
                                             <span
-                                                style="font-weight: 700; color: @(invoice.OutstandingAmount > 0 ? "#3b82f6" : "#059669"); font-size: 15px;">₱@invoice.OutstandingAmount.ToString("N2")</span>
+                                                style="font-weight: 700; color: @(invoice.OutstandingAmount > 0 ? "#059669" : "#10b981"); font-size: 15px;">₱@invoice.OutstandingAmount.ToString("N2")</span>
                                         </td>
                                         <td style="padding: 16px; text-align: center; color: #475569; font-weight: 500;">
                                             @invoice.DueDate.ToString("MMM dd, yyyy")
@@ -394,7 +400,7 @@
                                                     </button>
                                                 }
                                                 <button
-                                                    style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25); transition: all 0.2s;"
+                                                    style="background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25); transition: all 0.2s;"
                                                     @onclick="() => ViewInvoiceDetails(invoice)">
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                                                         stroke="currentColor" stroke-width="2" style="vertical-align: middle;">
@@ -513,59 +519,75 @@
 <!-- Payment Modal -->
 @if (showPaymentModal && selectedInvoice != null)
 {
+    var displayOutstanding = selectedInvoice.OutstandingAmount > 0 ? selectedInvoice.OutstandingAmount : selectedInvoice.Amount;
     <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
         @onclick="ClosePaymentModal">
-        <div style="background: white; border-radius: 20px; width: 90%; max-width: 500px; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
+        <div style="background: white; border-radius: 20px; width: 90%; max-width: 520px; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
             @onclick:stopPropagation>
             <div
                 style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px 28px; border-radius: 20px 20px 0 0;">
-                <h4 style="margin: 0; font-weight: 700; font-size: 20px;">Receive Payment</h4>
+                <h4 style="margin: 0; font-weight: 700; font-size: 20px;">💰 Receive Payment</h4>
                 <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">Invoice: @selectedInvoice?.InvoiceNumber</p>
             </div>
 
             <div style="padding: 28px;">
+                <!-- Customer & Amount Info -->
                 <div
-                    style="background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #bfdbfe;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #6ee7b7;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px;">
                         <div>
-                            <span
-                                style="font-size: 12px; color: #3b82f6; text-transform: uppercase; font-weight: 600;">Customer</span>
-                            <p style="margin: 4px 0 0 0; font-weight: 600; color: #1e293b;">@selectedInvoice?.CustomerName
-                            </p>
+                            <span style="font-size: 11px; color: #059669; text-transform: uppercase; font-weight: 600;">Customer</span>
+                            <p style="margin: 4px 0 0 0; font-weight: 600; color: #1e293b; font-size: 15px;">@selectedInvoice?.CustomerName</p>
                         </div>
                         <div>
-                            <span
-                                style="font-size: 12px; color: #3b82f6; text-transform: uppercase; font-weight: 600;">Outstanding</span>
-                            <p style="margin: 4px 0 0 0; font-weight: 700; color: #1e40af; font-size: 18px;">
-                                ₱@selectedInvoice?.OutstandingAmount.ToString("N2")</p>
+                            <span style="font-size: 11px; color: #059669; text-transform: uppercase; font-weight: 600;">Invoice Amount</span>
+                            <p style="margin: 4px 0 0 0; font-weight: 600; color: #1e293b; font-size: 15px;">₱@selectedInvoice?.Amount.ToString("N2")</p>
                         </div>
+                    </div>
+                    <div style="background: white; padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 13px; color: #6b7280; font-weight: 600;">Amount to Receive:</span>
+                        <span style="font-weight: 800; color: #059669; font-size: 22px;">₱@displayOutstanding.ToString("N2")</span>
                     </div>
                 </div>
 
+                <!-- Description if available -->
+                @if (!string.IsNullOrEmpty(selectedInvoice?.Description))
+                {
+                    <div style="background: #fef3c7; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #fde68a;">
+                        <span style="font-size: 11px; color: #92400e; text-transform: uppercase; font-weight: 600;">Reference</span>
+                        <p style="margin: 4px 0 0 0; color: #78350f; font-size: 13px;">@selectedInvoice.Description</p>
+                    </div>
+                }
+
                 <div style="margin-bottom: 20px;">
-                    <label
-                        style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Payment
-                        Amount <span style="color: #ef4444;">*</span></label>
-                    <input type="number" step="0.01" @bind="paymentAmount" placeholder="0.00"
-                        style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                        Payment Amount <span style="color: #ef4444;">*</span>
+                        <span style="font-weight: 400; color: #6b7280; font-size: 12px;">(Auto-filled)</span>
+                    </label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #6b7280; font-weight: 600;">₱</span>
+                        <input type="number" step="0.01" @bind="paymentAmount" placeholder="0.00"
+                            style="width: 100%; padding: 14px 16px 14px 32px; border: 2px solid #10b981; border-radius: 10px; font-size: 18px; font-weight: 700; color: #059669; background: #f0fdf4;">
+                    </div>
                 </div>
 
                 <div style="margin-bottom: 24px;">
-                    <label
-                        style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Payment
-                        Date <span style="color: #ef4444;">*</span></label>
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                        Payment Date <span style="color: #ef4444;">*</span>
+                    </label>
                     <input type="date" @bind="paymentDate"
                         style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px;">
                 </div>
 
-                <div
-                    style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 20px; border-top: 1px solid #e5e7eb;">
                     <button
                         style="background: #f1f5f9; color: #475569; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px;"
                         @onclick="ClosePaymentModal">Cancel</button>
                     <button
-                        style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 12px 28px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);"
-                        @onclick="ConfirmPayment" disabled="@isProcessing">@(isProcessing ? "Processing..." : "✓ Confirm Receipt")</button>
+                        style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 12px 28px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); opacity: @(isProcessing ? "0.7" : "1");"
+                        @onclick="ConfirmPayment" disabled="@isProcessing">
+                        @(isProcessing ? "⏳ Processing..." : "✓ Confirm Receipt")
+                    </button>
                 </div>
             </div>
         </div>
@@ -662,7 +684,7 @@
                                         <td style="padding: 14px 12px; color: #64748b;">@collection.CreatedAt.ToString("MMM dd, yyyy")</td>
                                         <td style="padding: 14px 12px; text-align: center;">
                                             <button @onclick="() => ViewInvoiceDetails(collection)"
-                                                style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);">
+                                                style="background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);">
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                                     stroke-width="2" style="margin-right: 4px; vertical-align: middle;">
                                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -719,9 +741,9 @@
                 </div>
 
                 <div
-                    style="background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 18px 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #bfdbfe;">
+                    style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); padding: 18px 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #6ee7b7;">
                     <h6
-                        style="margin: 0 0 12px 0; color: #3b82f6; font-size: 12px; text-transform: uppercase; font-weight: 700;">
+                        style="margin: 0 0 12px 0; color: #059669; font-size: 12px; text-transform: uppercase; font-weight: 700;">
                         Customer Information</h6>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div>
@@ -760,7 +782,7 @@
                                 <td style="padding: 12px 0; font-weight: 700; color: #1e293b; font-size: 16px;">Outstanding
                                     Balance</td>
                                 <td
-                                    style="text-align: right; font-weight: 800; color: @(selectedInvoiceForView.OutstandingAmount > 0 ? "#3b82f6" : "#059669"); font-size: 20px;">
+                                    style="text-align: right; font-weight: 800; color: @(selectedInvoiceForView.OutstandingAmount > 0 ? "#059669" : "#10b981"); font-size: 20px;">
                                     ₱@selectedInvoiceForView.OutstandingAmount.ToString("N2")</td>
                             </tr>
                         </table>
@@ -1322,7 +1344,8 @@
     private void RecordPayment(Models.AccountsReceivable invoice)
     {
         selectedInvoice = invoice;
-        paymentAmount = invoice.OutstandingAmount;
+        // Autofill with outstanding amount, or full amount if outstanding is 0
+        paymentAmount = invoice.OutstandingAmount > 0 ? invoice.OutstandingAmount : invoice.Amount;
         paymentDate = DateTime.Today;
         showPaymentModal = true;
     }
@@ -1334,10 +1357,22 @@
         isProcessing = true;
         try
         {
-            if (paymentAmount <= 0 || paymentAmount > selectedInvoice.OutstandingAmount)
+            // Calculate the effective outstanding amount (use Amount if OutstandingAmount is 0)
+            decimal effectiveOutstanding = selectedInvoice.OutstandingAmount > 0 
+                ? selectedInvoice.OutstandingAmount 
+                : selectedInvoice.Amount;
+
+            if (paymentAmount <= 0 || paymentAmount > effectiveOutstanding)
             {
-                errorMessage = "Invalid payment amount";
+                errorMessage = $"Invalid payment amount. Must be between ₱0.01 and ₱{effectiveOutstanding:N2}";
+                isProcessing = false;
                 return;
+            }
+
+            // Initialize OutstandingAmount if it was 0
+            if (selectedInvoice.OutstandingAmount == 0)
+            {
+                selectedInvoice.OutstandingAmount = selectedInvoice.Amount;
             }
 
             selectedInvoice.ReceivedAmount += paymentAmount;
@@ -1358,7 +1393,15 @@
             // Create Journal Entry for Payment Receipt
             await CreateARPaymentJournalEntry(selectedInvoice, paymentAmount);
 
-            successMessage = $"Payment of ₱{paymentAmount:N2} received! Journal entry auto-posted.";
+            successMessage = $"✅ Payment of ₱{paymentAmount:N2} received successfully! Journal entry auto-posted.";
+            
+            // Also remove from pending list if it was there
+            if (pendingLoanPayments.Contains(selectedInvoice))
+            {
+                pendingLoanPayments.Remove(selectedInvoice);
+                pendingReviewCount = pendingLoanPayments.Count;
+            }
+            
             await LoadInvoices();
             ClosePaymentModal();
         }

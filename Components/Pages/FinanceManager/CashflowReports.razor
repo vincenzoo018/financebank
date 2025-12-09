@@ -11,7 +11,7 @@
 @inject IJSRuntime JS
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
@@ -75,7 +75,7 @@
     </div>
     
     <div style="display: flex; gap: 12px;">
-        <button @onclick="GenerateReport" disabled="@isGenerating" style="padding: 12px 24px; background: linear-gradient(135deg, #0891b2, #0e7490); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+        <button @onclick="GenerateReport" disabled="@isGenerating" style="padding: 12px 24px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
             @if (isGenerating)
             {
                 <div class="spinner"></div>
@@ -103,7 +103,7 @@
 @if (showPreview)
 {
     <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
-        <div style="background: linear-gradient(135deg, #0891b2, #0e7490); color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
             <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Cashflow Report Preview</h2>
             <span style="font-size: 14px; opacity: 0.9;">@GetPeriodLabel()</span>
         </div>
@@ -247,15 +247,15 @@
             <p style="font-size: 12px; color: #991b1b; margin: 0;">Monitor these categories closely for liquidity management.</p>
         </div>
         
-        <div style="padding: 20px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 12px; border-left: 4px solid #3b82f6;">
+        <div style="padding: 20px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; border-left: 4px solid #059669;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                 <span style="font-size: 24px;">💡</span>
                 <div>
-                    <div style="font-weight: 600; color: #1e40af;">Report Recommendation</div>
-                    <div style="font-size: 13px; color: #1e3a8a;">Weekly cashflow monitoring</div>
+                    <div style="font-weight: 600; color: #047857;">Report Recommendation</div>
+                    <div style="font-size: 13px; color: #065f46;">Weekly cashflow monitoring</div>
                 </div>
             </div>
-            <p style="font-size: 12px; color: #1e3a8a; margin: 0;">Generate weekly reports to track trends and forecast needs.</p>
+            <p style="font-size: 12px; color: #065f46; margin: 0;">Generate weekly reports to track trends and forecast needs.</p>
         </div>
     </div>
 </div>

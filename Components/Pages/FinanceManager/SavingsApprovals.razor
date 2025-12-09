@@ -8,7 +8,7 @@
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="background: linear-gradient(135deg, #059669, #047857); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                 <svg width="28" height="28" fill="none" stroke="white" stroke-width="2">
@@ -154,10 +154,10 @@
             <div style="background: #dbeafe; padding: 16px; border-bottom: 1px solid #60a5fa;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h3 style="margin: 0; font-weight: 700; color: #1e40af;">📊 Monthly Interest Posting Batches</h3>
-                        <p style="margin: 6px 0 0; color: #2563eb; font-size: 13px;">Review and approve interest computations before accountant release</p>
+                        <h3 style="margin: 0; font-weight: 700; color: #047857;">📊 Monthly Interest Posting Batches</h3>
+                        <p style="margin: 6px 0 0; color: #059669; font-size: 13px;">Review and approve interest computations before accountant release</p>
                     </div>
-                    <button @onclick="LoadData" style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <button @onclick="LoadData" style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
                         Refresh
                     </button>
                 </div>
@@ -182,10 +182,10 @@
                 {
                     @foreach (var batch in interestBatches)
                     {
-                        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 16px; background: #eff6ff;">
+                        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 16px; background: #ecfdf5;">
                             <div style="display: grid; grid-template-columns: auto 1fr 1fr 1fr auto; gap: 20px; align-items: center;">
                                 <div style="text-align: center;">
-                                    <div style="width: 60px; height: 60px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700;">
+                                    <div style="width: 60px; height: 60px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700;">
                                         #@batch.PostingId
                                     </div>
                                 </div>
@@ -362,7 +362,7 @@
                     </div>
                     <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
                         <span style="color: #6b7280;">Accounts Affected:</span>
-                        <span style="font-weight: 700; color: #3b82f6; font-size: 18px;">@selectedBatch.AccountsProcessed</span>
+                        <span style="font-weight: 700; color: #059669; font-size: 18px;">@selectedBatch.AccountsProcessed</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; padding: 8px 0;">
                         <span style="color: #6b7280; font-weight: 600;">Total Interest:</span>
@@ -379,7 +379,7 @@
                 </button>
                 <button @onclick="ConfirmApproveBatch" 
                         disabled="@isProcessing"
-                        style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                        style="flex: 1; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
                     @(isProcessing ? "⏳ Processing..." : "✓ Confirm Approval")
                 </button>
             </div>
@@ -585,6 +585,6 @@
     private string GetTabStyle(string tab)
     {
         var isActive = activeTab == tab;
-        return $"padding: 12px 24px; border: none; background: {(isActive ? "#3b82f6" : "transparent")}; color: {(isActive ? "white" : "#6b7280")}; cursor: pointer; font-weight: 600; border-radius: 8px 8px 0 0; transition: all 0.3s;";
+        return $"padding: 12px 24px; border: none; background: {(isActive ? "#059669" : "transparent")}; color: {(isActive ? "white" : "#6b7280")}; cursor: pointer; font-weight: 600; border-radius: 8px 8px 0 0; transition: all 0.3s;";
     }
 }

@@ -1088,6 +1088,10 @@ public class JournalEntryService
 public class GeneralLedgerService
 {
     private readonly BFASDbContext _context;
+    
+    // Cache for auto-generated entries so View button can work
+    private static List<GeneralLedgerTransaction> _cachedAutoEntries = new();
+    private static DateTime _lastCacheUpdate = DateTime.MinValue;
 
     public GeneralLedgerService(BFASDbContext context)
     {
@@ -1095,14 +1099,14 @@ public class GeneralLedgerService
     }
 
     /// <summary>
-    /// Get all general ledger transactions - from DB table plus auto-generated from transactions
-    /// Includes journal line details and account information
+    /// Get all general ledger transactions - from DB table PLUS auto-generated from transactions
+    /// Always includes both sources for complete view
     /// </summary>
     public async Task<List<GeneralLedgerTransaction>> GetAllAsync()
     {
         var allEntries = new List<GeneralLedgerTransaction>();
 
-        // Get existing GL transactions from database
+        // 1. Get existing GL transactions from database (GeneralLedgerTransactions table)
         var dbTransactions = await _context.GeneralLedgerTransactions
             .Include(t => t.Account)
             .Include(t => t.JournalLine)
@@ -1127,12 +1131,15 @@ public class GeneralLedgerService
         }
         allEntries.AddRange(dbTransactions);
 
-        // If no DB entries, auto-generate from existing transactions
-        if (dbTransactions.Count == 0)
-        {
-            var autoEntries = await GenerateGLFromTransactionsAsync();
-            allEntries.AddRange(autoEntries);
-        }
+        // 2. ALWAYS include auto-generated entries from other transactions
+        // This ensures all deposits, withdrawals, loan payments, etc. appear in GL
+        var autoEntries = await GenerateGLFromTransactionsAsync();
+        
+        // Cache the auto-generated entries for View button
+        _cachedAutoEntries = autoEntries;
+        _lastCacheUpdate = DateTime.Now;
+        
+        allEntries.AddRange(autoEntries);
 
         return allEntries.OrderByDescending(t => t.TransactionDate).ThenByDescending(t => t.GLTransactionId).ToList();
     }
@@ -1552,9 +1559,24 @@ public class GeneralLedgerService
 
     /// <summary>
     /// Get GL transaction by ID with full details
+    /// Handles both database entries (positive IDs) and auto-generated entries (negative IDs)
     /// </summary>
     public async Task<GeneralLedgerTransaction?> GetByIdWithDetailsAsync(int id)
     {
+        // For auto-generated entries (negative IDs), check the cache first
+        if (id < 0)
+        {
+            // If cache is empty or stale, refresh it
+            if (!_cachedAutoEntries.Any() || (DateTime.Now - _lastCacheUpdate).TotalMinutes > 5)
+            {
+                await GetAllAsync(); // This will refresh the cache
+            }
+            
+            var cachedEntry = _cachedAutoEntries.FirstOrDefault(t => t.GLTransactionId == id);
+            return cachedEntry;
+        }
+        
+        // For database entries (positive IDs), query the database
         var transaction = await _context.GeneralLedgerTransactions
             .Include(t => t.Account)
             .Include(t => t.JournalLine)
