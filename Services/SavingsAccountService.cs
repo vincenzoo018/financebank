@@ -9,21 +9,25 @@ namespace FinanceBank.Services;
 /// Handles account opening, deposits, withdrawals, and account management
 /// Integrates with TransactionHistoryService for AR/AP tracking.
 /// Integrates with AutomaticGLPostingService for General Ledger posting.
+/// All transactions are logged to AuditLog for SOX/BSA compliance.
 /// </summary>
 public class SavingsAccountService
 {
     private readonly IDbContextFactory<BFASDbContext> _contextFactory;
     private readonly TransactionHistoryService? _transactionHistoryService;
     private readonly AutomaticGLPostingService? _glPostingService;
+    private readonly AuditLogService? _auditLogService;
 
     public SavingsAccountService(
         IDbContextFactory<BFASDbContext> contextFactory,
         TransactionHistoryService? transactionHistoryService = null,
-        AutomaticGLPostingService? glPostingService = null)
+        AutomaticGLPostingService? glPostingService = null,
+        AuditLogService? auditLogService = null)
     {
         _contextFactory = contextFactory;
         _transactionHistoryService = transactionHistoryService;
         _glPostingService = glPostingService;
+        _auditLogService = auditLogService;
     }
 
     // =============================================
@@ -286,6 +290,40 @@ public class SavingsAccountService
                 // AR tracking failure should not prevent deposit from being recorded
             }
 
+            // =============================================
+            // AUDIT LOG - Record savings deposit for compliance
+            // =============================================
+            try
+            {
+                if (_auditLogService != null)
+                {
+                    var customer = await context.Users.FindAsync(savingsAccount.CustomerId);
+                    var customerName = customer?.FullName ?? "Customer";
+
+                    await _auditLogService.LogSavingsDepositAsync(
+                        employeeId: null, // Will be enhanced when we have employee context
+                        employeeName: processedBy,
+                        employeeRole: "Teller",
+                        customerId: savingsAccount.CustomerId,
+                        customerName: customerName,
+                        savingsAccountNumber: savingsAccount.AccountNumber ?? "",
+                        amount: amount,
+                        balanceBefore: balanceBefore,
+                        balanceAfter: savingsAccount.Balance,
+                        transactionNumber: transaction.TransactionNumber,
+                        referenceNumber: transaction.TransactionNumber,
+                        depositMethod: source,
+                        transactionChannel: "Teller Window",
+                        status: "Completed",
+                        notes: description);
+                }
+            }
+            catch (Exception auditEx)
+            {
+                // Audit log failure should not affect transaction
+                System.Diagnostics.Debug.WriteLine($"Audit log creation failed: {auditEx.Message}");
+            }
+
             return (true, $"Successfully deposited ₱{amount:N2}", transaction);
         }
         catch (Exception ex)
@@ -540,6 +578,40 @@ public class SavingsAccountService
             catch
             {
                 // AP tracking failure should not prevent withdrawal from being recorded
+            }
+
+            // =============================================
+            // AUDIT LOG - Record savings withdrawal for compliance
+            // =============================================
+            try
+            {
+                if (_auditLogService != null)
+                {
+                    var customer = await context.Users.FindAsync(savingsAccount.CustomerId);
+                    var customerName = customer?.FullName ?? "Customer";
+
+                    await _auditLogService.LogSavingsWithdrawalAsync(
+                        employeeId: null, // Will be enhanced when we have employee context
+                        employeeName: processedBy,
+                        employeeRole: "Teller",
+                        customerId: savingsAccount.CustomerId,
+                        customerName: customerName,
+                        savingsAccountNumber: savingsAccount.AccountNumber ?? "",
+                        amount: request.RequestedAmount,
+                        balanceBefore: balanceBefore,
+                        balanceAfter: savingsAccount.Balance,
+                        transactionNumber: transaction.TransactionNumber,
+                        referenceNumber: $"REQ-{request.RequestId}",
+                        withdrawalMethod: "Cash",
+                        transactionChannel: "Teller Window",
+                        status: "Completed",
+                        notes: $"Request #{request.RequestId}. Penalty: ₱{request.PenaltyAmount:N2}");
+                }
+            }
+            catch (Exception auditEx)
+            {
+                // Audit log failure should not affect transaction
+                System.Diagnostics.Debug.WriteLine($"Audit log creation failed: {auditEx.Message}");
             }
 
             return (true, $"Withdrawal processed successfully. Net amount: ₱{request.NetWithdrawalAmount:N2}", transaction);

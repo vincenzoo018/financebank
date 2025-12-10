@@ -70,8 +70,8 @@
                 {
                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #f9fafb; border-radius: 12px; cursor: pointer; transition: all 0.2s;" class="transaction-row" @onclick="() => ShowTransactionDetails(transaction)">
                         <div style="display: flex; align-items: center; gap: 16px;">
-                            <div style="width: 48px; height: 48px; background: @(transaction.Amount >= 0 ? "linear-gradient(135deg, #d1fae5, #a7f3d0)" : "linear-gradient(135deg, #fee2e2, #fecaca)"); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="@(transaction.Amount >= 0 ? "#059669" : "#dc2626")" stroke-width="2">
+                            <div style="width: 48px; height: 48px; background: @(IsIncomingTransaction(transaction) ? "linear-gradient(135deg, #d1fae5, #a7f3d0)" : "linear-gradient(135deg, #fee2e2, #fecaca)"); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="@(IsIncomingTransaction(transaction) ? "#059669" : "#dc2626")" stroke-width="2">
                                     @if (transaction.TransactionType == "Deposit")
                                     {
                                         <path d="M12 5v14M5 12l7 7 7-7"/>
@@ -97,8 +97,8 @@
                             </div>
                         </div>
                         <div style="text-align: right;">
-                            <div style="font-weight: 700; font-size: 16px; color: @(transaction.TransactionType == "Deposit" ? "#059669" : "#dc2626");">
-                                @(transaction.TransactionType == "Deposit" ? "+" : "-")₱@transaction.Amount.ToString("N2")
+                            <div style="font-weight: 700; font-size: 16px; color: @(IsIncomingTransaction(transaction) ? "#059669" : "#dc2626");">
+                                @(IsIncomingTransaction(transaction) ? "+" : "-")₱@transaction.Amount.ToString("N2")
                             </div>
                             <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">@transaction.Status</div>
                         </div>
@@ -207,12 +207,34 @@
 
     private decimal CalculateIncome()
     {
-        return transactions.Where(t => t.TransactionType == "Deposit" && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
+        // Income = Deposits + Incoming Transfers (Transfer from)
+        var deposits = transactions.Where(t => t.TransactionType == "Deposit" && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
+        var incomingTransfers = transactions.Where(t => t.TransactionType == "Transfer" && t.Description != null && t.Description.Contains("Transfer from") && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
+        return deposits + incomingTransfers;
     }
 
     private decimal CalculateExpenses()
     {
-        return transactions.Where(t => t.TransactionType == "Withdrawal" && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount) + transactions.Where(t => t.TransactionType == "Bills" && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount) + transactions.Where(t => t.TransactionType == "Transfer" && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
+        // Expenses = Withdrawals + Bills + Outgoing Transfers (Transfer to)
+        var withdrawals = transactions.Where(t => t.TransactionType == "Withdrawal" && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
+        var bills = transactions.Where(t => t.TransactionType == "Bills" && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
+        var outgoingTransfers = transactions.Where(t => t.TransactionType == "Transfer" && t.Description != null && t.Description.Contains("Transfer to") && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
+        return withdrawals + bills + outgoingTransfers;
+    }
+
+    private static bool IsIncomingTransaction(CustomerTransaction transaction)
+    {
+        // Deposits are incoming
+        if (transaction.TransactionType == "Deposit") return true;
+        
+        // Check if transfer is incoming (from someone else)
+        if (transaction.TransactionType == "Transfer" && transaction.Description != null)
+        {
+            return transaction.Description.Contains("Transfer from");
+        }
+        
+        // All other transactions are outgoing
+        return false;
     }
 
     private void ShowTransactionDetails(CustomerTransaction transaction)

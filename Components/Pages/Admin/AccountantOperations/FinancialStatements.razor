@@ -9,7 +9,7 @@
 @inject IDbContextFactory<BFASDbContext> DbFactory
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
@@ -61,7 +61,7 @@
             </select>
         </div>
         <div>
-            <button class="btn" style="width: 100%; background: #7c3aed; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600;" @onclick="GenerateReport" disabled="@isLoading">
+            <button class="btn" style="width: 100%; background: #059669; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600;" @onclick="GenerateReport" disabled="@isLoading">
                 @(isLoading ? "⏳ Generating..." : "📊 Generate Report")
             </button>
         </div>

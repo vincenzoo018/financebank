@@ -8,12 +8,14 @@ namespace FinanceBank.Services;
 /// Complete Loan Process Service - Handles all stages from application to payment
 /// Automatically posts to General Ledger for loan disbursements.
 /// Integrates with TransactionHistoryService for AR/AP tracking.
+/// All transactions are logged to AuditLog for SOX/BSA compliance.
 /// </summary>
 public class LoanProcessService
 {
     private readonly IDbContextFactory<BFASDbContext> _contextFactory;
     private readonly AutomaticGLPostingService? _glPostingService;
     private readonly TransactionHistoryService? _transactionHistoryService;
+    private readonly AuditLogService? _auditLogService;
     private const decimal DAILY_PENALTY_RATE = 0.0005m; // 0.05% daily (BPI Standard)
 
     // =====================================================================
@@ -51,11 +53,16 @@ public class LoanProcessService
         public const string DISBURSED = "DISBURSED";
     }
 
-    public LoanProcessService(IDbContextFactory<BFASDbContext> contextFactory, AutomaticGLPostingService? glPostingService = null, TransactionHistoryService? transactionHistoryService = null)
+    public LoanProcessService(
+        IDbContextFactory<BFASDbContext> contextFactory, 
+        AutomaticGLPostingService? glPostingService = null, 
+        TransactionHistoryService? transactionHistoryService = null,
+        AuditLogService? auditLogService = null)
     {
         _contextFactory = contextFactory;
         _glPostingService = glPostingService;
         _transactionHistoryService = transactionHistoryService;
+        _auditLogService = auditLogService;
     }
 
     // =====================================================================
@@ -851,6 +858,44 @@ public class LoanProcessService
                 // GL posting failure should not prevent disbursement from being recorded
             }
 
+            // =============================================
+            // AUDIT LOG - Record loan disbursement for compliance
+            // =============================================
+            try
+            {
+                if (_auditLogService != null)
+                {
+                    var account = await _context.CustomerAccounts
+                        .Include(ca => ca.Customer)
+                        .FirstOrDefaultAsync(ca => ca.AccountId == accountId);
+                    var customerName = account?.Customer?.FullName ?? disbursedTo;
+
+                    await _auditLogService.LogLoanDisbursementAsync(
+                        employeeId: null, // Will be enhanced when we have employee context
+                        employeeName: processedBy,
+                        employeeRole: "Teller",
+                        customerId: account?.Customer?.UserId,
+                        customerName: customerName,
+                        loanId: loan.LoanId,
+                        loanNumber: loan.LoanNumber,
+                        loanType: loan.LoanType ?? "Personal",
+                        accountNumber: account?.AccountNumber ?? "",
+                        amount: disbursalAmount,
+                        balanceAfter: account?.Balance ?? 0,
+                        transactionNumber: disbursal.Reference ?? loan.LoanNumber,
+                        referenceNumber: $"DISB-{disbursal.DisbursalId}",
+                        approvedBy: approval.ApprovedBy,
+                        approvedAt: approval.ApprovalDate,
+                        status: "Completed",
+                        notes: $"Loan disbursement for {loan.LoanType}. Term: {loan.TermMonths} months. Rate: {loan.InterestRate}%");
+                }
+            }
+            catch (Exception auditEx)
+            {
+                // Audit log failure should not affect transaction
+                System.Diagnostics.Debug.WriteLine($"Audit log creation failed: {auditEx.Message}");
+            }
+
             return (loan, disbursal);
         }
         catch (Exception ex)
@@ -1076,6 +1121,48 @@ public class LoanProcessService
             catch
             {
                 // AR tracking failure should not prevent payment from being recorded
+            }
+
+            // =============================================
+            // AUDIT LOG - Record loan payment for compliance
+            // =============================================
+            try
+            {
+                if (_auditLogService != null)
+                {
+                    var accountNumber = loan.Account?.AccountNumber ?? "";
+                    var interestAmount = schedule.InterestAmount;
+                    var principalPaid = paymentAmount - interestAmount - penaltyAmount;
+                    if (principalPaid < 0) principalPaid = 0;
+
+                    await _auditLogService.LogLoanPaymentAsync(
+                        employeeId: null, // Will be enhanced when we have employee context
+                        employeeName: processedBy,
+                        employeeRole: "Teller",
+                        customerId: loan.Account?.Customer?.UserId,
+                        customerName: customerName,
+                        loanId: loan.LoanId,
+                        loanNumber: loan.LoanNumber,
+                        loanType: loan.LoanType ?? "Personal",
+                        accountNumber: accountNumber,
+                        amount: paymentAmount,
+                        principalAmount: principalPaid,
+                        interestAmount: interestAmount,
+                        balanceBefore: balanceBefore,
+                        balanceAfter: balanceAfter,
+                        remainingLoanBalance: loan.OutstandingBalance,
+                        transactionNumber: paymentRef,
+                        referenceNumber: $"PAY-{payment.PaymentId}",
+                        paymentMethod: paymentMethod,
+                        transactionChannel: "Teller Window",
+                        status: isFullyPaid ? "Fully Paid" : "Completed",
+                        notes: isLatePayment ? $"Late payment. Days overdue: {schedule.DaysOverdue}. Penalty: ₱{penaltyAmount:N2}" : null);
+                }
+            }
+            catch (Exception auditEx)
+            {
+                // Audit log failure should not affect transaction
+                System.Diagnostics.Debug.WriteLine($"Audit log creation failed: {auditEx.Message}");
             }
 
             return payment;

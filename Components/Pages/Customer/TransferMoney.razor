@@ -341,6 +341,104 @@
     </div>
 }
 
+<!-- Transfer Invoice Modal -->
+@if (showInvoiceModal && lastInvoice != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseInvoice">
+        <div style="background: white; border-radius: 20px; padding: 0; max-width: 420px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.35); overflow: hidden;" @onclick:stopPropagation="true">
+            <!-- Invoice Header -->
+            <div style="background: linear-gradient(135deg, #059669, #047857); padding: 24px; text-align: center; color: white;">
+                <div style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 32px;">
+                    ✓
+                </div>
+                <h2 style="font-size: 22px; font-weight: 700; margin: 0 0 4px 0;">Transfer Successful!</h2>
+                <p style="font-size: 14px; opacity: 0.9; margin: 0;">Your money has been sent</p>
+            </div>
+
+            <!-- Invoice Body -->
+            <div style="padding: 24px;">
+                <!-- Amount -->
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Amount Sent</div>
+                    <div style="font-size: 36px; font-weight: 800; color: #dc2626;">-₱@lastInvoice.Amount.ToString("N2")</div>
+                </div>
+
+                <!-- Transaction Details -->
+                <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                        <span style="font-size: 13px; color: #6b7280;">Transaction ID</span>
+                        <span style="font-size: 13px; font-weight: 600; color: #1f2937; font-family: monospace;">@lastInvoice.TransactionId</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                        <span style="font-size: 13px; color: #6b7280;">Date & Time</span>
+                        <span style="font-size: 13px; font-weight: 600; color: #1f2937;">@lastInvoice.Date.ToString("MMM dd, yyyy hh:mm tt")</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                        <span style="font-size: 13px; color: #6b7280;">Status</span>
+                        <span style="font-size: 13px; font-weight: 600; padding: 2px 8px; background: #d1fae5; color: #065f46; border-radius: 4px;">@lastInvoice.Status</span>
+                    </div>
+                </div>
+
+                <!-- From/To Details -->
+                <div style="margin-bottom: 16px;">
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 12px; margin-bottom: 8px;">
+                        <div style="font-size: 11px; color: #991b1b; font-weight: 600; margin-bottom: 4px;">FROM (YOUR ACCOUNT)</div>
+                        <div style="font-weight: 600; color: #1f2937;">@lastInvoice.SenderName</div>
+                        <div style="font-size: 12px; color: #6b7280; font-family: monospace;">@lastInvoice.SenderAccount</div>
+                    </div>
+                    <div style="text-align: center; margin: -4px 0;">
+                        <span style="display: inline-block; background: white; padding: 4px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+                                <path d="M12 5v14M5 12l7 7 7-7"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <div style="background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 10px; padding: 12px;">
+                        <div style="font-size: 11px; color: #065f46; font-weight: 600; margin-bottom: 4px;">TO (RECIPIENT)</div>
+                        <div style="font-weight: 600; color: #1f2937;">@lastInvoice.RecipientName</div>
+                        <div style="font-size: 12px; color: #6b7280; font-family: monospace;">@lastInvoice.RecipientAccount</div>
+                    </div>
+                </div>
+
+                <!-- Purpose -->
+                @if (!string.IsNullOrEmpty(lastInvoice.Purpose))
+                {
+                    <div style="background: #f3f4f6; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+                        <div style="font-size: 11px; color: #6b7280; font-weight: 600; margin-bottom: 4px;">PURPOSE/MESSAGE</div>
+                        <div style="font-size: 14px; color: #374151;">@lastInvoice.Purpose</div>
+                    </div>
+                }
+
+                <!-- Balance Summary -->
+                <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1px solid #86efac; border-radius: 10px; padding: 12px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 12px; color: #6b7280;">Balance Before</span>
+                        <span style="font-size: 13px; font-weight: 600; color: #374151;">₱@lastInvoice.BalanceBefore.ToString("N2")</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-size: 12px; color: #065f46; font-weight: 600;">New Balance</span>
+                        <span style="font-size: 15px; font-weight: 700; color: #059669;">₱@lastInvoice.BalanceAfter.ToString("N2")</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 12px;">
+                    <button @onclick="CloseInvoice" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer;">
+                        Done
+                    </button>
+                </div>
+
+                <!-- Footer Note -->
+                <div style="text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                    <div style="font-size: 11px; color: #9ca3af;">
+                        📧 A copy of this receipt has been saved to your transaction history
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private CustomerAccount? senderAccount;
     private string recipientAccount = "";
@@ -357,6 +455,10 @@
     private bool isProcessing = false;
     private string transferMessage = "";
     private bool transferSuccess = false;
+
+    // Invoice modal state
+    private bool showInvoiceModal = false;
+    private InvoiceData? lastInvoice = null;
 
     private List<TransferHistory> recentTransfers = new();
 
@@ -537,16 +639,43 @@
                 transferSuccess = true;
                 transferMessage = $"✓ Transfer of ₱{amount:N2} to {recipientName} completed successfully!";
                 
-                // Wait a moment to show success message
-                await Task.Delay(1500);
+                // Create invoice data
+                lastInvoice = new InvoiceData
+                {
+                    TransactionId = $"TXN{DateTime.Now:yyyyMMddHHmmss}",
+                    Date = DateTime.Now,
+                    SenderName = senderAccount?.Customer?.FullName ?? "Account Holder",
+                    SenderAccount = MaskAccountNumber(senderAccount?.AccountNumber ?? ""),
+                    RecipientName = recipientName,
+                    RecipientAccount = MaskAccountNumber(recipientAccount),
+                    Amount = amount,
+                    Purpose = purpose,
+                    BalanceBefore = senderAccount?.Balance + amount ?? 0,
+                    BalanceAfter = senderAccount?.Balance ?? 0,
+                    Status = "Completed"
+                };
                 
-                // Clear form and close modal
-                ClearForm();
+                // Wait a moment to show success message
+                await Task.Delay(1000);
+                
+                // Close confirmation modal and show invoice
                 showConfirmationModal = false;
                 
                 // Reload sender's account and transfer history
                 senderAccount = await BankingService.GetPrimaryAccountForCurrentCustomerAsync();
                 await LoadTransferHistory();
+                
+                // Update invoice balance after
+                if (lastInvoice != null)
+                {
+                    lastInvoice.BalanceAfter = senderAccount?.Balance ?? 0;
+                }
+                
+                // Show invoice modal
+                showInvoiceModal = true;
+                
+                // Clear form
+                ClearForm();
                 
                 // Log success
                 System.Diagnostics.Debug.WriteLine($"Transfer of ₱{amount} to {recipientName} ({recipientAccount}) completed successfully!");
@@ -628,6 +757,27 @@
         public string Purpose { get; set; } = "";
         public DateTime Date { get; set; }
         public string Status { get; set; } = "";
+    }
+
+    public class InvoiceData
+    {
+        public string TransactionId { get; set; } = "";
+        public DateTime Date { get; set; }
+        public string SenderName { get; set; } = "";
+        public string SenderAccount { get; set; } = "";
+        public string RecipientName { get; set; } = "";
+        public string RecipientAccount { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string Purpose { get; set; } = "";
+        public decimal BalanceBefore { get; set; }
+        public decimal BalanceAfter { get; set; }
+        public string Status { get; set; } = "";
+    }
+
+    private void CloseInvoice()
+    {
+        showInvoiceModal = false;
+        lastInvoice = null;
     }
 }
 

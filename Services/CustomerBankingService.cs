@@ -14,6 +14,7 @@ namespace FinanceBank.Services
     /// database operation so the balance and history stay in sync.
     /// Auto-syncs changes to cloud when internet is available.
     /// Automatically posts to General Ledger and creates AR/AP entries for accounting.
+    /// All transactions are logged to AuditLog for SOX/BSA compliance.
     /// </summary>
     public class CustomerBankingService
     {
@@ -22,19 +23,22 @@ namespace FinanceBank.Services
         private readonly DatabaseSyncService? _syncService;
         private readonly AutomaticGLPostingService? _glPostingService;
         private readonly TransactionHistoryService? _transactionHistoryService;
+        private readonly AuditLogService? _auditLogService;
 
         public CustomerBankingService(
             BFASDbContext? context,
             AuthService authService,
             DatabaseSyncService? syncService = null,
             AutomaticGLPostingService? glPostingService = null,
-            TransactionHistoryService? transactionHistoryService = null)
+            TransactionHistoryService? transactionHistoryService = null,
+            AuditLogService? auditLogService = null)
         {
             _context = context;
             _authService = authService;
             _syncService = syncService;
             _glPostingService = glPostingService;
             _transactionHistoryService = transactionHistoryService;
+            _auditLogService = auditLogService;
         }
 
         /// <summary>
@@ -420,6 +424,9 @@ namespace FinanceBank.Services
                     if (recipientAccount == null)
                         return (false, "Recipient account not found.");
 
+                    // Store balance before for audit logging
+                    decimal senderBalanceBefore = senderAccount.Balance;
+
                     // Deduct from sender (amount + fee)
                     senderAccount.Balance -= totalDeduction;
                     senderAccount.AvailableBalance -= totalDeduction;
@@ -479,12 +486,12 @@ namespace FinanceBank.Services
                     // CREATE AR/AP ENTRIES + UNIFIED HISTORY + JOURNAL
                     // Transfer OUT = AP (sender), Transfer IN = AR (receiver)
                     // =============================================
+                    var senderName = senderAccount.Customer?.FullName ?? $"Account #{senderAccount.AccountId}";
+                    var recipientName = recipientAccount.Customer?.FullName ?? $"Account #{recipientAccount.AccountId}";
+                    var processedBy = _authService.CurrentUser ?? "System";
+
                     try
                     {
-                        var senderName = senderAccount.Customer?.FullName ?? $"Account #{senderAccount.AccountId}";
-                        var recipientName = recipientAccount.Customer?.FullName ?? $"Account #{recipientAccount.AccountId}";
-                        var processedBy = _authService.CurrentUser ?? "System";
-
                         if (_transactionHistoryService != null)
                         {
                             await _transactionHistoryService.RecordTransferAsync(
@@ -512,8 +519,6 @@ namespace FinanceBank.Services
                     // Post transfer fee to General Ledger automatically (legacy - kept for backward compatibility)
                     try
                     {
-                        var senderName = senderAccount.Customer?.FullName ?? $"Account #{senderAccount.AccountId}";
-                        var recipientName = recipientAccount.Customer?.FullName ?? $"Account #{recipientAccount.AccountId}";
                         await _glPostingService?.PostTransferAsync(
                             senderTransaction.TransactionId,
                             senderTransaction.TransactionNumber,
@@ -524,6 +529,41 @@ namespace FinanceBank.Services
                             senderTransaction.ProcessedAt ?? DateTime.Now)!;
                     }
                     catch { /* GL posting failure should not affect transaction */ }
+
+                    // =============================================
+                    // AUDIT LOG - Record fund transfer for compliance
+                    // =============================================
+                    try
+                    {
+                        if (_auditLogService != null)
+                        {
+                            await _auditLogService.LogFundTransferAsync(
+                                employeeId: employeeId,
+                                employeeName: employeeId.HasValue ? processedBy : null,
+                                employeeRole: employeeId.HasValue ? (_authService.CurrentRole ?? "Customer") : null,
+                                customerId: senderAccount.Customer?.UserId,
+                                customerName: senderName,
+                                sourceAccountNumber: senderAccount.AccountNumber,
+                                sourceAccountType: "Checking",
+                                targetAccountNumber: recipientAccount.AccountNumber,
+                                targetAccountName: recipientName,
+                                amount: amount,
+                                sourceBalanceBefore: senderBalanceBefore,
+                                sourceBalanceAfter: senderAccount.Balance,
+                                transactionNumber: senderTransaction.TransactionNumber,
+                                referenceNumber: senderTransaction.Reference ?? "",
+                                transferMethod: "Internal",
+                                transactionChannel: employeeId.HasValue ? "Teller Window" : "Online Banking",
+                                fee: TRANSFER_FEE,
+                                status: "Completed",
+                                notes: purpose);
+                        }
+                    }
+                    catch (Exception auditEx)
+                    {
+                        // Audit log failure should not affect transaction
+                        System.Diagnostics.Debug.WriteLine($"Audit log creation failed: {auditEx.Message}");
+                    }
 
                     return (true, "Transfer successful.");
                 }

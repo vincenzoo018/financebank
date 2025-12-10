@@ -11,7 +11,7 @@
     <div style="background: linear-gradient(135deg, #059669, #047857); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <svg width="28" height="28" fill="none" stroke="white" stroke-width="2">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2">
                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
@@ -42,7 +42,7 @@
 
     @if (!string.IsNullOrEmpty(errorMessage))
     {
-        <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+        <div style="background: #ecfdf5; border: 1px solid #6ee7b7; color: #047857; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
             ❌ @errorMessage
         </div>
     }
@@ -65,13 +65,13 @@
     {
         <!-- Withdrawal Requests -->
         <div style="background: white; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden;">
-            <div style="background: #fef3c7; padding: 16px; border-bottom: 1px solid #fbbf24;">
+            <div style="background: #ecfdf5; padding: 16px; border-bottom: 1px solid #6ee7b7;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h3 style="margin: 0; font-weight: 700; color: #b45309;">⚠️ Large Withdrawal Requests (>₱200,000)</h3>
-                        <p style="margin: 6px 0 0; color: #d97706; font-size: 13px;">Requires Finance Manager approval before processing</p>
+                        <h3 style="margin: 0; font-weight: 700; color: #047857;">⚠️ Large Withdrawal Requests (>₱200,000)</h3>
+                        <p style="margin: 6px 0 0; color: #059669; font-size: 13px;">Requires Finance Manager approval before processing</p>
                     </div>
-                    <button @onclick="LoadData" style="background: #f59e0b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <button @onclick="LoadData" style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
                         Refresh
                     </button>
                 </div>
@@ -96,7 +96,7 @@
                 {
                     @foreach (var request in withdrawalRequests)
                     {
-                        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 16px; background: #fef9c3;">
+                        <div style="border: 2px solid #d1fae5; border-radius: 12px; padding: 20px; margin-bottom: 16px; background: white;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 20px; align-items: center;">
                                 <div>
                                     <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">CUSTOMER</div>
@@ -106,10 +106,10 @@
 
                                 <div>
                                     <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">AMOUNT</div>
-                                    <div style="font-size: 20px; font-weight: 700; color: #dc2626;">₱@request.RequestedAmount.ToString("N2")</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: #059669;">₱@request.RequestedAmount.ToString("N2")</div>
                                     @if (request.IsEarlyWithdrawal)
                                     {
-                                        <div style="font-size: 12px; color: #dc2626; margin-top: 4px;">
+                                        <div style="font-size: 12px; color: #047857; margin-top: 4px;">
                                             ⚠️ Early Withdrawal<br/>
                                             Penalty: ₱@request.PenaltyAmount.ToString("N2")<br/>
                                             Interest Forfeited: ₱@request.InterestForfeited.ToString("N2")<br/>
@@ -136,7 +136,7 @@
                                         ✓ Approve
                                     </button>
                                     <button @onclick="() => ShowRejectWithdrawalConfirm(request)" disabled="@isProcessing"
-                                            style="background: #dc2626; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">
+                                            style="background: #047857; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">
                                         ✗ Reject
                                     </button>
                                 </div>
@@ -151,7 +151,7 @@
     {
         <!-- Interest Batches -->
         <div style="background: white; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden;">
-            <div style="background: #dbeafe; padding: 16px; border-bottom: 1px solid #60a5fa;">
+            <div style="background: #ecfdf5; padding: 16px; border-bottom: 1px solid #6ee7b7;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <h3 style="margin: 0; font-weight: 700; color: #047857;">📊 Monthly Interest Posting Batches</h3>
@@ -252,13 +252,13 @@
                     </div>
                     <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
                         <span style="color: #6b7280;">Requested Amount:</span>
-                        <span style="font-weight: 700; color: #dc2626;">₱@selectedWithdrawal.RequestedAmount.ToString("N2")</span>
+                        <span style="font-weight: 700; color: #059669;">₱@selectedWithdrawal.RequestedAmount.ToString("N2")</span>
                     </div>
                     @if (selectedWithdrawal.IsEarlyWithdrawal)
                     {
                         <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
                             <span style="color: #6b7280;">Penalty:</span>
-                            <span style="font-weight: 600; color: #dc2626;">-₱@selectedWithdrawal.PenaltyAmount.ToString("N2")</span>
+                            <span style="font-weight: 600; color: #047857;">-₱@selectedWithdrawal.PenaltyAmount.ToString("N2")</span>
                         </div>
                     }
                     <div style="display: flex; justify-content: space-between; padding: 8px 0;">
@@ -290,7 +290,7 @@
     <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
         <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
             <div style="text-align: center; margin-bottom: 24px;">
-                <div style="width: 64px; height: 64px; background: #fee2e2; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                <div style="width: 64px; height: 64px; background: #ecfdf5; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                     <span style="font-size: 32px;">❌</span>
                 </div>
                 <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">Reject Withdrawal Request?</h2>
@@ -309,7 +309,7 @@
                     </div>
                     <div style="display: flex; justify-content: space-between; padding: 8px 0;">
                         <span style="color: #6b7280;">Amount:</span>
-                        <span style="font-weight: 700; color: #dc2626;">₱@selectedWithdrawal.NetWithdrawalAmount.ToString("N2")</span>
+                        <span style="font-weight: 700; color: #059669;">₱@selectedWithdrawal.NetWithdrawalAmount.ToString("N2")</span>
                     </div>
                 </div>
             </div>
@@ -329,7 +329,7 @@
                 </button>
                 <button @onclick="ConfirmRejectWithdrawal" 
                         disabled="@isProcessing"
-                        style="flex: 1; background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
+                        style="flex: 1; background: linear-gradient(135deg, #047857, #059669); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
                     @(isProcessing ? "⏳ Processing..." : "✗ Confirm Rejection")
                 </button>
             </div>

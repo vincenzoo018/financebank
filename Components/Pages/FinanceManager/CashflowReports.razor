@@ -10,12 +10,13 @@
 @inject BFASDbContext DbContext
 @inject IJSRuntime JS
 
-<!-- Page Header -->
-<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
+    <!-- Page Header -->
+    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                 </svg>
             </div>
@@ -115,17 +116,17 @@
                     <div style="font-size: 12px; color: #047857; font-weight: 600; margin-bottom: 4px;">Total Inflows</div>
                     <div style="font-size: 20px; font-weight: 700; color: #047857;">₱@totalInflows.ToString("N2")</div>
                 </div>
-                <div style="background: #fee2e2; border-radius: 12px; padding: 16px; text-align: center;">
-                    <div style="font-size: 12px; color: #dc2626; font-weight: 600; margin-bottom: 4px;">Total Outflows</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #dc2626;">₱@totalOutflows.ToString("N2")</div>
+                <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 16px; text-align: center;">
+                    <div style="font-size: 12px; color: #047857; font-weight: 600; margin-bottom: 4px;">Total Outflows</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #047857;">₱@totalOutflows.ToString("N2")</div>
                 </div>
-                <div style="background: @(netCashflow >= 0 ? "#dbeafe" : "#fef3c7"); border-radius: 12px; padding: 16px; text-align: center;">
-                    <div style="font-size: 12px; color: @(netCashflow >= 0 ? "#1e40af" : "#92400e"); font-weight: 600; margin-bottom: 4px;">Net Cashflow</div>
-                    <div style="font-size: 20px; font-weight: 700; color: @(netCashflow >= 0 ? "#1e40af" : "#92400e");">@(netCashflow >= 0 ? "+" : "")₱@netCashflow.ToString("N2")</div>
+                <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 16px; text-align: center;">
+                    <div style="font-size: 12px; color: #047857; font-weight: 600; margin-bottom: 4px;">Net Cashflow</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #047857;">@(netCashflow >= 0 ? "+" : "")₱@netCashflow.ToString("N2")</div>
                 </div>
-                <div style="background: #f3e8ff; border-radius: 12px; padding: 16px; text-align: center;">
-                    <div style="font-size: 12px; color: #6d28d9; font-weight: 600; margin-bottom: 4px;">Transaction Count</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #6d28d9;">@transactionCount</div>
+                <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 16px; text-align: center;">
+                    <div style="font-size: 12px; color: #059669; font-weight: 600; margin-bottom: 4px;">Transaction Count</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #059669;">@transactionCount</div>
                 </div>
             </div>
             
@@ -152,7 +153,7 @@
                 </div>
                 
                 <div style="background: #f9fafb; border-radius: 12px; padding: 20px;">
-                    <h3 style="font-size: 14px; font-weight: 600; color: #dc2626; margin: 0 0 16px 0;">📉 Outflows by Category</h3>
+                    <h3 style="font-size: 14px; font-weight: 600; color: #047857; margin: 0 0 16px 0;">📉 Outflows by Category</h3>
                     @foreach (var cat in outflowsByCategory)
                     {
                         var percentage = totalOutflows > 0 ? (cat.Value / totalOutflows * 100) : 0;
@@ -160,10 +161,10 @@
                             <div style="flex: 1;">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                     <span style="font-size: 13px; color: #374151;">@cat.Key</span>
-                                    <span style="font-size: 13px; font-weight: 600; color: #dc2626;">₱@cat.Value.ToString("N2")</span>
+                                    <span style="font-size: 13px; font-weight: 600; color: #047857;">₱@cat.Value.ToString("N2")</span>
                                 </div>
                                 <div style="width: 100%; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden;">
-                                    <div style="width: @percentage%; height: 100%; background: #ef4444; border-radius: 3px;"></div>
+                                    <div style="width: @percentage%; height: 100%; background: #10b981; border-radius: 3px;"></div>
                                 </div>
                             </div>
                             <span style="font-size: 12px; color: #6b7280; min-width: 40px;">@percentage.ToString("N0")%</span>
@@ -182,7 +183,7 @@
                             <tr style="background: #f9fafb;">
                                 <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Date</th>
                                 <th style="padding: 12px; text-align: right; font-weight: 600; color: #047857; border-bottom: 2px solid #e5e7eb;">Inflows</th>
-                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #dc2626; border-bottom: 2px solid #e5e7eb;">Outflows</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #047857; border-bottom: 2px solid #e5e7eb;">Outflows</th>
                                 <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Net</th>
                                 <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Transactions</th>
                             </tr>
@@ -194,8 +195,8 @@
                                 <tr style="border-bottom: 1px solid #e5e7eb;">
                                     <td style="padding: 12px; font-weight: 500;">@day.Date.ToString("ddd, MMM dd yyyy")</td>
                                     <td style="padding: 12px; text-align: right; color: #047857;">+₱@day.Inflows.ToString("N2")</td>
-                                    <td style="padding: 12px; text-align: right; color: #dc2626;">-₱@day.Outflows.ToString("N2")</td>
-                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: @(dayNet >= 0 ? "#047857" : "#dc2626");">
+                                    <td style="padding: 12px; text-align: right; color: #059669;">-₱@day.Outflows.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: #047857;">
                                         @(dayNet >= 0 ? "+" : "")₱@dayNet.ToString("N2")
                                     </td>
                                     <td style="padding: 12px; text-align: center;">@day.TransactionCount</td>
@@ -206,8 +207,8 @@
                             <tr style="background: #f9fafb; font-weight: 700;">
                                 <td style="padding: 12px;">TOTAL</td>
                                 <td style="padding: 12px; text-align: right; color: #047857;">+₱@totalInflows.ToString("N2")</td>
-                                <td style="padding: 12px; text-align: right; color: #dc2626;">-₱@totalOutflows.ToString("N2")</td>
-                                <td style="padding: 12px; text-align: right; color: @(netCashflow >= 0 ? "#047857" : "#dc2626");">
+                                <td style="padding: 12px; text-align: right; color: #059669;">-₱@totalOutflows.ToString("N2")</td>
+                                <td style="padding: 12px; text-align: right; color: #047857;">
                                     @(netCashflow >= 0 ? "+" : "")₱@netCashflow.ToString("N2")
                                 </td>
                                 <td style="padding: 12px; text-align: center;">@transactionCount</td>
@@ -236,15 +237,15 @@
             <p style="font-size: 12px; color: #065f46; margin: 0;">These categories consistently contribute to positive cash flow.</p>
         </div>
         
-        <div style="padding: 20px; background: linear-gradient(135deg, #fef2f2, #fecaca); border-radius: 12px; border-left: 4px solid #ef4444;">
+        <div style="padding: 20px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; border-left: 4px solid #10b981;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                 <span style="font-size: 24px;">📊</span>
                 <div>
-                    <div style="font-weight: 600; color: #dc2626;">Major Outflow Categories</div>
-                    <div style="font-size: 13px; color: #991b1b;">Loan Disbursements, Withdrawals</div>
+                    <div style="font-weight: 600; color: #047857;">Major Outflow Categories</div>
+                    <div style="font-size: 13px; color: #065f46;">Loan Disbursements, Withdrawals</div>
                 </div>
             </div>
-            <p style="font-size: 12px; color: #991b1b; margin: 0;">Monitor these categories closely for liquidity management.</p>
+            <p style="font-size: 12px; color: #065f46; margin: 0;">Monitor these categories closely for liquidity management.</p>
         </div>
         
         <div style="padding: 20px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; border-left: 4px solid #059669;">
@@ -271,6 +272,7 @@
     }
     @@keyframes spin { to { transform: rotate(360deg); } }
 </style>
+</div>
 
 @code {
     private string reportPeriod = "month";

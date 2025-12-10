@@ -3219,6 +3219,738 @@ public class AuditLogService
             .Where(a => a.Action == "MALICIOUS_ATTEMPT" && a.CreatedAt >= DateTime.Now.AddHours(-24))
             .CountAsync();
     }
+
+    // ==================== COMPREHENSIVE BANKING TRANSACTION AUDIT METHODS ====================
+    // For SOX, BSA/AML, PCI DSS Compliance
+
+    /// <summary>
+    /// Log deposit transaction - Teller processing customer deposit
+    /// </summary>
+    public async Task LogDepositAsync(
+        int? employeeId,
+        string employeeName,
+        string employeeRole,
+        int? customerId,
+        string customerName,
+        string accountNumber,
+        string accountType,
+        decimal amount,
+        decimal balanceBefore,
+        decimal balanceAfter,
+        string transactionNumber,
+        string referenceNumber,
+        string depositMethod,
+        string transactionChannel,
+        string status = "Completed",
+        string? notes = null)
+    {
+        var riskLevel = DetermineTransactionRiskLevel(amount, "Deposit");
+        
+        await CreateAsync(new AuditLog
+        {
+            UserId = employeeId?.ToString() ?? "System",
+            Action = "DEPOSIT",
+            Module = "Teller Banking",
+            Description = $"Deposit of ₱{amount:N2} to account {accountNumber} by {employeeName}. {notes}",
+            Amount = amount,
+            BalanceBefore = balanceBefore,
+            BalanceAfter = balanceAfter,
+            
+            // Employee Info
+            EmployeeId = employeeId,
+            EmployeeName = employeeName,
+            EmployeeRole = employeeRole,
+            
+            // Customer Info
+            CustomerId = customerId,
+            CustomerName = customerName,
+            CustomerAccountId = customerId,
+            
+            // Transaction Details
+            TransactionType = "Deposit",
+            TransactionStatus = status,
+            TransactionNumber = transactionNumber,
+            ReferenceNumber = referenceNumber,
+            
+            // Account Info
+            AccountNumber = accountNumber,
+            AccountType = accountType,
+            
+            // Method
+            TransactionMethod = depositMethod,
+            TransactionChannel = transactionChannel,
+            
+            // Risk Assessment
+            RiskLevel = riskLevel,
+            RequiresReview = amount >= 50000 // Flag large deposits for review
+        });
+    }
+
+    /// <summary>
+    /// Log withdrawal transaction - Teller processing customer withdrawal
+    /// </summary>
+    public async Task LogWithdrawalAsync(
+        int? employeeId,
+        string employeeName,
+        string employeeRole,
+        int? customerId,
+        string customerName,
+        string accountNumber,
+        string accountType,
+        decimal amount,
+        decimal balanceBefore,
+        decimal balanceAfter,
+        string transactionNumber,
+        string referenceNumber,
+        string withdrawalMethod,
+        string transactionChannel,
+        string status = "Completed",
+        string? notes = null)
+    {
+        var riskLevel = DetermineTransactionRiskLevel(amount, "Withdrawal");
+        
+        await CreateAsync(new AuditLog
+        {
+            UserId = employeeId?.ToString() ?? "System",
+            Action = "WITHDRAWAL",
+            Module = "Teller Banking",
+            Description = $"Withdrawal of ₱{amount:N2} from account {accountNumber} by {employeeName}. {notes}",
+            Amount = amount,
+            BalanceBefore = balanceBefore,
+            BalanceAfter = balanceAfter,
+            
+            // Employee Info
+            EmployeeId = employeeId,
+            EmployeeName = employeeName,
+            EmployeeRole = employeeRole,
+            
+            // Customer Info
+            CustomerId = customerId,
+            CustomerName = customerName,
+            CustomerAccountId = customerId,
+            
+            // Transaction Details
+            TransactionType = "Withdrawal",
+            TransactionStatus = status,
+            TransactionNumber = transactionNumber,
+            ReferenceNumber = referenceNumber,
+            
+            // Account Info
+            AccountNumber = accountNumber,
+            AccountType = accountType,
+            
+            // Method
+            TransactionMethod = withdrawalMethod,
+            TransactionChannel = transactionChannel,
+            
+            // Risk Assessment
+            RiskLevel = riskLevel,
+            RequiresReview = amount >= 50000 // Flag large withdrawals for review
+        });
+    }
+
+    /// <summary>
+    /// Log fund transfer transaction - Customer or Teller initiating transfer
+    /// </summary>
+    public async Task LogFundTransferAsync(
+        int? employeeId,
+        string? employeeName,
+        string? employeeRole,
+        int? customerId,
+        string customerName,
+        string sourceAccountNumber,
+        string sourceAccountType,
+        string targetAccountNumber,
+        string targetAccountName,
+        decimal amount,
+        decimal sourceBalanceBefore,
+        decimal sourceBalanceAfter,
+        string transactionNumber,
+        string referenceNumber,
+        string transferMethod,
+        string transactionChannel,
+        decimal? fee = null,
+        string status = "Completed",
+        string? notes = null)
+    {
+        var riskLevel = DetermineTransactionRiskLevel(amount, "Transfer");
+        
+        await CreateAsync(new AuditLog
+        {
+            UserId = customerId?.ToString() ?? employeeId?.ToString() ?? "System",
+            Action = "FUND_TRANSFER",
+            Module = "Banking",
+            Description = $"Transfer of ₱{amount:N2} from {sourceAccountNumber} to {targetAccountNumber}. {notes}",
+            Amount = amount,
+            BalanceBefore = sourceBalanceBefore,
+            BalanceAfter = sourceBalanceAfter,
+            Fee = fee,
+            
+            // Employee Info (if teller-initiated)
+            EmployeeId = employeeId,
+            EmployeeName = employeeName,
+            EmployeeRole = employeeRole,
+            
+            // Customer Info
+            CustomerId = customerId,
+            CustomerName = customerName,
+            CustomerAccountId = customerId,
+            
+            // Transaction Details
+            TransactionType = "Transfer",
+            TransactionStatus = status,
+            TransactionNumber = transactionNumber,
+            ReferenceNumber = referenceNumber,
+            
+            // Source Account
+            AccountNumber = sourceAccountNumber,
+            AccountType = sourceAccountType,
+            
+            // Target Account
+            TargetAccountNumber = targetAccountNumber,
+            TargetAccountName = targetAccountName,
+            
+            // Method
+            TransactionMethod = transferMethod,
+            TransactionChannel = transactionChannel,
+            
+            // Risk Assessment
+            RiskLevel = riskLevel,
+            RequiresReview = amount >= 100000 // Flag large transfers for review
+        });
+    }
+
+    /// <summary>
+    /// Log loan disbursement transaction
+    /// </summary>
+    public async Task LogLoanDisbursementAsync(
+        int? employeeId,
+        string employeeName,
+        string employeeRole,
+        int? customerId,
+        string customerName,
+        int loanId,
+        string loanNumber,
+        string loanType,
+        string accountNumber,
+        decimal amount,
+        decimal balanceAfter,
+        string transactionNumber,
+        string referenceNumber,
+        string? approvedBy = null,
+        DateTime? approvedAt = null,
+        string status = "Completed",
+        string? notes = null)
+    {
+        await CreateAsync(new AuditLog
+        {
+            UserId = employeeId?.ToString() ?? "System",
+            Action = "LOAN_DISBURSEMENT",
+            Module = "Loan Processing",
+            Description = $"Loan disbursement of ₱{amount:N2} for loan {loanNumber} to account {accountNumber}. {notes}",
+            Amount = amount,
+            BalanceBefore = 0,
+            BalanceAfter = balanceAfter,
+            
+            // Employee Info
+            EmployeeId = employeeId,
+            EmployeeName = employeeName,
+            EmployeeRole = employeeRole,
+            
+            // Customer Info
+            CustomerId = customerId,
+            CustomerName = customerName,
+            CustomerAccountId = customerId,
+            
+            // Transaction Details
+            TransactionType = "LoanDisbursement",
+            TransactionStatus = status,
+            TransactionNumber = transactionNumber,
+            ReferenceNumber = referenceNumber,
+            
+            // Account Info
+            AccountNumber = accountNumber,
+            
+            // Loan Info
+            LoanId = loanId,
+            LoanNumber = loanNumber,
+            LoanType = loanType,
+            
+            // Approval Info
+            ApprovedBy = approvedBy,
+            ApprovedAt = approvedAt,
+            
+            // Method
+            TransactionMethod = "Disbursement",
+            TransactionChannel = "Loan Processing",
+            
+            // Risk Assessment
+            RiskLevel = "Medium",
+            RequiresReview = false // Already approved through loan workflow
+        });
+    }
+
+    /// <summary>
+    /// Log loan payment transaction
+    /// </summary>
+    public async Task LogLoanPaymentAsync(
+        int? employeeId,
+        string? employeeName,
+        string? employeeRole,
+        int? customerId,
+        string customerName,
+        int loanId,
+        string loanNumber,
+        string loanType,
+        string accountNumber,
+        decimal amount,
+        decimal principalAmount,
+        decimal interestAmount,
+        decimal balanceBefore,
+        decimal balanceAfter,
+        decimal remainingLoanBalance,
+        string transactionNumber,
+        string referenceNumber,
+        string paymentMethod,
+        string transactionChannel,
+        string status = "Completed",
+        string? notes = null)
+    {
+        await CreateAsync(new AuditLog
+        {
+            UserId = customerId?.ToString() ?? employeeId?.ToString() ?? "System",
+            Action = "LOAN_PAYMENT",
+            Module = "Loan Processing",
+            Description = $"Loan payment of ₱{amount:N2} for loan {loanNumber}. Principal: ₱{principalAmount:N2}, Interest: ₱{interestAmount:N2}. Remaining: ₱{remainingLoanBalance:N2}. {notes}",
+            Amount = amount,
+            BalanceBefore = balanceBefore,
+            BalanceAfter = balanceAfter,
+            
+            // Employee Info (if teller-initiated)
+            EmployeeId = employeeId,
+            EmployeeName = employeeName,
+            EmployeeRole = employeeRole,
+            
+            // Customer Info
+            CustomerId = customerId,
+            CustomerName = customerName,
+            CustomerAccountId = customerId,
+            
+            // Transaction Details
+            TransactionType = "LoanPayment",
+            TransactionStatus = status,
+            TransactionNumber = transactionNumber,
+            ReferenceNumber = referenceNumber,
+            
+            // Account Info
+            AccountNumber = accountNumber,
+            
+            // Loan Info
+            LoanId = loanId,
+            LoanNumber = loanNumber,
+            LoanType = loanType,
+            
+            // Method
+            TransactionMethod = paymentMethod,
+            TransactionChannel = transactionChannel,
+            
+            // Risk Assessment
+            RiskLevel = "Low",
+            RequiresReview = false
+        });
+    }
+
+    /// <summary>
+    /// Log savings deposit transaction
+    /// </summary>
+    public async Task LogSavingsDepositAsync(
+        int? employeeId,
+        string? employeeName,
+        string? employeeRole,
+        int? customerId,
+        string customerName,
+        string savingsAccountNumber,
+        decimal amount,
+        decimal balanceBefore,
+        decimal balanceAfter,
+        string transactionNumber,
+        string referenceNumber,
+        string depositMethod,
+        string transactionChannel,
+        string status = "Completed",
+        string? notes = null)
+    {
+        var riskLevel = DetermineTransactionRiskLevel(amount, "SavingsDeposit");
+        
+        await CreateAsync(new AuditLog
+        {
+            UserId = customerId?.ToString() ?? employeeId?.ToString() ?? "System",
+            Action = "SAVINGS_DEPOSIT",
+            Module = "Savings Account",
+            Description = $"Savings deposit of ₱{amount:N2} to account {savingsAccountNumber}. {notes}",
+            Amount = amount,
+            BalanceBefore = balanceBefore,
+            BalanceAfter = balanceAfter,
+            
+            // Employee Info
+            EmployeeId = employeeId,
+            EmployeeName = employeeName,
+            EmployeeRole = employeeRole,
+            
+            // Customer Info
+            CustomerId = customerId,
+            CustomerName = customerName,
+            CustomerAccountId = customerId,
+            
+            // Transaction Details
+            TransactionType = "SavingsDeposit",
+            TransactionStatus = status,
+            TransactionNumber = transactionNumber,
+            ReferenceNumber = referenceNumber,
+            
+            // Account Info
+            AccountNumber = savingsAccountNumber,
+            AccountType = "Savings",
+            
+            // Method
+            TransactionMethod = depositMethod,
+            TransactionChannel = transactionChannel,
+            
+            // Risk Assessment
+            RiskLevel = riskLevel,
+            RequiresReview = amount >= 50000
+        });
+    }
+
+    /// <summary>
+    /// Log savings withdrawal transaction
+    /// </summary>
+    public async Task LogSavingsWithdrawalAsync(
+        int? employeeId,
+        string? employeeName,
+        string? employeeRole,
+        int? customerId,
+        string customerName,
+        string savingsAccountNumber,
+        decimal amount,
+        decimal balanceBefore,
+        decimal balanceAfter,
+        string transactionNumber,
+        string referenceNumber,
+        string withdrawalMethod,
+        string transactionChannel,
+        string status = "Completed",
+        string? notes = null)
+    {
+        var riskLevel = DetermineTransactionRiskLevel(amount, "SavingsWithdrawal");
+        
+        await CreateAsync(new AuditLog
+        {
+            UserId = customerId?.ToString() ?? employeeId?.ToString() ?? "System",
+            Action = "SAVINGS_WITHDRAWAL",
+            Module = "Savings Account",
+            Description = $"Savings withdrawal of ₱{amount:N2} from account {savingsAccountNumber}. {notes}",
+            Amount = amount,
+            BalanceBefore = balanceBefore,
+            BalanceAfter = balanceAfter,
+            
+            // Employee Info
+            EmployeeId = employeeId,
+            EmployeeName = employeeName,
+            EmployeeRole = employeeRole,
+            
+            // Customer Info
+            CustomerId = customerId,
+            CustomerName = customerName,
+            CustomerAccountId = customerId,
+            
+            // Transaction Details
+            TransactionType = "SavingsWithdrawal",
+            TransactionStatus = status,
+            TransactionNumber = transactionNumber,
+            ReferenceNumber = referenceNumber,
+            
+            // Account Info
+            AccountNumber = savingsAccountNumber,
+            AccountType = "Savings",
+            
+            // Method
+            TransactionMethod = withdrawalMethod,
+            TransactionChannel = transactionChannel,
+            
+            // Risk Assessment
+            RiskLevel = riskLevel,
+            RequiresReview = amount >= 50000
+        });
+    }
+
+    /// <summary>
+    /// Log interest posting transaction (automated process)
+    /// </summary>
+    public async Task LogInterestPostingAsync(
+        int? customerId,
+        string customerName,
+        string accountNumber,
+        string accountType,
+        decimal interestAmount,
+        decimal balanceBefore,
+        decimal balanceAfter,
+        string transactionNumber,
+        string referenceNumber,
+        string interestType,
+        string? notes = null)
+    {
+        await CreateAsync(new AuditLog
+        {
+            UserId = "System",
+            Action = "INTEREST_POSTING",
+            Module = "Interest Processing",
+            Description = $"Interest posting of ₱{interestAmount:N2} to account {accountNumber}. Type: {interestType}. {notes}",
+            Amount = interestAmount,
+            BalanceBefore = balanceBefore,
+            BalanceAfter = balanceAfter,
+            
+            // Customer Info
+            CustomerId = customerId,
+            CustomerName = customerName,
+            CustomerAccountId = customerId,
+            
+            // Transaction Details
+            TransactionType = "InterestPosting",
+            TransactionStatus = "Completed",
+            TransactionNumber = transactionNumber,
+            ReferenceNumber = referenceNumber,
+            
+            // Account Info
+            AccountNumber = accountNumber,
+            AccountType = accountType,
+            
+            // Method
+            TransactionMethod = "System",
+            TransactionChannel = "Automated Process",
+            
+            // Risk Assessment
+            RiskLevel = "Low",
+            RequiresReview = false
+        });
+    }
+
+    /// <summary>
+    /// Log loan application submission
+    /// </summary>
+    public async Task LogLoanApplicationAsync(
+        int? customerId,
+        string customerName,
+        int loanId,
+        string loanNumber,
+        string loanType,
+        decimal requestedAmount,
+        int termMonths,
+        decimal interestRate,
+        string status = "Pending",
+        string? notes = null)
+    {
+        await CreateAsync(new AuditLog
+        {
+            UserId = customerId?.ToString() ?? "System",
+            Action = "LOAN_APPLICATION",
+            Module = "Loan Processing",
+            Description = $"Loan application submitted for ₱{requestedAmount:N2}. Type: {loanType}, Term: {termMonths} months, Rate: {interestRate}%. {notes}",
+            Amount = requestedAmount,
+            
+            // Customer Info
+            CustomerId = customerId,
+            CustomerName = customerName,
+            CustomerAccountId = customerId,
+            
+            // Transaction Details
+            TransactionType = "LoanApplication",
+            TransactionStatus = status,
+            
+            // Loan Info
+            LoanId = loanId,
+            LoanNumber = loanNumber,
+            LoanType = loanType,
+            
+            // Method
+            TransactionChannel = "Online Application",
+            
+            // Risk Assessment
+            RiskLevel = requestedAmount >= 100000 ? "High" : "Medium",
+            RequiresReview = true
+        });
+    }
+
+    /// <summary>
+    /// Log loan approval/rejection by Finance Manager
+    /// </summary>
+    public async Task LogLoanApprovalAsync(
+        int employeeId,
+        string employeeName,
+        string employeeRole,
+        int? customerId,
+        string customerName,
+        int loanId,
+        string loanNumber,
+        string loanType,
+        decimal approvedAmount,
+        string approvalStatus, // Approved, Rejected, RequiresAdditionalInfo
+        string? approvalRemarks = null,
+        string? notes = null)
+    {
+        await CreateAsync(new AuditLog
+        {
+            UserId = employeeId.ToString(),
+            Action = $"LOAN_{approvalStatus.ToUpper()}",
+            Module = "Loan Processing",
+            Description = $"Loan {loanNumber} {approvalStatus.ToLower()} by {employeeName}. Amount: ₱{approvedAmount:N2}. Remarks: {approvalRemarks}. {notes}",
+            Amount = approvedAmount,
+            
+            // Employee Info
+            EmployeeId = employeeId,
+            EmployeeName = employeeName,
+            EmployeeRole = employeeRole,
+            
+            // Customer Info
+            CustomerId = customerId,
+            CustomerName = customerName,
+            CustomerAccountId = customerId,
+            
+            // Transaction Details
+            TransactionType = "LoanApproval",
+            TransactionStatus = approvalStatus,
+            
+            // Loan Info
+            LoanId = loanId,
+            LoanNumber = loanNumber,
+            LoanType = loanType,
+            
+            // Approval Info
+            ApprovedBy = employeeName,
+            ApprovedAt = DateTime.Now,
+            ApprovalRemarks = approvalRemarks,
+            
+            // Risk Assessment
+            RiskLevel = "Medium",
+            RequiresReview = false
+        });
+    }
+
+    /// <summary>
+    /// Determine transaction risk level based on amount and type
+    /// </summary>
+    private string DetermineTransactionRiskLevel(decimal amount, string transactionType)
+    {
+        // BSA/AML thresholds (PHP equivalents)
+        if (amount >= 500000) return "Critical"; // ₱500,000+ 
+        if (amount >= 100000) return "High";     // ₱100,000+
+        if (amount >= 50000) return "Medium";    // ₱50,000+
+        return "Low";
+    }
+
+    /// <summary>
+    /// Get banking transaction audit logs with filters
+    /// </summary>
+    public async Task<List<AuditLog>> GetBankingTransactionLogsAsync(
+        string? transactionType = null,
+        int? employeeId = null,
+        int? customerId = null,
+        string? accountNumber = null,
+        decimal? minAmount = null,
+        decimal? maxAmount = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        string? status = null,
+        string? riskLevel = null,
+        int limit = 500)
+    {
+        var bankingActions = new[] { 
+            "DEPOSIT", "WITHDRAWAL", "FUND_TRANSFER", 
+            "LOAN_DISBURSEMENT", "LOAN_PAYMENT", 
+            "SAVINGS_DEPOSIT", "SAVINGS_WITHDRAWAL", 
+            "INTEREST_POSTING", "LOAN_APPLICATION", 
+            "LOAN_APPROVED", "LOAN_REJECTED" 
+        };
+
+        var query = _context.AuditLogs
+            .Where(a => bankingActions.Contains(a.Action));
+
+        if (!string.IsNullOrEmpty(transactionType))
+            query = query.Where(a => a.TransactionType == transactionType);
+
+        if (employeeId.HasValue)
+            query = query.Where(a => a.EmployeeId == employeeId.Value);
+
+        if (customerId.HasValue)
+            query = query.Where(a => a.CustomerId == customerId.Value);
+
+        if (!string.IsNullOrEmpty(accountNumber))
+            query = query.Where(a => a.AccountNumber == accountNumber || a.TargetAccountNumber == accountNumber);
+
+        if (minAmount.HasValue)
+            query = query.Where(a => a.Amount >= minAmount.Value);
+
+        if (maxAmount.HasValue)
+            query = query.Where(a => a.Amount <= maxAmount.Value);
+
+        if (startDate.HasValue)
+            query = query.Where(a => a.CreatedAt >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(a => a.CreatedAt <= endDate.Value);
+
+        if (!string.IsNullOrEmpty(status))
+            query = query.Where(a => a.TransactionStatus == status);
+
+        if (!string.IsNullOrEmpty(riskLevel))
+            query = query.Where(a => a.RiskLevel == riskLevel);
+
+        return await query
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(limit)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Get transactions requiring review (high-risk or flagged)
+    /// </summary>
+    public async Task<List<AuditLog>> GetTransactionsRequiringReviewAsync()
+    {
+        return await _context.AuditLogs
+            .Where(a => a.RequiresReview == true || a.RiskLevel == "High" || a.RiskLevel == "Critical")
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(100)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Get employee transaction summary (for audit)
+    /// </summary>
+    public async Task<Dictionary<string, object>> GetEmployeeTransactionSummaryAsync(int employeeId, DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var query = _context.AuditLogs.Where(a => a.EmployeeId == employeeId);
+
+        if (startDate.HasValue)
+            query = query.Where(a => a.CreatedAt >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(a => a.CreatedAt <= endDate.Value);
+
+        var logs = await query.ToListAsync();
+
+        return new Dictionary<string, object>
+        {
+            { "TotalTransactions", logs.Count },
+            { "TotalDeposits", logs.Count(l => l.Action == "DEPOSIT") },
+            { "TotalWithdrawals", logs.Count(l => l.Action == "WITHDRAWAL") },
+            { "TotalTransfers", logs.Count(l => l.Action == "FUND_TRANSFER") },
+            { "TotalAmount", logs.Sum(l => l.Amount ?? 0) },
+            { "DepositAmount", logs.Where(l => l.Action == "DEPOSIT").Sum(l => l.Amount ?? 0) },
+            { "WithdrawalAmount", logs.Where(l => l.Action == "WITHDRAWAL").Sum(l => l.Amount ?? 0) },
+            { "TransferAmount", logs.Where(l => l.Action == "FUND_TRANSFER").Sum(l => l.Amount ?? 0) },
+            { "HighRiskTransactions", logs.Count(l => l.RiskLevel == "High" || l.RiskLevel == "Critical") }
+        };
+    }
 }
 /// Chart of Accounts Service - Manages account codes for journal entries
 /// </summary>

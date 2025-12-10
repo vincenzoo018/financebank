@@ -8,6 +8,7 @@ namespace FinanceBank.Services
     /// <summary>
     /// Service for Teller and Admin to process customer deposits and withdrawals
     /// Automatically posts to General Ledger and creates AR/AP entries for accounting.
+    /// All transactions are logged to AuditLog for SOX/BSA compliance.
     /// </summary>
     public class TellerBankingService
     {
@@ -16,19 +17,22 @@ namespace FinanceBank.Services
         private readonly InvoiceService _invoiceService;
         private readonly AutomaticGLPostingService _glPostingService;
         private readonly TransactionHistoryService? _transactionHistoryService;
+        private readonly AuditLogService? _auditLogService;
 
         public TellerBankingService(
             IDbContextFactory<BFASDbContext> contextFactory,
             AuthService authService,
             InvoiceService invoiceService,
             AutomaticGLPostingService glPostingService,
-            TransactionHistoryService? transactionHistoryService = null)
+            TransactionHistoryService? transactionHistoryService = null,
+            AuditLogService? auditLogService = null)
         {
             _contextFactory = contextFactory;
             _authService = authService;
             _invoiceService = invoiceService;
             _glPostingService = glPostingService;
             _transactionHistoryService = transactionHistoryService;
+            _auditLogService = auditLogService;
         }
 
         /// <summary>
@@ -193,6 +197,38 @@ namespace FinanceBank.Services
                         customerTransaction.ProcessedAt ?? DateTime.Now);
                 }
                 catch { /* GL posting failure should not affect transaction */ }
+
+                // =============================================
+                // AUDIT LOG - Record deposit for compliance
+                // =============================================
+                try
+                {
+                    if (_auditLogService != null)
+                    {
+                        await _auditLogService.LogDepositAsync(
+                            employeeId: employeeId,
+                            employeeName: processedBy,
+                            employeeRole: _authService.CurrentRole ?? "Teller",
+                            customerId: account.Customer?.UserId,
+                            customerName: customerName,
+                            accountNumber: account.AccountNumber,
+                            accountType: "Checking",
+                            amount: amount,
+                            balanceBefore: balanceBefore,
+                            balanceAfter: account.Balance,
+                            transactionNumber: receiptNumber,
+                            referenceNumber: customerTransaction.Reference ?? "",
+                            depositMethod: depositMethod,
+                            transactionChannel: "Teller Window",
+                            status: "Completed",
+                            notes: notes);
+                    }
+                }
+                catch (Exception auditEx)
+                {
+                    // Audit log failure should not affect transaction
+                    System.Diagnostics.Debug.WriteLine($"Audit log creation failed: {auditEx.Message}");
+                }
 
                 return (true, $"Deposit of ₱{amount:N2} processed successfully", customerTransaction, receiptNumber);
             }
@@ -372,6 +408,38 @@ namespace FinanceBank.Services
                         customerTransaction.ProcessedAt ?? DateTime.Now);
                 }
                 catch { /* GL posting failure should not affect transaction */ }
+
+                // =============================================
+                // AUDIT LOG - Record withdrawal for compliance
+                // =============================================
+                try
+                {
+                    if (_auditLogService != null)
+                    {
+                        await _auditLogService.LogWithdrawalAsync(
+                            employeeId: employeeId,
+                            employeeName: processedBy,
+                            employeeRole: _authService.CurrentRole ?? "Teller",
+                            customerId: account.Customer?.UserId,
+                            customerName: customerName,
+                            accountNumber: account.AccountNumber,
+                            accountType: "Checking",
+                            amount: amount,
+                            balanceBefore: balanceBefore,
+                            balanceAfter: account.Balance,
+                            transactionNumber: receiptNumber,
+                            referenceNumber: customerTransaction.Reference ?? "",
+                            withdrawalMethod: withdrawalMethod,
+                            transactionChannel: "Teller Window",
+                            status: "Completed",
+                            notes: notes);
+                    }
+                }
+                catch (Exception auditEx)
+                {
+                    // Audit log failure should not affect transaction
+                    System.Diagnostics.Debug.WriteLine($"Audit log creation failed: {auditEx.Message}");
+                }
 
                 return (true, $"Withdrawal of ₱{amount:N2} processed successfully", customerTransaction, receiptNumber);
             }

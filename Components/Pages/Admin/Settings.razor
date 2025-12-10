@@ -64,14 +64,14 @@
 </div>
 
 <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
-    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px; color: var(--danger);">Danger Zone</h3>
+    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px; color: #92400e;">Caution Zone</h3>
     
-    <div style="padding: 16px; background: #fee2e2; border-radius: 12px; margin-bottom: 12px;">
-        <div style="font-size: 14px; font-weight: 600; color: #991b1b; margin-bottom: 4px;">Clear All Audit Logs</div>
-        <div style="font-size: 13px; color: #991b1b;">This action cannot be undone</div>
+    <div style="padding: 16px; background: #fef3c7; border-radius: 12px; margin-bottom: 12px;">
+        <div style="font-size: 14px; font-weight: 600; color: #92400e; margin-bottom: 4px;">Clear All Audit Logs</div>
+        <div style="font-size: 13px; color: #92400e;">This action cannot be undone</div>
     </div>
 
-    <button class="btn" style="background: var(--danger); color: white;" @onclick="OnClearAuditLogsClicked">Clear Audit Logs</button>
+    <button class="btn" style="background: #f59e0b; color: white;" @onclick="OnClearAuditLogsClicked">Clear Audit Logs</button>
     @if (!string.IsNullOrEmpty(clearAuditMessage))
     {
         <div style="margin-top: 10px; font-size: 12px; color: @(clearAuditSuccess ? "#16a34a" : "#991b1b");">@clearAuditMessage</div>
@@ -81,14 +81,14 @@
 <!-- Confirm Clear Logs Modal -->
 <div style="display: @(showConfirmClearModal ? "flex" : "none"); position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
     <div style="background: white; border-radius: 16px; padding: 32px; max-width: 480px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-        <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 16px 0; color: #b91c1c;">Confirm Clear Audit Logs</h2>
+        <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 16px 0; color: #92400e;">Confirm Clear Audit Logs</h2>
         <p style="font-size: 14px; color: #4b5563; margin-bottom: 20px;">
             This will permanently delete all records from the <strong>AuditLogs</strong> table in BFASdatabase.
             Only <strong>SuperAdmin</strong> is allowed to perform this action.
         </p>
         <div style="display: flex; justify-content: flex-end; gap: 12px;">
             <button class="btn" style="background: #e5e7eb; color: #374151; padding: 8px 18px; font-weight: 600;" @onclick="CloseConfirmModal">Cancel</button>
-            <button class="btn" style="background: #b91c1c; color: white; padding: 8px 18px; font-weight: 600;" @onclick="ConfirmClearAuditLogs" disabled="@(isClearing)">
+            <button class="btn" style="background: #f59e0b; color: white; padding: 8px 18px; font-weight: 600;" @onclick="ConfirmClearAuditLogs" disabled="@(isClearing)">
                 @(isClearing ? "Clearing..." : "Yes, Clear Logs")
             </button>
         </div>

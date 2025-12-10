@@ -8,39 +8,40 @@
 @inject CustomerBankingService CustomerBankingService
 @inject LoanService LoanService
 
-<div class="page-container" style="padding: 24px;">
+<div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Page Header -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-        <div>
-            <h2 style="margin: 0; color: #1f2937; font-weight: 700; font-size: 24px;">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"
-                    style="margin-right: 10px; vertical-align: middle;">
-                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                    <path d="M12 9v6"></path>
-                    <path d="M9 12h6"></path>
-                </svg>
-                Accounts Payable
-            </h2>
-            <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">Manage bank liabilities: Savings Interest
-                Payable, Refunds, Customer Payouts</p>
-        </div>
-        <div style="display: flex; gap: 12px;">
-            <button @onclick="FetchSavingsInterest"
-                style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); transition: all 0.2s;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                        <path d="M12 9v6"></path>
+                        <path d="M9 12h6"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 style="font-size: 28px; font-weight: 700; color: white; margin: 0;">Accounts Payable</h1>
+                    <p style="color: rgba(255,255,255,0.8); margin: 4px 0 0 0;">Manage bank liabilities: Savings Interest Payable, Refunds, Customer Payouts</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button @onclick="FetchSavingsInterest"
+                    style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white; border-radius: 10px; padding: 10px 20px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
                 </svg>
                 Fetch Savings Interest
             </button>
             <button @onclick="LoadBills"
-                style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); transition: all 0.2s;">
+                style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white; border-radius: 10px; padding: 10px 20px; cursor: pointer; font-weight: 600; font-size: 14px;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
                 </svg>
                 Refresh
             </button>
             <button @onclick="OpenHistoryModal"
-                style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); transition: all 0.2s;">
+                style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white; border-radius: 10px; padding: 10px 20px; cursor: pointer; font-weight: 600; font-size: 14px;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
@@ -49,85 +50,38 @@
             </button>
         </div>
     </div>
+    </div>
 
-    <!-- Stats Cards -->
+    <!-- Summary Cards -->
     <div
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
         <div
-            style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border-radius: 12px; padding: 20px; border: 1px solid #fecaca;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div
-                    style="width: 48px; height: 48px; background: #dc2626; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                        <path d="M12 2v20M2 12h20"></path>
-                    </svg>
-                </div>
-                <div>
-                    <p style="margin: 0; color: #dc2626; font-size: 12px; font-weight: 600; text-transform: uppercase;">
-                        Total Outstanding</p>
-                    <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #991b1b;">
-                        ₱@totalOutstanding.ToString("N2")</p>
-                </div>
-            </div>
-            <p style="margin: 12px 0 0 0; font-size: 12px; color: #b91c1c;">@pendingBills bills pending</p>
+            style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; padding: 24px; border: 2px solid #6ee7b7;">
+            <div style="font-size: 13px; color: #047857; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
+                💰 Total Outstanding</div>
+            <div style="font-size: 28px; font-weight: 700; color: #047857;">₱@totalOutstanding.ToString("N2")</div>
+            <div style="font-size: 12px; color: #059669; margin-top: 4px;">@pendingBills bills pending</div>
         </div>
         <div
-            style="background: linear-gradient(135deg, #fefce8, #fef9c3); border-radius: 12px; padding: 20px; border: 1px solid #fde047;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div
-                    style="width: 48px; height: 48px; background: #eab308; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                </div>
-                <div>
-                    <p style="margin: 0; color: #ca8a04; font-size: 12px; font-weight: 600; text-transform: uppercase;">
-                        Due This Month</p>
-                    <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #854d0e;">
-                        ₱@dueThisMonth.ToString("N2")</p>
-                </div>
-            </div>
-            <p style="margin: 12px 0 0 0; font-size: 12px; color: #a16207;">@dueSoonCount bills due soon</p>
+            style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 16px; padding: 24px; border: 2px solid #6ee7b7;">
+            <div style="font-size: 13px; color: #047857; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
+                📅 Due This Month</div>
+            <div style="font-size: 28px; font-weight: 700; color: #047857;">₱@dueThisMonth.ToString("N2")</div>
+            <div style="font-size: 12px; color: #059669; margin-top: 4px;">@dueSoonCount bills due soon</div>
         </div>
         <div
-            style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 20px; border: 1px solid #bbf7d0;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div
-                    style="width: 48px; height: 48px; background: #059669; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                </div>
-                <div>
-                    <p style="margin: 0; color: #059669; font-size: 12px; font-weight: 600; text-transform: uppercase;">
-                        Paid This Month</p>
-                    <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #065f46;">
-                        ₱@paidThisMonth.ToString("N2")</p>
-                </div>
-            </div>
-            <p style="margin: 12px 0 0 0; font-size: 12px; color: #047857;">@paidCount payments made</p>
+            style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 16px; padding: 24px; border: 2px solid #6ee7b7;">
+            <div style="font-size: 13px; color: #047857; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
+                ✅ Paid This Month</div>
+            <div style="font-size: 28px; font-weight: 700; color: #047857;">₱@paidThisMonth.ToString("N2")</div>
+            <div style="font-size: 12px; color: #059669; margin-top: 4px;">@paidCount payments made</div>
         </div>
         <div
-            style="background: linear-gradient(135deg, #fdf4ff, #f5d0fe); border-radius: 12px; padding: 20px; border: 1px solid #e879f9;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div
-                    style="width: 48px; height: 48px; background: #a855f7; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                        <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-                    </svg>
-                </div>
-                <div>
-                    <p style="margin: 0; color: #a855f7; font-size: 12px; font-weight: 600; text-transform: uppercase;">
-                        Interest Payable</p>
-                    <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #7c3aed;">
-                        @pendingSavingsInterest</p>
-                </div>
-            </div>
-            <p style="margin: 12px 0 0 0; font-size: 12px; color: #9333ea;">Savings interest pending</p>
+            style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 16px; padding: 24px; border: 2px solid #86efac;">
+            <div style="font-size: 13px; color: #047857; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
+                💰 Interest Payable</div>
+            <div style="font-size: 28px; font-weight: 700; color: #047857;">@pendingSavingsInterest</div>
+            <div style="font-size: 12px; color: #059669; margin-top: 4px;">Savings interest pending</div>
         </div>
     </div>
 
@@ -149,7 +103,7 @@
     @if (!string.IsNullOrEmpty(errorMessage))
     {
         <div
-            style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+            style="background: #ecfdf5; border: 1px solid #6ee7b7; color: #047857; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="15" y1="9" x2="9" y2="15"></line>
@@ -157,7 +111,7 @@
             </svg>
             <span style="font-weight: 500;">@errorMessage</span>
             <button @onclick="() => errorMessage = string.Empty"
-                style="margin-left: auto; background: none; border: none; color: #991b1b; cursor: pointer; font-size: 18px;">×</button>
+                style="margin-left: auto; background: none; border: none; color: #047857; cursor: pointer; font-size: 18px;">×</button>
         </div>
     }
 
@@ -174,7 +128,7 @@
             All Bills (@bills.Count)
         </button>
         <button @onclick="() => activeTab = 1"
-            style="flex: 1; padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; background: @(activeTab == 1 ? "white" : "transparent"); color: @(activeTab == 1 ? "#a855f7" : "#64748b"); box-shadow: @(activeTab == 1 ? "0 2px 8px rgba(0,0,0,0.1)" : "none");">
+            style="flex: 1; padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; background: @(activeTab == 1 ? "white" : "transparent"); color: @(activeTab == 1 ? "#059669" : "#64748b"); box-shadow: @(activeTab == 1 ? "0 2px 8px rgba(0,0,0,0.1)" : "none");">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 style="margin-right: 8px; vertical-align: middle;">
                 <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
@@ -187,8 +141,8 @@
     @if (activeTab == 1)
     {
         <div
-            style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; border: 2px solid #a855f7;">
-            <div style="background: linear-gradient(135deg, #a855f7, #9333ea); color: white; padding: 20px 24px;">
+            style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; border: 2px solid #6ee7b7;">
+            <div style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 20px 24px;">
                 <h4 style="margin: 0; font-weight: 600; font-size: 18px;">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         style="margin-right: 8px; vertical-align: middle;">
@@ -204,17 +158,17 @@
                 @if (!pendingInterestPayments.Any())
                 {
                     <div
-                        style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #fdf4ff, #f5d0fe); border-radius: 16px;">
+                        style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px;">
                         <div
-                            style="width: 80px; height: 80px; background: #e9d5ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="1.5">
+                            style="width: 80px; height: 80px; background: #a7f3d0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="1.5">
                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
                             </svg>
                         </div>
-                        <h5 style="color: #7c3aed; margin-top: 20px; font-size: 18px; font-weight: 600;">No Pending Interest
+                        <h5 style="color: #047857; margin-top: 20px; font-size: 18px; font-weight: 600;">No Pending Interest
                             Payments</h5>
-                        <p style="color: #9333ea; font-size: 14px; margin-top: 8px;">Click "Fetch Savings Interest" to sync
+                        <p style="color: #059669; font-size: 14px; margin-top: 8px;">Click "Fetch Savings Interest" to sync
                             pending interest payouts.</p>
                     </div>
                 }
@@ -223,31 +177,31 @@
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
                             <thead>
-                                <tr style="background: linear-gradient(135deg, #fdf4ff, #f5d0fe);">
+                                <tr style="background: #f3f4f6;">
                                     <th
-                                        style="padding: 14px 16px; text-align: left; font-weight: 600; color: #7c3aed; font-size: 13px; text-transform: uppercase;">
+                                        style="padding: 14px 16px; text-align: left; font-weight: 600; color: #374151; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;">
                                         Bill #</th>
                                     <th
-                                        style="padding: 14px 16px; text-align: left; font-weight: 600; color: #7c3aed; font-size: 13px; text-transform: uppercase;">
+                                        style="padding: 14px 16px; text-align: left; font-weight: 600; color: #374151; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;">
                                         Customer</th>
                                     <th
-                                        style="padding: 14px 16px; text-align: right; font-weight: 600; color: #7c3aed; font-size: 13px; text-transform: uppercase;">
+                                        style="padding: 14px 16px; text-align: right; font-weight: 600; color: #374151; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;">
                                         Interest Amount</th>
                                     <th
-                                        style="padding: 14px 16px; text-align: center; font-weight: 600; color: #7c3aed; font-size: 13px; text-transform: uppercase;">
+                                        style="padding: 14px 16px; text-align: center; font-weight: 600; color: #374151; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;">
                                         Due Date</th>
                                     <th
-                                        style="padding: 14px 16px; text-align: center; font-weight: 600; color: #7c3aed; font-size: 13px; text-transform: uppercase;">
+                                        style="padding: 14px 16px; text-align: center; font-weight: 600; color: #374151; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;">
                                         Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var interest in pendingInterestPayments)
                                 {
-                                    <tr style="border-bottom: 1px solid #f3e8ff;">
+                                    <tr style="border-bottom: 1px solid #e5e7eb;">
                                         <td style="padding: 16px;">
                                             <span
-                                                style="background: linear-gradient(135deg, #f3e8ff, #e9d5ff); color: #7c3aed; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px;">
+                                                style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #047857; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px;">
                                                 @interest.InvoiceNumber
                                             </span>
                                         </td>
@@ -257,14 +211,14 @@
                                         </td>
                                         <td style="padding: 16px; text-align: right;">
                                             <span
-                                                style="font-weight: 700; color: #dc2626; font-size: 16px;">₱@interest.Amount.ToString("N2")</span>
+                                                style="font-weight: 700; color: #047857; font-size: 16px;">₱@interest.Amount.ToString("N2")</span>
                                         </td>
                                         <td style="padding: 16px; text-align: center; color: #475569;">
                                             @interest.DueDate.ToString("MMM dd, yyyy")
                                         </td>
                                         <td style="padding: 16px; text-align: center;">
                                             <button @onclick="() => StartInterestReview(interest)"
-                                                style="background: linear-gradient(135deg, #a855f7, #9333ea); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);">
+                                                style="background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
                                                 🔍 Review & Approve
                                             </button>
                                         </td>
@@ -311,7 +265,7 @@
                         style="text-align: center; padding: 80px 20px; background: linear-gradient(135deg, #f9fafb, #f3f4f6); border-radius: 16px;">
                         <div
                             style="width: 80px; height: 80px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5">
                                 <rect x="2" y="4" width="20" height="16" rx="2"></rect>
                                 <path d="M12 9v6"></path>
                                 <path d="M9 12h6"></path>
@@ -356,7 +310,7 @@
                                     <tr style="border-bottom: 1px solid #f1f5f9; transition: all 0.2s;" class="table-row-hover">
                                         <td style="padding: 16px;">
                                             <span
-                                                style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; display: inline-block;">
+                                                style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #047857; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; display: inline-block;">
                                                 @bill.InvoiceNumber
                                             </span>
                                         </td>
@@ -370,7 +324,7 @@
                                         </td>
                                         <td style="padding: 16px; text-align: right;">
                                             <span
-                                                style="font-weight: 700; color: @(bill.OutstandingAmount > 0 ? "#dc2626" : "#059669"); font-size: 15px;">₱@bill.OutstandingAmount.ToString("N2")</span>
+                                                style="font-weight: 700; color: @(bill.OutstandingAmount > 0 ? "#047857" : "#059669"); font-size: 15px;">₱@bill.OutstandingAmount.ToString("N2")</span>
                                         </td>
                                         <td style="padding: 16px; text-align: center; color: #475569; font-weight: 500;">
                                             @bill.DueDate.ToString("MMM dd, yyyy")
@@ -418,9 +372,9 @@
                 {
                     <div style="margin-top: 32px;">
                         <div
-                            style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 16px; overflow: hidden; border: 2px solid #f59e0b;">
+                            style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; overflow: hidden; border: 2px solid #6ee7b7;">
                             <div
-                                style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 16px 24px;">
+                                style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 16px 24px;">
                                 <h4
                                     style="margin: 0; font-weight: 600; font-size: 18px; display: flex; align-items: center; gap: 10px;">
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -438,30 +392,30 @@
                                 <div style="overflow-x: auto;">
                                     <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
                                         <thead>
-                                            <tr style="background: linear-gradient(135deg, #fffbeb, #fef3c7);">
+                                            <tr style="background: #f3f4f6;">
                                                 <th
-                                                    style="padding: 14px 16px; text-align: left; font-weight: 600; color: #92400e; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #fcd34d;">
+                                                    style="padding: 14px 16px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;">
                                                     Loan Number</th>
                                                 <th
-                                                    style="padding: 14px 16px; text-align: left; font-weight: 600; color: #92400e; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #fcd34d;">
+                                                    style="padding: 14px 16px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;">
                                                     Customer Name</th>
                                                 <th
-                                                    style="padding: 14px 16px; text-align: left; font-weight: 600; color: #92400e; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #fcd34d;">
+                                                    style="padding: 14px 16px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;">
                                                     Loan Type</th>
                                                 <th
-                                                    style="padding: 14px 16px; text-align: right; font-weight: 600; color: #92400e; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #fcd34d;">
+                                                    style="padding: 14px 16px; text-align: right; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;">
                                                     Loan Amount</th>
                                                 <th
-                                                    style="padding: 14px 16px; text-align: right; font-weight: 600; color: #92400e; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #fcd34d;">
+                                                    style="padding: 14px 16px; text-align: right; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;">
                                                     Outstanding Balance</th>
                                                 <th
-                                                    style="padding: 14px 16px; text-align: center; font-weight: 600; color: #92400e; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #fcd34d;">
+                                                    style="padding: 14px 16px; text-align: center; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;">
                                                     Next Due Date</th>
                                                 <th
-                                                    style="padding: 14px 16px; text-align: right; font-weight: 600; color: #92400e; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #fcd34d;">
+                                                    style="padding: 14px 16px; text-align: right; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;">
                                                     Monthly Payment</th>
                                                 <th
-                                                    style="padding: 14px 16px; text-align: center; font-weight: 600; color: #92400e; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #fcd34d;">
+                                                    style="padding: 14px 16px; text-align: center; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;">
                                                     Status</th>
                                             </tr>
                                         </thead>
@@ -470,11 +424,11 @@
                                             {
                                                 var isOverdue = loan.NextDueDate.HasValue && loan.NextDueDate.Value <
                                                 DateTime.Today;
-                                                <tr style="border-bottom: 1px solid #fde68a; transition: all 0.2s; background: @(isOverdue ? "#fef2f2" : "white");"
+                                                <tr style="border-bottom: 1px solid #e5e7eb; transition: all 0.2s; background: @(isOverdue ? "#fef2f2" : "white");"
                                                     class="table-row-hover">
                                                     <td style="padding: 16px;">
                                                         <span
-                                                            style="background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; display: inline-block;">
+                                                            style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #047857; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; display: inline-block;">
                                                             @loan.LoanNumber
                                                         </span>
                                                     </td>
@@ -488,7 +442,7 @@
                                                     </td>
                                                     <td style="padding: 16px;">
                                                         <span
-                                                            style="background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 6px; font-weight: 500; font-size: 12px;">
+                                                            style="background: #d1fae5; color: #047857; padding: 4px 10px; border-radius: 6px; font-weight: 500; font-size: 12px;">
                                                             @loan.LoanType
                                                         </span>
                                                     </td>
@@ -498,7 +452,7 @@
                                                         </span>
                                                     </td>
                                                     <td style="padding: 16px; text-align: right;">
-                                                        <span style="font-weight: 700; color: #dc2626; font-size: 15px;">
+                                                        <span style="font-weight: 700; color: #047857; font-size: 15px;">
                                                             ₱@loan.OutstandingBalance.ToString("N2")
                                                         </span>
                                                     </td>
@@ -540,21 +494,21 @@
 
                                 <!-- Loan Summary -->
                                 <div
-                                    style="display: flex; gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 2px dashed #fcd34d;">
+                                    style="display: flex; gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 2px dashed #6ee7b7;">
                                     <div
-                                        style="flex: 1; background: linear-gradient(135deg, #fffbeb, #fef3c7); padding: 16px; border-radius: 10px; text-align: center;">
+                                        style="flex: 1; background: linear-gradient(135deg, #ecfdf5, #d1fae5); padding: 16px; border-radius: 10px; text-align: center;">
                                         <span
-                                            style="font-size: 12px; color: #92400e; font-weight: 600; text-transform: uppercase;">Total
+                                            style="font-size: 12px; color: #047857; font-weight: 600; text-transform: uppercase;">Total
                                             Outstanding Loans</span>
-                                        <p style="margin: 8px 0 0 0; font-size: 24px; font-weight: 800; color: #b45309;">
+                                        <p style="margin: 8px 0 0 0; font-size: 24px; font-weight: 800; color: #059669;">
                                             @outstandingLoans.Count</p>
                                     </div>
                                     <div
-                                        style="flex: 1; background: linear-gradient(135deg, #fef2f2, #fee2e2); padding: 16px; border-radius: 10px; text-align: center;">
+                                        style="flex: 1; background: linear-gradient(135deg, #d1fae5, #a7f3d0); padding: 16px; border-radius: 10px; text-align: center;">
                                         <span
-                                            style="font-size: 12px; color: #991b1b; font-weight: 600; text-transform: uppercase;">Total
+                                            style="font-size: 12px; color: #047857; font-weight: 600; text-transform: uppercase;">Total
                                             Outstanding Balance</span>
-                                        <p style="margin: 8px 0 0 0; font-size: 24px; font-weight: 800; color: #dc2626;">
+                                        <p style="margin: 8px 0 0 0; font-size: 24px; font-weight: 800; color: #059669;">
                                             ₱@outstandingLoans.Sum(l => l.OutstandingBalance).ToString("N2")</p>
                                     </div>
                                     <div
@@ -829,7 +783,7 @@
                         @if (!string.IsNullOrEmpty(historySearchCustomer))
                         {
                             <span
-                                style="background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                                style="background: #d1fae5; color: #047857; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;">
                                 Customer: @historySearchCustomer
                             </span>
                         }
@@ -850,7 +804,7 @@
                         @if (!string.IsNullOrEmpty(historyStatusFilter))
                         {
                             <span
-                                style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                                style="background: #d1fae5; color: #047857; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;">
                                 Status: @historyStatusFilter
                             </span>
                         }
@@ -870,7 +824,7 @@
                     <div style="text-align: center; padding: 60px;">
                         <div
                             style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                             </svg>
                         </div>
@@ -913,7 +867,7 @@
                                     <tr style="border-bottom: 1px solid #f1f5f9;" class="table-row-hover">
                                         <td style="padding: 14px 12px;">
                                             <span
-                                                style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">@payment.InvoiceNumber</span>
+                                                style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #047857; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">@payment.InvoiceNumber</span>
                                         </td>
                                         <td style="padding: 14px 12px; font-weight: 500; color: #1e293b;">@payment.VendorName</td>
                                         <td style="padding: 14px 12px; text-align: right; color: #475569;">
@@ -960,7 +914,7 @@
                 style="background: linear-gradient(135deg, #1e293b, #334155); color: white; padding: 28px; border-radius: 20px 20px 0 0; text-align: center;">
                 <div
                     style="width: 60px; height: 60px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <line x1="16" y1="13" x2="8" y2="13"></line>
                         <line x1="16" y1="17" x2="8" y2="17"></line>
@@ -1528,9 +1482,9 @@
         return status switch
         {
             "Paid" => "#d1fae5",
-            "Pending" => "#fef3c7",
+            "Pending" => "#ecfdf5",
             "Overdue" => "#fee2e2",
-            "Partial" => "#dbeafe",
+            "Partial" => "#d1fae5",
             _ => "#f3f4f6"
         };
     }
@@ -1540,9 +1494,9 @@
         return status switch
         {
             "Paid" => "#065f46",
-            "Pending" => "#92400e",
+            "Pending" => "#047857",
             "Overdue" => "#b91c1c",
-            "Partial" => "#1e40af",
+            "Partial" => "#047857",
             _ => "#4b5563"
         };
     }

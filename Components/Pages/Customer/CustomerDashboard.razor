@@ -266,8 +266,13 @@
                 var transactions = await TransactionService.GetByAccountIdAsync(account.AccountId);
                 var thisMonth = transactions.Where(t => t.CreatedAt.Month == DateTime.Now.Month && t.CreatedAt.Year == DateTime.Now.Year).ToList();
 
+                // Calculate monthly income - deposits + incoming transfers
                 monthlyIncome = thisMonth.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount);
+                monthlyIncome += thisMonth.Where(t => t.TransactionType == "Transfer" && t.Description != null && t.Description.Contains("Transfer from")).Sum(t => t.Amount);
+
+                // Calculate monthly expenses - withdrawals, bills, outgoing transfers  
                 monthlyExpenses = thisMonth.Where(t => t.TransactionType == "Withdrawal" || t.TransactionType == "Bills").Sum(t => t.Amount);
+                monthlyExpenses += thisMonth.Where(t => t.TransactionType == "Transfer" && t.Description != null && t.Description.Contains("Transfer to")).Sum(t => t.Amount);
 
                 recentTransactions = transactions
                     .Take(5)
@@ -275,7 +280,8 @@
                     {
                         Title = BuildTransactionTitle(t),
                         Date = t.CreatedAt,
-                        Amount = t.TransactionType == "Deposit" ? t.Amount : -t.Amount
+                        Amount = DetermineTransactionAmount(t),
+                        SenderName = ExtractSenderName(t)
                     })
                     .ToList();
             }
@@ -286,15 +292,64 @@
         }
     }
 
-    private static string BuildTransactionTitle(CustomerTransaction t) =>
-        t.TransactionType switch
+    private static decimal DetermineTransactionAmount(CustomerTransaction t)
+    {
+        // Deposits are always positive
+        if (t.TransactionType == "Deposit") return t.Amount;
+        
+        // Withdrawals and Bills are always negative
+        if (t.TransactionType == "Withdrawal" || t.TransactionType == "Bills") return -t.Amount;
+        
+        // Transfers: check if incoming (from) or outgoing (to)
+        if (t.TransactionType == "Transfer")
         {
-            "Deposit" => "Deposit",
-            "Withdrawal" => "Withdrawal",
-            "Bills" => $"Bill Payment - {t.BillerName}",
-            "Transfer" => $"Transfer to {t.ToAccountName}",
-            _ => t.Description ?? "Transaction"
-        };
+            // If description contains "Transfer from" - it's incoming (positive)
+            if (t.Description != null && t.Description.Contains("Transfer from"))
+                return t.Amount;
+            // If description contains "Transfer to" - it's outgoing (negative)
+            return -t.Amount;
+        }
+        
+        return t.Amount;
+    }
+
+    private static string ExtractSenderName(CustomerTransaction t)
+    {
+        if (t.TransactionType == "Transfer" && t.Description != null && t.Description.Contains("Transfer from"))
+        {
+            // Extract sender name from description like "Transfer from John Doe"
+            var parts = t.Description.Split("Transfer from ");
+            if (parts.Length > 1)
+            {
+                var name = parts[1].Split(" - ")[0].Trim(); // Remove purpose if exists
+                return name;
+            }
+        }
+        return "";
+    }
+
+    private static string BuildTransactionTitle(CustomerTransaction t)
+    {
+        switch (t.TransactionType)
+        {
+            case "Deposit":
+                return "Deposit";
+            case "Withdrawal":
+                return "Withdrawal";
+            case "Bills":
+                return $"Bill Payment - {t.BillerName}";
+            case "Transfer":
+                // Check if incoming or outgoing
+                if (t.Description != null && t.Description.Contains("Transfer from"))
+                {
+                    var senderName = ExtractSenderName(t);
+                    return $"Received from {senderName}";
+                }
+                return $"Transfer to {t.ToAccountName}";
+            default:
+                return t.Description ?? "Transaction";
+        }
+    }
 
     private static string MaskAccountNumber(string accountNumber)
     {
@@ -311,6 +366,7 @@
         public string Title { get; set; } = "";
         public DateTime Date { get; set; }
         public decimal Amount { get; set; }
+        public string SenderName { get; set; } = "";
     }
 }
 

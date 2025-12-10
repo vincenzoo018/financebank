@@ -88,7 +88,7 @@
             style="background:#e5e7eb; color:#374151; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
             @onclick="ResetFilters">↻ Reset</button>
         <button class="btn"
-            style="background:#3b82f6; color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
+            style="background: linear-gradient(135deg, #059669, #10b981); color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
             @onclick="ExportToCsv" disabled="@(!filteredTransactions.Any())">📥 Export CSV</button>
     </div>
 </div>
@@ -101,10 +101,10 @@
             <span style="font-size: 14px; font-weight: 400; color: #6b7280;">(@filteredTransactions.Count() records)</span>
         </h2>
         <div style="display: flex; gap: 8px; font-size: 12px;">
-            <span style="padding: 4px 8px; background: #dbeafe; color: #1e40af; border-radius: 4px;">Asset</span>
-            <span style="padding: 4px 8px; background: #fef3c7; color: #92400e; border-radius: 4px;">Liability</span>
-            <span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 4px;">Revenue</span>
-            <span style="padding: 4px 8px; background: #fee2e2; color: #991b1b; border-radius: 4px;">Expense</span>
+            <span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 4px;">Asset</span>
+            <span style="padding: 4px 8px; background: #ecfdf5; color: #047857; border-radius: 4px;">Liability</span>
+            <span style="padding: 4px 8px; background: #a7f3d0; color: #047857; border-radius: 4px;">Revenue</span>
+            <span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 4px;">Expense</span>
         </div>
     </div>
 
@@ -472,40 +472,40 @@
 
     private string GetAccountColor(string accountType) => accountType switch
     {
-        "Asset" => "#3b82f6",
-        "Liability" => "#f59e0b",
-        "Revenue" => "#10b981",
-        "Expense" => "#ef4444",
-        "Equity" => "#8b5cf6",
+        "Asset" => "#059669",
+        "Liability" => "#10b981",
+        "Revenue" => "#047857",
+        "Expense" => "#059669",
+        "Equity" => "#10b981",
         _ => "#6b7280"
     };
 
     private string GetRowBackground(string accountType) => accountType switch
     {
-        "Asset" => "#fafbff",
-        "Liability" => "#fffbf5",
-        "Revenue" => "#f5fff9",
-        "Expense" => "#fff5f5",
+        "Asset" => "#f0fdf4",
+        "Liability" => "#ecfdf5",
+        "Revenue" => "#f0fdf4",
+        "Expense" => "#ecfdf5",
         _ => "white"
     };
 
     private string GetTypeBadgeBackground(string accountType) => accountType switch
     {
-        "Asset" => "#dbeafe",
-        "Liability" => "#fef3c7",
-        "Revenue" => "#d1fae5",
-        "Expense" => "#fee2e2",
-        "Equity" => "#ede9fe",
+        "Asset" => "#d1fae5",
+        "Liability" => "#ecfdf5",
+        "Revenue" => "#a7f3d0",
+        "Expense" => "#d1fae5",
+        "Equity" => "#ecfdf5",
         _ => "#f3f4f6"
     };
 
     private string GetTypeBadgeColor(string accountType) => accountType switch
     {
-        "Asset" => "#1e40af",
-        "Liability" => "#92400e",
-        "Revenue" => "#065f46",
-        "Expense" => "#991b1b",
-        "Equity" => "#5b21b6",
+        "Asset" => "#065f46",
+        "Liability" => "#047857",
+        "Revenue" => "#047857",
+        "Expense" => "#065f46",
+        "Equity" => "#047857",
         _ => "#4b5563"
     };
 }

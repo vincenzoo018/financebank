@@ -49,6 +49,11 @@
 
 <!-- Tabs -->
 <div style="display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;">
+    <button class="@(activeTab == "banking" ? "btn btn-primary" : "btn btn-outline")"
+            style="@(activeTab == "banking" ? "background: #059669; color: white;" : "")"
+            @onclick='() => SetActiveTab("banking")'>
+        💰 Banking Transactions (@bankingTransactions.Count)
+    </button>
     <button class="@(activeTab == "fullylocked" ? "btn btn-danger" : "btn btn-outline")" 
             style="@(activeTab == "fullylocked" ? "background: #7f1d1d; color: white;" : "")"
             @onclick='() => SetActiveTab("fullylocked")'>
@@ -70,11 +75,174 @@
         🛡️ Security Logs
     </button>
     <button class="@(activeTab == "all" ? "btn btn-primary" : "btn btn-outline")"
-            style="@(activeTab == "all" ? "background: #059669; color: white;" : "")"
+            style="@(activeTab == "all" ? "background: #047857; color: white;" : "")"
             @onclick='() => SetActiveTab("all")'>
         📋 All Audit Logs
     </button>
 </div>
+
+@* =============================================
+   BANKING TRANSACTIONS TAB - SOX/BSA Compliance
+   ============================================= *@
+@if (activeTab == "banking")
+{
+    <!-- Banking Transaction Filters -->
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border); margin-bottom: 24px;">
+        <h4 style="margin: 0 0 16px 0; font-size: 14px; font-weight: 600; color: var(--text-secondary);">🔍 Transaction Filters</h4>
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px;">
+            <div class="form-group">
+                <label class="form-label">Transaction Type</label>
+                <select class="form-control" @bind="bankingFilterType">
+                    <option value="">All Types</option>
+                    <option value="Deposit">💵 Deposit</option>
+                    <option value="Withdrawal">💸 Withdrawal</option>
+                    <option value="Transfer">🔄 Transfer</option>
+                    <option value="LoanDisbursement">🏦 Loan Disbursement</option>
+                    <option value="LoanPayment">💳 Loan Payment</option>
+                    <option value="SavingsDeposit">🐷 Savings Deposit</option>
+                    <option value="SavingsWithdrawal">🐷 Savings Withdrawal</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Risk Level</label>
+                <select class="form-control" @bind="bankingFilterRisk">
+                    <option value="">All Levels</option>
+                    <option value="Low">🟢 Low</option>
+                    <option value="Medium">🟡 Medium</option>
+                    <option value="High">🟠 High</option>
+                    <option value="Critical">🔴 Critical</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Date From</label>
+                <input type="date" class="form-control" @bind="bankingDateFrom" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Date To</label>
+                <input type="date" class="form-control" @bind="bankingDateTo" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Min Amount (₱)</label>
+                <input type="number" class="form-control" @bind="bankingMinAmount" placeholder="0" />
+            </div>
+            <div class="form-group">
+                <label class="form-label" style="visibility: hidden;">Action</label>
+                <button class="btn btn-primary" style="width: 100%;" @onclick="ApplyBankingFilters">🔍 Search</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Banking Transaction Stats -->
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px;">
+        <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 16px; padding: 20px; border: 2px solid #059669;">
+            <div style="font-size: 13px; color: #065f46; margin-bottom: 4px;">💵 Total Deposits</div>
+            <div style="font-size: 24px; font-weight: 800; color: #059669;">@bankingStats.TotalDeposits</div>
+            <div style="font-size: 12px; color: #047857;">₱@bankingStats.DepositAmount.ToString("N2")</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 16px; padding: 20px; border: 2px solid #dc2626;">
+            <div style="font-size: 13px; color: #991b1b; margin-bottom: 4px;">💸 Total Withdrawals</div>
+            <div style="font-size: 24px; font-weight: 800; color: #dc2626;">@bankingStats.TotalWithdrawals</div>
+            <div style="font-size: 12px; color: #b91c1c;">₱@bankingStats.WithdrawalAmount.ToString("N2")</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 16px; padding: 20px; border: 2px solid #3b82f6;">
+            <div style="font-size: 13px; color: #1e40af; margin-bottom: 4px;">🔄 Transfers</div>
+            <div style="font-size: 24px; font-weight: 800; color: #3b82f6;">@bankingStats.TotalTransfers</div>
+            <div style="font-size: 12px; color: #1d4ed8;">₱@bankingStats.TransferAmount.ToString("N2")</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 16px; padding: 20px; border: 2px solid #f59e0b;">
+            <div style="font-size: 13px; color: #92400e; margin-bottom: 4px;">🏦 Loan Transactions</div>
+            <div style="font-size: 24px; font-weight: 800; color: #f59e0b;">@bankingStats.TotalLoanTransactions</div>
+            <div style="font-size: 12px; color: #b45309;">₱@bankingStats.LoanAmount.ToString("N2")</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #fae8ff, #f5d0fe); border-radius: 16px; padding: 20px; border: 2px solid #a855f7;">
+            <div style="font-size: 13px; color: #7e22ce; margin-bottom: 4px;">⚠️ High Risk</div>
+            <div style="font-size: 24px; font-weight: 800; color: #a855f7;">@bankingStats.HighRiskCount</div>
+            <div style="font-size: 12px; color: #9333ea;">Requires Review</div>
+        </div>
+    </div>
+
+    <!-- Banking Transactions Table -->
+    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="font-size: 18px; font-weight: 700; margin: 0;">💰 Banking Transaction Audit Trail</h3>
+            <button class="btn" style="background: #059669; color: white; padding: 8px 16px;">
+                📥 Export Report
+            </button>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border); background: #f0fdf4;">
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">TIMESTAMP</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">TYPE</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">EMPLOYEE</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">CUSTOMER</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">ACCOUNT</th>
+                    <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 700; color: #065f46;">AMOUNT</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">STATUS</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">RISK</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">REFERENCE</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (bankingTransactions.Any())
+                {
+                    @foreach (var txn in bankingTransactions.Take(100))
+                    {
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 16px;">
+                                <div style="font-weight: 600;">@txn.CreatedAt.ToString("HH:mm:ss")</div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">@txn.CreatedAt.ToString("MMM dd, yyyy")</div>
+                            </td>
+                            <td style="padding: 16px;">
+                                <span style="padding: 4px 12px; background: @GetTransactionTypeBackground(txn.TransactionType); color: @GetTransactionTypeColor(txn.TransactionType); border-radius: 20px; font-size: 11px; font-weight: 600;">
+                                    @GetTransactionTypeIcon(txn.TransactionType) @txn.TransactionType
+                                </span>
+                            </td>
+                            <td style="padding: 16px;">
+                                <div style="font-weight: 600;">@(txn.EmployeeName ?? "N/A")</div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">@(txn.EmployeeRole ?? "")</div>
+                            </td>
+                            <td style="padding: 16px;">
+                                <div style="font-weight: 600;">@(txn.CustomerName ?? "N/A")</div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">ID: @(txn.CustomerId?.ToString() ?? "N/A")</div>
+                            </td>
+                            <td style="padding: 16px; font-family: monospace; font-size: 12px;">
+                                <div>@(txn.AccountNumber ?? "N/A")</div>
+                                @if (!string.IsNullOrEmpty(txn.TargetAccountNumber))
+                                {
+                                    <div style="font-size: 11px; color: #3b82f6;">→ @txn.TargetAccountNumber</div>
+                                }
+                            </td>
+                            <td style="padding: 16px; text-align: right; font-weight: 700; color: @(txn.TransactionType == "Withdrawal" || txn.TransactionType == "SavingsWithdrawal" ? "#dc2626" : "#059669");">
+                                @(txn.TransactionType == "Withdrawal" || txn.TransactionType == "SavingsWithdrawal" ? "-" : "+")₱@(txn.Amount?.ToString("N2") ?? "0.00")
+                            </td>
+                            <td style="padding: 16px;">
+                                <span style="padding: 4px 12px; background: @(txn.TransactionStatus == "Completed" ? "#d1fae5" : "#fef3c7"); color: @(txn.TransactionStatus == "Completed" ? "#065f46" : "#92400e"); border-radius: 20px; font-size: 11px; font-weight: 600;">
+                                    @(txn.TransactionStatus ?? "N/A")
+                                </span>
+                            </td>
+                            <td style="padding: 16px;">
+                                <span style="padding: 4px 12px; background: @GetRiskBackground(txn.RiskLevel); color: @GetRiskColor(txn.RiskLevel); border-radius: 20px; font-size: 11px; font-weight: 600;">
+                                    @GetRiskIcon(txn.RiskLevel) @(txn.RiskLevel ?? "Low")
+                                </span>
+                            </td>
+                            <td style="padding: 16px; font-family: monospace; font-size: 11px;">@(txn.ReferenceNumber ?? txn.TransactionNumber ?? "N/A")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9" style="padding: 32px; text-align: center; color: var(--text-secondary); font-size: 14px;">
+                            📋 No banking transactions found matching the criteria.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
 
 @if (activeTab == "fullylocked")
 {
@@ -606,9 +774,32 @@
     private int maliciousCount = 0;
     private int lockedAccountsCount = 0;
     private int fullyLockedCount = 0;
-    private string activeTab = "fullylocked";
+    private string activeTab = "banking"; // Default to banking transactions tab
     private string successMessage = "";
     private string errorMessage = "";
+
+    // Banking Transaction Audit Variables
+    private List<AuditLog> bankingTransactions = new();
+    private string bankingFilterType = "";
+    private string bankingFilterRisk = "";
+    private DateTime? bankingDateFrom;
+    private DateTime? bankingDateTo;
+    private decimal? bankingMinAmount;
+    private BankingTransactionStats bankingStats = new();
+
+    // Banking Stats Class
+    private class BankingTransactionStats
+    {
+        public int TotalDeposits { get; set; }
+        public decimal DepositAmount { get; set; }
+        public int TotalWithdrawals { get; set; }
+        public decimal WithdrawalAmount { get; set; }
+        public int TotalTransfers { get; set; }
+        public decimal TransferAmount { get; set; }
+        public int TotalLoanTransactions { get; set; }
+        public decimal LoanAmount { get; set; }
+        public int HighRiskCount { get; set; }
+    }
 
     // Modal states
     private bool showUnlockModal = false;
@@ -645,6 +836,7 @@
         await LoadSecurityLogs();
         await LoadLockedAccounts();
         await LoadFullyLockedAccounts();
+        await LoadBankingTransactions();
     }
 
     private async Task LoadAuditLogs()
@@ -654,11 +846,122 @@
             allLogs = await AuditLogService.GetAllAsync();
             CalculateStats();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             allLogs = new List<AuditLog>();
         }
     }
+
+    private async Task LoadBankingTransactions()
+    {
+        try
+        {
+            bankingTransactions = await AuditLogService.GetBankingTransactionLogsAsync(
+                transactionType: string.IsNullOrEmpty(bankingFilterType) ? null : bankingFilterType,
+                minAmount: bankingMinAmount,
+                startDate: bankingDateFrom,
+                endDate: bankingDateTo,
+                riskLevel: string.IsNullOrEmpty(bankingFilterRisk) ? null : bankingFilterRisk
+            );
+            CalculateBankingStats();
+        }
+        catch
+        {
+            bankingTransactions = new List<AuditLog>();
+            bankingStats = new BankingTransactionStats();
+        }
+    }
+
+    private void CalculateBankingStats()
+    {
+        var deposits = bankingTransactions.Where(t => t.TransactionType == "Deposit" || t.TransactionType == "SavingsDeposit").ToList();
+        var withdrawals = bankingTransactions.Where(t => t.TransactionType == "Withdrawal" || t.TransactionType == "SavingsWithdrawal").ToList();
+        var transfers = bankingTransactions.Where(t => t.TransactionType == "Transfer").ToList();
+        var loans = bankingTransactions.Where(t => t.TransactionType == "LoanDisbursement" || t.TransactionType == "LoanPayment").ToList();
+
+        bankingStats = new BankingTransactionStats
+        {
+            TotalDeposits = deposits.Count,
+            DepositAmount = deposits.Sum(d => d.Amount ?? 0),
+            TotalWithdrawals = withdrawals.Count,
+            WithdrawalAmount = withdrawals.Sum(w => w.Amount ?? 0),
+            TotalTransfers = transfers.Count,
+            TransferAmount = transfers.Sum(t => t.Amount ?? 0),
+            TotalLoanTransactions = loans.Count,
+            LoanAmount = loans.Sum(l => l.Amount ?? 0),
+            HighRiskCount = bankingTransactions.Count(t => t.RiskLevel == "High" || t.RiskLevel == "Critical" || t.RequiresReview)
+        };
+    }
+
+    private async Task ApplyBankingFilters()
+    {
+        await LoadBankingTransactions();
+        StateHasChanged();
+    }
+
+    // Helper methods for banking transaction UI
+    private string GetTransactionTypeBackground(string? type) => type switch
+    {
+        "Deposit" => "#d1fae5",
+        "SavingsDeposit" => "#d1fae5",
+        "Withdrawal" => "#fee2e2",
+        "SavingsWithdrawal" => "#fee2e2",
+        "Transfer" => "#dbeafe",
+        "LoanDisbursement" => "#fef3c7",
+        "LoanPayment" => "#ecfdf5",
+        _ => "#f3f4f6"
+    };
+
+    private string GetTransactionTypeColor(string? type) => type switch
+    {
+        "Deposit" => "#065f46",
+        "SavingsDeposit" => "#065f46",
+        "Withdrawal" => "#991b1b",
+        "SavingsWithdrawal" => "#991b1b",
+        "Transfer" => "#1e40af",
+        "LoanDisbursement" => "#92400e",
+        "LoanPayment" => "#047857",
+        _ => "#374151"
+    };
+
+    private string GetTransactionTypeIcon(string? type) => type switch
+    {
+        "Deposit" => "💵",
+        "SavingsDeposit" => "🐷",
+        "Withdrawal" => "💸",
+        "SavingsWithdrawal" => "🐷",
+        "Transfer" => "🔄",
+        "LoanDisbursement" => "🏦",
+        "LoanPayment" => "💳",
+        _ => "📄"
+    };
+
+    private string GetRiskBackground(string? risk) => risk switch
+    {
+        "Low" => "#d1fae5",
+        "Medium" => "#fef3c7",
+        "High" => "#fed7aa",
+        "Critical" => "#fee2e2",
+        _ => "#f3f4f6"
+    };
+
+    private string GetRiskColor(string? risk) => risk switch
+    {
+        "Low" => "#065f46",
+        "Medium" => "#92400e",
+        "High" => "#c2410c",
+        "Critical" => "#991b1b",
+        _ => "#374151"
+    };
+
+    private string GetRiskIcon(string? risk) => risk switch
+    {
+        "Low" => "🟢",
+        "Medium" => "🟡",
+        "High" => "🟠",
+        "Critical" => "🔴",
+        _ => "⚪"
+    };
 
     private async Task LoadMaliciousAttempts()
     {

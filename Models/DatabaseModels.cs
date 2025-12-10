@@ -1377,6 +1377,101 @@ public class AuditLog
 
     [MaxLength(255)]
     public string? LockReason { get; set; }
+
+    // Role tracking for login auditing
+    [MaxLength(50)]
+    public string? UserRole { get; set; }
+
+    // ==================== COMPREHENSIVE TRANSACTION AUDIT COLUMNS ====================
+    // For Banking Compliance: SOX, BSA/AML, PCI DSS
+
+    // Employee/Actor Information
+    public int? EmployeeId { get; set; }
+
+    [MaxLength(100)]
+    public string? EmployeeName { get; set; }
+
+    [MaxLength(50)]
+    public string? EmployeeRole { get; set; }
+
+    // Customer Information
+    public int? CustomerId { get; set; }
+
+    [MaxLength(100)]
+    public string? CustomerName { get; set; }
+
+    // Transaction Details
+    [MaxLength(50)]
+    public string? TransactionType { get; set; } // Deposit, Withdrawal, Transfer, LoanDisbursement, LoanPayment, SavingsDeposit, SavingsWithdrawal, InterestPosting
+
+    [MaxLength(50)]
+    public string? TransactionStatus { get; set; } // Pending, Completed, Failed, Cancelled, Reversed
+
+    [MaxLength(50)]
+    public string? ReferenceNumber { get; set; }
+
+    [MaxLength(50)]
+    public string? TransactionNumber { get; set; }
+
+    // Account Information (Source)
+    [MaxLength(50)]
+    public string? AccountNumber { get; set; }
+
+    [MaxLength(50)]
+    public string? AccountType { get; set; } // Savings, Checking, Loan
+
+    // Target Account (for Transfers)
+    [MaxLength(50)]
+    public string? TargetAccountNumber { get; set; }
+
+    [MaxLength(100)]
+    public string? TargetAccountName { get; set; }
+
+    // Transaction Method Details
+    [MaxLength(50)]
+    public string? TransactionMethod { get; set; } // Cash, Check, Online, InterBank, ATM
+
+    [MaxLength(100)]
+    public string? TransactionChannel { get; set; } // Teller Window, Online Banking, Mobile App, ATM
+
+    // Loan-specific Information
+    public int? LoanId { get; set; }
+
+    [MaxLength(50)]
+    public string? LoanNumber { get; set; }
+
+    [MaxLength(50)]
+    public string? LoanType { get; set; }
+
+    // Fee Information
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? Fee { get; set; }
+
+    // Approval/Authorization Information
+    [MaxLength(100)]
+    public string? ApprovedBy { get; set; }
+
+    public DateTime? ApprovedAt { get; set; }
+
+    [MaxLength(255)]
+    public string? ApprovalRemarks { get; set; }
+
+    // Risk Assessment
+    [MaxLength(50)]
+    public string? RiskLevel { get; set; } // Low, Medium, High, Critical
+
+    public bool RequiresReview { get; set; } = false;
+
+    // Session Information
+    [MaxLength(100)]
+    public string? SessionId { get; set; }
+
+    // Branch/Location (if applicable)
+    [MaxLength(50)]
+    public string? BranchCode { get; set; }
+
+    [MaxLength(100)]
+    public string? BranchName { get; set; }
 }
 
 // =============================================

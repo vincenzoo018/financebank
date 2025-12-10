@@ -58,28 +58,28 @@
 <!-- Statistics Cards -->
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px;">
     <div
-        style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #f59e0b;">
-        <div style="font-size: 13px; color: #92400e; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">⏳
+        style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; padding: 24px; border: 1px solid #6ee7b7;">
+        <div style="font-size: 13px; color: #047857; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">⏳
             Pending</div>
-        <div style="font-size: 32px; font-weight: 700; color: #f59e0b;">@pendingCount</div>
+        <div style="font-size: 32px; font-weight: 700; color: #059669;">@pendingCount</div>
     </div>
     <div
-        style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #059669;">
+        style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 16px; padding: 24px; border: 1px solid #6ee7b7;">
         <div style="font-size: 13px; color: #065f46; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">✓
             Approved</div>
         <div style="font-size: 32px; font-weight: 700; color: #059669;">@approvedCount</div>
     </div>
     <div
-        style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #dc2626;">
-        <div style="font-size: 13px; color: #991b1b; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">✗
+        style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; padding: 24px; border: 1px solid #6ee7b7;">
+        <div style="font-size: 13px; color: #047857; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">✗
             Declined</div>
-        <div style="font-size: 32px; font-weight: 700; color: #dc2626;">@declinedCount</div>
+        <div style="font-size: 32px; font-weight: 700; color: #059669;">@declinedCount</div>
     </div>
     <div
-        style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6;">
-        <div style="font-size: 13px; color: #1e40af; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
+        style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; padding: 24px; border: 1px solid #6ee7b7;">
+        <div style="font-size: 13px; color: #047857; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
             📋 Total</div>
-        <div style="font-size: 32px; font-weight: 700; color: #3b82f6;">@totalCount</div>
+        <div style="font-size: 32px; font-weight: 700; color: #059669;">@totalCount</div>
     </div>
 </div>
 
@@ -194,7 +194,7 @@
                                     ₱@item.Amount.ToString("N2")</td>
                                 <td style="padding: 16px;">
                                     <span
-                                        style="background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                                        style="background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;">
                                         @item.SubmittedBy
                                     </span>
                                 </td>
@@ -984,12 +984,12 @@ else
 
     private string GetTypeBadgeColor(string type) => type switch
     {
-        "LoanApplication" => "#7c3aed",
-        "LoanAssessment" => "#2563eb",
+        "LoanApplication" => "#059669",
+        "LoanAssessment" => "#047857",
         "LoanApproval" => "#059669",
-        "Transaction" => "#d97706",
-        "Transfer" => "#0891b2",
-        _ => "#6b7280"
+        "Transaction" => "#10b981",
+        "Transfer" => "#065f46",
+        _ => "#059669"
     };
 
     private string GetTypeIcon(string type) => type switch
