@@ -1,0 +1,502 @@
+@page "/admin/finance-manager/rates-configuration"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject AuthService AuthService
+@inject NotificationService NotificationService
+@inject IDbContextFactory<BFASDbContext> DbFactory
+
+<div class="page-container" style="padding: 24px;">
+    <!-- Page Header -->
+    <div style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                    <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Admin - Rates Configuration</h1>
+                    <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Administrative management of interest and fee rates</p>
+                </div>
+            </div>
+            <button @onclick="RefreshData" style="padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">
+                🔄 Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Admin Notice -->
+    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 24px;">🔐</span>
+            <div>
+                <p style="font-weight: 600; color: #92400e; margin: 0;">Administrative Access Mode</p>
+                <p style="font-size: 13px; color: #a16207; margin: 4px 0 0 0;">Rate changes require justification and are logged for audit. Admin: @(AuthService.FullName ?? "Admin")</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Savings Interest Rates -->
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
+        <div style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 20px 24px;">
+            <h3 style="font-size: 18px; font-weight: 600; margin: 0;">💰 Savings Interest Rates</h3>
+        </div>
+        <div style="padding: 24px;">
+            @if (isLoading)
+            {
+                <div style="display: flex; justify-content: center; padding: 60px;">
+                    <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                </div>
+            }
+            else
+            {
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8fafc;">
+                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Account Type</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Current Rate</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Min Balance</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Last Updated</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var rate in savingsRates)
+                        {
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td style="padding: 16px; font-size: 14px; color: #1e293b; font-weight: 500;">@rate.AccountType</td>
+                                <td style="padding: 16px; text-align: center;">
+                                    <span style="font-size: 18px; font-weight: 700; color: #059669;">@rate.InterestRate.ToString("N2")%</span>
+                                </td>
+                                <td style="padding: 16px; font-size: 14px; color: #64748b; text-align: center;">₱@rate.MinBalance.ToString("N0")</td>
+                                <td style="padding: 16px; font-size: 14px; color: #64748b; text-align: center;">@rate.LastUpdated.ToString("MMM dd, yyyy")</td>
+                                <td style="padding: 16px; text-align: center;">
+                                    <button @onclick="() => ShowEditSavingsRate(rate)" style="padding: 6px 16px; background: #7c3aed; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                        Edit
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    <!-- Loan Interest Rates -->
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
+        <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 20px 24px;">
+            <h3 style="font-size: 18px; font-weight: 600; margin: 0;">💳 Loan Interest Rates</h3>
+        </div>
+        <div style="padding: 24px;">
+            @if (isLoading)
+            {
+                <div style="display: flex; justify-content: center; padding: 60px;">
+                    <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                </div>
+            }
+            else
+            {
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8fafc;">
+                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Loan Type</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Interest Rate</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Min Amount</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Max Amount</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Term (Months)</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var rate in loanRates)
+                        {
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td style="padding: 16px; font-size: 14px; color: #1e293b; font-weight: 500;">@rate.LoanType</td>
+                                <td style="padding: 16px; text-align: center;">
+                                    <span style="font-size: 18px; font-weight: 700; color: #3b82f6;">@rate.InterestRate.ToString("N2")%</span>
+                                </td>
+                                <td style="padding: 16px; font-size: 14px; color: #64748b; text-align: center;">₱@rate.MinAmount.ToString("N0")</td>
+                                <td style="padding: 16px; font-size: 14px; color: #64748b; text-align: center;">₱@rate.MaxAmount.ToString("N0")</td>
+                                <td style="padding: 16px; font-size: 14px; color: #64748b; text-align: center;">@rate.MinTerm - @rate.MaxTerm</td>
+                                <td style="padding: 16px; text-align: center;">
+                                    <button @onclick="() => ShowEditLoanRate(rate)" style="padding: 6px 16px; background: #7c3aed; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                        Edit
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    <!-- Fee Configuration -->
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 20px 24px;">
+            <h3 style="font-size: 18px; font-weight: 600; margin: 0;">📋 Fee Configuration</h3>
+        </div>
+        <div style="padding: 24px;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                @foreach (var fee in feeConfigs)
+                {
+                    <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px;">
+                        <p style="font-size: 12px; color: #64748b; font-weight: 600; margin: 0;">@fee.FeeName</p>
+                        <p style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 8px 0;">₱@fee.Amount.ToString("N2")</p>
+                        <button @onclick="() => ShowEditFee(fee)" style="padding: 6px 12px; background: #f3f4f6; color: #374151; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 8px;">
+                            Edit Fee
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Savings Rate Modal -->
+@if (showSavingsRateModal && selectedSavingsRate != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 500px; max-width: 90%;">
+            <h3 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 24px 0;">💰 Edit Savings Rate</h3>
+            
+            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <p style="font-size: 14px; color: #166534; margin: 0;"><strong>@selectedSavingsRate.AccountType</strong></p>
+                <p style="font-size: 14px; color: #166534; margin: 4px 0 0 0;">Current Rate: @selectedSavingsRate.InterestRate.ToString("N2")%</p>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">New Interest Rate (%)</label>
+                <input type="number" @bind="newRate" step="0.01" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Admin Justification <span style="color: #dc2626;">*</span></label>
+                <textarea @bind="actionReason" rows="3" placeholder="Enter justification for this rate change (required)" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CloseModals" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button @onclick="SaveSavingsRate" disabled="@(string.IsNullOrWhiteSpace(actionReason) || isProcessing)"
+                        style="padding: 12px 24px; background: #059669; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(string.IsNullOrWhiteSpace(actionReason) ? "opacity: 0.5;" : "")">
+                    @(isProcessing ? "Saving..." : "Update Rate")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Edit Loan Rate Modal -->
+@if (showLoanRateModal && selectedLoanRate != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 500px; max-width: 90%;">
+            <h3 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 24px 0;">💳 Edit Loan Rate</h3>
+            
+            <div style="background: #dbeafe; border: 1px solid #93c5fd; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <p style="font-size: 14px; color: #1e40af; margin: 0;"><strong>@selectedLoanRate.LoanType</strong></p>
+                <p style="font-size: 14px; color: #1e40af; margin: 4px 0 0 0;">Current Rate: @selectedLoanRate.InterestRate.ToString("N2")%</p>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">New Interest Rate (%)</label>
+                <input type="number" @bind="newRate" step="0.01" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Admin Justification <span style="color: #dc2626;">*</span></label>
+                <textarea @bind="actionReason" rows="3" placeholder="Enter justification for this rate change (required)" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CloseModals" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button @onclick="SaveLoanRate" disabled="@(string.IsNullOrWhiteSpace(actionReason) || isProcessing)"
+                        style="padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(string.IsNullOrWhiteSpace(actionReason) ? "opacity: 0.5;" : "")">
+                    @(isProcessing ? "Saving..." : "Update Rate")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Edit Fee Modal -->
+@if (showFeeModal && selectedFee != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 500px; max-width: 90%;">
+            <h3 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 24px 0;">📋 Edit Fee</h3>
+            
+            <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <p style="font-size: 14px; color: #92400e; margin: 0;"><strong>@selectedFee.FeeName</strong></p>
+                <p style="font-size: 14px; color: #92400e; margin: 4px 0 0 0;">Current Amount: ₱@selectedFee.Amount.ToString("N2")</p>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">New Fee Amount (₱)</label>
+                <input type="number" @bind="newFeeAmount" step="0.01" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Admin Justification <span style="color: #dc2626;">*</span></label>
+                <textarea @bind="actionReason" rows="3" placeholder="Enter justification for this fee change (required)" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CloseModals" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button @onclick="SaveFee" disabled="@(string.IsNullOrWhiteSpace(actionReason) || isProcessing)"
+                        style="padding: 12px 24px; background: #f59e0b; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(string.IsNullOrWhiteSpace(actionReason) ? "opacity: 0.5;" : "")">
+                    @(isProcessing ? "Saving..." : "Update Fee")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    private List<SavingsRateConfig> savingsRates = new();
+    private List<LoanRateConfig> loanRates = new();
+    private List<FeeConfig> feeConfigs = new();
+    
+    private SavingsRateConfig? selectedSavingsRate;
+    private LoanRateConfig? selectedLoanRate;
+    private FeeConfig? selectedFee;
+    
+    private decimal newRate = 0;
+    private decimal newFeeAmount = 0;
+    private string actionReason = "";
+    
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private bool showSavingsRateModal = false;
+    private bool showLoanRateModal = false;
+    private bool showFeeModal = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        await LogAdminAction("VIEW", "Rates Configuration", "Admin accessed Rates Configuration page");
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            // Initialize with sample data (would come from database in production)
+            savingsRates = new List<SavingsRateConfig>
+            {
+                new() { AccountType = "Regular Savings", InterestRate = 0.50m, MinBalance = 500, LastUpdated = DateTime.Today.AddDays(-30) },
+                new() { AccountType = "Premium Savings", InterestRate = 1.25m, MinBalance = 50000, LastUpdated = DateTime.Today.AddDays(-30) },
+                new() { AccountType = "Time Deposit (6 months)", InterestRate = 2.50m, MinBalance = 10000, LastUpdated = DateTime.Today.AddDays(-60) },
+                new() { AccountType = "Time Deposit (1 year)", InterestRate = 3.50m, MinBalance = 10000, LastUpdated = DateTime.Today.AddDays(-60) }
+            };
+            
+            loanRates = new List<LoanRateConfig>
+            {
+                new() { LoanType = "Personal Loan", InterestRate = 12.00m, MinAmount = 10000, MaxAmount = 500000, MinTerm = 6, MaxTerm = 36 },
+                new() { LoanType = "Salary Loan", InterestRate = 10.00m, MinAmount = 5000, MaxAmount = 200000, MinTerm = 3, MaxTerm = 24 },
+                new() { LoanType = "Emergency Loan", InterestRate = 15.00m, MinAmount = 1000, MaxAmount = 50000, MinTerm = 1, MaxTerm = 12 },
+                new() { LoanType = "Housing Loan", InterestRate = 8.00m, MinAmount = 100000, MaxAmount = 5000000, MinTerm = 60, MaxTerm = 240 }
+            };
+            
+            feeConfigs = new List<FeeConfig>
+            {
+                new() { FeeName = "Account Maintenance", Amount = 50 },
+                new() { FeeName = "ATM Withdrawal (Other Bank)", Amount = 15 },
+                new() { FeeName = "Fund Transfer Fee", Amount = 25 },
+                new() { FeeName = "Late Payment Penalty", Amount = 500 },
+                new() { FeeName = "Account Closure", Amount = 200 },
+                new() { FeeName = "Checkbook Request", Amount = 350 }
+            };
+            
+            await Task.Delay(100); // Simulate loading
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to load rates: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadData();
+        NotificationService.ShowSuccess("Refreshed", "Rates data refreshed successfully");
+    }
+
+    private void ShowEditSavingsRate(SavingsRateConfig rate)
+    {
+        selectedSavingsRate = rate;
+        newRate = rate.InterestRate;
+        actionReason = "";
+        showSavingsRateModal = true;
+    }
+
+    private void ShowEditLoanRate(LoanRateConfig rate)
+    {
+        selectedLoanRate = rate;
+        newRate = rate.InterestRate;
+        actionReason = "";
+        showLoanRateModal = true;
+    }
+
+    private void ShowEditFee(FeeConfig fee)
+    {
+        selectedFee = fee;
+        newFeeAmount = fee.Amount;
+        actionReason = "";
+        showFeeModal = true;
+    }
+
+    private void CloseModals()
+    {
+        showSavingsRateModal = false;
+        showLoanRateModal = false;
+        showFeeModal = false;
+        selectedSavingsRate = null;
+        selectedLoanRate = null;
+        selectedFee = null;
+        actionReason = "";
+    }
+
+    private async Task SaveSavingsRate()
+    {
+        if (selectedSavingsRate == null || string.IsNullOrWhiteSpace(actionReason)) return;
+        
+        isProcessing = true;
+        try
+        {
+            var oldRate = selectedSavingsRate.InterestRate;
+            selectedSavingsRate.InterestRate = newRate;
+            selectedSavingsRate.LastUpdated = DateTime.Today;
+            
+            await LogAdminAction("UPDATE_SAVINGS_RATE", $"Rate: {selectedSavingsRate.AccountType}", 
+                $"Changed rate from {oldRate}% to {newRate}%. Justification: {actionReason}");
+            
+            NotificationService.ShowSuccess("Success", $"Savings rate updated successfully");
+            CloseModals();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to update rate: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task SaveLoanRate()
+    {
+        if (selectedLoanRate == null || string.IsNullOrWhiteSpace(actionReason)) return;
+        
+        isProcessing = true;
+        try
+        {
+            var oldRate = selectedLoanRate.InterestRate;
+            selectedLoanRate.InterestRate = newRate;
+            
+            await LogAdminAction("UPDATE_LOAN_RATE", $"Rate: {selectedLoanRate.LoanType}", 
+                $"Changed rate from {oldRate}% to {newRate}%. Justification: {actionReason}");
+            
+            NotificationService.ShowSuccess("Success", $"Loan rate updated successfully");
+            CloseModals();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to update rate: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task SaveFee()
+    {
+        if (selectedFee == null || string.IsNullOrWhiteSpace(actionReason)) return;
+        
+        isProcessing = true;
+        try
+        {
+            var oldAmount = selectedFee.Amount;
+            selectedFee.Amount = newFeeAmount;
+            
+            await LogAdminAction("UPDATE_FEE", $"Fee: {selectedFee.FeeName}", 
+                $"Changed fee from ₱{oldAmount} to ₱{newFeeAmount}. Justification: {actionReason}");
+            
+            NotificationService.ShowSuccess("Success", $"Fee updated successfully");
+            CloseModals();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to update fee: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task LogAdminAction(string action, string module, string description)
+    {
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            var auditLog = new AuditLog
+            {
+                UserId = AuthService.CurrentUserId?.ToString() ?? "system",
+                Action = $"ADMIN_{action}",
+                Module = module,
+                Description = $"[ADMIN] {description}",
+                CreatedAt = DateTime.Now
+            };
+            context.AuditLogs.Add(auditLog);
+            await context.SaveChangesAsync();
+        }
+        catch { }
+    }
+
+    private class SavingsRateConfig
+    {
+        public string AccountType { get; set; } = "";
+        public decimal InterestRate { get; set; }
+        public decimal MinBalance { get; set; }
+        public DateTime LastUpdated { get; set; }
+    }
+
+    private class LoanRateConfig
+    {
+        public string LoanType { get; set; } = "";
+        public decimal InterestRate { get; set; }
+        public decimal MinAmount { get; set; }
+        public decimal MaxAmount { get; set; }
+        public int MinTerm { get; set; }
+        public int MaxTerm { get; set; }
+    }
+
+    private class FeeConfig
+    {
+        public string FeeName { get; set; } = "";
+        public decimal Amount { get; set; }
+    }
+}

@@ -2,6 +2,7 @@
 @layout AccountantLayout
 @inject TrialBalanceService TrialBalanceService
 @inject IJSRuntime JSRuntime
+@inject NotificationService NotificationService
 
 <!-- Page Header -->
 <div
@@ -245,10 +246,12 @@
             // Refresh the trial balance from the database
             await LoadTrialBalance();
             successMessage = $"✓ Trial Balance refreshed successfully as of {asOfDate:MMM dd, yyyy}";
+            NotificationService.ShowSuccess("Trial Balance Generated", $"Trial balance refreshed successfully as of {asOfDate:MMM dd, yyyy}. Status: {(isBalanced ? "BALANCED" : "UNBALANCED")}");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error generating trial balance: {ex.Message}");
+            NotificationService.ShowError("Generation Failed", $"Failed to generate trial balance: {ex.Message}");
         }
         finally
         {
@@ -261,6 +264,7 @@
         if (!tbEntries.Any())
         {
             successMessage = "No data to export. Please generate a trial balance first.";
+            NotificationService.ShowWarning("No Data", "No data to export. Please generate a trial balance first.");
             return;
         }
 
@@ -287,10 +291,12 @@
 
             await JSRuntime.InvokeVoidAsync("downloadFile", fileName, "text/csv", base64);
             successMessage = $"✓ Trial Balance exported to {fileName}";
+            NotificationService.ShowSuccess("Export Complete", $"Trial balance exported to {fileName}");
         }
         catch (Exception ex)
         {
             successMessage = $"Export failed: {ex.Message}";
+            NotificationService.ShowError("Export Failed", $"Failed to export trial balance: {ex.Message}");
         }
     }
 
@@ -300,10 +306,12 @@
         {
             await JSRuntime.InvokeVoidAsync("print");
             successMessage = "✓ Print dialog opened";
+            NotificationService.ShowInfo("Print", "Print dialog opened successfully.");
         }
         catch
         {
             successMessage = "Print feature requires browser support";
+            NotificationService.ShowWarning("Print Unavailable", "Print feature requires browser support.");
         }
     }
 }

@@ -1,0 +1,396 @@
+@page "/admin/finance-manager/payables"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@using APModel = FinanceBank.Models.AccountsPayable
+@inject AuthService AuthService
+@inject NotificationService NotificationService
+@inject IDbContextFactory<BFASDbContext> DbFactory
+
+<div class="page-container" style="padding: 24px;">
+    <!-- Page Header -->
+    <div style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                    <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Admin - Accounts Payable</h1>
+                    <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Administrative management of payables with audit trail</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button @onclick="RefreshData" style="padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">
+                    🔄 Refresh
+                </button>
+                <button @onclick="ShowAddModal" style="padding: 10px 20px; background: white; color: #7c3aed; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    + Add Bill
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Notice -->
+    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 24px;">🔐</span>
+            <div>
+                <p style="font-weight: 600; color: #92400e; margin: 0;">Administrative Access Mode</p>
+                <p style="font-size: 13px; color: #a16207; margin: 4px 0 0 0;">All transactions require a reason. Admin: @(AuthService.FullName ?? "Admin")</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px;">
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #dc2626;">
+            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">💰 Total Outstanding</p>
+            <p style="font-size: 28px; font-weight: 700; color: #dc2626; margin: 8px 0 0 0;">₱@totalOutstanding.ToString("N2")</p>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #f59e0b;">
+            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">⏰ Due This Month</p>
+            <p style="font-size: 28px; font-weight: 700; color: #f59e0b; margin: 8px 0 0 0;">₱@dueThisMonth.ToString("N2")</p>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #059669;">
+            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">✅ Paid This Month</p>
+            <p style="font-size: 28px; font-weight: 700; color: #059669; margin: 8px 0 0 0;">₱@paidThisMonth.ToString("N2")</p>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6;">
+            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">📋 Pending Bills</p>
+            <p style="font-size: 28px; font-weight: 700; color: #3b82f6; margin: 8px 0 0 0;">@pendingBills</p>
+        </div>
+    </div>
+
+    <!-- Bills Table -->
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7c3aed, #5b21b6); color: white; padding: 20px 24px;">
+            <h3 style="font-size: 18px; font-weight: 600; margin: 0;">All Bills</h3>
+        </div>
+        <div style="padding: 24px;">
+            @if (isLoading)
+            {
+                <div style="display: flex; justify-content: center; padding: 60px;">
+                    <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                </div>
+            }
+            else if (!bills.Any())
+            {
+                <div style="text-align: center; padding: 60px; color: #6b7280;">
+                    <p style="font-size: 48px; margin-bottom: 16px;">📋</p>
+                    <p style="font-size: 16px; font-weight: 500;">No bills found</p>
+                </div>
+            }
+            else
+            {
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8fafc;">
+                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Bill #</th>
+                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Vendor</th>
+                            <th style="padding: 14px 16px; text-align: right; font-size: 12px; font-weight: 600; color: #64748b;">Amount</th>
+                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Due Date</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Status</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var bill in bills)
+                        {
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td style="padding: 16px; font-size: 14px; color: #1e293b; font-weight: 500;">@bill.InvoiceNumber</td>
+                                <td style="padding: 16px; font-size: 14px; color: #1e293b;">@bill.VendorName</td>
+                                <td style="padding: 16px; font-size: 14px; color: #dc2626; font-weight: 600; text-align: right;">₱@bill.Amount.ToString("N2")</td>
+                                <td style="padding: 16px; font-size: 14px; color: #64748b;">@bill.DueDate.ToString("MMM dd, yyyy")</td>
+                                <td style="padding: 16px; text-align: center;">
+                                    <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; @GetStatusStyle(bill.Status ?? "Pending")">
+                                        @(bill.Status ?? "Pending")
+                                    </span>
+                                </td>
+                                <td style="padding: 16px; text-align: center;">
+                                    @if (bill.Status != "Paid")
+                                    {
+                                        <button @onclick="() => ShowPayModal(bill)" style="padding: 6px 16px; background: #059669; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                            Pay
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Add Bill Modal -->
+@if (showAddModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 500px; max-width: 90%;">
+            <h3 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 24px 0;">➕ Add New Bill</h3>
+            
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Vendor Name <span style="color: #dc2626;">*</span></label>
+                <input type="text" @bind="newBill.VendorName" placeholder="Enter vendor name" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Amount (₱) <span style="color: #dc2626;">*</span></label>
+                <input type="number" @bind="newBill.Amount" step="0.01" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Due Date <span style="color: #dc2626;">*</span></label>
+                <input type="date" @bind="newBillDueDate" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Description</label>
+                <textarea @bind="newBill.Description" rows="3" placeholder="Enter description" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Admin Reason <span style="color: #dc2626;">*</span></label>
+                <textarea @bind="actionReason" rows="3" placeholder="Enter reason for adding this bill (required)" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CloseModals" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button @onclick="SaveBill" disabled="@(string.IsNullOrWhiteSpace(actionReason) || isProcessing)"
+                        style="padding: 12px 24px; background: #7c3aed; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(string.IsNullOrWhiteSpace(actionReason) ? "opacity: 0.5;" : "")">
+                    @(isProcessing ? "Saving..." : "Save Bill")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Pay Bill Modal -->
+@if (showPayModal && selectedBill != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 500px; max-width: 90%;">
+            <h3 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 24px 0;">💳 Pay Bill</h3>
+            
+            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <p style="font-size: 14px; color: #166534; margin: 0;"><strong>Invoice: @selectedBill.InvoiceNumber</strong></p>
+                <p style="font-size: 14px; color: #166534; margin: 4px 0 0 0;">Vendor: @selectedBill.VendorName | Amount: ₱@selectedBill.Amount.ToString("N2")</p>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Payment Amount (₱)</label>
+                <input type="number" @bind="paymentAmount" step="0.01" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Admin Payment Reason <span style="color: #dc2626;">*</span></label>
+                <textarea @bind="actionReason" rows="3" placeholder="Enter reason for this payment (required)" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CloseModals" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button @onclick="ProcessPayment" disabled="@(string.IsNullOrWhiteSpace(actionReason) || isProcessing)"
+                        style="padding: 12px 24px; background: #059669; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(string.IsNullOrWhiteSpace(actionReason) ? "opacity: 0.5;" : "")">
+                    @(isProcessing ? "Processing..." : "Confirm Payment")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    private List<APModel> bills = new();
+    private APModel newBill = new();
+    private APModel? selectedBill;
+    private DateTime newBillDueDate = DateTime.Today.AddDays(30);
+    private decimal paymentAmount = 0;
+    private string actionReason = "";
+    
+    private decimal totalOutstanding = 0;
+    private decimal dueThisMonth = 0;
+    private decimal paidThisMonth = 0;
+    private int pendingBills = 0;
+    
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private bool showAddModal = false;
+    private bool showPayModal = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        await LogAdminAction("VIEW", "Accounts Payable", "Admin accessed Accounts Payable page");
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            bills = await context.AccountsPayables.OrderByDescending(b => b.CreatedAt).ToListAsync();
+            
+            var monthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            var monthEnd = monthStart.AddMonths(1);
+            
+            totalOutstanding = bills.Where(b => b.Status != "Paid").Sum(b => b.Amount);
+            dueThisMonth = bills.Where(b => b.DueDate >= monthStart && b.DueDate < monthEnd && b.Status != "Paid").Sum(b => b.Amount);
+            paidThisMonth = bills.Where(b => b.Status == "Paid").Sum(b => b.PaidAmount);
+            pendingBills = bills.Count(b => b.Status != "Paid");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to load data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadData();
+        NotificationService.ShowSuccess("Refreshed", "Data refreshed successfully");
+    }
+
+    private void ShowAddModal()
+    {
+        newBill = new APModel();
+        newBillDueDate = DateTime.Today.AddDays(30);
+        actionReason = "";
+        showAddModal = true;
+    }
+
+    private void ShowPayModal(APModel bill)
+    {
+        selectedBill = bill;
+        paymentAmount = bill.Amount - bill.PaidAmount;
+        actionReason = "";
+        showPayModal = true;
+    }
+
+    private void CloseModals()
+    {
+        showAddModal = false;
+        showPayModal = false;
+        selectedBill = null;
+        actionReason = "";
+    }
+
+    private async Task SaveBill()
+    {
+        if (string.IsNullOrWhiteSpace(actionReason)) return;
+        
+        isProcessing = true;
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            
+            newBill.InvoiceNumber = $"INV-{DateTime.Now:yyyyMMddHHmmss}";
+            newBill.InvoiceDate = DateTime.Now;
+            newBill.DueDate = newBillDueDate;
+            newBill.Status = "Pending";
+            newBill.CreatedBy = $"ADMIN:{AuthService.FullName}";
+            newBill.CreatedAt = DateTime.Now;
+            
+            context.AccountsPayables.Add(newBill);
+            await context.SaveChangesAsync();
+            
+            await LogAdminAction("CREATE_BILL", $"Bill #{newBill.InvoiceNumber}", 
+                $"Created bill for {newBill.VendorName} - ₱{newBill.Amount:N2}. Reason: {actionReason}");
+            
+            NotificationService.ShowSuccess("Success", $"Bill #{newBill.InvoiceNumber} created successfully");
+            CloseModals();
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to create bill: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task ProcessPayment()
+    {
+        if (selectedBill == null || string.IsNullOrWhiteSpace(actionReason)) return;
+        
+        isProcessing = true;
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            var bill = await context.AccountsPayables.FindAsync(selectedBill.PayableId);
+            if (bill != null)
+            {
+                bill.PaidAmount = bill.PaidAmount + paymentAmount;
+                
+                if (bill.PaidAmount >= bill.Amount)
+                    bill.Status = "Paid";
+                else
+                    bill.Status = "Partial";
+                
+                await context.SaveChangesAsync();
+            }
+            
+            await LogAdminAction("PAY_BILL", $"Bill #{selectedBill.InvoiceNumber}", 
+                $"Paid ₱{paymentAmount:N2} to {selectedBill.VendorName}. Reason: {actionReason}");
+            
+            NotificationService.ShowSuccess("Success", $"Payment of ₱{paymentAmount:N2} processed successfully");
+            CloseModals();
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to process payment: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private string GetStatusStyle(string status) => status switch
+    {
+        "Paid" => "background: #dcfce7; color: #166534;",
+        "Partial" => "background: #fef3c7; color: #92400e;",
+        "Overdue" => "background: #fee2e2; color: #991b1b;",
+        _ => "background: #dbeafe; color: #1e40af;"
+    };
+
+    private async Task LogAdminAction(string action, string module, string description)
+    {
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            var auditLog = new AuditLog
+            {
+                UserId = AuthService.CurrentUserId?.ToString() ?? "system",
+                Action = $"ADMIN_{action}",
+                Module = module,
+                Description = $"[ADMIN] {description}",
+                CreatedAt = DateTime.Now
+            };
+            context.AuditLogs.Add(auditLog);
+            await context.SaveChangesAsync();
+        }
+        catch { }
+    }
+}

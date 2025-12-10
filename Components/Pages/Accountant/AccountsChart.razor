@@ -3,6 +3,8 @@
 @using FinanceBank.Models
 @using FinanceBank.Services
 @inject AccountingService AccountingService
+@inject NotificationService NotificationService
+@inject AuthService AuthService
 
 <!-- Page Header -->
 <div
@@ -108,7 +110,8 @@
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
-    <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+    <div
+        style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
         <span style="font-weight: 500;">❌ @errorMessage</span>
         <button @onclick="() => errorMessage = string.Empty"
             style="margin-left: auto; background: none; border: none; color: #991b1b; cursor: pointer; font-size: 18px;">×</button>
@@ -183,7 +186,8 @@
                                 <div style="font-weight: 600; color: #1e293b;">@account.AccountName</div>
                                 @if (!string.IsNullOrEmpty(account.ParentAccountCode))
                                 {
-                                    <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Parent: @account.ParentAccountCode</div>
+                                    <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Parent:
+                                        @account.ParentAccountCode</div>
                                 }
                             </td>
                             <td style="padding: 16px;">
@@ -230,21 +234,24 @@
         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
         <div
             style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-            <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 24px 0; display: flex; align-items: center; gap: 10px;">
+            <h2
+                style="font-size: 20px; font-weight: 700; margin: 0 0 24px 0; display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 24px;">@(isEditing ? "✏️" : "➕")</span>
                 @(isEditing ? "Edit Account" : "Add New Account")
             </h2>
 
             @if (!string.IsNullOrEmpty(formErrorMessage))
             {
-                <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;">
+                <div
+                    style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;">
                     ⚠️ @formErrorMessage
                 </div>
             }
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <div>
-                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Account Code <span style="color: #ef4444;">*</span></label>
+                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Account Code <span
+                            style="color: #ef4444;">*</span></label>
                     <input type="text" @bind="editAccount.AccountCode"
                         style="width: 100%; padding: 12px; border: 2px solid @(string.IsNullOrEmpty(editAccount.AccountCode) && !string.IsNullOrEmpty(formErrorMessage) ? "#fecaca" : "#e5e7eb"); border-radius: 8px; font-size: 14px;"
                         placeholder="e.g., 1000, 1010, 2000" />
@@ -273,7 +280,8 @@
                     </select>
                 </div>
                 <div>
-                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Parent Account Code</label>
+                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Parent Account
+                        Code</label>
                     <input type="text" @bind="editAccount.ParentAccountCode"
                         style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
                         placeholder="e.g., 1000 (optional)" />
@@ -400,23 +408,26 @@
     private async Task SaveAccount()
     {
         formErrorMessage = "";
-        
+
         // Validation
         if (string.IsNullOrWhiteSpace(editAccount.AccountCode))
         {
             formErrorMessage = "Account Code is required. Please enter a unique account code.";
+            NotificationService.ShowError("Validation Error", "Account Code is required. Please enter a unique account code.");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(editAccount.AccountName))
         {
             formErrorMessage = "Account Name is required. Please enter a descriptive name.";
+            NotificationService.ShowError("Validation Error", "Account Name is required. Please enter a descriptive name.");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(editAccount.AccountType))
         {
             formErrorMessage = "Account Type is required. Please select Asset, Liability, Equity, Revenue, or Expense.";
+            NotificationService.ShowError("Validation Error", "Account Type is required. Please select a type.");
             return;
         }
 
@@ -424,22 +435,29 @@
         if (!isEditing && accounts.Any(a => a.AccountCode.Equals(editAccount.AccountCode, StringComparison.OrdinalIgnoreCase)))
         {
             formErrorMessage = $"Account Code '{editAccount.AccountCode}' already exists. Please use a unique code.";
+            NotificationService.ShowError("Duplicate Account", $"Account Code '{editAccount.AccountCode}' already exists.");
             return;
         }
 
         try
         {
+            var currentUser = AuthService.CurrentUser ?? "Accountant";
+            var reason = isEditing ? $"Updated by {currentUser} at {DateTime.Now:g}" : $"Created by {currentUser} at {DateTime.Now:g}";
+
             if (isEditing)
             {
+                // Note: CreatedBy/CreatedAt remain from original creation
                 await AccountingService.UpdateChartOfAccountsAsync(editAccount);
                 successMessage = $"✓ Account '{editAccount.AccountName}' ({editAccount.AccountCode}) updated successfully!";
+                NotificationService.ShowSuccess("Account Updated", $"Account '{editAccount.AccountName}' has been updated successfully. Reason: {reason}");
             }
             else
             {
                 editAccount.CreatedAt = DateTime.Now;
-                editAccount.CreatedBy = "Accountant";
+                editAccount.CreatedBy = currentUser;
                 await AccountingService.CreateChartOfAccountsAsync(editAccount);
                 successMessage = $"✓ Account '{editAccount.AccountName}' ({editAccount.AccountCode}) created successfully!";
+                NotificationService.ShowSuccess("Account Created", $"Account '{editAccount.AccountName}' has been created successfully. Reason: {reason}");
             }
 
             await LoadAccounts();
@@ -448,6 +466,7 @@
         catch (Exception ex)
         {
             formErrorMessage = $"Failed to save account: {ex.Message}";
+            NotificationService.ShowError("Save Failed", $"Failed to save account: {ex.Message}");
             Console.WriteLine($"Error saving account: {ex.Message}");
         }
     }

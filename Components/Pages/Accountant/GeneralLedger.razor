@@ -5,6 +5,7 @@
 @inject AuthService AuthService
 @inject GeneralLedgerService GeneralLedgerService
 @inject IJSRuntime JSRuntime
+@inject NotificationService NotificationService
 
 <!-- Page Header -->
 <div
@@ -383,10 +384,12 @@
             allTransactions = await GeneralLedgerService.GetAllAsync();
             accountBalances = await GeneralLedgerService.GetAccountBalancesAsync();
             accounts = allTransactions.Select(t => t.AccountName).Where(a => !string.IsNullOrEmpty(a)).Distinct().OrderBy(a => a).ToList()!;
+            NotificationService.ShowSuccess("Ledger Loaded", $"Successfully loaded {allTransactions.Count} ledger transactions.");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error loading ledger: {ex.Message}");
+            NotificationService.ShowError("Load Failed", $"Failed to load general ledger: {ex.Message}");
             allTransactions = new List<GeneralLedgerTransaction>();
         }
     }
@@ -399,6 +402,8 @@
     private async Task ApplyFilters()
     {
         await Task.CompletedTask;
+        var count = filteredTransactions.Count();
+        NotificationService.ShowInfo("Filters Applied", $"Found {count} matching records.");
         StateHasChanged();
     }
 
@@ -409,6 +414,7 @@
         dateFrom = DateTime.Today.AddMonths(-1);
         dateTo = DateTime.Today;
         await Task.CompletedTask;
+        NotificationService.ShowInfo("Filters Reset", "All filters have been reset to default values.");
         StateHasChanged();
     }
 
@@ -416,6 +422,7 @@
     {
         if (!filteredTransactions.Any())
         {
+            NotificationService.ShowWarning("No Data", "No records to export. Please apply different filters.");
             return;
         }
 
@@ -441,11 +448,13 @@
 
             await JSRuntime.InvokeVoidAsync("downloadFile", fileName, "text/csv", base64);
             successMessage = $"✓ Exported {filteredTransactions.Count()} records to {fileName}";
+            NotificationService.ShowSuccess("Export Complete", $"Exported {filteredTransactions.Count()} records to {fileName}");
             StateHasChanged();
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Export error: {ex.Message}");
+            NotificationService.ShowError("Export Failed", $"Failed to export CSV: {ex.Message}");
         }
     }
 

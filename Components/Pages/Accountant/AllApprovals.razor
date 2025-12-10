@@ -8,6 +8,7 @@
 @inject LoanProcessService LoanProcessService
 @inject AuthService AuthService
 @inject NavigationManager Navigation
+@inject NotificationService NotificationService
 
 <!-- Toast Notification -->
 @if (showToast)
@@ -951,12 +952,14 @@ else
 
             CloseReviewModal();
             ShowToast($"Request {approvalDecision?.ToLower()} successfully!", "success");
+            NotificationService.ShowSuccess("Decision Processed", $"Request has been {approvalDecision?.ToLower()}. Reason: Processed by {currentUser} - {approvalNotes}");
             await LoadData();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error processing decision: {ex.Message}");
             ShowToast($"Error: {ex.Message}", "error");
+            NotificationService.ShowError("Processing Failed", $"Failed to process decision: {ex.Message}");
         }
         finally
         {

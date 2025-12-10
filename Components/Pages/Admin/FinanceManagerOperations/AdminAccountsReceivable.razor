@@ -1,0 +1,396 @@
+@page "/admin/finance-manager/receivables"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@using ARModel = FinanceBank.Models.AccountsReceivable
+@inject AuthService AuthService
+@inject NotificationService NotificationService
+@inject IDbContextFactory<BFASDbContext> DbFactory
+
+<div class="page-container" style="padding: 24px;">
+    <!-- Page Header -->
+    <div style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                    <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Admin - Accounts Receivable</h1>
+                    <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Administrative management of receivables with audit trail</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button @onclick="RefreshData" style="padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">
+                    🔄 Refresh
+                </button>
+                <button @onclick="ShowAddModal" style="padding: 10px 20px; background: white; color: #7c3aed; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    + Add Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Notice -->
+    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 24px;">🔐</span>
+            <div>
+                <p style="font-weight: 600; color: #92400e; margin: 0;">Administrative Access Mode</p>
+                <p style="font-size: 13px; color: #a16207; margin: 4px 0 0 0;">All transactions require a reason. Admin: @(AuthService.FullName ?? "Admin")</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px;">
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #059669;">
+            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">💰 Total Outstanding</p>
+            <p style="font-size: 28px; font-weight: 700; color: #059669; margin: 8px 0 0 0;">₱@totalOutstanding.ToString("N2")</p>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #f59e0b;">
+            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">⏰ Due This Month</p>
+            <p style="font-size: 28px; font-weight: 700; color: #f59e0b; margin: 8px 0 0 0;">₱@dueThisMonth.ToString("N2")</p>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6;">
+            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">✅ Collected This Month</p>
+            <p style="font-size: 28px; font-weight: 700; color: #3b82f6; margin: 8px 0 0 0;">₱@collectedThisMonth.ToString("N2")</p>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #dc2626;">
+            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">⚠️ Overdue</p>
+            <p style="font-size: 28px; font-weight: 700; color: #dc2626; margin: 8px 0 0 0;">@overdueCount</p>
+        </div>
+    </div>
+
+    <!-- Invoices Table -->
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7c3aed, #5b21b6); color: white; padding: 20px 24px;">
+            <h3 style="font-size: 18px; font-weight: 600; margin: 0;">All Invoices</h3>
+        </div>
+        <div style="padding: 24px;">
+            @if (isLoading)
+            {
+                <div style="display: flex; justify-content: center; padding: 60px;">
+                    <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                </div>
+            }
+            else if (!invoices.Any())
+            {
+                <div style="text-align: center; padding: 60px; color: #6b7280;">
+                    <p style="font-size: 48px; margin-bottom: 16px;">📋</p>
+                    <p style="font-size: 16px; font-weight: 500;">No invoices found</p>
+                </div>
+            }
+            else
+            {
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8fafc;">
+                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Invoice #</th>
+                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Customer</th>
+                            <th style="padding: 14px 16px; text-align: right; font-size: 12px; font-weight: 600; color: #64748b;">Amount</th>
+                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Due Date</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Status</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var invoice in invoices)
+                        {
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td style="padding: 16px; font-size: 14px; color: #1e293b; font-weight: 500;">@invoice.InvoiceNumber</td>
+                                <td style="padding: 16px; font-size: 14px; color: #1e293b;">@invoice.CustomerName</td>
+                                <td style="padding: 16px; font-size: 14px; color: #059669; font-weight: 600; text-align: right;">₱@invoice.Amount.ToString("N2")</td>
+                                <td style="padding: 16px; font-size: 14px; color: #64748b;">@invoice.DueDate.ToString("MMM dd, yyyy")</td>
+                                <td style="padding: 16px; text-align: center;">
+                                    <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; @GetStatusStyle(invoice.Status ?? "Pending")">
+                                        @(invoice.Status ?? "Pending")
+                                    </span>
+                                </td>
+                                <td style="padding: 16px; text-align: center;">
+                                    @if (invoice.Status != "Paid")
+                                    {
+                                        <button @onclick="() => ShowCollectModal(invoice)" style="padding: 6px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                            Collect
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Add Invoice Modal -->
+@if (showAddModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 500px; max-width: 90%;">
+            <h3 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 24px 0;">➕ Add New Invoice</h3>
+            
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Customer Name <span style="color: #dc2626;">*</span></label>
+                <input type="text" @bind="newInvoice.CustomerName" placeholder="Enter customer name" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Amount (₱) <span style="color: #dc2626;">*</span></label>
+                <input type="number" @bind="newInvoice.Amount" step="0.01" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Due Date <span style="color: #dc2626;">*</span></label>
+                <input type="date" @bind="newInvoiceDueDate" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Description</label>
+                <textarea @bind="newInvoice.Description" rows="3" placeholder="Enter description" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Admin Reason <span style="color: #dc2626;">*</span></label>
+                <textarea @bind="actionReason" rows="3" placeholder="Enter reason for adding this invoice (required)" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CloseModals" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button @onclick="SaveInvoice" disabled="@(string.IsNullOrWhiteSpace(actionReason) || isProcessing)"
+                        style="padding: 12px 24px; background: #7c3aed; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(string.IsNullOrWhiteSpace(actionReason) ? "opacity: 0.5;" : "")">
+                    @(isProcessing ? "Saving..." : "Save Invoice")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Collect Payment Modal -->
+@if (showCollectModal && selectedInvoice != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 500px; max-width: 90%;">
+            <h3 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 24px 0;">💵 Collect Payment</h3>
+            
+            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <p style="font-size: 14px; color: #166534; margin: 0;"><strong>Invoice: @selectedInvoice.InvoiceNumber</strong></p>
+                <p style="font-size: 14px; color: #166534; margin: 4px 0 0 0;">Customer: @selectedInvoice.CustomerName | Amount: ₱@selectedInvoice.Amount.ToString("N2")</p>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Collection Amount (₱)</label>
+                <input type="number" @bind="collectionAmount" step="0.01" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Admin Collection Reason <span style="color: #dc2626;">*</span></label>
+                <textarea @bind="actionReason" rows="3" placeholder="Enter reason for this collection (required)" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CloseModals" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button @onclick="ProcessCollection" disabled="@(string.IsNullOrWhiteSpace(actionReason) || isProcessing)"
+                        style="padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(string.IsNullOrWhiteSpace(actionReason) ? "opacity: 0.5;" : "")">
+                    @(isProcessing ? "Processing..." : "Confirm Collection")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    private List<ARModel> invoices = new();
+    private ARModel newInvoice = new();
+    private ARModel? selectedInvoice;
+    private DateTime newInvoiceDueDate = DateTime.Today.AddDays(30);
+    private decimal collectionAmount = 0;
+    private string actionReason = "";
+    
+    private decimal totalOutstanding = 0;
+    private decimal dueThisMonth = 0;
+    private decimal collectedThisMonth = 0;
+    private int overdueCount = 0;
+    
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private bool showAddModal = false;
+    private bool showCollectModal = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        await LogAdminAction("VIEW", "Accounts Receivable", "Admin accessed Accounts Receivable page");
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            invoices = await context.AccountsReceivables.OrderByDescending(i => i.CreatedAt).ToListAsync();
+            
+            var monthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            var monthEnd = monthStart.AddMonths(1);
+            
+            totalOutstanding = invoices.Where(i => i.Status != "Paid").Sum(i => i.Amount);
+            dueThisMonth = invoices.Where(i => i.DueDate >= monthStart && i.DueDate < monthEnd && i.Status != "Paid").Sum(i => i.Amount);
+            collectedThisMonth = invoices.Where(i => i.Status == "Paid").Sum(i => i.ReceivedAmount);
+            overdueCount = invoices.Count(i => i.DueDate < DateTime.Today && i.Status != "Paid");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to load data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadData();
+        NotificationService.ShowSuccess("Refreshed", "Data refreshed successfully");
+    }
+
+    private void ShowAddModal()
+    {
+        newInvoice = new ARModel();
+        newInvoiceDueDate = DateTime.Today.AddDays(30);
+        actionReason = "";
+        showAddModal = true;
+    }
+
+    private void ShowCollectModal(ARModel invoice)
+    {
+        selectedInvoice = invoice;
+        collectionAmount = invoice.Amount - invoice.ReceivedAmount;
+        actionReason = "";
+        showCollectModal = true;
+    }
+
+    private void CloseModals()
+    {
+        showAddModal = false;
+        showCollectModal = false;
+        selectedInvoice = null;
+        actionReason = "";
+    }
+
+    private async Task SaveInvoice()
+    {
+        if (string.IsNullOrWhiteSpace(actionReason)) return;
+        
+        isProcessing = true;
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            
+            newInvoice.InvoiceNumber = $"INV-{DateTime.Now:yyyyMMddHHmmss}";
+            newInvoice.DueDate = newInvoiceDueDate;
+            newInvoice.Status = "Pending";
+            newInvoice.CreatedBy = $"ADMIN:{AuthService.FullName}";
+            newInvoice.CreatedAt = DateTime.Now;
+            
+            context.AccountsReceivables.Add(newInvoice);
+            await context.SaveChangesAsync();
+            
+            await LogAdminAction("CREATE_INVOICE", $"Invoice #{newInvoice.InvoiceNumber}", 
+                $"Created invoice for {newInvoice.CustomerName} - ₱{newInvoice.Amount:N2}. Reason: {actionReason}");
+            
+            NotificationService.ShowSuccess("Success", $"Invoice #{newInvoice.InvoiceNumber} created successfully");
+            CloseModals();
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to create invoice: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task ProcessCollection()
+    {
+        if (selectedInvoice == null || string.IsNullOrWhiteSpace(actionReason)) return;
+        
+        isProcessing = true;
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            var invoice = await context.AccountsReceivables.FindAsync(selectedInvoice.ReceivableId);
+            if (invoice != null)
+            {
+                invoice.ReceivedAmount = invoice.ReceivedAmount + collectionAmount;
+                invoice.OutstandingAmount = invoice.Amount - invoice.ReceivedAmount;
+                
+                if (invoice.ReceivedAmount >= invoice.Amount)
+                    invoice.Status = "Paid";
+                else
+                    invoice.Status = "Partial";
+                
+                await context.SaveChangesAsync();
+            }
+            
+            await LogAdminAction("COLLECT_PAYMENT", $"Invoice #{selectedInvoice.InvoiceNumber}", 
+                $"Collected ₱{collectionAmount:N2} from {selectedInvoice.CustomerName}. Reason: {actionReason}");
+            
+            NotificationService.ShowSuccess("Success", $"Collection of ₱{collectionAmount:N2} recorded successfully");
+            CloseModals();
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to process collection: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private string GetStatusStyle(string status) => status switch
+    {
+        "Paid" => "background: #dcfce7; color: #166534;",
+        "Partial" => "background: #fef3c7; color: #92400e;",
+        "Overdue" => "background: #fee2e2; color: #991b1b;",
+        _ => "background: #dbeafe; color: #1e40af;"
+    };
+
+    private async Task LogAdminAction(string action, string module, string description)
+    {
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            var auditLog = new AuditLog
+            {
+                UserId = AuthService.CurrentUserId?.ToString() ?? "system",
+                Action = $"ADMIN_{action}",
+                Module = module,
+                Description = $"[ADMIN] {description}",
+                CreatedAt = DateTime.Now
+            };
+            context.AuditLogs.Add(auditLog);
+            await context.SaveChangesAsync();
+        }
+        catch { }
+    }
+}

@@ -1,0 +1,323 @@
+@page "/admin/accountant/financial-statements"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject AuthService AuthService
+@inject NotificationService NotificationService
+@inject FinancialReportingService ReportingService
+@inject IDbContextFactory<BFASDbContext> DbFactory
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Admin - Financial Statements</h1>
+                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Administrative view of financial reports and statements</p>
+            </div>
+        </div>
+        <button class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 8px;" @onclick="LoadData">
+            🔄 Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Admin Notice -->
+<div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 24px;">🔐</span>
+        <div>
+            <p style="font-weight: 600; color: #92400e; margin: 0;">Administrative Access Mode</p>
+            <p style="font-size: 13px; color: #a16207; margin: 4px 0 0 0;">All report views are logged for audit purposes.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Report Selection -->
+<div style="background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 16px 0;">Select Report Period</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end;">
+        <div>
+            <label style="display: block; font-size: 13px; color: #6b7280; margin-bottom: 6px;">Start Date</label>
+            <input type="date" @bind="periodStart" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px;" />
+        </div>
+        <div>
+            <label style="display: block; font-size: 13px; color: #6b7280; margin-bottom: 6px;">End Date</label>
+            <input type="date" @bind="periodEnd" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px;" />
+        </div>
+        <div>
+            <label style="display: block; font-size: 13px; color: #6b7280; margin-bottom: 6px;">Report Type</label>
+            <select @bind="selectedReport" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px;">
+                <option value="income">Income Statement</option>
+                <option value="balance">Balance Sheet</option>
+                <option value="portfolio">Loan Portfolio</option>
+                <option value="dashboard">Dashboard Metrics</option>
+            </select>
+        </div>
+        <div>
+            <button class="btn" style="width: 100%; background: #7c3aed; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600;" @onclick="GenerateReport" disabled="@isLoading">
+                @(isLoading ? "⏳ Generating..." : "📊 Generate Report")
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Report Display -->
+<div style="background: white; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden;">
+    @if (isLoading)
+    {
+        <div style="padding: 60px; text-align: center;">
+            <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            <p style="color: #6b7280; margin-top: 16px;">Generating report...</p>
+        </div>
+    }
+    else if (!hasGeneratedReport)
+    {
+        <div style="padding: 60px; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+            <p style="color: #6b7280;">Select a report type and click Generate to view financial statements</p>
+        </div>
+    }
+    else
+    {
+        <div style="padding: 24px;">
+            @if (selectedReport == "income" && incomeStatement != null)
+            {
+                <h3 style="font-size: 18px; font-weight: 700; margin: 0 0 20px 0;">Income Statement</h3>
+                <p style="color: #6b7280; margin-bottom: 20px;">Period: @periodStart.ToString("MMM dd, yyyy") - @periodEnd.ToString("MMM dd, yyyy")</p>
+                
+                <div style="display: grid; gap: 16px;">
+                    <div style="background: #f0fdf4; border-radius: 12px; padding: 20px;">
+                        <h4 style="color: #166534; margin: 0 0 12px 0;">Revenue</h4>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                            <span>Interest Income</span>
+                            <span style="font-weight: 600;">₱@incomeStatement.InterestIncome.ToString("N2")</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                            <span>Penalty Income</span>
+                            <span style="font-weight: 600;">₱@incomeStatement.PenaltyIncome.ToString("N2")</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                            <span>Service Fee Income</span>
+                            <span style="font-weight: 600;">₱@incomeStatement.ServiceFeeIncome.ToString("N2")</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 2px solid #166534; margin-top: 8px;">
+                            <span style="font-weight: 600;">Total Revenue</span>
+                            <span style="font-weight: 700; color: #166534;">₱@incomeStatement.TotalRevenue.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    <div style="background: #fef2f2; border-radius: 12px; padding: 20px;">
+                        <h4 style="color: #991b1b; margin: 0 0 12px 0;">Expenses</h4>
+                        @foreach (var expense in incomeStatement.Expenses.Take(5))
+                        {
+                            <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                                <span>@expense.AccountName</span>
+                                <span style="font-weight: 600;">₱@expense.Amount.ToString("N2")</span>
+                            </div>
+                        }
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 2px solid #991b1b; margin-top: 8px;">
+                            <span style="font-weight: 600;">Total Expenses</span>
+                            <span style="font-weight: 700; color: #991b1b;">₱@incomeStatement.TotalExpenses.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    <div style="background: #dbeafe; border-radius: 12px; padding: 20px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="font-size: 18px; font-weight: 700;">Net Income</span>
+                            <span style="font-size: 18px; font-weight: 700; color: @(incomeStatement.NetIncome >= 0 ? "#166534" : "#991b1b");">
+                                ₱@incomeStatement.NetIncome.ToString("N2")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (selectedReport == "balance" && balanceSheet != null)
+            {
+                <h3 style="font-size: 18px; font-weight: 700; margin: 0 0 20px 0;">Balance Sheet</h3>
+                <p style="color: #6b7280; margin-bottom: 20px;">As of: @periodEnd.ToString("MMM dd, yyyy")</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div style="background: #dbeafe; border-radius: 12px; padding: 20px;">
+                        <h4 style="color: #1e40af; margin: 0 0 12px 0;">Assets</h4>
+                        @foreach (var asset in balanceSheet.Assets)
+                        {
+                            <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                                <span>@asset.AccountName</span>
+                                <span style="font-weight: 600;">₱@asset.Amount.ToString("N2")</span>
+                            </div>
+                        }
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 2px solid #1e40af; margin-top: 8px;">
+                            <span style="font-weight: 600;">Total Assets</span>
+                            <span style="font-weight: 700; color: #1e40af;">₱@balanceSheet.TotalAssets.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    <div style="background: #fef2f2; border-radius: 12px; padding: 20px;">
+                        <h4 style="color: #991b1b; margin: 0 0 12px 0;">Liabilities</h4>
+                        @foreach (var liability in balanceSheet.Liabilities)
+                        {
+                            <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                                <span>@liability.AccountName</span>
+                                <span style="font-weight: 600;">₱@liability.Amount.ToString("N2")</span>
+                            </div>
+                        }
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 2px solid #991b1b; margin-top: 8px;">
+                            <span style="font-weight: 600;">Total Liabilities</span>
+                            <span style="font-weight: 700; color: #991b1b;">₱@balanceSheet.TotalLiabilities.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    <div style="background: #f0fdf4; border-radius: 12px; padding: 20px;">
+                        <h4 style="color: #166534; margin: 0 0 12px 0;">Equity</h4>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                            <span>Total Equity</span>
+                            <span style="font-weight: 700; color: #166534;">₱@balanceSheet.TotalEquity.ToString("N2")</span>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (selectedReport == "portfolio" && loanPortfolio != null)
+            {
+                <h3 style="font-size: 18px; font-weight: 700; margin: 0 0 20px 0;">Loan Portfolio Analysis</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <div style="background: #f9fafb; border-radius: 12px; padding: 20px; text-align: center;">
+                        <p style="color: #6b7280; margin: 0;">Total Loans</p>
+                        <p style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 8px 0 0 0;">@loanPortfolio.TotalLoans</p>
+                    </div>
+                    <div style="background: #f9fafb; border-radius: 12px; padding: 20px; text-align: center;">
+                        <p style="color: #6b7280; margin: 0;">Active Loans</p>
+                        <p style="font-size: 24px; font-weight: 700; color: #10b981; margin: 8px 0 0 0;">@loanPortfolio.ActiveLoans</p>
+                    </div>
+                    <div style="background: #f9fafb; border-radius: 12px; padding: 20px; text-align: center;">
+                        <p style="color: #6b7280; margin: 0;">Total Disbursed</p>
+                        <p style="font-size: 24px; font-weight: 700; color: #6366f1; margin: 8px 0 0 0;">₱@loanPortfolio.TotalPrincipalDisbursed.ToString("N0")</p>
+                    </div>
+                    <div style="background: #f9fafb; border-radius: 12px; padding: 20px; text-align: center;">
+                        <p style="color: #6b7280; margin: 0;">Outstanding Balance</p>
+                        <p style="font-size: 24px; font-weight: 700; color: #f59e0b; margin: 8px 0 0 0;">₱@loanPortfolio.TotalOutstandingBalance.ToString("N0")</p>
+                    </div>
+                </div>
+            }
+            else if (selectedReport == "dashboard" && dashboardMetrics != null)
+            {
+                <h3 style="font-size: 18px; font-weight: 700; margin: 0 0 20px 0;">Dashboard Metrics</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <div style="background: #dbeafe; border-radius: 12px; padding: 20px; text-align: center;">
+                        <p style="color: #1e40af; margin: 0;">Total Assets</p>
+                        <p style="font-size: 24px; font-weight: 700; color: #1e40af; margin: 8px 0 0 0;">₱@dashboardMetrics.TotalAssets.ToString("N0")</p>
+                    </div>
+                    <div style="background: #fef2f2; border-radius: 12px; padding: 20px; text-align: center;">
+                        <p style="color: #991b1b; margin: 0;">Total Liabilities</p>
+                        <p style="font-size: 24px; font-weight: 700; color: #991b1b; margin: 8px 0 0 0;">₱@dashboardMetrics.TotalLiabilities.ToString("N0")</p>
+                    </div>
+                    <div style="background: #f0fdf4; border-radius: 12px; padding: 20px; text-align: center;">
+                        <p style="color: #166534; margin: 0;">Monthly Net Income</p>
+                        <p style="font-size: 24px; font-weight: 700; color: #166534; margin: 8px 0 0 0;">₱@dashboardMetrics.CurrentMonthNetIncome.ToString("N0")</p>
+                    </div>
+                    <div style="background: #fef3c7; border-radius: 12px; padding: 20px; text-align: center;">
+                        <p style="color: #92400e; margin: 0;">Loans Portfolio</p>
+                        <p style="font-size: 24px; font-weight: 700; color: #92400e; margin: 8px 0 0 0;">₱@dashboardMetrics.TotalLoansPortfolio.ToString("N0")</p>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    private DateTime periodStart = new DateTime(DateTime.Today.Year, 1, 1);
+    private DateTime periodEnd = DateTime.Today;
+    private string selectedReport = "income";
+    private bool isLoading = false;
+    private bool hasGeneratedReport = false;
+
+    private IncomeStatementReport? incomeStatement;
+    private BalanceSheetReport? balanceSheet;
+    private LoanPortfolioAnalysis? loanPortfolio;
+    private FinancialDashboardMetrics? dashboardMetrics;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LogAdminAction("VIEW", "Financial Statements", "Admin accessed Financial Statements page");
+    }
+
+    private async Task LoadData()
+    {
+        await GenerateReport();
+    }
+
+    private async Task GenerateReport()
+    {
+        isLoading = true;
+        hasGeneratedReport = false;
+        
+        try
+        {
+            switch (selectedReport)
+            {
+                case "income":
+                    incomeStatement = await ReportingService.GenerateIncomeStatementWithLoansAsync(periodStart, periodEnd);
+                    break;
+                case "balance":
+                    balanceSheet = await ReportingService.GenerateBalanceSheetWithLoansAsync(periodEnd);
+                    break;
+                case "portfolio":
+                    loanPortfolio = await ReportingService.GetLoanPortfolioAnalysisAsync();
+                    break;
+                case "dashboard":
+                    dashboardMetrics = await ReportingService.GetFinancialDashboardMetricsAsync();
+                    break;
+            }
+            
+            hasGeneratedReport = true;
+            await LogAdminAction("GENERATE_REPORT", selectedReport, $"Generated {selectedReport} report");
+            NotificationService.ShowSuccess("Report Generated", "Report generated successfully");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to generate report: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LogAdminAction(string action, string recordId, string reason)
+    {
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            
+            var auditLog = new AuditLog
+            {
+                UserId = AuthService.CurrentUser ?? "ADMIN",
+                Action = action,
+                Module = "Admin_FinancialStatements",
+                Description = $"[ADMIN] Record: {recordId} - {reason}",
+                IpAddress = "Internal",
+                UserAgent = "AdminPanel",
+                CreatedAt = DateTime.Now
+            };
+            
+            context.AuditLogs.Add(auditLog);
+            await context.SaveChangesAsync();
+        }
+        catch { }
+    }
+}

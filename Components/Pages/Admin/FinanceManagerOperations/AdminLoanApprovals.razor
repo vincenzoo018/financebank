@@ -1,0 +1,453 @@
+@page "/admin/finance-manager/loan-approvals"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject AuthService AuthService
+@inject LoanProcessService LoanService
+@inject NotificationService NotificationService
+@inject IDbContextFactory<BFASDbContext> DbFactory
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Admin - Loan Approval Center</h1>
+                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Administrative loan approval management with audit trail</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button @onclick="RefreshData" style="padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">
+                🔄 Refresh
+            </button>
+            <button @onclick="ShowHistoryModal" style="padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">
+                📜 History
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Notice -->
+<div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 24px;">🔐</span>
+        <div>
+            <p style="font-weight: 600; color: #92400e; margin: 0;">Administrative Override Mode</p>
+            <p style="font-size: 13px; color: #a16207; margin: 4px 0 0 0;">All approval decisions require a reason and are logged for compliance. Admin: @(AuthService.FullName ?? "Admin")</p>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px;">
+    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #f59e0b;">
+        <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">⏳ Pending Approval</p>
+        <p style="font-size: 32px; font-weight: 700; color: #f59e0b; margin: 8px 0 0 0;">@pendingAssessments.Count</p>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #059669;">
+        <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">✅ Approved</p>
+        <p style="font-size: 32px; font-weight: 700; color: #059669; margin: 8px 0 0 0;">@approvedCount</p>
+    </div>
+    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #dc2626;">
+        <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">❌ Declined</p>
+        <p style="font-size: 32px; font-weight: 700; color: #dc2626; margin: 8px 0 0 0;">@declinedCount</p>
+    </div>
+</div>
+
+<!-- Pending Approvals -->
+<div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+    <div style="background: linear-gradient(135deg, #7c3aed, #5b21b6); color: white; padding: 20px 24px;">
+        <h3 style="font-size: 18px; font-weight: 600; margin: 0;">Pending Loan Assessments</h3>
+    </div>
+
+    <div style="padding: 24px;">
+        @if (isLoading)
+        {
+            <div style="display: flex; justify-content: center; padding: 60px;">
+                <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            </div>
+        }
+        else if (!pendingAssessments.Any())
+        {
+            <div style="text-align: center; padding: 60px; color: #6b7280;">
+                <p style="font-size: 48px; margin-bottom: 16px;">✅</p>
+                <p style="font-size: 16px; font-weight: 500;">No pending loan assessments</p>
+            </div>
+        }
+        else
+        {
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8fafc;">
+                        <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase;">Application</th>
+                        <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase;">Applicant</th>
+                        <th style="padding: 14px 16px; text-align: right; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase;">Amount</th>
+                        <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase;">Term</th>
+                        <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase;">Risk</th>
+                        <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var assessment in pendingAssessments)
+                    {
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 16px; font-size: 14px; color: #1e293b; font-weight: 500;">#@assessment.ApplicationId</td>
+                            <td style="padding: 16px; font-size: 14px; color: #1e293b;">@(assessment.Application?.Account?.Customer?.FullName ?? "N/A")</td>
+                            <td style="padding: 16px; font-size: 14px; color: #059669; font-weight: 600; text-align: right;">₱@assessment.LoanAmount.ToString("N2")</td>
+                            <td style="padding: 16px; font-size: 14px; color: #1e293b; text-align: center;">@assessment.TermMonths months</td>
+                            <td style="padding: 16px; text-align: center;">
+                                <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; @GetRiskStyle(GetRiskFromAmount(assessment.LoanAmount))">
+                                    @GetRiskFromAmount(assessment.LoanAmount)
+                                </span>
+                            </td>
+                            <td style="padding: 16px; text-align: center;">
+                                <button @onclick="() => ShowApproveModal(assessment)" style="padding: 6px 16px; background: #059669; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-right: 4px;">
+                                    Approve
+                                </button>
+                                <button @onclick="() => ShowDeclineModal(assessment)" style="padding: 6px 16px; background: #dc2626; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                    Decline
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<!-- Approve Modal -->
+@if (showApproveModal && selectedAssessment != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 600px; max-width: 90%;" @onclick:stopPropagation="true">
+            <h3 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 24px 0;">✅ Approve Loan Application</h3>
+            
+            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <p style="font-size: 14px; color: #166534; margin: 0;"><strong>Application #@selectedAssessment.ApplicationId</strong></p>
+                <p style="font-size: 14px; color: #166534; margin: 4px 0 0 0;">Amount: ₱@selectedAssessment.LoanAmount.ToString("N2") | Term: @selectedAssessment.TermMonths months | Rate: @selectedAssessment.InterestRate%</p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                    Approved Amount (₱)
+                </label>
+                <input type="number" @bind="approvedAmount" step="0.01" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Interest Rate (%)</label>
+                    <input type="number" @bind="approvedRate" step="0.1" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Term (Months)</label>
+                    <input type="number" @bind="approvedTerm" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                    Admin Approval Reason <span style="color: #dc2626;">*</span>
+                </label>
+                <textarea @bind="approvalReason" rows="4" placeholder="Enter reason for approval (required for admin actions)"
+                          style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CloseModals" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button @onclick="ConfirmApprove" disabled="@(string.IsNullOrWhiteSpace(approvalReason) || isProcessing)"
+                        style="padding: 12px 24px; background: #059669; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(string.IsNullOrWhiteSpace(approvalReason) ? "opacity: 0.5;" : "")">
+                    @(isProcessing ? "Processing..." : "Confirm Approval")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Decline Modal -->
+@if (showDeclineModal && selectedAssessment != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 500px; max-width: 90%;" @onclick:stopPropagation="true">
+            <h3 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 24px 0;">❌ Decline Loan Application</h3>
+            
+            <div style="background: #fef2f2; border: 1px solid #fca5a5; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <p style="font-size: 14px; color: #991b1b; margin: 0;"><strong>Application #@selectedAssessment.ApplicationId</strong></p>
+                <p style="font-size: 14px; color: #991b1b; margin: 4px 0 0 0;">Amount: ₱@selectedAssessment.LoanAmount.ToString("N2")</p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                    Admin Decline Reason <span style="color: #dc2626;">*</span>
+                </label>
+                <textarea @bind="declineReason" rows="4" placeholder="Enter reason for declining (required for admin actions)"
+                          style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button @onclick="CloseModals" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button @onclick="ConfirmDecline" disabled="@(string.IsNullOrWhiteSpace(declineReason) || isProcessing)"
+                        style="padding: 12px 24px; background: #dc2626; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(string.IsNullOrWhiteSpace(declineReason) ? "opacity: 0.5;" : "")">
+                    @(isProcessing ? "Processing..." : "Confirm Decline")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- History Modal -->
+@if (showHistoryModalVisible)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 900px; max-width: 95%; max-height: 80vh; overflow-y: auto;" @onclick:stopPropagation="true">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">📜 Approval History</h3>
+                <button @onclick="() => showHistoryModalVisible = false" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+            </div>
+            
+            @if (approvalHistory.Any())
+            {
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8fafc;">
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Date</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Application</th>
+                            <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #64748b;">Amount</th>
+                            <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Status</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Approved By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var approval in approvalHistory)
+                        {
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td style="padding: 12px; font-size: 14px; color: #64748b;">@approval.ApprovalDate.ToString("MMM dd, yyyy")</td>
+                                <td style="padding: 12px; font-size: 14px; color: #1e293b;">#@approval.AssessmentId</td>
+                                <td style="padding: 12px; font-size: 14px; color: #059669; font-weight: 600; text-align: right;">₱@(approval.ApprovedAmount?.ToString("N2") ?? "N/A")</td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; @(approval.ApprovalStatus == "APPROVED" ? "background: #dcfce7; color: #166534;" : "background: #fee2e2; color: #991b1b;")">
+                                        @approval.ApprovalStatus
+                                    </span>
+                                </td>
+                                <td style="padding: 12px; font-size: 14px; color: #64748b;">@approval.ApprovedBy</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div style="text-align: center; padding: 40px; color: #6b7280;">
+                    <p>No approval history found</p>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    private List<LoanAssessment> pendingAssessments = new();
+    private List<LoanApproval> approvalHistory = new();
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private int approvedCount = 0;
+    private int declinedCount = 0;
+
+    // Modal state
+    private bool showApproveModal = false;
+    private bool showDeclineModal = false;
+    private bool showHistoryModalVisible = false;
+    private LoanAssessment? selectedAssessment;
+    
+    // Approval form
+    private decimal approvedAmount = 0;
+    private decimal approvedRate = 0;
+    private int approvedTerm = 0;
+    private string approvalReason = "";
+    private string declineReason = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        await LogAdminAction("VIEW", "Loan Approvals", "Admin accessed Loan Approval Center");
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            pendingAssessments = await LoanService.GetPendingAssessmentsAsync() ?? new();
+            
+            using var context = await DbFactory.CreateDbContextAsync();
+            var approvals = await context.LoanApprovals.ToListAsync();
+            approvedCount = approvals.Count(a => a.ApprovalStatus == "APPROVED");
+            declinedCount = approvals.Count(a => a.ApprovalStatus == "DECLINED");
+            approvalHistory = approvals.OrderByDescending(a => a.ApprovalDate).ToList();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to load data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadData();
+        await LogAdminAction("REFRESH", "Loan Approvals", "Admin refreshed loan approvals data");
+        NotificationService.ShowSuccess("Refreshed", "Data refreshed successfully");
+    }
+
+    private void ShowApproveModal(LoanAssessment assessment)
+    {
+        selectedAssessment = assessment;
+        approvedAmount = assessment.LoanAmount;
+        approvedRate = assessment.InterestRate;
+        approvedTerm = assessment.TermMonths;
+        approvalReason = "";
+        showApproveModal = true;
+    }
+
+    private void ShowDeclineModal(LoanAssessment assessment)
+    {
+        selectedAssessment = assessment;
+        declineReason = "";
+        showDeclineModal = true;
+    }
+
+    private void ShowHistoryModal()
+    {
+        showHistoryModalVisible = true;
+    }
+
+    private void CloseModals()
+    {
+        showApproveModal = false;
+        showDeclineModal = false;
+        selectedAssessment = null;
+        approvalReason = "";
+        declineReason = "";
+    }
+
+    private async Task ConfirmApprove()
+    {
+        if (selectedAssessment == null || string.IsNullOrWhiteSpace(approvalReason)) return;
+        
+        isProcessing = true;
+        try
+        {
+            await LoanService.ApproveLoanAsync(
+                selectedAssessment.AssessmentId,
+                selectedAssessment.ApplicationId,
+                selectedAssessment.AccountId,
+                approvedAmount,
+                approvedRate,
+                approvedTerm,
+                AuthService.FullName ?? "Admin",
+                $"[ADMIN OVERRIDE] {approvalReason}"
+            );
+            
+            await LogAdminAction("APPROVE_LOAN", $"Assessment #{selectedAssessment.AssessmentId}", 
+                $"Approved loan for ₱{approvedAmount:N2}. Admin Reason: {approvalReason}");
+            
+            NotificationService.ShowSuccess("Approved", $"Loan application #{selectedAssessment.ApplicationId} has been approved");
+            CloseModals();
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to approve loan: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task ConfirmDecline()
+    {
+        if (selectedAssessment == null || string.IsNullOrWhiteSpace(declineReason)) return;
+        
+        isProcessing = true;
+        try
+        {
+            await LoanService.DeclineLoanAsync(
+                selectedAssessment.AssessmentId,
+                selectedAssessment.ApplicationId,
+                selectedAssessment.AccountId,
+                $"[ADMIN OVERRIDE] {declineReason}",
+                AuthService.FullName ?? "Admin"
+            );
+            
+            await LogAdminAction("DECLINE_LOAN", $"Assessment #{selectedAssessment.AssessmentId}", 
+                $"Declined loan application. Admin Reason: {declineReason}");
+            
+            NotificationService.ShowSuccess("Declined", $"Loan application #{selectedAssessment.ApplicationId} has been declined");
+            CloseModals();
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to decline loan: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private string GetRiskStyle(string risk) => risk switch
+    {
+        "Low" => "background: #dcfce7; color: #166534;",
+        "Medium" => "background: #fef3c7; color: #92400e;",
+        "High" => "background: #fee2e2; color: #991b1b;",
+        _ => "background: #f3f4f6; color: #6b7280;"
+    };
+
+    private string GetRiskFromAmount(decimal amount)
+    {
+        if (amount < 50000m) return "Low";
+        if (amount < 200000m) return "Medium";
+        return "High";
+    }
+
+    private async Task LogAdminAction(string action, string module, string description)
+    {
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            var auditLog = new AuditLog
+            {
+                UserId = AuthService.CurrentUserId?.ToString() ?? "system",
+                Action = $"ADMIN_{action}",
+                Module = module,
+                Description = $"[ADMIN] {description}",
+                CreatedAt = DateTime.Now
+            };
+            context.AuditLogs.Add(auditLog);
+            await context.SaveChangesAsync();
+        }
+        catch { }
+    }
+}

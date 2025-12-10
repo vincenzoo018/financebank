@@ -1,0 +1,310 @@
+@page "/admin/accountant/general-ledger"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject AuthService AuthService
+@inject GeneralLedgerService GeneralLedgerService
+@inject NotificationService NotificationService
+@inject IJSRuntime JSRuntime
+@inject IDbContextFactory<BFASDbContext> DbFactory
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M3 12h18M3 6h18M3 18h18"/>
+                </svg>
+            </div>
+            <div>
+                <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Admin - General Ledger</h1>
+                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Administrative view of all account transactions</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn" style="background: white; color: #7c3aed; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600;" @onclick="ExportToCsv">
+                📥 Export CSV
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Notice -->
+<div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+    <span style="font-size: 24px;">⚠️</span>
+    <div>
+        <div style="font-weight: 700; color: #92400e;">Administrative Access - Read Only</div>
+        <div style="font-size: 13px; color: #78350f;">General Ledger entries are automatically created from posted journal entries. Manual modifications require journal entry adjustments.</div>
+    </div>
+</div>
+
+<!-- Account Balances Summary -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    @foreach (var balance in accountBalances.Take(6))
+    {
+        <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid @GetAccountColor(balance.AccountType);">
+            <div style="font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 4px; text-transform: uppercase;">@balance.AccountCode</div>
+            <div style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@balance.AccountName</div>
+            <div style="font-size: 18px; font-weight: 800; color: @(balance.Balance >= 0 ? "#059669" : "#ef4444");">₱@Math.Abs(balance.Balance).ToString("N2")</div>
+        </div>
+    }
+</div>
+
+<!-- Filters -->
+<div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+    <div style="flex: 1 1 200px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Account</label>
+        <select class="form-control" @bind="selectedAccount" style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; width: 100%;">
+            <option value="">All Accounts</option>
+            @foreach (var account in accounts)
+            {
+                <option value="@account">@account</option>
+            }
+        </select>
+    </div>
+    <div style="flex: 1 1 150px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Account Type</label>
+        <select class="form-control" @bind="selectedAccountType" style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; width: 100%;">
+            <option value="">All Types</option>
+            <option value="Asset">Asset</option>
+            <option value="Liability">Liability</option>
+            <option value="Revenue">Revenue</option>
+            <option value="Expense">Expense</option>
+            <option value="Equity">Equity</option>
+        </select>
+    </div>
+    <div style="flex: 1 1 150px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Date From</label>
+        <input type="date" class="form-control" @bind="dateFrom" style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; width: 100%;" />
+    </div>
+    <div style="flex: 1 1 150px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Date To</label>
+        <input type="date" class="form-control" @bind="dateTo" style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; width: 100%;" />
+    </div>
+    <div style="flex: 0 0 auto; display:flex; gap:8px;">
+        <button class="btn" style="background:#7c3aed; color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;" @onclick="ApplyFilters">🔍 Filter</button>
+        <button class="btn" style="background:#e5e7eb; color:#374151; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;" @onclick="ResetFilters">↻ Reset</button>
+    </div>
+</div>
+
+<!-- Messages -->
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+        ✓ @successMessage
+        <button @onclick='() => successMessage = ""' style="float: right; background: none; border: none; cursor: pointer;">×</button>
+    </div>
+}
+
+<!-- Ledger Table -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">
+            Ledger Entries (@filteredTransactions.Count() records)
+        </h2>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280;">Date</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280;">Reference</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280;">Account</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280;">Type</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280;">Description</th>
+                    <th style="padding: 12px 16px; text-align: right; font-size: 12px; font-weight: 600; color: #6b7280;">Debit</th>
+                    <th style="padding: 12px 16px; text-align: right; font-size: 12px; font-weight: 600; color: #6b7280;">Credit</th>
+                    <th style="padding: 12px 16px; text-align: right; font-size: 12px; font-weight: 600; color: #6b7280;">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in filteredTransactions.Take(100))
+                {
+                    <tr style="border-bottom: 1px solid #e5e7eb;">
+                        <td style="padding: 12px 16px; font-size: 13px; color: #6b7280;">@t.TransactionDate.ToString("MMM dd, yyyy")</td>
+                        <td style="padding: 12px 16px; font-weight: 600; color: #7c3aed;">@t.Reference</td>
+                        <td style="padding: 12px 16px; font-size: 13px;">@t.AccountCode - @t.AccountName</td>
+                        <td style="padding: 12px 16px;">
+                            <span style="padding: 2px 8px; border-radius: 4px; font-size: 11px; background: @GetTypeBg(t.AccountType); color: @GetTypeColor(t.AccountType);">
+                                @t.AccountType
+                            </span>
+                        </td>
+                        <td style="padding: 12px 16px; font-size: 13px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@t.Description">@t.Description</td>
+                        <td style="padding: 12px 16px; text-align: right; font-weight: 600; color: #059669;">@(t.DebitAmount > 0 ? $"₱{t.DebitAmount:N2}" : "-")</td>
+                        <td style="padding: 12px 16px; text-align: right; font-weight: 600; color: #dc2626;">@(t.CreditAmount > 0 ? $"₱{t.CreditAmount:N2}" : "-")</td>
+                        <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: @(t.RunningBalance >= 0 ? "#059669" : "#dc2626");">₱@t.RunningBalance.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr style="background: #f9fafb; font-weight: 700;">
+                    <td colspan="5" style="padding: 12px 16px;">TOTALS</td>
+                    <td style="padding: 12px 16px; text-align: right; color: #059669;">₱@filteredTransactions.Sum(t => t.DebitAmount).ToString("N2")</td>
+                    <td style="padding: 12px 16px; text-align: right; color: #dc2626;">₱@filteredTransactions.Sum(t => t.CreditAmount).ToString("N2")</td>
+                    <td style="padding: 12px 16px;"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    @if (!filteredTransactions.Any())
+    {
+        <div style="text-align: center; padding: 40px; color: #6b7280;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+            <div style="font-size: 16px; font-weight: 600;">No ledger entries found</div>
+            <div style="font-size: 14px;">Try adjusting your filters</div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<GeneralLedgerTransaction> allTransactions = new();
+    private List<(string AccountCode, string AccountName, string AccountType, decimal Balance)> accountBalances = new();
+    private List<string> accounts = new();
+    
+    private string selectedAccount = "";
+    private string selectedAccountType = "";
+    private DateTime dateFrom = DateTime.Today.AddMonths(-1);
+    private DateTime dateTo = DateTime.Today;
+    private string successMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            allTransactions = await GeneralLedgerService.GetAllAsync();
+            accountBalances = await GeneralLedgerService.GetAccountBalancesAsync();
+            accounts = allTransactions.Select(t => t.AccountName).Where(a => !string.IsNullOrEmpty(a)).Distinct().OrderBy(a => a).ToList()!;
+            NotificationService.ShowSuccess("Loaded", $"Loaded {allTransactions.Count} ledger entries.");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Load Failed", ex.Message);
+        }
+    }
+
+    private IEnumerable<GeneralLedgerTransaction> filteredTransactions => allTransactions
+        .Where(t => string.IsNullOrEmpty(selectedAccount) || t.AccountName == selectedAccount)
+        .Where(t => string.IsNullOrEmpty(selectedAccountType) || t.AccountType == selectedAccountType)
+        .Where(t => t.TransactionDate >= dateFrom && t.TransactionDate <= dateTo)
+        .OrderByDescending(t => t.TransactionDate);
+
+    private async Task ApplyFilters()
+    {
+        await Task.CompletedTask;
+        var count = filteredTransactions.Count();
+        NotificationService.ShowInfo("Filters Applied", $"Found {count} matching records.");
+        StateHasChanged();
+    }
+
+    private async Task ResetFilters()
+    {
+        selectedAccount = "";
+        selectedAccountType = "";
+        dateFrom = DateTime.Today.AddMonths(-1);
+        dateTo = DateTime.Today;
+        await Task.CompletedTask;
+        NotificationService.ShowInfo("Reset", "Filters reset to defaults.");
+        StateHasChanged();
+    }
+
+    private async Task ExportToCsv()
+    {
+        if (!filteredTransactions.Any())
+        {
+            NotificationService.ShowWarning("No Data", "No records to export.");
+            return;
+        }
+
+        try
+        {
+            var csv = new System.Text.StringBuilder();
+            csv.AppendLine($"FINEBANK ADMIN GENERAL LEDGER EXPORT");
+            csv.AppendLine($"Generated: {DateTime.Now:g} by {AuthService.CurrentUser}");
+            csv.AppendLine($"Period: {dateFrom:MMM dd, yyyy} - {dateTo:MMM dd, yyyy}");
+            csv.AppendLine();
+            csv.AppendLine("Date,Reference,Account Code,Account Name,Type,Description,Debit,Credit,Running Balance");
+
+            foreach (var t in filteredTransactions)
+            {
+                csv.AppendLine($"\"{t.TransactionDate:yyyy-MM-dd}\",\"{t.Reference}\",\"{t.AccountCode}\",\"{t.AccountName}\",\"{t.AccountType}\",\"{t.Description}\",\"{t.DebitAmount:N2}\",\"{t.CreditAmount:N2}\",\"{t.RunningBalance:N2}\"");
+            }
+
+            csv.AppendLine();
+            csv.AppendLine($"TOTALS,,,,,\"{filteredTransactions.Sum(t => t.DebitAmount):N2}\",\"{filteredTransactions.Sum(t => t.CreditAmount):N2}\",");
+
+            var fileName = $"AdminGL_{dateFrom:yyyyMMdd}_{dateTo:yyyyMMdd}.csv";
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+            var base64 = Convert.ToBase64String(bytes);
+
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, "text/csv", base64);
+            
+            // Log export action
+            await LogAdminAction("EXPORT_GENERAL_LEDGER", fileName, $"Exported {filteredTransactions.Count()} records");
+            
+            successMessage = $"Exported {filteredTransactions.Count()} records to {fileName}";
+            NotificationService.ShowSuccess("Export Complete", successMessage);
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Export Failed", ex.Message);
+        }
+    }
+
+    private async Task LogAdminAction(string action, string reference, string reason)
+    {
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            context.AuditLogs.Add(new AuditLog
+            {
+                UserId = AuthService.CurrentUserId?.ToString() ?? "0",
+                Action = action,
+                Module = "GeneralLedger",
+                Description = $"{reason} | Reference: {reference}",
+                IpAddress = "Admin Panel",
+                CreatedAt = DateTime.Now
+            });
+            await context.SaveChangesAsync();
+        }
+        catch { }
+    }
+
+    private string GetAccountColor(string type) => type switch
+    {
+        "Asset" => "#3b82f6",
+        "Liability" => "#f59e0b",
+        "Revenue" => "#10b981",
+        "Expense" => "#ef4444",
+        "Equity" => "#8b5cf6",
+        _ => "#6b7280"
+    };
+
+    private string GetTypeBg(string type) => type switch
+    {
+        "Asset" => "#dbeafe",
+        "Liability" => "#fef3c7",
+        "Revenue" => "#d1fae5",
+        "Expense" => "#fee2e2",
+        "Equity" => "#ede9fe",
+        _ => "#f3f4f6"
+    };
+
+    private string GetTypeColor(string type) => type switch
+    {
+        "Asset" => "#1e40af",
+        "Liability" => "#92400e",
+        "Revenue" => "#065f46",
+        "Expense" => "#991b1b",
+        "Equity" => "#5b21b6",
+        _ => "#4b5563"
+    };
+}

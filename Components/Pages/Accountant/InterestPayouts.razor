@@ -6,6 +6,7 @@
 @inject AccountsPayableService AccountsPayableService
 @inject JournalEntryService JournalEntryService
 @inject AuthService AuthService
+@inject NotificationService NotificationService
 @attribute [Authorize(Roles = "Accountant")]
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
@@ -420,12 +421,17 @@
 
     private async Task ReleasePayout()
     {
-        if (selectedPayout == null || !confirmRelease) return;
+        if (selectedPayout == null || !confirmRelease) 
+        {
+            NotificationService.ShowWarning("Confirmation Required", "Please confirm the release by checking the confirmation box.");
+            return;
+        }
 
         isProcessing = true;
         try
         {
             var releasedBy = AuthService.CurrentUser ?? "Accountant";
+            var reason = $"Interest payout released by {releasedBy} at {DateTime.Now:g}. Amount: ₱{selectedPayout.Amount:N2} to {selectedPayout.VendorName}";
 
             // Release the payout
             await AccountsPayableService.ReleaseInterestPayoutAsync(selectedPayout.PayableId, releasedBy);
@@ -434,6 +440,7 @@
             await CreateInterestPayoutJournalEntry(selectedPayout, releasedBy);
 
             successMessage = $"✓ Successfully released interest payout of ₱{selectedPayout.Amount:N2} to {selectedPayout.VendorName}!";
+            NotificationService.ShowSuccess("Payout Released", $"Interest payout of ₱{selectedPayout.Amount:N2} has been released successfully. Reason: {reason}");
 
             CloseReleaseModal();
             await LoadPendingPayouts();
@@ -441,6 +448,7 @@
         catch (Exception ex)
         {
             errorMessage = $"Error releasing payout: {ex.Message}";
+            NotificationService.ShowError("Release Failed", $"Failed to release interest payout: {ex.Message}");
         }
         finally
         {

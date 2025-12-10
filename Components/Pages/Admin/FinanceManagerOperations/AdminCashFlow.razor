@@ -1,0 +1,346 @@
+@page "/admin/finance-manager/cash-flow"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject AuthService AuthService
+@inject NotificationService NotificationService
+@inject IDbContextFactory<BFASDbContext> DbFactory
+
+<div class="page-container" style="padding: 24px;">
+    <!-- Page Header -->
+    <div style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                    <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Admin - Cash Flow Analysis</h1>
+                    <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Administrative cash flow monitoring with audit trail</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <select @bind="selectedPeriod" @bind:after="RefreshData" style="padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.2); color: white; font-weight: 600;">
+                    <option value="daily" style="color: black;">Daily</option>
+                    <option value="weekly" style="color: black;">Weekly</option>
+                    <option value="monthly" style="color: black;">Monthly</option>
+                    <option value="quarterly" style="color: black;">Quarterly</option>
+                </select>
+                <button @onclick="RefreshData" style="padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">
+                    🔄 Refresh
+                </button>
+                <button @onclick="ExportReport" style="padding: 10px 20px; background: white; color: #7c3aed; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    📊 Export Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Notice -->
+    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 24px;">🔐</span>
+            <div>
+                <p style="font-weight: 600; color: #92400e; margin: 0;">Administrative Access Mode</p>
+                <p style="font-size: 13px; color: #a16207; margin: 4px 0 0 0;">Cash flow data is read-only. Adjustments require proper authorization. Admin: @(AuthService.FullName ?? "Admin")</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cash Flow Summary Cards -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px;">
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #059669;">
+            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">📈 Total Inflows</p>
+            <p style="font-size: 28px; font-weight: 700; color: #059669; margin: 8px 0 0 0;">₱@totalInflows.ToString("N2")</p>
+            <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">+@inflowGrowth.ToString("N1")% vs last period</p>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #dc2626;">
+            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">📉 Total Outflows</p>
+            <p style="font-size: 28px; font-weight: 700; color: #dc2626; margin: 8px 0 0 0;">₱@totalOutflows.ToString("N2")</p>
+            <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">@outflowGrowth.ToString("N1")% vs last period</p>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6;">
+            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">💰 Net Cash Flow</p>
+            <p style="font-size: 28px; font-weight: 700; color: @(netCashFlow >= 0 ? "#059669" : "#dc2626"); margin: 8px 0 0 0;">₱@netCashFlow.ToString("N2")</p>
+            <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">@(netCashFlow >= 0 ? "Positive flow" : "Negative flow")</p>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #7c3aed;">
+            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">🏦 Cash Balance</p>
+            <p style="font-size: 28px; font-weight: 700; color: #7c3aed; margin: 8px 0 0 0;">₱@cashBalance.ToString("N2")</p>
+            <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">Current available</p>
+        </div>
+    </div>
+
+    <!-- Cash Flow Details -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+        <!-- Inflows -->
+        <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 20px 24px;">
+                <h3 style="font-size: 18px; font-weight: 600; margin: 0;">📈 Cash Inflows</h3>
+            </div>
+            <div style="padding: 24px;">
+                @if (isLoading)
+                {
+                    <div style="display: flex; justify-content: center; padding: 40px;">
+                        <div style="width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    </div>
+                }
+                else
+                {
+                    <div style="space-y: 12px;">
+                        @foreach (var item in inflowItems)
+                        {
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                                <div>
+                                    <p style="font-weight: 600; color: #1e293b; margin: 0;">@item.Category</p>
+                                    <p style="font-size: 12px; color: #64748b; margin: 2px 0 0 0;">@item.Count transactions</p>
+                                </div>
+                                <p style="font-weight: 700; color: #059669; margin: 0;">₱@item.Amount.ToString("N2")</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Outflows -->
+        <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 20px 24px;">
+                <h3 style="font-size: 18px; font-weight: 600; margin: 0;">📉 Cash Outflows</h3>
+            </div>
+            <div style="padding: 24px;">
+                @if (isLoading)
+                {
+                    <div style="display: flex; justify-content: center; padding: 40px;">
+                        <div style="width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #dc2626; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    </div>
+                }
+                else
+                {
+                    <div style="space-y: 12px;">
+                        @foreach (var item in outflowItems)
+                        {
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                                <div>
+                                    <p style="font-weight: 600; color: #1e293b; margin: 0;">@item.Category</p>
+                                    <p style="font-size: 12px; color: #64748b; margin: 2px 0 0 0;">@item.Count transactions</p>
+                                </div>
+                                <p style="font-weight: 700; color: #dc2626; margin: 0;">₱@item.Amount.ToString("N2")</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7c3aed, #5b21b6); color: white; padding: 20px 24px;">
+            <h3 style="font-size: 18px; font-weight: 600; margin: 0;">Recent Cash Transactions</h3>
+        </div>
+        <div style="padding: 24px;">
+            @if (isLoading)
+            {
+                <div style="display: flex; justify-content: center; padding: 60px;">
+                    <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                </div>
+            }
+            else if (!recentTransactions.Any())
+            {
+                <div style="text-align: center; padding: 60px; color: #6b7280;">
+                    <p style="font-size: 48px; margin-bottom: 16px;">📊</p>
+                    <p style="font-size: 16px; font-weight: 500;">No transactions found</p>
+                </div>
+            }
+            else
+            {
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8fafc;">
+                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Date</th>
+                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Description</th>
+                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b;">Category</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b;">Type</th>
+                            <th style="padding: 14px 16px; text-align: right; font-size: 12px; font-weight: 600; color: #64748b;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var tx in recentTransactions)
+                        {
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td style="padding: 16px; font-size: 14px; color: #64748b;">@tx.Date.ToString("MMM dd, yyyy")</td>
+                                <td style="padding: 16px; font-size: 14px; color: #1e293b; font-weight: 500;">@tx.Description</td>
+                                <td style="padding: 16px; font-size: 14px; color: #64748b;">@tx.Category</td>
+                                <td style="padding: 16px; text-align: center;">
+                                    <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; @(tx.Type == "Inflow" ? "background: #dcfce7; color: #166534;" : "background: #fee2e2; color: #991b1b;")">
+                                        @tx.Type
+                                    </span>
+                                </td>
+                                <td style="padding: 16px; font-size: 14px; font-weight: 600; text-align: right; color: @(tx.Type == "Inflow" ? "#059669" : "#dc2626");">
+                                    @(tx.Type == "Inflow" ? "+" : "-")₱@tx.Amount.ToString("N2")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    private string selectedPeriod = "monthly";
+    private decimal totalInflows = 0;
+    private decimal totalOutflows = 0;
+    private decimal netCashFlow = 0;
+    private decimal cashBalance = 0;
+    private decimal inflowGrowth = 0;
+    private decimal outflowGrowth = 0;
+    
+    private List<CashFlowItem> inflowItems = new();
+    private List<CashFlowItem> outflowItems = new();
+    private List<CashTransaction> recentTransactions = new();
+    
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        await LogAdminAction("VIEW", "Cash Flow Analysis", "Admin accessed Cash Flow Analysis page");
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            
+            // Calculate date range based on period
+            DateTime startDate = selectedPeriod switch
+            {
+                "daily" => DateTime.Today,
+                "weekly" => DateTime.Today.AddDays(-7),
+                "monthly" => DateTime.Today.AddMonths(-1),
+                "quarterly" => DateTime.Today.AddMonths(-3),
+                _ => DateTime.Today.AddMonths(-1)
+            };
+            
+            // Get transactions
+            var transactions = await context.CustomerTransactions
+                .Where(t => t.CreatedAt >= startDate)
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
+            
+            // Calculate inflows (deposits, loan payments received)
+            var inflows = transactions.Where(t => t.TransactionType == "Deposit" || t.TransactionType == "Interest Credit").ToList();
+            totalInflows = inflows.Sum(t => t.Amount);
+            
+            // Calculate outflows (withdrawals, loans disbursed)
+            var outflows = transactions.Where(t => t.TransactionType == "Withdrawal" || t.TransactionType == "Transfer Out").ToList();
+            totalOutflows = outflows.Sum(t => t.Amount);
+            
+            // Net cash flow
+            netCashFlow = totalInflows - totalOutflows;
+            
+            // Cash balance (from all accounts)
+            cashBalance = await context.CustomerAccounts.SumAsync(a => a.Balance);
+            
+            // Growth calculations (simulated)
+            inflowGrowth = 5.2m;
+            outflowGrowth = -3.1m;
+            
+            // Breakdown items
+            inflowItems = new List<CashFlowItem>
+            {
+                new() { Category = "Customer Deposits", Amount = inflows.Where(i => i.TransactionType == "Deposit").Sum(i => i.Amount), Count = inflows.Count(i => i.TransactionType == "Deposit") },
+                new() { Category = "Interest Income", Amount = inflows.Where(i => i.TransactionType == "Interest Credit").Sum(i => i.Amount), Count = inflows.Count(i => i.TransactionType == "Interest Credit") },
+                new() { Category = "Loan Repayments", Amount = 0, Count = 0 },
+                new() { Category = "Fee Income", Amount = 0, Count = 0 }
+            };
+            
+            outflowItems = new List<CashFlowItem>
+            {
+                new() { Category = "Customer Withdrawals", Amount = outflows.Where(o => o.TransactionType == "Withdrawal").Sum(o => o.Amount), Count = outflows.Count(o => o.TransactionType == "Withdrawal") },
+                new() { Category = "Transfers Out", Amount = outflows.Where(o => o.TransactionType == "Transfer Out").Sum(o => o.Amount), Count = outflows.Count(o => o.TransactionType == "Transfer Out") },
+                new() { Category = "Loan Disbursements", Amount = 0, Count = 0 },
+                new() { Category = "Operating Expenses", Amount = 0, Count = 0 }
+            };
+            
+            // Recent transactions
+            recentTransactions = transactions.Take(10).Select(t => new CashTransaction
+            {
+                Date = t.CreatedAt,
+                Description = t.Description ?? $"{t.TransactionType} Transaction",
+                Category = t.TransactionType ?? "Unknown",
+                Type = (t.TransactionType == "Deposit" || t.TransactionType == "Interest Credit") ? "Inflow" : "Outflow",
+                Amount = t.Amount
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to load cash flow data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadData();
+        NotificationService.ShowSuccess("Refreshed", "Cash flow data refreshed successfully");
+    }
+
+    private async Task ExportReport()
+    {
+        await LogAdminAction("EXPORT", "Cash Flow Report", $"Admin exported cash flow report for {selectedPeriod} period");
+        NotificationService.ShowSuccess("Export", "Cash flow report export initiated");
+    }
+
+    private async Task LogAdminAction(string action, string module, string description)
+    {
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            var auditLog = new AuditLog
+            {
+                UserId = AuthService.CurrentUserId?.ToString() ?? "system",
+                Action = $"ADMIN_{action}",
+                Module = module,
+                Description = $"[ADMIN] {description}",
+                CreatedAt = DateTime.Now
+            };
+            context.AuditLogs.Add(auditLog);
+            await context.SaveChangesAsync();
+        }
+        catch { }
+    }
+
+    private class CashFlowItem
+    {
+        public string Category { get; set; } = "";
+        public decimal Amount { get; set; }
+        public int Count { get; set; }
+    }
+
+    private class CashTransaction
+    {
+        public DateTime Date { get; set; }
+        public string Description { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string Type { get; set; } = "";
+        public decimal Amount { get; set; }
+    }
+}

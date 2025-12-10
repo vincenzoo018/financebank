@@ -1,0 +1,202 @@
+@page "/admin/accountant/trial-balance"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject AuthService AuthService
+@inject TrialBalanceService TrialBalanceService
+@inject NotificationService NotificationService
+@inject IDbContextFactory<BFASDbContext> DbFactory
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M12 3v18M3 12h18"/>
+                    <circle cx="12" cy="12" r="9"/>
+                </svg>
+            </div>
+            <div>
+                <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Admin - Trial Balance</h1>
+                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Verify account balances with administrative oversight</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn" style="background: white; color: #7c3aed; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600;" @onclick="GenerateTrialBalance">
+                🔄 Generate
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Notice -->
+<div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 24px;">⚠️</span>
+        <div>
+            <p style="font-weight: 700; color: #92400e; margin: 0;">Administrative Access</p>
+            <p style="font-size: 13px; color: #78350f; margin: 4px 0 0 0;">Trial balance generation is logged for audit purposes.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Balance Status -->
+@if (isGenerated)
+{
+    <div style="background: @(isBalanced ? "#d1fae5" : "#fee2e2"); border: 1px solid @(isBalanced ? "#6ee7b7" : "#fecaca"); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 32px;">@(isBalanced ? "✅" : "⚠️")</span>
+            <div>
+                <p style="font-weight: 700; margin: 0; color: @(isBalanced ? "#166534" : "#991b1b");">
+                    @(isBalanced ? "Trial Balance is Balanced" : "Trial Balance is NOT Balanced")
+                </p>
+                <p style="font-size: 14px; margin: 4px 0 0 0; color: @(isBalanced ? "#065f46" : "#7f1d1d");">
+                    Debits: ₱@totalDebits.ToString("N2") | Credits: ₱@totalCredits.ToString("N2") | Difference: ₱@Math.Abs(totalDebits - totalCredits).ToString("N2")
+                </p>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
+    <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <p style="font-size: 13px; color: #6b7280; margin: 0;">Total Accounts</p>
+        <p style="font-size: 28px; font-weight: 700; color: #1e293b; margin: 4px 0 0 0;">@trialBalanceItems.Count</p>
+    </div>
+    <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <p style="font-size: 13px; color: #6b7280; margin: 0;">Total Debits</p>
+        <p style="font-size: 28px; font-weight: 700; color: #3b82f6; margin: 4px 0 0 0;">₱@totalDebits.ToString("N2")</p>
+    </div>
+    <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <p style="font-size: 13px; color: #6b7280; margin: 0;">Total Credits</p>
+        <p style="font-size: 28px; font-weight: 700; color: #10b981; margin: 4px 0 0 0;">₱@totalCredits.ToString("N2")</p>
+    </div>
+</div>
+
+<!-- Trial Balance Table -->
+<div style="background: white; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden;">
+    @if (isLoading)
+    {
+        <div style="padding: 60px; text-align: center;">
+            <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            <p style="color: #6b7280; margin-top: 16px;">Generating trial balance...</p>
+        </div>
+    }
+    else if (!trialBalanceItems.Any())
+    {
+        <div style="padding: 60px; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+            <p style="color: #6b7280;">Click "Generate" to create a trial balance report</p>
+        </div>
+    }
+    else
+    {
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f9fafb;">
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280;">Account Code</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280;">Account Name</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280;">Type</th>
+                    <th style="padding: 12px 16px; text-align: right; font-size: 12px; font-weight: 600; color: #6b7280;">Debit</th>
+                    <th style="padding: 12px 16px; text-align: right; font-size: 12px; font-weight: 600; color: #6b7280;">Credit</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in trialBalanceItems)
+                {
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 16px; font-weight: 600; font-family: monospace;">@item.AccountCode</td>
+                        <td style="padding: 16px;">@item.AccountName</td>
+                        <td style="padding: 16px; color: #6b7280;">@item.AccountType</td>
+                        <td style="padding: 16px; text-align: right; font-weight: 600; color: #3b82f6;">
+                            @(item.DebitBalance > 0 ? $"₱{item.DebitBalance:N2}" : "-")
+                        </td>
+                        <td style="padding: 16px; text-align: right; font-weight: 600; color: #10b981;">
+                            @(item.CreditBalance > 0 ? $"₱{item.CreditBalance:N2}" : "-")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr style="background: #f9fafb; font-weight: 700;">
+                    <td colspan="3" style="padding: 16px;">TOTALS</td>
+                    <td style="padding: 16px; text-align: right; color: #3b82f6;">₱@totalDebits.ToString("N2")</td>
+                    <td style="padding: 16px; text-align: right; color: #10b981;">₱@totalCredits.ToString("N2")</td>
+                </tr>
+            </tfoot>
+        </table>
+    }
+</div>
+
+<style>
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    private List<TrialBalanceEntry> trialBalanceItems = new();
+    private bool isLoading = false;
+    private bool isGenerated = false;
+    private bool isBalanced = false;
+    private decimal totalDebits = 0;
+    private decimal totalCredits = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LogAdminAction("VIEW", "Trial Balance", "Admin accessed Trial Balance page");
+    }
+
+    private async Task GenerateTrialBalance()
+    {
+        isLoading = true;
+        isGenerated = false;
+        
+        try
+        {
+            trialBalanceItems = await TrialBalanceService.GetAllAsync();
+            
+            totalDebits = trialBalanceItems.Sum(i => i.DebitBalance);
+            totalCredits = trialBalanceItems.Sum(i => i.CreditBalance);
+            isBalanced = Math.Abs(totalDebits - totalCredits) < 0.01m;
+            isGenerated = true;
+            
+            await LogAdminAction("GENERATE", "Trial Balance", $"Generated trial balance - Debits: ₱{totalDebits:N2}, Credits: ₱{totalCredits:N2}");
+            NotificationService.ShowSuccess("Generated", "Trial balance report generated successfully");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError("Error", $"Failed to generate trial balance: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LogAdminAction(string action, string recordId, string reason)
+    {
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            
+            var auditLog = new AuditLog
+            {
+                UserId = AuthService.CurrentUser ?? "ADMIN",
+                Action = action,
+                Module = "Admin_TrialBalance",
+                Description = $"[ADMIN] Record: {recordId} - {reason}",
+                IpAddress = "Internal",
+                UserAgent = "AdminPanel",
+                CreatedAt = DateTime.Now
+            };
+            
+            context.AuditLogs.Add(auditLog);
+            await context.SaveChangesAsync();
+        }
+        catch { }
+    }
+}

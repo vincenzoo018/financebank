@@ -4,6 +4,7 @@
 @using FinanceBank.Models
 @inject AuthService AuthService
 @inject SavingsInterestService InterestService
+@inject NotificationService NotificationService
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Header -->
@@ -435,16 +436,19 @@
             {
                 successMessage = $"✅ SUCCESS: Daily Interest Computed!\n\nAccounts Processed: {accountsProcessed}\nTotal Interest: ₱{totalInterest:N4}\nDate: {DateTime.Today:MMM dd, yyyy}\n\nThe interest has been computed and stored. Create a batch when ready to submit for approval.";
                 lastComputationInfo = $"{DateTime.Now:MMM dd, yyyy hh:mm tt} - {accountsProcessed} accounts, ₱{totalInterest:N4}";
+                NotificationService.ShowSuccess("Interest Computed", $"Daily interest computed successfully. {accountsProcessed} accounts processed, total ₱{totalInterest:N4}");
                 await LoadData(); // Refresh unposted interest
             }
             else
             {
                 errorMessage = $"⚠️ {message}";
+                NotificationService.ShowWarning("No Interest Computed", message);
             }
         }
         catch (Exception ex)
         {
             errorMessage = $"❌ SYSTEM ERROR: Failed to compute daily interest.\n\nDetails: {ex.Message}\n\nPlease try again or contact system administrator.";
+            NotificationService.ShowError("Computation Failed", $"Failed to compute daily interest: {ex.Message}");
         }
         finally
         {
@@ -471,12 +475,14 @@
         if (batchPeriodStart >= batchPeriodEnd)
         {
             errorMessage = "❌ Invalid period: Start date must be before end date.";
+            NotificationService.ShowError("Validation Error", "Start date must be before end date.");
             return;
         }
 
         if (batchPeriodEnd > DateTime.Today)
         {
             errorMessage = "❌ Invalid period: End date cannot be in the future.";
+            NotificationService.ShowError("Validation Error", "End date cannot be in the future.");
             return;
         }
 
@@ -487,6 +493,7 @@
         try
         {
             var accountantName = AuthService.FullName ?? "Accountant";
+            var reason = $"Batch created by {accountantName} for period {batchPeriodStart:MMM dd} - {batchPeriodEnd:MMM dd, yyyy}";
             var (success, message, posting) = await InterestService.CreateMonthlyPostingBatchAsync(
                 batchPeriodStart,
                 batchPeriodEnd,
@@ -495,17 +502,20 @@
             if (success && posting != null)
             {
                 successMessage = $"✅ SUCCESS: Interest Batch #{posting.PostingId} CREATED!\n\nPeriod: {posting.PeriodStart:MMM dd} - {posting.PeriodEnd:MMM dd, yyyy}\nTotal Interest: ₱{posting.TotalInterestPosted:N2}\nAccounts: {posting.AccountsProcessed}\n\nStatus: Pending Finance Manager Approval\nThe batch has been created and is awaiting Finance Manager review.";
+                NotificationService.ShowSuccess("Batch Created", $"Interest Batch #{posting.PostingId} created successfully. Reason: {reason}");
                 showCreateBatchDialog = false;
                 await LoadData();
             }
             else
             {
                 errorMessage = $"❌ BATCH CREATION FAILED: {message}";
+                NotificationService.ShowError("Batch Creation Failed", message);
             }
         }
         catch (Exception ex)
         {
             errorMessage = $"❌ SYSTEM ERROR: Unable to create interest batch.\n\nDetails: {ex.Message}\n\nPlease verify the period dates and try again.";
+            NotificationService.ShowError("System Error", $"Unable to create batch: {ex.Message}");
         }
         finally
         {
@@ -537,11 +547,13 @@
         try
         {
             var accountantName = AuthService.FullName ?? "Accountant";
+            var reason = $"Interest released by {accountantName} at {DateTime.Now:g}. Batch #{selectedBatch.PostingId}, Total: ₱{selectedBatch.TotalInterestPosted:N2}";
             (bool success, string message) = await InterestService.ReleaseInterestToAccountsAsync(selectedBatch.PostingId, accountantName);
 
             if (success)
             {
                 successMessage = $"✅ SUCCESS: Interest Batch #{selectedBatch.PostingId} RELEASED!\n\nTotal Interest Posted: ₱{selectedBatch.TotalInterestPosted:N2}\nAccounts Updated: {selectedBatch.AccountsProcessed}\nPeriod: {selectedBatch.PeriodStart:MMM dd} - {selectedBatch.PeriodEnd:MMM dd, yyyy}\n\nStatus: Interest has been successfully credited to all customer savings accounts.\nCustomers can now see their updated balances.";
+                NotificationService.ShowSuccess("Interest Released", $"Batch #{selectedBatch.PostingId} released successfully. Reason: {reason}");
                 showReleaseConfirm = false;
                 selectedBatch = null;
                 await LoadData();
@@ -549,11 +561,13 @@
             else
             {
                 errorMessage = $"❌ RELEASE FAILED: {message}\n\nThe interest was not posted to customer accounts. Please verify the batch and try again.";
+                NotificationService.ShowError("Release Failed", message);
             }
         }
         catch (Exception ex)
         {
             errorMessage = $"❌ SYSTEM ERROR: Unable to release interest batch.\n\nDetails: {ex.Message}\n\nBatch #{selectedBatch.PostingId} was not released. Please contact system administrator.";
+            NotificationService.ShowError("System Error", $"Unable to release batch: {ex.Message}");
         }
         finally
         {
