@@ -1,56 +1,72 @@
-@page "/admin/teller/customer-accounts"
+@page "/admin/teller-ops/accounts"
 @layout AdminLayout
 @using FinanceBank.Services
 @using FinanceBank.Models
-@using Microsoft.EntityFrameworkCore
-@using FinanceBank.Data
 @inject AuthService AuthService
 @inject CustomerAccountService CustomerAccountService
 @inject CustomerTransactionService CustomerTransactionService
-@inject IDbContextFactory<BFASDbContext> DbContextFactory
 @inject NavigationManager Navigation
 
-<!-- Header with Gradient -->
-<div style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
-    <div style="display: flex; align-items: center; gap: 12px;">
-        <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-        </svg>
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+            </svg>
+        </div>
         <div>
-            <h1 style="font-size: 20px; font-weight: 700; margin: 0;">Customer Accounts (Admin)</h1>
-            <p style="margin: 4px 0 0; opacity: 0.9; font-size: 13px;">View and manage customer accounts - SuperAdmin Access</p>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Customer Accounts</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">View and manage customer accounts</p>
         </div>
     </div>
 </div>
 
-<!-- Admin Notice -->
-<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-    <div style="display: flex; align-items: center; gap: 12px;">
-        <span style="font-size: 24px;">⚠️</span>
-        <div>
-            <p style="margin: 0; font-weight: 600; color: #92400e;">Administrative Access</p>
-            <p style="margin: 4px 0 0; font-size: 13px; color: #a16207;">You are viewing all customer accounts as SuperAdmin</p>
-        </div>
-    </div>
+<!-- Admin Access Notice -->
+<div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+    <p style="margin: 0; color: #1e40af; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 20px;">ℹ️</span>
+        <strong>SuperAdmin Teller Operations Access</strong> - Full customer account visibility with override capabilities
+    </p>
 </div>
 
 <!-- Search & Filter -->
 <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
     <div style="flex: 1 1 250px;">
         <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Search Account</label>
-        <input type="text" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" @bind="searchQuery" @oninput="FilterAccounts" placeholder="Account number or customer name..." />
+        <input type="text" class="form-control" @bind="searchQuery" @oninput="FilterAccounts" placeholder="Account number or customer name..." />
     </div>
     <div style="flex: 1 1 200px;">
         <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Account Status</label>
-        <select style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" @bind="selectedStatus">
+        <select class="form-control" @bind="selectedStatus">
             <option value="">All</option>
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
         </select>
     </div>
     <div style="flex: 0 0 auto; display:flex; gap:8px;">
-        <button style="background:#f3f4f6; color:#111827; padding:10px 20px; border-radius:8px; font-size:14px; font-weight: 600; border: none; cursor: pointer;" @onclick="ReloadAccounts">Refresh</button>
+        <button class="btn" style="background:#059669; color:white; padding:8px 16px; border-radius:8px; font-size:14px; font-weight:600;" @onclick="ReloadAccounts">🔄 Refresh</button>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 16px; border: 1px solid #6ee7b7;">
+        <div style="font-size: 12px; color: #065f46; font-weight: 600;">TOTAL ACCOUNTS</div>
+        <div style="font-size: 24px; font-weight: 700; color: #047857;">@accounts.Count</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 12px; padding: 16px; border: 1px solid #93c5fd;">
+        <div style="font-size: 12px; color: #1e40af; font-weight: 600;">ACTIVE</div>
+        <div style="font-size: 24px; font-weight: 700; color: #2563eb;">@accounts.Count(a => a.IsActive)</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 12px; padding: 16px; border: 1px solid #fca5a5;">
+        <div style="font-size: 12px; color: #991b1b; font-weight: 600;">INACTIVE</div>
+        <div style="font-size: 24px; font-weight: 700; color: #dc2626;">@accounts.Count(a => !a.IsActive)</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 12px; padding: 16px; border: 1px solid #fcd34d;">
+        <div style="font-size: 12px; color: #92400e; font-weight: 600;">TOTAL BALANCE</div>
+        <div style="font-size: 24px; font-weight: 700; color: #d97706;">₱@accounts.Sum(a => a.Balance).ToString("N0")</div>
     </div>
 </div>
 
@@ -58,13 +74,14 @@
 <div style="background:white; border-radius:16px; border:1px solid #e5e7eb; overflow:hidden;">
     <table style="width:100%; border-collapse:collapse;">
         <thead>
-            <tr style="background:#f9fafb; border-bottom:2px solid #e5e7eb;">
-                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280; font-weight: 700;">ACCOUNT NUMBER</th>
-                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280; font-weight: 700;">CUSTOMER NAME</th>
-                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280; font-weight: 700;">BALANCE</th>
-                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280; font-weight: 700;">ACTIVE</th>
-                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280; font-weight: 700;">CREATED</th>
-                <th style="padding:12px; text-align:center; font-size:12px; color:#6b7280; font-weight: 700;">ACTIONS</th>
+            <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">ACCOUNT NUMBER</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">CUSTOMER NAME</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">BALANCE</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">AVAILABLE</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">STATUS</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">CREATED</th>
+                <th style="padding:12px; text-align:center; font-size:12px; color:#6b7280;">ACTIONS</th>
             </tr>
         </thead>
         <tbody>
@@ -76,6 +93,7 @@
                         <td style="padding:12px; font-size:13px; color:#111827; font-weight:600;">@account.AccountNumber</td>
                         <td style="padding:12px; font-size:13px; color:#4b5563;">@account.Customer?.FullName</td>
                         <td style="padding:12px; font-size:13px; color:#111827; font-weight:600;">₱@account.Balance.ToString("N2")</td>
+                        <td style="padding:12px; font-size:13px; color:#059669; font-weight:600;">₱@account.AvailableBalance.ToString("N2")</td>
                         <td style="padding:12px;">
                             <span style="display:inline-flex; align-items:center; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:@(account.IsActive ? "#d1fae5" : "#fee2e2"); color:@(account.IsActive ? "#065f46" : "#b91c1c");">
                                 @(account.IsActive ? "Active" : "Inactive")
@@ -83,7 +101,8 @@
                         </td>
                         <td style="padding:12px; font-size:13px; color:#6b7280;">@account.CreatedAt.ToString("yyyy-MM-dd")</td>
                         <td style="padding:12px; text-align:center;">
-                            <button style="background:#1f2937; color:white; padding:6px 12px; font-size:12px; border-radius:6px; border: none; cursor: pointer; font-weight: 600;" @onclick="() => ViewAccountDetails(account)">View</button>
+                            <button class="btn" style="background:#1f2937; color:white; padding:6px 12px; font-size:12px; border-radius:6px; margin-right:4px;" @onclick="() => ViewAccountDetails(account)">View</button>
+                            <button class="btn" style="background:#059669; color:white; padding:6px 12px; font-size:12px; border-radius:6px;" @onclick="() => QuickDeposit(account)">Deposit</button>
                         </td>
                     </tr>
                 }
@@ -91,7 +110,7 @@
             else
             {
                 <tr>
-                    <td colspan="6" style="padding:24px; text-align:center; font-size:14px; color:#6b7280;">No accounts found.</td>
+                    <td colspan="7" style="padding:24px; text-align:center; font-size:14px; color:#6b7280;">No accounts found.</td>
                 </tr>
             }
         </tbody>
@@ -103,9 +122,9 @@
 {
     <div @onclick="CloseDetailsModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;">
         <div @onclick:stopPropagation style="background:white; border-radius:16px; max-width:700px; width:100%; max-height:80vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <div style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
-                <h2 style="font-size:20px; font-weight:700; color:#111827; margin:0;">Account Details</h2>
-                <button @onclick="CloseDetailsModal" style="background:none; border:none; font-size:22px; color:#6b7280; cursor:pointer;">×</button>
+            <div style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #059669, #047857); border-radius: 16px 16px 0 0;">
+                <h2 style="font-size:20px; font-weight:700; color:white; margin:0;">👑 Admin: Account Details</h2>
+                <button @onclick="CloseDetailsModal" style="background:rgba(255,255,255,0.2); border:none; font-size:22px; color:white; cursor:pointer; width:32px; height:32px; border-radius:8px;">×</button>
             </div>
             <div style="padding:20px 24px;">
                 <!-- Account Info -->
@@ -161,6 +180,16 @@
                     </div>
                 </div>
 
+                <!-- Admin Actions -->
+                <div style="margin-bottom:24px; background:#f3e8ff; padding:16px; border-radius:12px; border:2px solid #c4b5fd;">
+                    <h3 style="font-size:14px; font-weight:700; color:#7c3aed; margin-bottom:12px;">👑 Admin Quick Actions</h3>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button style="padding:8px 16px; background:#059669; color:white; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;" @onclick="() => QuickDeposit(selectedAccount)">💰 Quick Deposit</button>
+                        <button style="padding:8px 16px; background:#dc2626; color:white; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;" @onclick="() => QuickWithdraw(selectedAccount)">💸 Quick Withdraw</button>
+                        <button style="padding:8px 16px; background:#7c3aed; color:white; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;">📊 Full History</button>
+                    </div>
+                </div>
+
                 <!-- Recent Transactions -->
                 <div>
                     <h3 style="font-size:16px; font-weight:600; color:#111827; margin-bottom:12px;">Recent Transactions</h3>
@@ -173,15 +202,23 @@
                                         <th style="padding:8px 12px; text-align:left; font-size:11px; color:#6b7280;">TYPE</th>
                                         <th style="padding:8px 12px; text-align:left; font-size:11px; color:#6b7280;">AMOUNT</th>
                                         <th style="padding:8px 12px; text-align:left; font-size:11px; color:#6b7280;">DATE</th>
+                                        <th style="padding:8px 12px; text-align:left; font-size:11px; color:#6b7280;">BY</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var txn in recentTransactions.Take(5))
                                     {
-                                        <tr style="border-bottom:1px solid #e5e7eb;">
+                                        var isAdminTxn = txn.Description?.Contains("[ADMIN") ?? false;
+                                        <tr style="border-bottom:1px solid #e5e7eb; @(isAdminTxn ? "background:#faf5ff;" : "")">
                                             <td style="padding:8px 12px; font-size:12px; color:#111827;">@txn.TransactionType</td>
                                             <td style="padding:8px 12px; font-size:12px; color:#111827; font-weight:600;">₱@txn.Amount.ToString("N2")</td>
                                             <td style="padding:8px 12px; font-size:12px; color:#6b7280;">@txn.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                            <td style="padding:8px 12px; font-size:11px;">
+                                                @if (isAdminTxn)
+                                                {
+                                                    <span style="background:#f3e8ff; color:#7c3aed; padding:2px 6px; border-radius:4px;">👑</span>
+                                                }
+                                            </td>
                                         </tr>
                                     }
                                 </tbody>
@@ -195,7 +232,7 @@
                 </div>
             </div>
             <div style="padding:16px 24px; border-top:1px solid #e5e7eb; display:flex; justify-content:flex-end;">
-                <button style="background:#f3f4f6; color:#111827; padding:8px 16px; border-radius:8px; font-size:14px; border: none; cursor: pointer; font-weight: 600;" @onclick="CloseDetailsModal">Close</button>
+                <button class="btn" style="background:#f3f4f6; color:#111827; padding:8px 16px; border-radius:8px; font-size:14px;" @onclick="CloseDetailsModal">Close</button>
             </div>
         </div>
     </div>
@@ -211,12 +248,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (!AuthService.HasRole(AuthService.Roles.SuperAdmin))
+        // Verify admin access
+        if (AuthService.CurrentRole != "SuperAdmin")
         {
-            Navigation.NavigateTo("/admin/dashboard");
+            Navigation.NavigateTo("/admin");
             return;
         }
-        
+
         await ReloadAccounts();
     }
 
@@ -224,12 +262,7 @@
     {
         try
         {
-            // Load all accounts (both active and inactive) for admin view
-            using var context = await DbContextFactory.CreateDbContextAsync();
-            accounts = await context.CustomerAccounts
-                .Include(ca => ca.Customer)
-                .OrderByDescending(ca => ca.CreatedAt)
-                .ToListAsync();
+            accounts = await CustomerAccountService.GetAllAsync();
         }
         catch (Exception ex)
         {
@@ -273,5 +306,17 @@
         showDetailsModal = false;
         selectedAccount = null;
         recentTransactions = new List<CustomerTransaction>();
+    }
+
+    private void QuickDeposit(CustomerAccount account)
+    {
+        // Navigate to deposit page with account pre-filled
+        Navigation.NavigateTo($"/admin/teller-ops/deposits?account={account.AccountNumber}");
+    }
+
+    private void QuickWithdraw(CustomerAccount account)
+    {
+        // Navigate to withdrawal page with account pre-filled
+        Navigation.NavigateTo($"/admin/teller-ops/withdrawals?account={account.AccountNumber}");
     }
 }

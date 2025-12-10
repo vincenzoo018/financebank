@@ -130,8 +130,8 @@ namespace FinanceBank.Services
 
                 // Check if account is fully locked (2 failed PIN attempts - needs SuperAdmin)
                 var isFullyLocked = await context.AuditLogs
-                    .Where(a => a.CustomerAccountId == user.UserId && 
-                               a.Action == "PIN_VERIFICATION_FAILED" && 
+                    .Where(a => a.CustomerAccountId == user.UserId &&
+                               a.Action == "PIN_VERIFICATION_FAILED" &&
                                a.PinAttemptCount >= 2 &&
                                a.CreatedAt >= DateTime.Now.AddHours(-24))
                     .AnyAsync();
@@ -140,15 +140,15 @@ namespace FinanceBank.Services
                 {
                     // Check if SuperAdmin unlocked
                     var adminUnlock = await context.AuditLogs
-                        .Where(a => a.CustomerAccountId == user.UserId && 
-                                   a.Action == "ADMIN_ACCOUNT_UNLOCK" && 
+                        .Where(a => a.CustomerAccountId == user.UserId &&
+                                   a.Action == "ADMIN_ACCOUNT_UNLOCK" &&
                                    a.CreatedAt >= DateTime.Now.AddHours(-24))
                         .OrderByDescending(a => a.CreatedAt)
                         .FirstOrDefaultAsync();
 
                     var lastPinFailure = await context.AuditLogs
-                        .Where(a => a.CustomerAccountId == user.UserId && 
-                                   a.Action == "PIN_VERIFICATION_FAILED" && 
+                        .Where(a => a.CustomerAccountId == user.UserId &&
+                                   a.Action == "PIN_VERIFICATION_FAILED" &&
                                    a.CreatedAt >= DateTime.Now.AddHours(-24))
                         .OrderByDescending(a => a.CreatedAt)
                         .FirstOrDefaultAsync();
@@ -161,8 +161,8 @@ namespace FinanceBank.Services
 
                 // Check if account is locked (5 failed password attempts - needs PIN)
                 var recentMaliciousAttempt = await context.AuditLogs
-                    .Where(a => a.CustomerAccountId == user.UserId && 
-                               a.IsAccountLocked == true && 
+                    .Where(a => a.CustomerAccountId == user.UserId &&
+                               a.IsAccountLocked == true &&
                                a.Action == "MALICIOUS_ATTEMPT" &&
                                a.CreatedAt >= DateTime.Now.AddHours(-24))
                     .OrderByDescending(a => a.CreatedAt)
@@ -172,7 +172,7 @@ namespace FinanceBank.Services
                 {
                     // Check if there's a subsequent unlock
                     var wasUnlocked = await context.AuditLogs
-                        .AnyAsync(a => a.CustomerAccountId == user.UserId && 
+                        .AnyAsync(a => a.CustomerAccountId == user.UserId &&
                                       (a.Action == "ACCOUNT_UNLOCKED" || a.Action == "ADMIN_ACCOUNT_UNLOCK") &&
                                       a.CreatedAt > recentMaliciousAttempt.CreatedAt);
 
@@ -189,8 +189,8 @@ namespace FinanceBank.Services
                 {
                     // Count recent failed attempts from AuditLogs (using new columns)
                     var failedAttempts = await context.AuditLogs
-                        .Where(a => a.CustomerAccountId == user.UserId && 
-                                   a.Action == "LOGIN_FAILED" && 
+                        .Where(a => a.CustomerAccountId == user.UserId &&
+                                   a.Action == "LOGIN_FAILED" &&
                                    a.CreatedAt >= DateTime.Now.AddHours(-1))
                         .CountAsync();
 
@@ -209,7 +209,7 @@ namespace FinanceBank.Services
                     await LogFailedLoginAsync(username, "Invalid password", ipAddress, userAgent);
                     // Log failed password to AuditLogs with new columns
                     await LogAuditFailedLoginWithColumnsAsync(user.UserId, username, $"Invalid password (Attempt {failedAttempts}/5)", ipAddress ?? "Unknown", userAgent ?? "Unknown", failedAttempts);
-                    
+
                     int remainingAttempts = 5 - failedAttempts;
                     if (user.Role == Roles.Customer && remainingAttempts > 0 && remainingAttempts <= 2)
                     {
@@ -582,8 +582,8 @@ namespace FinanceBank.Services
 
                 // Count recent PIN attempts
                 var recentPinAttempts = await context.AuditLogs
-                    .Where(a => a.CustomerAccountId == user.UserId && 
-                               a.Action == "PIN_VERIFICATION_FAILED" && 
+                    .Where(a => a.CustomerAccountId == user.UserId &&
+                               a.Action == "PIN_VERIFICATION_FAILED" &&
                                a.CreatedAt >= DateTime.Now.AddHours(-24))
                     .CountAsync();
 
@@ -766,7 +766,7 @@ namespace FinanceBank.Services
                     UserId = userId.ToString(),
                     Action = "ADMIN_ACCOUNT_UNLOCK",
                     Module = "Security",
-                    Description = $"Account unlocked by SuperAdmin '{adminUsername}' for user '{user.Username}'" + 
+                    Description = $"Account unlocked by SuperAdmin '{adminUsername}' for user '{user.Username}'" +
                                  (!string.IsNullOrEmpty(newPassword) ? " - Password reset" : ""),
                     CreatedAt = DateTime.Now,
                     IsMalicious = false,
@@ -919,8 +919,8 @@ namespace FinanceBank.Services
 
                 // Count recent failed attempts from AuditLogs
                 var failedAttempts = await context.AuditLogs
-                    .Where(a => a.UserId == user.UserId.ToString() && 
-                               a.Action == "LOGIN_FAILED" && 
+                    .Where(a => a.UserId == user.UserId.ToString() &&
+                               a.Action == "LOGIN_FAILED" &&
                                a.CreatedAt >= DateTime.Now.AddHours(-1))
                     .CountAsync();
 
@@ -947,8 +947,8 @@ namespace FinanceBank.Services
 
                 // Check for recent security events (within 24 hours)
                 var recentLockEvent = await context.AuditLogs
-                    .Where(a => a.CustomerAccountId == user.UserId && 
-                               a.IsAccountLocked == true && 
+                    .Where(a => a.CustomerAccountId == user.UserId &&
+                               a.IsAccountLocked == true &&
                                a.CreatedAt >= DateTime.Now.AddHours(-24))
                     .OrderByDescending(a => a.CreatedAt)
                     .FirstOrDefaultAsync();
@@ -957,8 +957,8 @@ namespace FinanceBank.Services
                 {
                     // Check if account was unlocked after the lock event
                     var unlockEvent = await context.AuditLogs
-                        .Where(a => a.CustomerAccountId == user.UserId && 
-                                   a.Action == "ACCOUNT_UNLOCKED" && 
+                        .Where(a => a.CustomerAccountId == user.UserId &&
+                                   a.Action == "ACCOUNT_UNLOCKED" &&
                                    a.CreatedAt > recentLockEvent.CreatedAt)
                         .FirstOrDefaultAsync();
 
@@ -996,8 +996,8 @@ namespace FinanceBank.Services
 
                 // Check for 2 failed PIN attempts (fully locked)
                 var pinFailures = await context.AuditLogs
-                    .Where(a => a.CustomerAccountId == user.UserId && 
-                               a.Action == "PIN_VERIFICATION_FAILED" && 
+                    .Where(a => a.CustomerAccountId == user.UserId &&
+                               a.Action == "PIN_VERIFICATION_FAILED" &&
                                a.CreatedAt >= DateTime.Now.AddHours(-24))
                     .CountAsync();
 
@@ -1005,15 +1005,15 @@ namespace FinanceBank.Services
                 {
                     // Check if SuperAdmin unlocked after
                     var adminUnlock = await context.AuditLogs
-                        .Where(a => a.CustomerAccountId == user.UserId && 
-                                   a.Action == "ADMIN_ACCOUNT_UNLOCK" && 
+                        .Where(a => a.CustomerAccountId == user.UserId &&
+                                   a.Action == "ADMIN_ACCOUNT_UNLOCK" &&
                                    a.CreatedAt >= DateTime.Now.AddHours(-24))
                         .OrderByDescending(a => a.CreatedAt)
                         .FirstOrDefaultAsync();
 
                     var lastPinFailure = await context.AuditLogs
-                        .Where(a => a.CustomerAccountId == user.UserId && 
-                                   a.Action == "PIN_VERIFICATION_FAILED" && 
+                        .Where(a => a.CustomerAccountId == user.UserId &&
+                                   a.Action == "PIN_VERIFICATION_FAILED" &&
                                    a.CreatedAt >= DateTime.Now.AddHours(-24))
                         .OrderByDescending(a => a.CreatedAt)
                         .FirstOrDefaultAsync();
@@ -1039,11 +1039,11 @@ namespace FinanceBank.Services
             try
             {
                 using var context = await _contextFactory.CreateDbContextAsync();
-                
+
                 // Count recent failed attempts from AuditLogs
                 var failedAttempts = await context.AuditLogs
-                    .Where(a => a.UserId == customerId.ToString() && 
-                               (a.Action == "FAILED_PASSWORD_VERIFICATION" || a.Action == "LOGIN_FAILED") && 
+                    .Where(a => a.UserId == customerId.ToString() &&
+                               (a.Action == "FAILED_PASSWORD_VERIFICATION" || a.Action == "LOGIN_FAILED") &&
                                a.CreatedAt >= DateTime.Now.AddHours(-1))
                     .CountAsync();
 
@@ -1092,7 +1092,7 @@ namespace FinanceBank.Services
             try
             {
                 using var context = await _contextFactory.CreateDbContextAsync();
-                
+
                 // Log successful verification to mark end of failed attempt series
                 var auditLog = new AuditLog
                 {

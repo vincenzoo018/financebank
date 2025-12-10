@@ -6,6 +6,7 @@
 @inject AuthService AuthService
 @inject IDbContextFactory<BFASDbContext> DbContextFactory
 @inject NavigationManager Navigation
+@inject TellerReportService ReportService
 
 <style>
     /* Control icon sizes */
@@ -193,6 +194,72 @@
                 </div>
             </div>
         </div>
+
+        <!-- ==================== TELLER OPERATIONS ANALYTICS ==================== -->
+        <div style="background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), rgba(4, 120, 87, 0.15)); border: 1px solid rgba(5, 150, 105, 0.3); border-radius: 16px; padding: 24px; margin-bottom: 32px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
+                <div>
+                    <h2 style="font-size: 20px; font-weight: 700; margin: 0; color: #065f46; display: flex; align-items: center; gap: 8px;">
+                        <svg width="24" height="24" fill="none" stroke="#059669" stroke-width="2" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                            <line x1="9" y1="21" x2="9" y2="9"></line>
+                        </svg>
+                        Teller Operations Analytics
+                    </h2>
+                    <p style="margin: 4px 0 0; font-size: 14px; color: #065f46; opacity: 0.85;">Real-time teller transaction monitoring</p>
+                </div>
+                <a href="/admin/teller-ops/deposits" style="padding: 10px 20px; background: white; color: #065f46; border-radius: 10px; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    Go to Teller Operations →
+                </a>
+            </div>
+            
+            <!-- Teller Quick Stats -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+                <!-- Deposits Today -->
+                <div style="background: white; border-radius: 12px; padding: 16px; border-left: 4px solid #059669;">
+                    <p style="margin: 0; font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Deposits</p>
+                    <h3 style="margin: 6px 0 0; font-size: 22px; font-weight: 700; color: #059669;">₱@tellerDepositsTotal.ToString("N2")</h3>
+                    <p style="margin: 2px 0 0; font-size: 11px; color: #6b7280;">@tellerDepositsCount transactions</p>
+                </div>
+
+                <!-- Withdrawals Today -->
+                <div style="background: white; border-radius: 12px; padding: 16px; border-left: 4px solid #dc2626;">
+                    <p style="margin: 0; font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Withdrawals</p>
+                    <h3 style="margin: 6px 0 0; font-size: 22px; font-weight: 700; color: #dc2626;">₱@tellerWithdrawalsTotal.ToString("N2")</h3>
+                    <p style="margin: 2px 0 0; font-size: 11px; color: #6b7280;">@tellerWithdrawalsCount transactions</p>
+                </div>
+
+                <!-- Loan Payments Today -->
+                <div style="background: white; border-radius: 12px; padding: 16px; border-left: 4px solid #3b82f6;">
+                    <p style="margin: 0; font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Loan Payments</p>
+                    <h3 style="margin: 6px 0 0; font-size: 22px; font-weight: 700; color: #3b82f6;">₱@tellerLoanPaymentsTotal.ToString("N2")</h3>
+                    <p style="margin: 2px 0 0; font-size: 11px; color: #6b7280;">@tellerLoanPaymentsCount payments</p>
+                </div>
+
+                <!-- Loan Releases Today -->
+                <div style="background: white; border-radius: 12px; padding: 16px; border-left: 4px solid #f59e0b;">
+                    <p style="margin: 0; font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Loan Releases</p>
+                    <h3 style="margin: 6px 0 0; font-size: 22px; font-weight: 700; color: #f59e0b;">₱@tellerLoanDisbursementsTotal.ToString("N2")</h3>
+                    <p style="margin: 2px 0 0; font-size: 11px; color: #6b7280;">@tellerLoanDisbursementsCount releases</p>
+                </div>
+
+                <!-- Net Cash Flow -->
+                <div style="background: white; border-radius: 12px; padding: 16px; border-left: 4px solid @(tellerNetCashFlow >= 0 ? "#10b981" : "#ef4444");">
+                    <p style="margin: 0; font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Net Cash Flow</p>
+                    <h3 style="margin: 6px 0 0; font-size: 22px; font-weight: 700; color: @(tellerNetCashFlow >= 0 ? "#10b981" : "#ef4444");">₱@tellerNetCashFlow.ToString("N2")</h3>
+                    <p style="margin: 2px 0 0; font-size: 11px; color: #6b7280;">@(tellerNetCashFlow >= 0 ? "Positive" : "Negative") flow</p>
+                </div>
+
+                <!-- Total Fee Income -->
+                <div style="background: white; border-radius: 12px; padding: 16px; border-left: 4px solid #8b5cf6;">
+                    <p style="margin: 0; font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Fee Income</p>
+                    <h3 style="margin: 6px 0 0; font-size: 22px; font-weight: 700; color: #8b5cf6;">₱@tellerFeeIncome.ToString("N2")</h3>
+                    <p style="margin: 2px 0 0; font-size: 11px; color: #6b7280;">fees & penalties</p>
+                </div>
+            </div>
+        </div>
+        <!-- ==================== END TELLER OPERATIONS ANALYTICS ==================== -->
 
         <!-- Analytics Charts Section -->
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px;">
@@ -502,6 +569,18 @@
     private int totalAccounts = 0;
     private int pendingApprovals = 0;
     
+    // Teller Operations Analytics
+    private decimal tellerDepositsTotal = 0;
+    private int tellerDepositsCount = 0;
+    private decimal tellerWithdrawalsTotal = 0;
+    private int tellerWithdrawalsCount = 0;
+    private decimal tellerLoanPaymentsTotal = 0;
+    private int tellerLoanPaymentsCount = 0;
+    private decimal tellerLoanDisbursementsTotal = 0;
+    private int tellerLoanDisbursementsCount = 0;
+    private decimal tellerNetCashFlow = 0;
+    private decimal tellerFeeIncome = 0;
+    
     // Teller Analytics
     private decimal totalDepositsToday = 0;
     private decimal totalWithdrawalsToday = 0;
@@ -577,6 +656,34 @@
                 .SumAsync(p => (decimal?)p.PaymentAmount) ?? 0;
 
             netCashFlow = totalDepositsToday + loanPaymentsToday - totalWithdrawalsToday;
+
+            // ===== Teller Operations Analytics (Full Dashboard Data) =====
+            tellerDepositsTotal = totalDepositsToday;
+            tellerDepositsCount = depositCountToday;
+            tellerWithdrawalsTotal = totalWithdrawalsToday;
+            tellerWithdrawalsCount = withdrawalCountToday;
+            
+            // Loan Payments
+            var loanPaymentsData = await context.LoanPayments
+                .Where(p => p.PaymentDate.Date == today)
+                .ToListAsync();
+            tellerLoanPaymentsTotal = loanPaymentsData.Sum(p => p.PaymentAmount);
+            tellerLoanPaymentsCount = loanPaymentsData.Count;
+            
+            // Loan Disbursements
+            var loanDisbursementsData = await context.LoanDisbursals
+                .Where(d => d.DisbursalDate.Date == today)
+                .ToListAsync();
+            tellerLoanDisbursementsTotal = loanDisbursementsData.Sum(d => d.DisbursalAmount);
+            tellerLoanDisbursementsCount = loanDisbursementsData.Count;
+            
+            // Net Cash Flow & Fees
+            tellerNetCashFlow = tellerDepositsTotal + tellerLoanPaymentsTotal - tellerWithdrawalsTotal - tellerLoanDisbursementsTotal;
+            
+            var depositFees = depositsToday.Sum(t => t.Fee);
+            var withdrawalFees = withdrawalsToday.Sum(t => t.Fee);
+            var penaltiesCollected = loanPaymentsData.Sum(p => p.PenaltyPaid);
+            tellerFeeIncome = depositFees + withdrawalFees + penaltiesCollected;
 
             // ===== Accountant Analytics =====
             totalAccountBalance = await context.CustomerAccounts.SumAsync(a => (decimal?)a.Balance) ?? 0;

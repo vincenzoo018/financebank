@@ -1088,7 +1088,7 @@ public class JournalEntryService
 public class GeneralLedgerService
 {
     private readonly BFASDbContext _context;
-    
+
     // Cache for auto-generated entries so View button can work
     private static List<GeneralLedgerTransaction> _cachedAutoEntries = new();
     private static DateTime _lastCacheUpdate = DateTime.MinValue;
@@ -1134,11 +1134,11 @@ public class GeneralLedgerService
         // 2. ALWAYS include auto-generated entries from other transactions
         // This ensures all deposits, withdrawals, loan payments, etc. appear in GL
         var autoEntries = await GenerateGLFromTransactionsAsync();
-        
+
         // Cache the auto-generated entries for View button
         _cachedAutoEntries = autoEntries;
         _lastCacheUpdate = DateTime.Now;
-        
+
         allEntries.AddRange(autoEntries);
 
         return allEntries.OrderByDescending(t => t.TransactionDate).ThenByDescending(t => t.GLTransactionId).ToList();
@@ -1571,11 +1571,11 @@ public class GeneralLedgerService
             {
                 await GetAllAsync(); // This will refresh the cache
             }
-            
+
             var cachedEntry = _cachedAutoEntries.FirstOrDefault(t => t.GLTransactionId == id);
             return cachedEntry;
         }
-        
+
         // For database entries (positive IDs), query the database
         var transaction = await _context.GeneralLedgerTransactions
             .Include(t => t.Account)
@@ -3179,8 +3179,8 @@ public class AuditLogService
     /// </summary>
     public async Task<List<AuditLog>> GetSecurityLogsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
-        var securityActions = new[] { "LOGIN_SUCCESS", "LOGIN_FAILED", "LOGOUT", "MALICIOUS_ATTEMPT", 
-                                      "ACCOUNT_LOCKED", "ACCOUNT_UNLOCKED", "PASSWORD_RESET", 
+        var securityActions = new[] { "LOGIN_SUCCESS", "LOGIN_FAILED", "LOGOUT", "MALICIOUS_ATTEMPT",
+                                      "ACCOUNT_LOCKED", "ACCOUNT_UNLOCKED", "PASSWORD_RESET",
                                       "FAILED_PASSWORD_VERIFICATION", "SUSPICIOUS_ACTIVITY" };
         var query = _context.AuditLogs.Where(a => securityActions.Contains(a.Action) || a.Module == "Security");
 

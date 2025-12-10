@@ -1,0 +1,404 @@
+@page "/admin/teller-ops/loan-disbursals"
+@layout AdminLayout
+@using FinanceBank.Models
+@using FinanceBank.Services
+@using Microsoft.EntityFrameworkCore
+@using FinanceBank.Components.Shared
+@inject LoanProcessService LoanService
+@inject AuthService AuthService
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
+@inject NavigationManager Navigation
+@inject NotificationService NotificationService
+@inject IJSRuntime JS
+
+<div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+        <h1 style="font-size: 24px; font-weight: 700; margin: 0 0 4px 0;">Loan Disbursals</h1>
+        <p style="font-size: 14px; opacity: 0.9; margin: 0;">Release approved loan funds to customers with admin authority.</p>
+    </div>
+
+    <!-- Admin Access Notice -->
+    <div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <p style="margin: 0; color: #1e40af; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 20px;">ℹ️</span>
+            <strong>SuperAdmin Teller Operations Access</strong> - Direct disbursal authority without additional approvals
+        </p>
+    </div>
+
+    <div style="background: white; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden;">
+        <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
+            <h2 style="font-size: 16px; font-weight: 600; margin: 0;">Approved Loans Pending Disbursal</h2>
+        </div>
+
+        <div style="padding: 24px;">
+            @if (isLoading)
+            {
+                <div style="text-align: center; padding: 40px;">
+                    <div style="width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                    <p style="margin-top: 16px; color: #6b7280;">Loading approved loans...</p>
+                </div>
+            }
+            else if (!approvedLoans.Any())
+            {
+                <div style="text-align: center; padding: 40px;">
+                    <p style="color: #6b7280; font-size: 16px;">No approved loans pending disbursal</p>
+                </div>
+            }
+            else
+            {
+                <div style="display: grid; gap: 16px;">
+                    @foreach (var approval in approvedLoans)
+                    {
+                        var loan = GetLoanForApproval(approval.ApprovalId);
+                        var alreadyDisbursed = loan != null && disbursedLoanIds.Contains(loan.LoanId);
+
+                        <div style="background: #f9fafb; border-radius: 12px; padding: 20px; border: 2px solid @(alreadyDisbursed ? "#10b981" : "#e5e7eb");">
+                            <div style="display: flex; justify-content: space-between; align-items: start; gap: 20px;">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                        <h3 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0;">
+                                            @approval.Application?.ApplicationNumber
+                                        </h3>
+                                        @if (alreadyDisbursed)
+                                        {
+                                            <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                                ✓ DISBURSED
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                                PENDING
+                                            </span>
+                                        }
+                                    </div>
+                                    
+                                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                                        <div>
+                                            <span style="font-size: 13px; color: #6b7280; display: block;">Customer</span>
+                                            <span style="font-size: 15px; font-weight: 600; color: #111827;">@approval.Account?.Customer?.FullName</span>
+                                        </div>
+                                        <div>
+                                            <span style="font-size: 13px; color: #6b7280; display: block;">Loan Type</span>
+                                            <span style="font-size: 15px; font-weight: 600; color: #111827;">@approval.Application?.LoanType</span>
+                                        </div>
+                                        <div>
+                                            <span style="font-size: 13px; color: #6b7280; display: block;">Approved Amount</span>
+                                            <span style="font-size: 17px; font-weight: 700; color: #059669;">₱@approval.ApprovedAmount?.ToString("N2")</span>
+                                        </div>
+                                        <div>
+                                            <span style="font-size: 13px; color: #6b7280; display: block;">Approval Date</span>
+                                            <span style="font-size: 15px; font-weight: 600; color: #111827;">@approval.ApprovalDate.ToString("MMM dd, yyyy")</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                @if (!alreadyDisbursed)
+                                {
+                                    <button style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;"
+                                            @onclick="() => OpenDisbursalModal(approval, loan)">
+                                        Disburse →
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (showDisbursalModal && selectedApproval != null)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; border-radius: 16px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 style="font-size: 18px; font-weight: 700; margin: 0;">Disburse Loan Funds</h2>
+                    <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">@selectedApproval.Application?.ApplicationNumber</p>
+                </div>
+                <button @onclick="CloseModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">×</button>
+            </div>
+
+            <div style="padding: 24px;">
+                <!-- Loan Details -->
+                <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                    <h3 style="font-size: 14px; font-weight: 600; color: #6b7280; margin-bottom: 12px;">LOAN APPROVAL DETAILS</h3>
+                    <div style="display: grid; gap: 8px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #6b7280;">Customer</span>
+                            <span style="font-weight: 600;">@selectedApproval.Account?.Customer?.FullName</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #6b7280;">Account Number</span>
+                            <span style="font-weight: 600;">@selectedApproval.Account?.AccountNumber</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #6b7280;">Approved Amount</span>
+                            <span style="font-weight: 700; color: #059669;">₱@selectedApproval.ApprovedAmount?.ToString("N2")</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #6b7280;">Interest Rate</span>
+                            <span style="font-weight: 600;">@selectedApproval.ApprovedInterestRate%</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #6b7280;">Term</span>
+                            <span style="font-weight: 600;">@selectedApproval.ApprovedTermMonths months</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Reason -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #7c3aed;">
+                        👑 Admin Override Reason <span style="color: #dc2626;">*</span>
+                    </label>
+                    <textarea @bind="adminReason" rows="3" 
+                              placeholder="Provide reason for admin disbursal (e.g., 'Direct executive approval', 'Urgent customer request', etc.)..."
+                              style="width: 100%; padding: 12px; border: 2px solid #059669; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+                    <span style="font-size: 12px; color: #6b7280;">Required: Document why this disbursal is being processed by admin</span>
+                </div>
+
+                <!-- Disbursal Method -->
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Disbursal Method <span style="color: #dc2626;">*</span></label>
+                    <select @bind="disbursalMethod" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        <option value="">-- Select Method --</option>
+                        <option value="Account Credit">Credit to Account</option>
+                        <option value="Cash">Cash Disbursal</option>
+                        <option value="Check">Bank Check</option>
+                        <option value="Wire Transfer">Wire Transfer</option>
+                    </select>
+                </div>
+
+                <!-- Disbursal Amount -->
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Disbursal Amount <span style="color: #dc2626;">*</span></label>
+                    <input type="number" @bind="disbursalAmount" step="0.01"
+                           style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                    <span style="font-size: 12px; color: #6b7280;">Approved: ₱@selectedApproval.ApprovedAmount?.ToString("N2")</span>
+                </div>
+
+                <!-- Reference Number -->
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Reference Number</label>
+                    <input type="text" @bind="referenceNumber" placeholder="Transaction reference, check number, etc."
+                           style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                </div>
+
+                <!-- Remarks -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Additional Remarks</label>
+                    <textarea @bind="remarks" rows="2" placeholder="Additional notes..."
+                              style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;"></textarea>
+                </div>
+
+                <!-- Warning -->
+                <div style="background: #fee2e2; border: 2px solid #ef4444; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #dc2626; font-weight: 600;">
+                        ⚠️ IMPORTANT: Funds will be released immediately. Verify all information before confirming.
+                    </p>
+                </div>
+
+                <!-- Actions -->
+                <div style="display: flex; gap: 12px;">
+                    <button @onclick="CloseModal" style="flex: 1; background: #f3f4f6; color: #374151; border: none; padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        Cancel
+                    </button>
+                    <button @onclick="ProcessDisbursal" disabled="@isProcessing"
+                            style="flex: 1; background: #059669; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        @(isProcessing ? "Processing..." : "💰 Release Funds")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+@code {
+    private List<LoanApproval> approvedLoans = new();
+    private HashSet<int> disbursedLoanIds = new();
+    private LoanApproval? selectedApproval;
+    private Loan? selectedLoan;
+    private bool showDisbursalModal = false;
+    private bool isLoading = true;
+    private bool isProcessing = false;
+
+    // Form fields
+    private string adminReason = "";
+    private string disbursalMethod = "";
+    private decimal disbursalAmount;
+    private string referenceNumber = "";
+    private string remarks = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Verify admin access
+        if (AuthService.CurrentRole != "SuperAdmin")
+        {
+            Navigation.NavigateTo("/admin");
+            return;
+        }
+
+        await LoadApprovedLoans();
+    }
+
+    private async Task LoadApprovedLoans()
+    {
+        isLoading = true;
+        try
+        {
+            approvedLoans = await LoanService.GetApprovedLoansAsync();
+            
+            // Check which loans have been disbursed
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            foreach (var approval in approvedLoans)
+            {
+                var loan = context.Loans.FirstOrDefault(l => l.ApprovalId == approval.ApprovalId);
+                if (loan != null)
+                {
+                    var hasDisbursement = await context.LoanDisbursals.AnyAsync(d => d.LoanId == loan.LoanId);
+                    if (hasDisbursement)
+                    {
+                        disbursedLoanIds.Add(loan.LoanId);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ADMIN ERROR] Load loans error: {ex.Message}");
+            await JS.InvokeVoidAsync("alert", $"Error loading loans: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private Loan? GetLoanForApproval(int approvalId)
+    {
+        using var context = DbContextFactory.CreateDbContext();
+        return context.Loans.FirstOrDefault(l => l.ApprovalId == approvalId);
+    }
+
+    private void OpenDisbursalModal(LoanApproval approval, Loan? loan)
+    {
+        selectedApproval = approval;
+        selectedLoan = loan;
+        adminReason = "";
+        disbursalMethod = "";
+        disbursalAmount = approval.ApprovedAmount ?? 0;
+        referenceNumber = "";
+        remarks = "";
+        showDisbursalModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showDisbursalModal = false;
+        selectedApproval = null;
+        selectedLoan = null;
+    }
+
+    private async Task ProcessDisbursal()
+    {
+        if (selectedApproval == null) return;
+
+        // Validate admin reason
+        if (string.IsNullOrWhiteSpace(adminReason))
+        {
+            NotificationService.ShowError("Validation Error", "Please provide an admin override reason for this disbursal.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(disbursalMethod))
+        {
+            NotificationService.ShowError("Validation Error", "Please select a disbursal method.");
+            return;
+        }
+
+        if (disbursalAmount <= 0)
+        {
+            NotificationService.ShowError("Validation Error", "Please enter a valid disbursal amount greater than zero.");
+            return;
+        }
+
+        if (disbursalAmount > (selectedApproval.ApprovedAmount ?? 0))
+        {
+            NotificationService.ShowError("Validation Error", $"Disbursal amount cannot exceed the approved amount of ₱{selectedApproval.ApprovedAmount:N2}");
+            return;
+        }
+
+        isProcessing = true;
+        NotificationService.ShowInfo("Processing", "Processing loan disbursal...");
+
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+
+            // Create or get loan
+            int loanId;
+            if (selectedLoan != null)
+            {
+                loanId = selectedLoan.LoanId;
+            }
+            else
+            {
+                // Create loan record if doesn't exist
+                var newLoan = new Loan
+                {
+                    AccountId = selectedApproval.AccountId,
+                    LoanType = selectedApproval.Application?.LoanType ?? "",
+                    LoanAmount = selectedApproval.ApprovedAmount ?? 0,
+                    OutstandingBalance = selectedApproval.ApprovedAmount ?? 0,
+                    InterestRate = selectedApproval.ApprovedInterestRate ?? 0,
+                    TermMonths = selectedApproval.ApprovedTermMonths ?? 0,
+                    Status = "ACTIVE",
+                    ApplicationId = selectedApproval.ApplicationId,
+                    AssessmentId = selectedApproval.AssessmentId,
+                    ApprovalId = selectedApproval.ApprovalId,
+                    StartDate = DateTime.Now
+                };
+                
+                context.Loans.Add(newLoan);
+                await context.SaveChangesAsync();
+                loanId = newLoan.LoanId;
+            }
+
+            // Format admin reason for audit trail
+            var adminUsername = AuthService.CurrentUser ?? "Admin";
+            var auditReason = $"[ADMIN: {adminUsername}] Reason: {adminReason}";
+
+            Console.WriteLine($"[ADMIN ACTION] Loan disbursal by {adminUsername}: Loan #{loanId}, Amount: ₱{disbursalAmount:N2}, Method: {disbursalMethod}");
+            Console.WriteLine($"[ADMIN ACTION] Reason: {adminReason}");
+
+            // Process disbursal with admin identifier
+            await LoanService.DisburseLoanAsync(
+                selectedApproval.ApprovalId,
+                selectedApproval.AccountId,
+                disbursalAmount,
+                disbursalMethod,
+                $"Admin-{adminUsername}" // Mark as admin disbursal
+            );
+
+            NotificationService.ShowSuccess("Disbursal Successful", $"₱{disbursalAmount:N2} has been disbursed successfully via {disbursalMethod}!");
+            CloseModal();
+            await LoadApprovedLoans();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ADMIN ERROR] Disbursal error: {ex.Message}");
+            NotificationService.ShowError("Disbursal Failed", $"Error processing disbursal: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+}

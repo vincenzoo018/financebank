@@ -1,0 +1,519 @@
+@page "/admin/teller-ops/loan-payments"
+@layout AdminLayout
+@using FinanceBank.Models
+@using FinanceBank.Services
+@using Microsoft.EntityFrameworkCore
+@using FinanceBank.Components.Shared
+@inject LoanProcessService LoanService
+@inject AuthService AuthService
+@inject BFASDbContext DbContext
+@inject NavigationManager Navigation
+@inject NotificationService NotificationService
+@inject IJSRuntime JS
+
+<div class="sidebar-content">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="modal-title">Process Loan Payment</h1>
+            <p class="modal-subtitle">Physical cash/check payment processing with automatic penalty calculation</p>
+        </div>
+
+        <div class="card-body" style="padding: 24px;">
+            <!-- Admin Access Notice -->
+            <div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <p style="margin: 0; color: #1e40af; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">ℹ️</span>
+                    <strong>SuperAdmin Teller Operations Access</strong> - Direct loan payment processing authority
+                </p>
+            </div>
+
+            <!-- Admin Reason Field -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label required" style="color: #059669; font-weight: 700;">Admin Action Reason</label>
+                <textarea class="form-control" @bind="adminActionReason" rows="2" 
+                          placeholder="Document reason for admin loan payment processing (required)"
+                          style="border: 2px solid #059669;"></textarea>
+                <span class="form-help" style="color: #059669;">Required: This will be logged in the audit trail</span>
+            </div>
+
+            <!-- Important Notice -->
+            <div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
+                <p style="margin: 0; color: #1e40af; font-weight: 600;">
+                    💵 <strong>Physical Payment Mode:</strong> This system assumes customer pays in physical cash/check. 
+                    Payment amounts are NOT deducted from the customer's bank account balance.
+                </p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Account Number</label>
+                <div style="display: flex; gap: 12px;">
+                    <input type="text" class="form-control" @bind="searchAccountNumber" 
+                           placeholder="Enter customer account number" style="flex: 1;" />
+                    <button class="btn btn-primary" @onclick="SearchAccount">
+                        Search
+                    </button>
+                </div>
+            </div>
+
+            @if (selectedAccount != null)
+            {
+                <div style="background: var(--bg-lighter); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px;">
+                    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Customer Information</h3>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <div>
+                            <span style="font-size: 13px; color: var(--text-gray); display: block;">Name</span>
+                            <span style="font-size: 15px; font-weight: 600;">@selectedAccount.Customer?.FullName</span>
+                        </div>
+                        <div>
+                            <span style="font-size: 13px; color: var(--text-gray); display: block;">Account Number</span>
+                            <span style="font-size: 15px; font-weight: 600;">@selectedAccount.AccountNumber</span>
+                        </div>
+                    </div>
+                </div>
+
+                @if (activeLoans.Any())
+                {
+                    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Active Loans</h3>
+                    <div style="display: grid; gap: 12px; margin-bottom: 24px;">
+                        @foreach (var loan in activeLoans)
+                        {
+                            var schedule = GetNextPayment(loan.LoanId);
+                            var daysOverdue = schedule != null && schedule.DueDate < DateTime.Today 
+                                ? (DateTime.Today - schedule.DueDate).Days : 0;
+                            var penalty = CalculatePenalty(schedule?.MinimumPayment ?? 0, daysOverdue);
+
+                            <div class="card" style="border: 2px solid var(--border); cursor: pointer;" 
+                                 @onclick="() => SelectLoan(loan, schedule, penalty, daysOverdue)">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="flex: 1;">
+                                        <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">
+                                            @loan.LoanType - Loan #@loan.LoanNumber
+                                        </h4>
+                                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                                            <div>
+                                                <span style="font-size: 12px; color: var(--text-gray);">Outstanding</span>
+                                                <div style="font-size: 15px; font-weight: 600; color: var(--primary-green-start);">
+                                                    ₱@loan.OutstandingBalance.ToString("N2")
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span style="font-size: 12px; color: var(--text-gray);">Monthly Payment</span>
+                                                <div style="font-size: 15px; font-weight: 600;">
+                                                    ₱@loan.MonthlyPayment.ToString("N2")
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span style="font-size: 12px; color: var(--text-gray);">Next Due</span>
+                                                <div style="font-size: 15px; font-weight: 600; color: @(daysOverdue > 0 ? "var(--danger)" : "var(--text-dark)");">
+                                                    @(schedule?.DueDate.ToString("MMM dd, yyyy") ?? "N/A")
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @if (daysOverdue > 0)
+                                        {
+                                            <div style="background: #fee2e2; border-radius: 6px; padding: 8px; margin-top: 8px;">
+                                                <span style="color: #dc2626; font-size: 13px; font-weight: 600;">
+                                                    ⚠️ OVERDUE: @daysOverdue days | Penalty: ₱@penalty.ToString("N2")
+                                                </span>
+                                            </div>
+                                        }
+                                    </div>
+                                    <button class="btn btn-primary btn-sm">
+                                        Pay →
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p style="color: var(--text-gray); text-align: center; padding: 20px;">
+                        No active loans found for this account.
+                    </p>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@if (showPaymentModal && selectedLoan != null)
+{
+    <StepModal Title="Admin: Process Loan Payment" 
+               Subtitle="@modalSubtitle"
+               CurrentStep="currentStep"
+               ShowSteps="true"
+               IsVisible="showPaymentModal"
+               OnClose="CloseModal"
+               OnConfirm="ProcessPayment"
+               OnStepChanged="HandleStepChanged"
+               Step1Label="Payment Details"
+               Step2Label="Confirmation"
+               ConfirmButtonText="Process Payment"
+               Step1Valid="@(paymentAmount > 0 && !string.IsNullOrWhiteSpace(adminActionReason))"
+               Step2Valid="true">
+        
+        <Step1Content>
+            <div class="step-section">
+                <h3 class="step-section-title">Loan Details</h3>
+                
+                <div style="background: var(--bg-lighter); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px;">
+                    <div class="summary-row">
+                        <span class="summary-label">Loan Number</span>
+                        <span class="summary-value">@selectedLoan.LoanNumber</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Loan Type</span>
+                        <span class="summary-value">@selectedLoan.LoanType</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Outstanding Balance</span>
+                        <span class="summary-value highlight">₱@selectedLoan.OutstandingBalance.ToString("N2")</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Monthly Payment</span>
+                        <span class="summary-value">₱@selectedLoan.MonthlyPayment.ToString("N2")</span>
+                    </div>
+                    @if (nextPayment != null)
+                    {
+                        <div class="summary-row">
+                            <span class="summary-label">Due Date</span>
+                            <span class="summary-value" style="color: @(daysOverdue > 0 ? "var(--danger)" : "var(--text-dark)");">
+                                @nextPayment.DueDate.ToString("MMMM dd, yyyy")
+                            </span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Amount Due</span>
+                            <span class="summary-value">₱@nextPayment.MinimumPayment.ToString("N2")</span>
+                        </div>
+                    }
+                    @if (daysOverdue > 0)
+                    {
+                        <div class="summary-row">
+                            <span class="summary-label">Days Overdue</span>
+                            <span class="summary-value" style="color: var(--danger);">@daysOverdue days</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Penalty (0.05% daily)</span>
+                            <span class="summary-value" style="color: var(--danger);">₱@penaltyAmount.ToString("N2")</span>
+                        </div>
+                    }
+                </div>
+
+                <h3 class="step-section-title">Payment Information</h3>
+
+                <div class="form-group">
+                    <label class="form-label required">Payment Amount</label>
+                    <input type="number" class="form-control" @bind="paymentAmount" step="0.01" 
+                           placeholder="Enter payment amount" />
+                    <span class="form-help">
+                        Minimum due: ₱@((nextPayment?.MinimumPayment ?? 0) + penaltyAmount).ToString("N2")
+                        @if (penaltyAmount > 0)
+                        {
+                            <span> (includes ₱@penaltyAmount.ToString("N2") penalty)</span>
+                        }
+                    </span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required">Payment Method</label>
+                    <select class="form-control" @bind="paymentMethod">
+                        <option value="">-- Select Method --</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Check">Check</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="Credit Card">Credit Card</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Reference Number</label>
+                    <input type="text" class="form-control" @bind="referenceNumber" 
+                           placeholder="Check number, transfer ID, etc. (optional)" />
+                </div>
+            </div>
+        </Step1Content>
+
+        <Step2Content>
+            <div class="confirmation-summary">
+                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-dark);">
+                    ✓ Payment Confirmation
+                </h3>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Customer</span>
+                    <span class="summary-value">@selectedAccount?.Customer?.FullName</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Loan Number</span>
+                    <span class="summary-value">@selectedLoan.LoanNumber</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Payment Amount</span>
+                    <span class="summary-value highlight">₱@paymentAmount.ToString("N2")</span>
+                </div>
+                @if (penaltyAmount > 0)
+                {
+                    <div class="summary-row">
+                        <span class="summary-label">Penalty Included</span>
+                        <span class="summary-value" style="color: var(--danger);">₱@penaltyAmount.ToString("N2")</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Principal Payment</span>
+                        <span class="summary-value">₱@((paymentAmount - penaltyAmount).ToString("N2"))</span>
+                    </div>
+                }
+                <div class="summary-row">
+                    <span class="summary-label">Payment Method</span>
+                    <span class="summary-value">@paymentMethod</span>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(referenceNumber))
+                {
+                    <div class="summary-row">
+                        <span class="summary-label">Reference</span>
+                        <span class="summary-value">@referenceNumber</span>
+                    </div>
+                }
+                <div class="summary-row">
+                    <span class="summary-label">New Balance</span>
+                    <span class="summary-value">₱@((selectedLoan.OutstandingBalance - (paymentAmount - penaltyAmount)).ToString("N2"))</span>
+                </div>
+            </div>
+
+            <!-- Admin Reason Confirmation -->
+            <div style="background: #d1fae5; border: 2px solid #059669; border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px;">
+                <p style="margin: 0 0 8px 0; color: #065f46; font-weight: 700;">
+                    🔐 Admin Processing Reason:
+                </p>
+                <p style="margin: 0; color: #047857; font-style: italic;">
+                    "@adminActionReason"
+                </p>
+            </div>
+
+            <div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: var(--radius-md); padding: 16px;">
+                <p style="margin: 0; color: #1e40af; font-weight: 600;">
+                    💵 <strong>Physical Payment:</strong> Payment received in cash/check. No deduction from customer's bank account.
+                </p>
+                <p style="margin: 8px 0 0 0; color: #1e40af;">
+                    ℹ️ Payment receipt and invoice will be generated after confirmation.
+                </p>
+            </div>
+        </Step2Content>
+    </StepModal>
+}
+
+@if (showInvoice && lastPayment != null)
+{
+    <PaymentInvoice 
+        Payment="@lastPayment"
+        Loan="@selectedLoan"
+        Account="@selectedAccount"
+        OnClose="CloseInvoice" />
+}
+
+@code {
+    private string searchAccountNumber = "";
+    private CustomerAccount? selectedAccount;
+    private List<Loan> activeLoans = new();
+    private Loan? selectedLoan;
+    private LoanPaymentSchedule? nextPayment;
+    private int daysOverdue;
+    private decimal penaltyAmount;
+    private string adminActionReason = "";
+
+    private bool showPaymentModal = false;
+    private bool showInvoice = false;
+    private int currentStep = 1;
+
+    // Form fields
+    private decimal paymentAmount;
+    private string paymentMethod = "";
+    private string referenceNumber = "";
+    private LoanPayment? lastPayment;
+
+    // Preloaded payment schedules to avoid synchronous DB calls during render
+    private Dictionary<int, LoanPaymentSchedule?> paymentSchedulesByLoanId = new();
+
+    private string modalSubtitle => currentStep == 1 ? "Step 1: Enter payment details" : "Step 2: Confirm payment";
+
+    protected override void OnInitialized()
+    {
+        // Verify admin access
+        if (AuthService.CurrentRole != "SuperAdmin")
+        {
+            Navigation.NavigateTo("/admin");
+        }
+    }
+
+    private async Task SearchAccount()
+    {
+        if (string.IsNullOrWhiteSpace(searchAccountNumber))
+        {
+            await JS.InvokeVoidAsync("alert", "Please enter an account number");
+            return;
+        }
+
+        try
+        {
+            selectedAccount = await DbContext.CustomerAccounts
+                .Include(a => a.Customer)
+                .FirstOrDefaultAsync(a => a.AccountNumber == searchAccountNumber);
+
+            if (selectedAccount == null)
+            {
+                await JS.InvokeVoidAsync("alert", "Account not found");
+                return;
+            }
+
+            activeLoans = await LoanService.GetAccountLoansAsync(selectedAccount.AccountId);
+            activeLoans = activeLoans.Where(l => l.Status == "ACTIVE" && l.OutstandingBalance > 0).ToList();
+
+            // Preload all payment schedules for these loans to avoid sync DB calls during render
+            paymentSchedulesByLoanId.Clear();
+            if (activeLoans.Any())
+            {
+                var loanIds = activeLoans.Select(l => l.LoanId).ToList();
+                var schedules = await DbContext.LoanPaymentSchedules
+                    .Where(s => loanIds.Contains(s.LoanId) && s.PaymentStatus == "PENDING")
+                    .OrderBy(s => s.DueDate)
+                    .ToListAsync();
+
+                // Group by loan and take the first (next due) for each
+                foreach (var loanId in loanIds)
+                {
+                    paymentSchedulesByLoanId[loanId] = schedules
+                        .Where(s => s.LoanId == loanId)
+                        .FirstOrDefault();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+        }
+    }
+
+    private LoanPaymentSchedule? GetNextPayment(int loanId)
+    {
+        // Return from preloaded dictionary instead of querying DB synchronously
+        return paymentSchedulesByLoanId.TryGetValue(loanId, out var schedule) ? schedule : null;
+    }
+
+    private decimal CalculatePenalty(decimal amountDue, int daysLate)
+    {
+        if (daysLate <= 0) return 0;
+        
+        // 0.05% daily penalty on amount due
+        decimal dailyRate = 0.0005m;
+        return amountDue * dailyRate * daysLate;
+    }
+
+    private void SelectLoan(Loan loan, LoanPaymentSchedule? schedule, decimal penalty, int overdue)
+    {
+        // Validate admin reason first
+        if (string.IsNullOrWhiteSpace(adminActionReason))
+        {
+            JS.InvokeVoidAsync("alert", "Please provide an admin action reason before processing payments");
+            return;
+        }
+
+        selectedLoan = loan;
+        nextPayment = schedule;
+        penaltyAmount = penalty;
+        daysOverdue = overdue;
+        
+        // Pre-fill payment amount with minimum due + penalty
+        paymentAmount = (nextPayment?.MinimumPayment ?? loan.MonthlyPayment) + penaltyAmount;
+        paymentMethod = "";
+        referenceNumber = "";
+        currentStep = 1;
+        showPaymentModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showPaymentModal = false;
+        currentStep = 1;
+    }
+
+    private void HandleStepChanged(int step)
+    {
+        currentStep = step;
+        StateHasChanged();
+    }
+
+    private bool ValidateStep1()
+    {
+        if (paymentAmount <= 0)
+        {
+            JS.InvokeVoidAsync("alert", "Please enter a valid payment amount");
+            return false;
+        }
+
+        decimal minimumDue = (nextPayment?.MinimumPayment ?? 0) + penaltyAmount;
+        if (paymentAmount < minimumDue)
+        {
+            JS.InvokeVoidAsync("alert", $"Payment amount must be at least ₱{minimumDue:N2}");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(paymentMethod))
+        {
+            JS.InvokeVoidAsync("alert", "Please select a payment method");
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task ProcessPayment()
+    {
+        if (selectedLoan == null || nextPayment == null) return;
+
+        // Validate admin reason
+        if (string.IsNullOrWhiteSpace(adminActionReason))
+        {
+            await JS.InvokeVoidAsync("alert", "Admin action reason is required");
+            return;
+        }
+
+        try
+        {
+            var adminUser = AuthService.CurrentUser ?? "SuperAdmin";
+            var processedBy = $"[ADMIN: {adminUser}] {AuthService.FullName ?? adminUser}";
+
+            // Log admin action
+            Console.WriteLine($"[ADMIN ACTION] Loan Payment by {adminUser}: {adminActionReason}");
+
+            // Process payment through service with admin identifier
+            lastPayment = await LoanService.ProcessPaymentAsync(
+                selectedLoan.LoanId,
+                nextPayment.ScheduleId,
+                paymentAmount,
+                paymentMethod,
+                processedBy,
+                $"{referenceNumber} | Admin Reason: {adminActionReason}"
+            );
+
+            showPaymentModal = false;
+            showInvoice = true;
+
+            // Refresh data
+            await SearchAccount();
+
+            await JS.InvokeVoidAsync("alert", $"✓ Payment processed successfully!\n\nAdmin: {adminUser}\nReason: {adminActionReason}");
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error processing payment: {ex.Message}");
+        }
+    }
+
+    private void CloseInvoice()
+    {
+        showInvoice = false;
+        lastPayment = null;
+        selectedLoan = null;
+    }
+}

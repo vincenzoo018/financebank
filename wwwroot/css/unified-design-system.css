@@ -353,6 +353,33 @@ body {
     height: 60%;
 }
 
+/* Sidebar Subitem - for clean list style */
+.sidebar-subitem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 18px;
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border-radius: var(--radius-md);
+    margin-bottom: 2px;
+}
+
+.sidebar-subitem:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--white);
+    padding-left: 24px;
+}
+
+.sidebar-subitem.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--white);
+    font-weight: 600;
+}
+
 /* Sidebar Top Bar */
 .sidebar-main {
     flex: 1;

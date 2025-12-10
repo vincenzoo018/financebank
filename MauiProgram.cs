@@ -139,6 +139,9 @@ namespace FinanceBank
             // Register Sync-Aware DbContext Service (wraps DB operations with auto-sync)
             builder.Services.AddScoped<SyncAwareDbContextService>();
 
+            // Register Notification Service (global toast/popup notifications)
+            builder.Services.AddSingleton<NotificationService>();
+
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
             builder.Logging.AddDebug();

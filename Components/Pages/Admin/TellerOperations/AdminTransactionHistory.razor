@@ -1,13 +1,14 @@
-@page "/admin/teller/transaction-history"
+@page "/admin/teller-ops/transactions"
 @layout AdminLayout
 @using FinanceBank.Services
 @using FinanceBank.Models
 @inject AuthService AuthService
 @inject TellerReportService ReportService
 @inject IJSRuntime JS
+@inject NavigationManager Navigation
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
@@ -16,8 +17,8 @@
                 </svg>
             </div>
             <div>
-                <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Transaction History (Admin)</h1>
-                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">View all transactions - SuperAdmin Access</p>
+                <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Transaction History</h1>
+                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">View all processed transactions including deposits, withdrawals, loan payments & disbursements</p>
             </div>
         </div>
         <button @onclick="DownloadReport" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.2); border: 2px solid white; padding: 10px 20px; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
@@ -31,15 +32,12 @@
     </div>
 </div>
 
-<!-- Admin Notice -->
-<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-    <div style="display: flex; align-items: center; gap: 12px;">
-        <span style="font-size: 24px;">⚠️</span>
-        <div>
-            <p style="margin: 0; font-weight: 600; color: #92400e;">Administrative Access</p>
-            <p style="margin: 4px 0 0; font-size: 13px; color: #a16207;">You are viewing all transaction history as SuperAdmin</p>
-        </div>
-    </div>
+<!-- Admin Access Notice -->
+<div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+    <p style="margin: 0; color: #1e40af; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 20px;">ℹ️</span>
+        <strong>SuperAdmin Teller Operations Access</strong> - Full transaction history visibility with audit capabilities
+    </p>
 </div>
 
 <!-- Summary Stats -->
@@ -64,6 +62,13 @@
         <div style="font-size: 24px; font-weight: 700; color: #d97706;">@transactions.Count(t => t.TransactionType == "Loan Release")</div>
         <div style="font-size: 12px; color: #f59e0b;">₱@transactions.Where(t => t.TransactionType == "Loan Release").Sum(t => t.Amount).ToString("N0")</div>
     </div>
+</div>
+
+<!-- Admin Transactions Count -->
+<div style="background: linear-gradient(135deg, #f3e8ff, #e9d5ff); border-radius: 12px; padding: 16px; border: 1px solid #c4b5fd; margin-bottom: 24px;">
+    <div style="font-size: 12px; color: #6b21a8; font-weight: 600;">ADMIN PROCESSED</div>
+    <div style="font-size: 24px; font-weight: 700; color: #7c3aed;">@transactions.Count(t => t.ProcessedBy?.Contains("[ADMIN") ?? false)</div>
+    <div style="font-size: 12px; color: #8b5cf6;">Transactions processed by administrators</div>
 </div>
 
 <!-- Filters -->
@@ -97,6 +102,14 @@
             <option value="all">All Time</option>
         </select>
     </div>
+    <div style="flex: 1 1 200px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Processed By</label>
+        <select class="form-control" @bind="selectedProcessor" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px;">
+            <option value="">All Users</option>
+            <option value="admin">Admin Only</option>
+            <option value="teller">Teller Only</option>
+        </select>
+    </div>
     <div style="flex: 0 0 auto; display:flex; gap:8px;">
         <button class="btn" style="background:#059669; color:white; padding:10px 20px; border-radius:8px; font-size:14px; font-weight: 600;" @onclick="ReloadTransactions">
             🔄 Refresh
@@ -123,6 +136,7 @@
                     <th style="padding:14px; text-align:left; font-size:12px; color:#6b7280; font-weight: 700;">TYPE</th>
                     <th style="padding:14px; text-align:right; font-size:12px; color:#6b7280; font-weight: 700;">AMOUNT</th>
                     <th style="padding:14px; text-align:center; font-size:12px; color:#6b7280; font-weight: 700;">STATUS</th>
+                    <th style="padding:14px; text-align:left; font-size:12px; color:#6b7280; font-weight: 700;">PROCESSED BY</th>
                     <th style="padding:14px; text-align:left; font-size:12px; color:#6b7280; font-weight: 700;">DATE</th>
                     <th style="padding:14px; text-align:center; font-size:12px; color:#6b7280; font-weight: 700;">ACTIONS</th>
                 </tr>
@@ -133,7 +147,8 @@
                     @foreach (var txn in filteredTransactions)
                     {
                         var (bgColor, textColor, prefix) = GetTypeStyle(txn.TransactionType);
-                        <tr style="border-bottom:1px solid #e5e7eb;">
+                        var isAdminTxn = txn.ProcessedBy?.Contains("[ADMIN") ?? false;
+                        <tr style="border-bottom:1px solid #e5e7eb; @(isAdminTxn ? "background: #faf5ff;" : "")">
                             <td style="padding:14px;">
                                 <div style="font-size:13px; font-weight: 600; color:#111827;">@txn.TransactionNumber</div>
                                 <div style="font-size:11px; color:#6b7280;">@txn.AccountNumber</div>
@@ -152,6 +167,18 @@
                                     @txn.Status
                                 </span>
                             </td>
+                            <td style="padding:14px;">
+                                @if (isAdminTxn)
+                                {
+                                    <span style="display:inline-flex; align-items:center; padding:4px 10px; border-radius:8px; font-size:11px; font-weight:600; background:#f3e8ff; color:#7c3aed;">
+                                        👑 @txn.ProcessedBy
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span style="font-size:13px; color:#6b7280;">@txn.ProcessedBy</span>
+                                }
+                            </td>
                             <td style="padding:14px; font-size:13px; color:#6b7280;">@txn.TransactionDate.ToString("yyyy-MM-dd HH:mm")</td>
                             <td style="padding:14px; text-align:center;">
                                 <button class="btn" style="background:#1f2937; color:white; padding:6px 14px; font-size:12px; border-radius:6px; font-weight: 600;" @onclick="() => ViewDetails(txn)">View</button>
@@ -162,7 +189,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="7" style="padding:40px; text-align:center;">
+                        <td colspan="8" style="padding:40px; text-align:center;">
                             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin: 0 auto 12px;">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -228,9 +255,12 @@
                 </div>
                 @if (!string.IsNullOrEmpty(selectedTransaction.ProcessedBy))
                 {
-                    <div style="grid-column:1/-1; background: #eff6ff; padding: 12px; border-radius: 8px;">
-                        <div style="font-size:11px; font-weight:600; color:#1e40af; margin-bottom:4px; text-transform: uppercase;">Processed By</div>
-                        <div style="font-size:14px; color:#1e40af; font-weight: 600;">@selectedTransaction.ProcessedBy</div>
+                    var isAdminTxn = selectedTransaction.ProcessedBy?.Contains("[ADMIN") ?? false;
+                    <div style="grid-column:1/-1; background: @(isAdminTxn ? "#f3e8ff" : "#eff6ff"); padding: 12px; border-radius: 8px;">
+                        <div style="font-size:11px; font-weight:600; color:@(isAdminTxn ? "#7c3aed" : "#1e40af"); margin-bottom:4px; text-transform: uppercase;">
+                            @(isAdminTxn ? "👑 Admin Processed By" : "Processed By")
+                        </div>
+                        <div style="font-size:14px; color:@(isAdminTxn ? "#7c3aed" : "#1e40af"); font-weight: 600;">@selectedTransaction.ProcessedBy</div>
                     </div>
                 }
             </div>
@@ -253,12 +283,20 @@
     private string selectedType = "";
     private string selectedStatus = "";
     private string selectedPeriod = "today";
+    private string selectedProcessor = "";
     private bool isLoading = true;
     private bool showDetailsModal;
     private TellerTransactionRecord? selectedTransaction;
 
     protected override async Task OnInitializedAsync()
     {
+        // Verify admin access
+        if (AuthService.CurrentRole != "SuperAdmin")
+        {
+            Navigation.NavigateTo("/admin");
+            return;
+        }
+
         await ReloadTransactions();
     }
 
@@ -296,6 +334,9 @@
     private IEnumerable<TellerTransactionRecord> filteredTransactions => transactions
         .Where(t => string.IsNullOrEmpty(selectedType) || t.TransactionType == selectedType)
         .Where(t => string.IsNullOrEmpty(selectedStatus) || t.Status == selectedStatus)
+        .Where(t => string.IsNullOrEmpty(selectedProcessor) || 
+            (selectedProcessor == "admin" && (t.ProcessedBy?.Contains("[ADMIN") ?? false)) ||
+            (selectedProcessor == "teller" && !(t.ProcessedBy?.Contains("[ADMIN") ?? false)))
         .OrderByDescending(t => t.TransactionDate);
 
     private (string bgColor, string textColor, string prefix) GetTypeStyle(string type)
@@ -351,7 +392,7 @@
         {
             var (start, end) = GetDateRange(selectedPeriod);
             var csvContent = await ReportService.GenerateCsvReportAsync(start, end);
-            var fileName = $"TransactionHistory_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
+            var fileName = $"Admin_TransactionHistory_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
             
             var bytes = System.Text.Encoding.UTF8.GetBytes(csvContent);
             var base64 = Convert.ToBase64String(bytes);
@@ -375,6 +416,7 @@
         try
         {
             var invoiceNumber = $"INV-{txn.TransactionDate:yyyyMMdd}-{txn.TransactionId}";
+            var isAdminTxn = txn.ProcessedBy?.Contains("[ADMIN") ?? false;
             var sb = new System.Text.StringBuilder();
             
             sb.AppendLine("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Invoice - " + invoiceNumber + "</title>");
@@ -388,6 +430,7 @@
             sb.AppendLine(".label { color: #6b7280; font-size: 14px; }");
             sb.AppendLine(".value { font-weight: 600; color: #1f2937; }");
             sb.AppendLine(".total-row { background: #f0fdf4; margin: 20px -30px; padding: 20px 30px; }");
+            sb.AppendLine(".admin-badge { background: #f3e8ff; color: #7c3aed; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; }");
             sb.AppendLine(".footer { text-align: center; padding: 20px; background: #f8fafc; font-size: 12px; color: #6b7280; }");
             sb.AppendLine("</style></head><body>");
             sb.AppendLine("<div class=\"invoice\">");
@@ -399,6 +442,10 @@
             sb.AppendLine("<div class=\"row\"><span class=\"label\">Account</span><span class=\"value\">" + txn.AccountNumber + "</span></div>");
             sb.AppendLine("<div class=\"row\"><span class=\"label\">Date</span><span class=\"value\">" + txn.TransactionDate.ToString("MMMM dd, yyyy hh:mm tt") + "</span></div>");
             sb.AppendLine("<div class=\"row\"><span class=\"label\">Status</span><span class=\"value\">" + txn.Status + "</span></div>");
+            if (isAdminTxn)
+            {
+                sb.AppendLine("<div class=\"row\"><span class=\"label\">Processed By</span><span class=\"admin-badge\">👑 Admin</span></div>");
+            }
             sb.AppendLine("<div class=\"row total-row\"><span class=\"label\" style=\"font-size:18px;font-weight:700;color:#065f46;\">Amount</span><span class=\"value\" style=\"font-size:24px;color:#059669;\">₱" + txn.Amount.ToString("N2") + "</span></div>");
             sb.AppendLine("</div>");
             sb.AppendLine("<div class=\"footer\"><p>Thank you for banking with FinanceBank!</p><p>Generated on " + DateTime.Now.ToString("MMMM dd, yyyy hh:mm tt") + "</p></div>");

@@ -4,6 +4,8 @@
 @inject NavigationManager Navigation
 @inject RoleBasedNavigationService RoleService
 
+<FinanceBank.Components.Shared.NotificationToast />
+
 <div class="sidebar-container">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -20,8 +22,7 @@
             <!-- Dashboard -->
             <div class="sidebar-section">
                 <a href="/admin/dashboard" class="sidebar-item @(IsActive("/admin/dashboard"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
                     </svg>
@@ -30,515 +31,233 @@
             </div>
 
             @* Registration - SuperAdmin Only *@
-            <div class="sidebar-section"
-                style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
-                <div class="sidebar-section-title">REGISTRATION</div>
-                <a href="/admin/user-registration" class="sidebar-item @(IsActive("/admin/user-registration"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="8.5" cy="7" r="4"></circle>
-                        <line x1="20" y1="8" x2="20" y2="14"></line>
-                        <line x1="23" y1="11" x2="17" y2="11"></line>
-                    </svg>
-                    <span>Register New User</span>
-                </a>
-                <a href="/admin/all-users" class="sidebar-item @(IsActive("/admin/all-users"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    <span>All Users</span>
-                </a>
-            </div>
+            @if (AuthService.HasRole(AuthService.Roles.SuperAdmin))
+            {
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">REGISTRATION</div>
+                    <a href="/admin/user-registration" class="sidebar-item @(IsActive("/admin/user-registration"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <line x1="20" y1="8" x2="20" y2="14"></line>
+                            <line x1="23" y1="11" x2="17" y2="11"></line>
+                        </svg>
+                        <span>Register New User</span>
+                    </a>
+                    <a href="/admin/all-users" class="sidebar-item @(IsActive("/admin/all-users"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>All Users</span>
+                    </a>
+                </div>
+            }
 
-            @* ================== TELLER OPERATIONS (SuperAdmin Only) ================== *@
-            <div class="sidebar-section"
-                style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
-                <div class="sidebar-section-title" style="color: #10b981;">TELLER OPERATIONS</div>
-
-                @* Loan Processing *@
-                <div class="sidebar-dropdown @(tellerLoansOpen ? "open" : "")">
-                    <button class="sidebar-dropdown-toggle" @onclick="() => tellerLoansOpen = !tellerLoansOpen">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <svg class="sidebar-icon" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
-                                <path d="M16 4v4M8 4v4"></path>
-                            </svg>
-                            <span>Loan Processing</span>
+            @* Banking Operations - SuperAdmin Only *@
+            @if (AuthService.HasRole(AuthService.Roles.SuperAdmin))
+            {
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">BANKING OPERATIONS</div>
+                    
+                    <!-- Transactions Dropdown -->
+                    <div class="sidebar-dropdown @(tellerOpsOpen ? "open" : "")">
+                        <button class="sidebar-dropdown-toggle" @onclick="() => tellerOpsOpen = !tellerOpsOpen">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                                <span>Transactions</span>
+                            </div>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="sidebar-dropdown-menu">
+                            <a href="/admin/teller-ops/deposits" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/deposits"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 5v14m-7-7l7 7 7-7"/>
+                                </svg>
+                                <span>Process Deposits</span>
+                            </a>
+                            <a href="/admin/teller-ops/withdrawals" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/withdrawals"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 19V5m-7 7l7-7 7 7"/>
+                                </svg>
+                                <span>Process Withdrawals</span>
+                            </a>
+                            <a href="/admin/teller-ops/transactions" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/transactions"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                                    <rect x="9" y="3" width="6" height="4" rx="2"/>
+                                </svg>
+                                <span>Transaction History</span>
+                            </a>
+                            <a href="/admin/teller-ops/verify-identity" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/verify-identity"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span>Verify Identity</span>
+                            </a>
                         </div>
-                        <span class="dropdown-arrow">▼</span>
-                    </button>
-                    <div class="sidebar-dropdown-menu">
-                        <a href="/admin/teller/loan-review"
-                            class="sidebar-dropdown-item @(IsActive("/admin/teller/loan-review"))">
-                            <svg class="sidebar-icon-small" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <path d="m21 21-4.35-4.35"></path>
-                            </svg>
-                            Review Loan Applications
-                        </a>
-                        <a href="/admin/teller/loan-release"
-                            class="sidebar-dropdown-item @(IsActive("/admin/teller/loan-release"))">
-                            <svg class="sidebar-icon-small" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            Release Approved Loans
-                        </a>
-                        <a href="/admin/teller/loan-payments"
-                            class="sidebar-dropdown-item @(IsActive("/admin/teller/loan-payments"))">
-                            <svg class="sidebar-icon-small" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                                <line x1="1" y1="10" x2="23" y2="10"></line>
-                            </svg>
-                            Process Loan Payments
-                        </a>
-                        <a href="/admin/teller/loan-disbursals"
-                            class="sidebar-dropdown-item @(IsActive("/admin/teller/loan-disbursals"))">
-                            <svg class="sidebar-icon-small" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="1" x2="12" y2="23"></line>
-                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                            </svg>
-                            Disburse Loan Funds
-                        </a>
+                    </div>
+
+                    <!-- Accounts Dropdown -->
+                    <div class="sidebar-dropdown @(tellerAccountsOpen ? "open" : "")">
+                        <button class="sidebar-dropdown-toggle" @onclick="() => tellerAccountsOpen = !tellerAccountsOpen">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                </svg>
+                                <span>Accounts</span>
+                            </div>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="sidebar-dropdown-menu">
+                            <a href="/admin/teller-ops/accounts" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/accounts"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                </svg>
+                                <span>Customer Accounts</span>
+                            </a>
+                            <a href="/admin/teller-ops/verification" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/verification"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 12l2 2 4-4"/>
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                </svg>
+                                <span>Account Verification</span>
+                            </a>
+                            <a href="/admin/teller-ops/savings/open" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/savings/open"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                    <path d="M12 8v8m-4-4h8"/>
+                                </svg>
+                                <span>Open Savings Account</span>
+                            </a>
+                            <a href="/admin/teller-ops/savings/history" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/savings/history"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 6v6l4 2"/>
+                                </svg>
+                                <span>Savings History</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Loans Dropdown -->
+                    <div class="sidebar-dropdown @(tellerLoansOpen ? "open" : "")">
+                        <button class="sidebar-dropdown-toggle" @onclick="() => tellerLoansOpen = !tellerLoansOpen">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                                    <path d="M2 10h20"></path>
+                                </svg>
+                                <span>Loan Services</span>
+                            </div>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="sidebar-dropdown-menu">
+                            <a href="/admin/teller-ops/loan-review" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/loan-review"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                <span>Review Applications</span>
+                            </a>
+                            <a href="/admin/teller-ops/loan-release" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/loan-release"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>Release Approved</span>
+                            </a>
+                            <a href="/admin/teller-ops/loan-payments" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/loan-payments"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="6" width="20" height="12" rx="2"/>
+                                    <path d="M2 10h20"/>
+                                </svg>
+                                <span>Process Payments</span>
+                            </a>
+                            <a href="/admin/teller-ops/loan-disbursals" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/loan-disbursals"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"/>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                                <span>Disburse Funds</span>
+                            </a>
+                            <a href="/admin/teller-ops/payment-processing" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/payment-processing"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                                    <line x1="1" y1="10" x2="23" y2="10"/>
+                                </svg>
+                                <span>Payment Processing</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Reports Dropdown -->
+                    <div class="sidebar-dropdown @(tellerReportsOpen ? "open" : "")">
+                        <button class="sidebar-dropdown-toggle" @onclick="() => tellerReportsOpen = !tellerReportsOpen">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                <span>Reports</span>
+                            </div>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="sidebar-dropdown-menu">
+                            <a href="/admin/teller-ops/daily-report" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/daily-report"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                                <span>Daily Report</span>
+                            </a>
+                            <a href="/admin/teller-ops/cash-summary" class="sidebar-dropdown-item @(IsActive("/admin/teller-ops/cash-summary"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                                </svg>
+                                <span>Cash Summary</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
-
-                @* Transactions *@
-                <div class="sidebar-dropdown @(tellerOpsOpen ? "open" : "")">
-                    <button class="sidebar-dropdown-toggle" @onclick="() => tellerOpsOpen = !tellerOpsOpen">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <svg class="sidebar-icon" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
-                                <line x1="2" y1="10" x2="22" y2="10"></line>
-                            </svg>
-                            <span>Transactions</span>
-                        </div>
-                        <span class="dropdown-arrow">▼</span>
-                    </button>
-                    <div class="sidebar-dropdown-menu">
-                        <a href="/admin/teller/deposits"
-                            class="sidebar-dropdown-item @(IsActive("/admin/teller/deposits"))">
-                            <svg class="sidebar-icon-small" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <polyline points="19 12 12 19 5 12"></polyline>
-                            </svg>
-                            Process Deposits
-                        </a>
-                        <a href="/admin/teller/withdrawals"
-                            class="sidebar-dropdown-item @(IsActive("/admin/teller/withdrawals"))">
-                            <svg class="sidebar-icon-small" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="19" x2="12" y2="5"></line>
-                                <polyline points="5 12 12 5 19 12"></polyline>
-                            </svg>
-                            Process Withdrawals
-                        </a>
-                        <a href="/admin/teller/transaction-history"
-                            class="sidebar-dropdown-item @(IsActive("/admin/teller/transaction-history"))">
-                            <svg class="sidebar-icon-small" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                            Transaction History
-                        </a>
-                        <a href="/admin/savings-history"
-                            class="sidebar-dropdown-item @(IsActive("/admin/savings-history"))">
-                            <svg class="sidebar-icon-small" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M3 21h18M3 10h18M5 6h14M7 3h10"></path>
-                            </svg>
-                            Savings Transaction History
-                        </a>
-                    </div>
-                </div>
-
-                @* Account Management *@
-                <div class="sidebar-dropdown @(tellerAccountsOpen ? "open" : "")">
-                    <button class="sidebar-dropdown-toggle" @onclick="() => tellerAccountsOpen = !tellerAccountsOpen">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <svg class="sidebar-icon" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                            <span>Account Management</span>
-                        </div>
-                        <span class="dropdown-arrow">▼</span>
-                    </button>
-                    <div class="sidebar-dropdown-menu">
-                        <a href="/admin/teller/customer-accounts"
-                            class="sidebar-dropdown-item @(IsActive("/admin/teller/customer-accounts"))">
-                            <svg class="sidebar-icon-small" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                            </svg>
-                            Customer Accounts
-                        </a>
-                        <a href="/admin/teller/account-verification"
-                            class="sidebar-dropdown-item @(IsActive("/admin/teller/account-verification"))">
-                            <svg class="sidebar-icon-small" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                            </svg>
-                            Account Verification
-                        </a>
-                    </div>
-                </div>
-
-                @* Reports *@
-                <div class="sidebar-dropdown @(tellerReportsOpen ? "open" : "")">
-                    <button class="sidebar-dropdown-toggle" @onclick="() => tellerReportsOpen = !tellerReportsOpen">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <svg class="sidebar-icon" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                            </svg>
-                            <span>Reports</span>
-                        </div>
-                        <span class="dropdown-arrow">▼</span>
-                    </button>
-                    <div class="sidebar-dropdown-menu">
-                        <a href="/admin/teller/daily-report"
-                            class="sidebar-dropdown-item @(IsActive("/admin/teller/daily-report"))">
-                            <svg class="sidebar-icon-small" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                            </svg>
-                            Daily Report
-                        </a>
-                        <a href="/admin/teller/cash-summary"
-                            class="sidebar-dropdown-item @(IsActive("/admin/teller/cash-summary"))">
-                            <svg class="sidebar-icon-small" style="color: #10b981;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="1" x2="12" y2="23"></line>
-                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                            </svg>
-                            Cash Summary
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            @* ================== SAVINGS SUPER ADMIN (SuperAdmin Only) ================== *@
-            <div class="sidebar-section"
-                style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
-                <div class="sidebar-section-title" style="color: #dc2626;">SUPER ADMIN SAVINGS</div>
-                <a href="/admin/savings/super-control" class="sidebar-item @(IsActive("/admin/savings/super-control"))">
-                    <svg class="sidebar-icon" style="color: #dc2626;" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2">
-                        <path
-                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <span>🔐 Savings Control Center</span>
-                </a>
-            </div>
-
-            @* ================== ACCOUNTANT OPERATIONS (SuperAdmin Only) ================== *@
-            <div class="sidebar-section"
-                style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
-                <div class="sidebar-section-title" style="color: #8b5cf6;">ACCOUNTANT OPERATIONS</div>
-                <div class="sidebar-dropdown @(accountantOpsOpen ? "open" : "")">
-                    <button class="sidebar-dropdown-toggle" @onclick="() => accountantOpsOpen = !accountantOpsOpen">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <svg class="sidebar-icon" style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                            </svg>
-                            <span>Accounting Tasks</span>
-                        </div>
-                        <span class="dropdown-arrow">▼</span>
-                    </button>
-                    <div class="sidebar-dropdown-menu">
-                        <a href="/admin/accountant/journal-entries"
-                            class="sidebar-dropdown-item @(IsActive("/admin/accountant/journal-entries"))">
-                            <svg class="sidebar-icon-small" style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                            </svg>
-                            Journal Entries
-                        </a>
-                        <a href="/admin/accountant/general-ledger"
-                            class="sidebar-dropdown-item @(IsActive("/admin/accountant/general-ledger"))">
-                            <svg class="sidebar-icon-small" style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <line x1="8" y1="6" x2="21" y2="6"></line>
-                                <line x1="8" y1="12" x2="21" y2="12"></line>
-                                <line x1="8" y1="18" x2="21" y2="18"></line>
-                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                            </svg>
-                            General Ledger
-                        </a>
-                        <a href="/admin/accountant/trial-balance"
-                            class="sidebar-dropdown-item @(IsActive("/admin/accountant/trial-balance"))">
-                            <svg class="sidebar-icon-small" style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M3 3v18h18"></path>
-                                <rect x="7" y="10" width="3" height="8"></rect>
-                                <rect x="12" y="6" width="3" height="12"></rect>
-                                <rect x="17" y="12" width="3" height="6"></rect>
-                            </svg>
-                            Trial Balance
-                        </a>
-                        <a href="/admin/accountant/financial-statements"
-                            class="sidebar-dropdown-item @(IsActive("/admin/accountant/financial-statements"))">
-                            <svg class="sidebar-icon-small" style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="12" y1="18" x2="12" y2="12"></line>
-                                <line x1="9" y1="15" x2="15" y2="15"></line>
-                            </svg>
-                            Financial Statements
-                        </a>
-                        <a href="/admin/accountant/chart-of-accounts"
-                            class="sidebar-dropdown-item @(IsActive("/admin/accountant/chart-of-accounts"))">
-                            <svg class="sidebar-icon-small" style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                            Chart of Accounts
-                        </a>
-                        <a href="/admin/accountant/loan-recording"
-                            class="sidebar-dropdown-item @(IsActive("/admin/accountant/loan-recording"))">
-                            <svg class="sidebar-icon-small" style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
-                                <path d="M16 4v4M8 4v4"></path>
-                            </svg>
-                            Loan Recording
-                        </a>
-                        <a href="/admin/accountant/review-assessment"
-                            class="sidebar-dropdown-item @(IsActive("/admin/accountant/review-assessment"))">
-                            <svg class="sidebar-icon-small" style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <path d="m21 21-4.35-4.35"></path>
-                            </svg>
-                            Review Assessment
-                        </a>
-                        <a href="/admin/accountant/interest-payouts"
-                            class="sidebar-dropdown-item @(IsActive("/admin/accountant/interest-payouts"))">
-                            <svg class="sidebar-icon-small" style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="1" x2="12" y2="23"></line>
-                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                            </svg>
-                            Interest Payouts
-                        </a>
-                        <a href="/admin/accountant/all-approvals"
-                            class="sidebar-dropdown-item @(IsActive("/admin/accountant/all-approvals"))">
-                            <svg class="sidebar-icon-small" style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            All Approvals
-                        </a>
-                        <a href="/admin/accountant/banking-reports"
-                            class="sidebar-dropdown-item @(IsActive("/admin/accountant/banking-reports"))">
-                            <svg class="sidebar-icon-small" style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M3 21h18M3 10h18M5 6h14M7 3h10"></path>
-                            </svg>
-                            Banking Reports
-                        </a>
-                        <a href="/admin/accountant/transaction-reports"
-                            class="sidebar-dropdown-item @(IsActive("/admin/accountant/transaction-reports"))">
-                            <svg class="sidebar-icon-small" style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
-                                <polyline points="17 6 23 6 23 12"></polyline>
-                            </svg>
-                            Transaction Reports
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            @* ================== FINANCE MANAGER OPERATIONS (SuperAdmin Only) ================== *@
-            <div class="sidebar-section"
-                style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
-                <div class="sidebar-section-title" style="color: #f59e0b;">FINANCE MGR OPERATIONS</div>
-                <div class="sidebar-dropdown @(financeMgrOpsOpen ? "open" : "")">
-                    <button class="sidebar-dropdown-toggle" @onclick="() => financeMgrOpsOpen = !financeMgrOpsOpen">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <svg class="sidebar-icon" style="color: #f59e0b;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="1" x2="12" y2="23"></line>
-                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                            </svg>
-                            <span>Finance Tasks</span>
-                        </div>
-                        <span class="dropdown-arrow">▼</span>
-                    </button>
-                    <div class="sidebar-dropdown-menu">
-                        <a href="/admin/finance-mgr/budget-management"
-                            class="sidebar-dropdown-item @(IsActive("/admin/finance-mgr/budget-management"))">
-                            <svg class="sidebar-icon-small" style="color: #f59e0b;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                                <line x1="9" y1="9" x2="15" y2="9"></line>
-                                <line x1="9" y1="15" x2="15" y2="15"></line>
-                            </svg>
-                            Budget Management
-                        </a>
-                        <a href="/admin/finance-mgr/cashflow-analysis"
-                            class="sidebar-dropdown-item @(IsActive("/admin/finance-mgr/cashflow-analysis"))">
-                            <svg class="sidebar-icon-small" style="color: #f59e0b;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
-                                <polyline points="17 6 23 6 23 12"></polyline>
-                            </svg>
-                            Cashflow Analysis
-                        </a>
-                        <a href="/admin/finance-mgr/financial-forecasting"
-                            class="sidebar-dropdown-item @(IsActive("/admin/finance-mgr/financial-forecasting"))">
-                            <svg class="sidebar-icon-small" style="color: #f59e0b;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M3 3v18h18"></path>
-                                <path d="M18 17V9"></path>
-                                <path d="M13 17V5"></path>
-                                <path d="M8 17v-3"></path>
-                            </svg>
-                            Financial Forecasting
-                        </a>
-                        <a href="/admin/finance-mgr/accounts-payable"
-                            class="sidebar-dropdown-item @(IsActive("/admin/finance-mgr/accounts-payable"))">
-                            <svg class="sidebar-icon-small" style="color: #f59e0b;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M12 1v22M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
-                            </svg>
-                            Accounts Payable
-                        </a>
-                        <a href="/admin/finance-mgr/accounts-receivable"
-                            class="sidebar-dropdown-item @(IsActive("/admin/finance-mgr/accounts-receivable"))">
-                            <svg class="sidebar-icon-small" style="color: #f59e0b;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M12 1v22M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
-                            </svg>
-                            Accounts Receivable
-                        </a>
-                        <a href="/admin/finance-mgr/loan-approval"
-                            class="sidebar-dropdown-item @(IsActive("/admin/finance-mgr/loan-approval"))">
-                            <svg class="sidebar-icon-small" style="color: #f59e0b;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            Loan Approval Center
-                        </a>
-                        <a href="/admin/finance-mgr/approval-queue"
-                            class="sidebar-dropdown-item @(IsActive("/admin/finance-mgr/approval-queue"))">
-                            <svg class="sidebar-icon-small" style="color: #f59e0b;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <line x1="8" y1="6" x2="21" y2="6"></line>
-                                <line x1="8" y1="12" x2="21" y2="12"></line>
-                                <line x1="8" y1="18" x2="21" y2="18"></line>
-                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                            </svg>
-                            Approval Queue
-                        </a>
-                        <a href="/admin/finance-mgr/expenses"
-                            class="sidebar-dropdown-item @(IsActive("/admin/finance-mgr/expenses"))">
-                            <svg class="sidebar-icon-small" style="color: #f59e0b;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="1" x2="12" y2="23"></line>
-                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                            </svg>
-                            Expenses
-                        </a>
-                        <a href="/admin/finance-mgr/budget-reports"
-                            class="sidebar-dropdown-item @(IsActive("/admin/finance-mgr/budget-reports"))">
-                            <svg class="sidebar-icon-small" style="color: #f59e0b;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                            </svg>
-                            Budget Reports
-                        </a>
-                        <a href="/admin/finance-mgr/cashflow-reports"
-                            class="sidebar-dropdown-item @(IsActive("/admin/finance-mgr/cashflow-reports"))">
-                            <svg class="sidebar-icon-small" style="color: #f59e0b;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                            </svg>
-                            Cashflow Reports
-                        </a>
-                        <a href="/admin/finance-mgr/financial-reports"
-                            class="sidebar-dropdown-item @(IsActive("/admin/finance-mgr/financial-reports"))">
-                            <svg class="sidebar-icon-small" style="color: #f59e0b;" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
-                                <polyline points="17 6 23 6 23 12"></polyline>
-                            </svg>
-                            Financial Reports
-                        </a>
-                    </div>
-                </div>
-            </div>
+            }
 
             @* System - All Roles *@
             <div class="sidebar-section">
                 <div class="sidebar-section-title">SYSTEM</div>
                 <a href="/admin/analytics" class="sidebar-item @(IsActive("/admin/analytics"))">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
                         <polyline points="17 6 23 6 23 12"></polyline>
                     </svg>
                     <span>Reports & Analytics</span>
                 </a>
-                <a href="/admin/database-sync" class="sidebar-item @(IsActive("/admin/database-sync"))"
-                    style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3">
-                        </path>
-                    </svg>
-                    <span>Database Sync</span>
-                </a>
-                <a href="/admin/settings" class="sidebar-item @(IsActive("/admin/settings"))"
-                    style="@(!(AuthService.HasRole(AuthService.Roles.SuperAdmin)) ? "display:none" : "")">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path
-                            d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24">
-                        </path>
-                    </svg>
-                    <span>Settings</span>
-                </a>
+                @if (AuthService.HasRole(AuthService.Roles.SuperAdmin))
+                {
+                    <a href="/admin/database-sync" class="sidebar-item @(IsActive("/admin/database-sync"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"></path>
+                        </svg>
+                        <span>Database Sync</span>
+                    </a>
+                    <a href="/admin/settings" class="sidebar-item @(IsActive("/admin/settings"))">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        <span>Settings</span>
+                    </a>
+                }
             </div>
         </div>
-
     </div>
 
     <!-- Main Content Area -->
@@ -654,6 +373,7 @@
         var path = Navigation.Uri;
         if (path.Contains("/dashboard")) return "Dashboard";
         if (path.Contains("/user-registration") || path.Contains("/customer-registration")) return "Registration";
+        if (path.Contains("/teller-ops")) return "Teller Operations";
         if (path.Contains("/teller")) return "Teller Operations";
         if (path.Contains("/accountant")) return "Accountant Operations";
         if (path.Contains("/finance-mgr")) return "Finance Manager Operations";
