@@ -187,11 +187,26 @@ namespace FinanceBank.Services
                 bool isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
                 if (!isPasswordValid)
                 {
-                    // Count recent failed attempts from AuditLogs (using new columns)
+                    // Find the last time the account was unlocked or password reset (counter reset point)
+                    var lastCounterReset = await context.AuditLogs
+                        .Where(a => a.CustomerAccountId == user.UserId &&
+                                   (a.Action == "ACCOUNT_UNLOCKED" || 
+                                    a.Action == "ADMIN_ACCOUNT_UNLOCK" || 
+                                    a.Action == "PASSWORD_RESET" ||
+                                    a.Action == "LOGIN_SUCCESS"))
+                        .OrderByDescending(a => a.CreatedAt)
+                        .Select(a => a.CreatedAt)
+                        .FirstOrDefaultAsync();
+
+                    // Count failed attempts only since the last counter reset (or last hour if no reset)
+                    var countAfterTime = lastCounterReset > DateTime.MinValue 
+                        ? lastCounterReset 
+                        : DateTime.Now.AddHours(-1);
+
                     var failedAttempts = await context.AuditLogs
                         .Where(a => a.CustomerAccountId == user.UserId &&
                                    a.Action == "LOGIN_FAILED" &&
-                                   a.CreatedAt >= DateTime.Now.AddHours(-1))
+                                   a.CreatedAt > countAfterTime)
                         .CountAsync();
 
                     failedAttempts++; // Include current attempt

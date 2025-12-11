@@ -389,6 +389,81 @@
         </div>
         <!-- ==================== END ACCOUNTANT OPERATIONS ANALYTICS ==================== -->
 
+        <!-- ==================== FINANCE MANAGER OPERATIONS ANALYTICS ==================== -->
+        <div class="card" style="margin-bottom: 24px; border: 2px solid #f59e0b; border-radius: 16px; overflow: hidden;">
+            <div class="card-header"
+                style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 20px 24px; border-bottom: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div
+                            style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="1" x2="12" y2="23"/>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="card-title" style="margin: 0; font-size: 18px; font-weight: 700; color: white;">
+                                Finance Manager Operations Analytics</h3>
+                            <p style="margin: 4px 0 0; font-size: 13px; color: rgba(255,255,255,0.8);">Loan approvals, cash flow analysis, financial management</p>
+                        </div>
+                    </div>
+                    <a href="/admin/finance-manager/loan-approvals"
+                        style="padding: 10px 20px; background: white; color: #d97706; border-radius: 10px; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        Go to Finance Manager →
+                    </a>
+                </div>
+            </div>
+            <div class="card-body" style="background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%); padding: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px;">
+                    <div style="background: linear-gradient(135deg, #fffbeb, #fef3c7); border-radius: 12px; padding: 16px; border: 2px solid #fcd34d;">
+                        <p style="margin: 0; font-size: 11px; color: #92400e; font-weight: 600; text-transform: uppercase;">
+                            Active Loans</p>
+                        <h3 style="margin: 6px 0 0; font-size: 22px; font-weight: 700; color: #d97706;">
+                            @activeLoans</h3>
+                        <p style="margin: 2px 0 0; font-size: 11px; color: #b45309;">approved loans</p>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 12px; padding: 16px; border: 2px solid #fcd34d;">
+                        <p style="margin: 0; font-size: 11px; color: #92400e; font-weight: 600; text-transform: uppercase;">
+                            Pending Approvals</p>
+                        <h3 style="margin: 6px 0 0; font-size: 22px; font-weight: 700; color: #d97706;">
+                            @pendingLoanApplications</h3>
+                        <p style="margin: 2px 0 0; font-size: 11px; color: #b45309;">awaiting review</p>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #fffbeb, #fef3c7); border-radius: 12px; padding: 16px; border: 2px solid #fcd34d;">
+                        <p style="margin: 0; font-size: 11px; color: #92400e; font-weight: 600; text-transform: uppercase;">
+                            Loan Portfolio</p>
+                        <h3 style="margin: 6px 0 0; font-size: 22px; font-weight: 700; color: #d97706;">
+                            ₱@(totalLoanAmount / 1000)K</h3>
+                        <p style="margin: 2px 0 0; font-size: 11px; color: #b45309;">total outstanding</p>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 12px; padding: 16px; border: 2px solid #fcd34d;">
+                        <p style="margin: 0; font-size: 11px; color: #92400e; font-weight: 600; text-transform: uppercase;">
+                            Disbursed Today</p>
+                        <h3 style="margin: 6px 0 0; font-size: 22px; font-weight: 700; color: #d97706;">
+                            ₱@loanDisbursedToday.ToString("N0")</h3>
+                        <p style="margin: 2px 0 0; font-size: 11px; color: #b45309;">loan releases</p>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #fffbeb, #fef3c7); border-radius: 12px; padding: 16px; border: 2px solid #fcd34d;">
+                        <p style="margin: 0; font-size: 11px; color: #92400e; font-weight: 600; text-transform: uppercase;">
+                            Interest Earned</p>
+                        <h3 style="margin: 6px 0 0; font-size: 22px; font-weight: 700; color: #d97706;">
+                            ₱@interestEarnedMonth.ToString("N0")</h3>
+                        <p style="margin: 2px 0 0; font-size: 11px; color: #b45309;">this month</p>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 12px; padding: 16px; border: 2px solid #fcd34d;">
+                        <p style="margin: 0; font-size: 11px; color: #92400e; font-weight: 600; text-transform: uppercase;">
+                            Loan Performance</p>
+                        <h3 style="margin: 6px 0 0; font-size: 22px; font-weight: 700; color: #d97706;">
+                            @loanPerformanceRatio.ToString("N0")%</h3>
+                        <p style="margin: 2px 0 0; font-size: 11px; color: #b45309;">performance ratio</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ==================== END FINANCE MANAGER OPERATIONS ANALYTICS ==================== -->
+
         <!-- Analytics Charts Section -->
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px;">
             <!-- Cash Flow Trend Chart -->

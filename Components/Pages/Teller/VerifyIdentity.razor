@@ -5,77 +5,120 @@
 @layout TellerLayout
 @inject LoanProcessService LoanProcessService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 @attribute [Authorize(Roles = "Teller")]
 
-<div class="card shadow">
-        <div class="card-header bg-info text-white">
-            <h4 class="mb-0"><i class="bi bi-check-circle"></i> Verify Customer Identity</h4>
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Verify Customer Identity</h1>
+                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Pending loan applications awaiting verification</p>
+            </div>
         </div>
-        <div class="card-body">
-            @if (successMessage != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show">
-                    @successMessage
-                    <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
-                </div>
-            }
-
-            @if (errorMessage != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show">
-                    @errorMessage
-                    <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
-                </div>
-            }
-
-            @if (pendingApplications == null)
-            {
-                <div class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            }
-            else if (pendingApplications.Count == 0)
-            {
-                <div class="alert alert-info">No pending applications for verification.</div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Application #</th>
-                                <th>Customer</th>
-                                <th>Loan Type</th>
-                                <th>Amount</th>
-                                <th>Date</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var app in pendingApplications)
-                            {
-                                <tr>
-                                    <td><span class="badge bg-primary">@app.ApplicationNumber</span></td>
-                                    <td>@app.Account?.Customer?.FullName</td>
-                                    <td>@app.LoanType</td>
-                                    <td>₱@app.RequestedAmount.ToString("N2")</td>
-                                    <td>@app.ApplicationDate.ToString("yyyy-MM-dd")</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-success" @onclick="() => VerifyAsync(app.ApplicationId)">
-                                            <i class="bi bi-check-lg"></i> Verify
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
+        <div style="display: flex; gap: 12px;">
+            <button @onclick="DownloadCSV" style="display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                CSV
+            </button>
+            <button @onclick="DownloadPDF" style="display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                PDF
+            </button>
         </div>
     </div>
+</div>
+
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+    @if (successMessage != null)
+    {
+        <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <span>@successMessage</span>
+            <button @onclick="() => successMessage = null" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #065f46;">×</button>
+        </div>
+    }
+
+    @if (errorMessage != null)
+    {
+        <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <span>@errorMessage</span>
+            <button @onclick="() => errorMessage = null" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #991b1b;">×</button>
+        </div>
+    }
+
+    @if (pendingApplications == null)
+    {
+        <div style="text-align: center; padding: 40px;">
+            <div style="width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            <p style="margin-top: 16px; color: #6b7280;">Loading applications...</p>
+        </div>
+    }
+    else if (pendingApplications.Count == 0)
+    {
+        <div style="text-align: center; padding: 40px; color: #6b7280;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin: 0 auto 12px;">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9 12l2 2 4-4"></path>
+            </svg>
+            <div style="font-size: 16px; font-weight: 600;">No pending applications for verification</div>
+            <div style="font-size: 13px; margin-top: 4px;">All identities have been verified</div>
+        </div>
+    }
+    else
+    {
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                        <th style="padding: 14px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 700;">APPLICATION #</th>
+                        <th style="padding: 14px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 700;">CUSTOMER</th>
+                        <th style="padding: 14px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 700;">LOAN TYPE</th>
+                        <th style="padding: 14px; text-align: right; font-size: 12px; color: #6b7280; font-weight: 700;">AMOUNT</th>
+                        <th style="padding: 14px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 700;">DATE</th>
+                        <th style="padding: 14px; text-align: center; font-size: 12px; color: #6b7280; font-weight: 700;">ACTION</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var app in pendingApplications)
+                    {
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 14px;">
+                                <span style="background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;">@app.ApplicationNumber</span>
+                            </td>
+                            <td style="padding: 14px; font-size: 14px; color: #111827;">@app.Account?.Customer?.FullName</td>
+                            <td style="padding: 14px; font-size: 14px; color: #4b5563;">@app.LoanType</td>
+                            <td style="padding: 14px; text-align: right; font-size: 14px; font-weight: 600; color: #059669;">₱@app.RequestedAmount.ToString("N2")</td>
+                            <td style="padding: 14px; font-size: 14px; color: #6b7280;">@app.ApplicationDate.ToString("yyyy-MM-dd")</td>
+                            <td style="padding: 14px; text-align: center;">
+                                <button style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;" 
+                                        @onclick="() => VerifyAsync(app.ApplicationId)">
+                                    ✓ Verify
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<style>
+    @@keyframes spin { to { transform: rotate(360deg); } }
+</style>
 
 @code {
     private List<LoanApplication>? pendingApplications;
@@ -110,6 +153,104 @@
         catch (Exception ex)
         {
             errorMessage = $"Error verifying identity: {ex.Message}";
+        }
+    }
+
+    private async Task DownloadCSV()
+    {
+        if (pendingApplications == null || !pendingApplications.Any())
+        {
+            errorMessage = "No data to export";
+            return;
+        }
+
+        try
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("Application #,Customer,Loan Type,Amount,Date,Status");
+            
+            foreach (var app in pendingApplications)
+            {
+                sb.AppendLine($"{app.ApplicationNumber},{app.Account?.Customer?.FullName},{app.LoanType},{app.RequestedAmount:N2},{app.ApplicationDate:yyyy-MM-dd},Pending Verification");
+            }
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            var base64 = Convert.ToBase64String(bytes);
+            var fileName = $"PendingVerifications_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+
+            await JS.InvokeVoidAsync("eval", $@"
+                var link = document.createElement('a');
+                link.href = 'data:text/csv;base64,{base64}';
+                link.download = '{fileName}';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            ");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error downloading CSV: {ex.Message}";
+        }
+    }
+
+    private async Task DownloadPDF()
+    {
+        if (pendingApplications == null || !pendingApplications.Any())
+        {
+            errorMessage = "No data to export";
+            return;
+        }
+
+        try
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Pending Verifications Report</title>");
+            sb.AppendLine("<style>");
+            sb.AppendLine("body { font-family: Arial, sans-serif; margin: 0; padding: 40px; background: #f8fafc; }");
+            sb.AppendLine(".report { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }");
+            sb.AppendLine(".header { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 30px; text-align: center; }");
+            sb.AppendLine(".header h1 { margin: 0; font-size: 24px; }");
+            sb.AppendLine(".content { padding: 30px; }");
+            sb.AppendLine("table { width: 100%; border-collapse: collapse; }");
+            sb.AppendLine("th { background: #f0fdf4; padding: 12px; text-align: left; font-size: 12px; color: #065f46; border-bottom: 2px solid #10b981; }");
+            sb.AppendLine("td { padding: 12px; border-bottom: 1px solid #e5e7eb; font-size: 13px; }");
+            sb.AppendLine(".total { background: #f0fdf4; padding: 16px; margin-top: 20px; border-radius: 8px; text-align: right; }");
+            sb.AppendLine(".footer { text-align: center; padding: 20px; background: #f8fafc; font-size: 12px; color: #6b7280; }");
+            sb.AppendLine("</style></head><body>");
+            sb.AppendLine("<div class=\"report\">");
+            sb.AppendLine("<div class=\"header\"><h1>FinanceBank</h1><p>Pending Identity Verifications</p></div>");
+            sb.AppendLine("<div class=\"content\">");
+            sb.AppendLine("<table><thead><tr><th>Application #</th><th>Customer</th><th>Loan Type</th><th>Amount</th><th>Date</th></tr></thead><tbody>");
+
+            decimal totalAmount = 0;
+            foreach (var app in pendingApplications)
+            {
+                sb.AppendLine($"<tr><td>{app.ApplicationNumber}</td><td>{app.Account?.Customer?.FullName}</td><td>{app.LoanType}</td><td style=\"text-align:right;\">₱{app.RequestedAmount:N2}</td><td>{app.ApplicationDate:yyyy-MM-dd}</td></tr>");
+                totalAmount += app.RequestedAmount;
+            }
+
+            sb.AppendLine("</tbody></table>");
+            sb.AppendLine($"<div class=\"total\"><strong>Total Applications:</strong> {pendingApplications.Count} | <strong>Total Amount:</strong> ₱{totalAmount:N2}</div>");
+            sb.AppendLine("</div>");
+            sb.AppendLine($"<div class=\"footer\"><p>Generated on {DateTime.Now:MMMM dd, yyyy hh:mm tt}</p></div>");
+            sb.AppendLine("</div></body></html>");
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            var base64 = Convert.ToBase64String(bytes);
+            var fileName = $"PendingVerifications_{DateTime.Now:yyyyMMdd_HHmmss}.html";
+
+            await JS.InvokeVoidAsync("eval", $@"
+                var link = document.createElement('a');
+                link.href = 'data:text/html;base64,{base64}';
+                link.download = '{fileName}';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            ");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error downloading PDF: {ex.Message}";
         }
     }
 }

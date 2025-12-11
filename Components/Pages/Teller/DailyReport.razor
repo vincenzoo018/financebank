@@ -6,19 +6,39 @@
 @inject AuthService AuthService
 @inject IDbContextFactory<BFASDbContext> DbContextFactory
 @inject TellerReportService ReportService
+@inject IJSRuntime JS
 
 <!-- Page Header -->
 <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
-    <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
-            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                <rect x="3" y="4" width="18" height="18" rx="2"/>
-                <path d="M16 2v4M8 2v4M3 10h18"/>
-            </svg>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                    <path d="M16 2v4M8 2v4M3 10h18"/>
+                </svg>
+            </div>
+            <div>
+                <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Daily Report</h1>
+                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Today's transaction summary</p>
+            </div>
         </div>
-        <div>
-            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Daily Report</h1>
-            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Today's transaction summary</p>
+        <div style="display: flex; gap: 12px;">
+            <button @onclick="DownloadCSV" style="display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                CSV
+            </button>
+            <button @onclick="DownloadPDF" style="display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                PDF
+            </button>
         </div>
     </div>
 </div>
@@ -219,5 +239,114 @@
             "Failed" => "#b91c1c",
             _ => "#4b5563"
         };
+    }
+
+    private async Task DownloadCSV()
+    {
+        try
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("DAILY REPORT - " + DateTime.Today.ToString("MMMM dd, yyyy"));
+            sb.AppendLine();
+            sb.AppendLine("SUMMARY");
+            sb.AppendLine($"Total Deposits,₱{totalDeposits:N2},{depositCount} transactions");
+            sb.AppendLine($"Total Withdrawals,₱{totalWithdrawals:N2},{withdrawalCount} transactions");
+            sb.AppendLine($"Loan Payments,₱{totalLoanPayments:N2}");
+            sb.AppendLine($"Loan Disbursements,₱{totalLoanDisbursements:N2}");
+            sb.AppendLine($"Net Cash Flow,₱{netCashFlow:N2}");
+            sb.AppendLine($"Total Transactions,{totalTransactions}");
+            sb.AppendLine();
+            sb.AppendLine("TRANSACTIONS");
+            sb.AppendLine("Time,Account,Type,Amount,Status");
+            
+            foreach (var txn in todayTransactions.OrderByDescending(t => t.CreatedAt))
+            {
+                sb.AppendLine($"{txn.CreatedAt:HH:mm:ss},{txn.Account?.AccountNumber},{txn.TransactionType},{txn.Amount:N2},{txn.Status}");
+            }
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            var base64 = Convert.ToBase64String(bytes);
+            var fileName = $"DailyReport_{DateTime.Today:yyyyMMdd}.csv";
+
+            await JS.InvokeVoidAsync("eval", $@"
+                var link = document.createElement('a');
+                link.href = 'data:text/csv;base64,{base64}';
+                link.download = '{fileName}';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            ");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error downloading CSV: {ex.Message}");
+        }
+    }
+
+    private async Task DownloadPDF()
+    {
+        try
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Daily Report</title>");
+            sb.AppendLine("<style>");
+            sb.AppendLine("body { font-family: Arial, sans-serif; margin: 0; padding: 40px; background: #f8fafc; }");
+            sb.AppendLine(".report { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }");
+            sb.AppendLine(".header { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 30px; text-align: center; }");
+            sb.AppendLine(".header h1 { margin: 0; font-size: 24px; }");
+            sb.AppendLine(".content { padding: 30px; }");
+            sb.AppendLine(".summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 30px; }");
+            sb.AppendLine(".summary-card { background: #f9fafb; padding: 16px; border-radius: 8px; text-align: center; }");
+            sb.AppendLine(".summary-card .label { font-size: 12px; color: #6b7280; }");
+            sb.AppendLine(".summary-card .value { font-size: 20px; font-weight: 700; margin-top: 4px; }");
+            sb.AppendLine(".deposits { color: #059669; }");
+            sb.AppendLine(".withdrawals { color: #dc2626; }");
+            sb.AppendLine(".loans { color: #2563eb; }");
+            sb.AppendLine("table { width: 100%; border-collapse: collapse; margin-top: 20px; }");
+            sb.AppendLine("th { background: #f0fdf4; padding: 12px; text-align: left; font-size: 12px; color: #065f46; border-bottom: 2px solid #10b981; }");
+            sb.AppendLine("td { padding: 12px; border-bottom: 1px solid #e5e7eb; font-size: 13px; }");
+            sb.AppendLine(".footer { text-align: center; padding: 20px; background: #f8fafc; font-size: 12px; color: #6b7280; }");
+            sb.AppendLine("</style></head><body>");
+            sb.AppendLine("<div class=\"report\">");
+            sb.AppendLine($"<div class=\"header\"><h1>FinanceBank</h1><p>Daily Report - {DateTime.Today:MMMM dd, yyyy}</p></div>");
+            sb.AppendLine("<div class=\"content\">");
+            sb.AppendLine("<div class=\"summary-grid\">");
+            sb.AppendLine($"<div class=\"summary-card\"><div class=\"label\">Total Deposits</div><div class=\"value deposits\">₱{totalDeposits:N2}</div></div>");
+            sb.AppendLine($"<div class=\"summary-card\"><div class=\"label\">Total Withdrawals</div><div class=\"value withdrawals\">₱{totalWithdrawals:N2}</div></div>");
+            sb.AppendLine($"<div class=\"summary-card\"><div class=\"label\">Loan Payments</div><div class=\"value loans\">₱{totalLoanPayments:N2}</div></div>");
+            sb.AppendLine($"<div class=\"summary-card\"><div class=\"label\">Loan Disbursements</div><div class=\"value\" style=\"color:#d97706;\">₱{totalLoanDisbursements:N2}</div></div>");
+            sb.AppendLine($"<div class=\"summary-card\"><div class=\"label\">Net Cash Flow</div><div class=\"value\" style=\"color:{(netCashFlow >= 0 ? "#059669" : "#dc2626")};\">₱{netCashFlow:N2}</div></div>");
+            sb.AppendLine($"<div class=\"summary-card\"><div class=\"label\">Total Transactions</div><div class=\"value\">{totalTransactions}</div></div>");
+            sb.AppendLine("</div>");
+            sb.AppendLine("<h3 style=\"color:#111827;\">Today's Transactions</h3>");
+            sb.AppendLine("<table><thead><tr><th>Time</th><th>Account</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead><tbody>");
+
+            foreach (var txn in todayTransactions.OrderByDescending(t => t.CreatedAt))
+            {
+                sb.AppendLine($"<tr><td>{txn.CreatedAt:HH:mm:ss}</td><td>{txn.Account?.AccountNumber}</td><td>{txn.TransactionType}</td><td style=\"text-align:right;\">₱{txn.Amount:N2}</td><td>{txn.Status}</td></tr>");
+            }
+
+            sb.AppendLine("</tbody></table>");
+            sb.AppendLine("</div>");
+            sb.AppendLine($"<div class=\"footer\"><p>Generated on {DateTime.Now:MMMM dd, yyyy hh:mm tt}</p></div>");
+            sb.AppendLine("</div></body></html>");
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            var base64 = Convert.ToBase64String(bytes);
+            var fileName = $"DailyReport_{DateTime.Today:yyyyMMdd}.html";
+
+            await JS.InvokeVoidAsync("eval", $@"
+                var link = document.createElement('a');
+                link.href = 'data:text/html;base64,{base64}';
+                link.download = '{fileName}';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            ");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error downloading PDF: {ex.Message}");
+        }
     }
 }
