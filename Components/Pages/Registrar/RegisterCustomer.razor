@@ -5,6 +5,7 @@
 @using FinanceBank.Data
 @using FinanceBank.Components
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.Data.SqlClient
 @inject AuthService AuthService
 @inject IDbContextFactory<BFASDbContext> DbContextFactory
 @inject PasswordHashingService PasswordHasher
@@ -40,13 +41,26 @@
                     <span style="width: 28px; height: 28px; background: #d1fae5; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #047857; font-size: 14px;">1</span>
                     Personal Information
                 </h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
                     <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Full Name *</label>
-                        <input type="text" @bind="fullName" placeholder="Enter full name" required
-                            style="width: 100%; padding: 12px 16px; border: 1px solid @(showError && string.IsNullOrEmpty(fullName) ? "#dc2626" : "#e5e7eb"); border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
-                        @if (showError && string.IsNullOrEmpty(fullName)) { <span style="color: #dc2626; font-size: 12px;">Required</span> }
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Last Name *</label>
+                        <input type="text" @bind="lastName" placeholder="Enter last name" required
+                            style="width: 100%; padding: 12px 16px; border: 1px solid @(showError && string.IsNullOrEmpty(lastName) ? "#dc2626" : "#e5e7eb"); border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+                        @if (showError && string.IsNullOrEmpty(lastName)) { <span style="color: #dc2626; font-size: 12px;">Required</span> }
                     </div>
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">First Name *</label>
+                        <input type="text" @bind="firstName" placeholder="Enter first name" required
+                            style="width: 100%; padding: 12px 16px; border: 1px solid @(showError && string.IsNullOrEmpty(firstName) ? "#dc2626" : "#e5e7eb"); border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+                        @if (showError && string.IsNullOrEmpty(firstName)) { <span style="color: #dc2626; font-size: 12px;">Required</span> }
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Middle Name</label>
+                        <input type="text" @bind="middleName" placeholder="Enter middle name (optional)"
+                            style="width: 100%; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
                     <div>
                         <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Email Address *</label>
                         <input type="email" @bind="email" placeholder="customer@example.com" required
@@ -54,10 +68,11 @@
                         @if (showError && string.IsNullOrEmpty(email)) { <span style="color: #dc2626; font-size: 12px;">Required</span> }
                     </div>
                     <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Phone Number *</label>
-                        <input type="tel" @bind="phoneNumber" placeholder="+63 9XX XXX XXXX" required
-                            style="width: 100%; padding: 12px 16px; border: 1px solid @(showError && string.IsNullOrEmpty(phoneNumber) ? "#dc2626" : "#e5e7eb"); border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Phone Number * (11 digits)</label>
+                        <input type="tel" @bind="phoneNumber" placeholder="09XXXXXXXXX" maxlength="11" required
+                            style="width: 100%; padding: 12px 16px; border: 1px solid @(showError && !string.IsNullOrEmpty(phoneNumberError) ? "#dc2626" : "#e5e7eb"); border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
                         @if (showError && string.IsNullOrEmpty(phoneNumber)) { <span style="color: #dc2626; font-size: 12px;">Required</span> }
+                        @if (!string.IsNullOrEmpty(phoneNumberError)) { <span style="color: #dc2626; font-size: 12px; display: block;">@phoneNumberError</span> }
                     </div>
                     <div>
                         <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Address *</label>
@@ -66,9 +81,10 @@
                         @if (showError && string.IsNullOrEmpty(address)) { <span style="color: #dc2626; font-size: 12px;">Required</span> }
                     </div>
                     <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Date of Birth</label>
-                        <input type="date" @onchange="@((ChangeEventArgs e) => dateOfBirthString = e.Value?.ToString() ?? "")" value="@dateOfBirthString"
-                            style="width: 100%; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Date of Birth * (Must be 18+)</label>
+                        <input type="date" @onchange="@((ChangeEventArgs e) => ValidateBirthDate(e.Value?.ToString() ?? ""))" value="@dateOfBirthString"
+                            style="width: 100%; padding: 12px 16px; border: 1px solid @(showError && !string.IsNullOrEmpty(birthDateError) ? "#dc2626" : "#e5e7eb"); border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+                        @if (!string.IsNullOrEmpty(birthDateError)) { <span style="color: #dc2626; font-size: 12px; display: block;">@birthDateError</span> }
                     </div>
                     <div>
                         <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Gender</label>
@@ -269,11 +285,18 @@
     private Toast? toastComponent;
     
     // Personal Information
-    private string fullName = "";
+    private string lastName = "";
+    private string firstName = "";
+    private string middleName = "";
+    private string fullName => string.IsNullOrEmpty(middleName) 
+        ? $"{lastName}, {firstName}".Trim(new[] { ',', ' ' })
+        : $"{lastName}, {firstName} {middleName}".Trim();
     private string email = "";
     private string phoneNumber = "";
+    private string phoneNumberError = "";
     private string address = "";
     private string dateOfBirthString = "";
+    private string birthDateError = "";
     private string gender = "";
     private string uploadedIdFileName = "";
     private byte[]? validIdBytes;
@@ -303,6 +326,51 @@
     private string pinError = "";
     private string createdAccountNumber = "";
 
+    private void ValidateBirthDate(string dateValue)
+    {
+        dateOfBirthString = dateValue;
+        birthDateError = "";
+        
+        if (!string.IsNullOrEmpty(dateValue) && DateTime.TryParse(dateValue, out var birthDate))
+        {
+            var age = DateTime.Today.Year - birthDate.Year;
+            if (birthDate.Date > DateTime.Today.AddYears(-age)) age--;
+            
+            if (age < 18)
+            {
+                birthDateError = "Customer must be at least 18 years old";
+            }
+        }
+    }
+
+    private bool ValidatePhoneNumber()
+    {
+        phoneNumberError = "";
+        
+        if (string.IsNullOrEmpty(phoneNumber))
+        {
+            phoneNumberError = "Phone number is required";
+            return false;
+        }
+        
+        // Remove any spaces or dashes
+        var cleanNumber = phoneNumber.Replace(" ", "").Replace("-", "");
+        
+        if (cleanNumber.Length != 11)
+        {
+            phoneNumberError = "Phone number must be exactly 11 digits";
+            return false;
+        }
+        
+        if (!cleanNumber.All(char.IsDigit))
+        {
+            phoneNumberError = "Phone number must contain only digits";
+            return false;
+        }
+        
+        return true;
+    }
+
     private async Task HandleRegistration()
     {
         showError = true;
@@ -310,14 +378,40 @@
         successMessage = "";
         passwordError = "";
         pinError = "";
+        phoneNumberError = "";
 
-        // Validate required fields
-        if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(email) || 
+        // Validate required fields (name is now split into parts)
+        if (string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(firstName) || 
+            string.IsNullOrWhiteSpace(email) || 
             string.IsNullOrWhiteSpace(phoneNumber) || string.IsNullOrWhiteSpace(address) ||
             string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(initialPassword))
         {
             errorMessage = "Please fill in all required fields";
             return;
+        }
+
+        // Validate phone number (11 digits)
+        if (!ValidatePhoneNumber())
+        {
+            errorMessage = "Phone number must be exactly 11 digits";
+            return;
+        }
+
+        // Validate birthdate (18+ years old)
+        if (!string.IsNullOrEmpty(dateOfBirthString))
+        {
+            if (DateTime.TryParse(dateOfBirthString, out var birthDate))
+            {
+                var age = DateTime.Today.Year - birthDate.Year;
+                if (birthDate.Date > DateTime.Today.AddYears(-age)) age--;
+                
+                if (age < 18)
+                {
+                    birthDateError = "Customer must be at least 18 years old";
+                    errorMessage = "Customer must be at least 18 years old to register";
+                    return;
+                }
+            }
         }
 
         // Validate password strength (minimum 12 characters)
@@ -376,6 +470,39 @@
                 return;
             }
 
+            // Get the maximum UserId from local database to ensure positive IDs
+            var maxLocalUserId = await context.Users.MaxAsync(u => (int?)u.UserId) ?? 0;
+            
+            // Also check cloud database max ID to prevent conflicts
+            int maxCloudUserId = 0;
+            try
+            {
+                using var cloudConn = new SqlConnection("Server=db34283.public.databaseasp.net,1433;Database=db34283;User Id=db34283;Password=Zx6=2+fXCm8!;Encrypt=True;TrustServerCertificate=True;Connection Timeout=10;");
+                await cloudConn.OpenAsync();
+                using var cmd = new SqlCommand("SELECT ISNULL(MAX(UserId), 0) FROM Users", cloudConn);
+                var result = await cmd.ExecuteScalarAsync();
+                maxCloudUserId = Convert.ToInt32(result);
+            }
+            catch 
+            {
+                // Cloud unavailable - continue with local max
+            }
+
+            // Reseed the IDENTITY if needed to ensure we get a positive ID higher than both local and cloud
+            var nextSafeId = Math.Max(maxLocalUserId, maxCloudUserId) + 1;
+            if (nextSafeId > maxLocalUserId + 1)
+            {
+                // Reseed local IDENTITY to avoid conflicts
+                try
+                {
+                    await context.Database.ExecuteSqlRawAsync($"DBCC CHECKIDENT ('Users', RESEED, {nextSafeId - 1})");
+                }
+                catch
+                {
+                    // Reseeding failed - continue anyway, EF will handle it
+                }
+            }
+
             // Hash the password and PIN
             var hashedPassword = PasswordHasher.HashPassword(initialPassword);
             var hashedPin = PasswordHasher.HashPin(transferPin);
@@ -401,6 +528,29 @@
             };
             context.Users.Add(newUser);
             await context.SaveChangesAsync();
+
+            // Also check cloud max AccountId to prevent conflicts
+            int maxCloudAccountId = 0;
+            try
+            {
+                using var cloudConn = new SqlConnection("Server=db34283.public.databaseasp.net,1433;Database=db34283;User Id=db34283;Password=Zx6=2+fXCm8!;Encrypt=True;TrustServerCertificate=True;Connection Timeout=10;");
+                await cloudConn.OpenAsync();
+                using var cmd = new SqlCommand("SELECT ISNULL(MAX(AccountId), 0) FROM CustomerAccounts", cloudConn);
+                var result = await cmd.ExecuteScalarAsync();
+                maxCloudAccountId = Convert.ToInt32(result);
+                
+                // Reseed CustomerAccounts IDENTITY if needed
+                var maxLocalAccountId = await context.CustomerAccounts.MaxAsync(a => (int?)a.AccountId) ?? 0;
+                var nextSafeAccountId = Math.Max(maxLocalAccountId, maxCloudAccountId) + 1;
+                if (nextSafeAccountId > maxLocalAccountId + 1)
+                {
+                    await context.Database.ExecuteSqlRawAsync($"DBCC CHECKIDENT ('CustomerAccounts', RESEED, {nextSafeAccountId - 1})");
+                }
+            }
+            catch 
+            {
+                // Cloud unavailable - continue
+            }
 
             // Create CustomerAccount for the user
             createdAccountNumber = CustomerAccount.GenerateAccountNumber();
@@ -430,8 +580,18 @@
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error: {ex.Message}";
-            Console.WriteLine($"Registration error: {ex}");
+            // Check if it's a connection/database error
+            if (ex.Message.Contains("connection") || ex.Message.Contains("network") || 
+                ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
+                ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
+            {
+                errorMessage = "Unable to register customer - database connection unavailable. Please check your network connection and ensure the database server is running.";
+            }
+            else
+            {
+                errorMessage = $"Error: {ex.Message}";
+            }
+            System.Diagnostics.Debug.WriteLine($"Registration error: {ex}");
         }
         finally
         {
@@ -442,11 +602,15 @@
 
     private void ClearForm()
     {
-        fullName = "";
+        lastName = "";
+        firstName = "";
+        middleName = "";
         email = "";
         phoneNumber = "";
+        phoneNumberError = "";
         address = "";
         dateOfBirthString = "";
+        birthDateError = "";
         gender = "";
         username = "";
         initialPassword = "";

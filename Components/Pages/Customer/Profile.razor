@@ -1,7 +1,13 @@
 @page "/customer/profile"
 @layout CustomerLayout
 @using FinanceBank.Services
+@using FinanceBank.Models
+@using FinanceBank.Data
+@using Microsoft.EntityFrameworkCore
 @inject AuthService AuthService
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
+
+<Toast @ref="toastComponent" />
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <!-- Header -->
@@ -20,83 +26,401 @@
         </div>
     </div>
 
-    <!-- Profile Card -->
-    <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; margin-bottom: 24px;">
-        <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #059669); color: white; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 700; margin: 0 auto 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
-            @GetUserInitials()
+    @if (isOffline)
+    {
+        <div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 12px; padding: 16px; margin-bottom: 24px; color: #78350f; display: flex; align-items: center; gap: 12px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <div>
+                <strong>Offline Mode</strong>
+                <p style="margin: 0; font-size: 13px;">You're viewing cached data. Some features may be limited until connection is restored.</p>
+            </div>
         </div>
-        <h2 style="font-size: 28px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">@AuthService.FullName</h2>
-        <p style="color: #6b7280; font-size: 16px; margin-bottom: 4px;">@AuthService.CurrentUser</p>
-        <div style="display: inline-block; padding: 6px 16px; background: #d1fae5; color: #065f46; border-radius: 20px; font-size: 14px; font-weight: 600; margin-bottom: 24px;">
-            Verified Account
-        </div>
-        <div style="display: flex; gap: 12px; justify-content: center;">
-            <button style="padding: 12px 24px; background: linear-gradient(135deg, var(--accent), #059669); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
-                Edit Profile
-            </button>
-            <button style="padding: 12px 24px; background: #f3f4f6; border: none; border-radius: 8px; color: #374151; font-weight: 600; cursor: pointer;">
-                Change Password
-            </button>
-        </div>
-    </div>
+    }
 
-    <!-- Personal Information -->
-    <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
-        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Personal Information</h3>
-        
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
-            <div>
-                <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Full Name</div>
-                <div style="font-size: 16px; font-weight: 600; color: #1f2937;">Juan Dela Cruz</div>
+    @if (isLoading)
+    {
+        <div style="text-align: center; padding: 60px;">
+            <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+            <p style="color: #6b7280;">Loading profile...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Profile Card -->
+        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; margin-bottom: 24px;">
+            @if (!string.IsNullOrEmpty(profilePicturePreview))
+            {
+                <img src="@profilePicturePreview" alt="Profile" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #059669; margin: 0 auto 20px; display: block;" />
+            }
+            else
+            {
+                <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #059669); color: white; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 700; margin: 0 auto 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
+                    @GetUserInitials()
+                </div>
+            }
+            <h2 style="font-size: 28px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">@(currentUser?.FullName ?? AuthService.FullName)</h2>
+            <p style="color: #6b7280; font-size: 16px; margin-bottom: 4px;">@(currentUser?.Username ?? AuthService.CurrentUser)</p>
+            <div style="display: inline-block; padding: 6px 16px; background: @(currentUser?.IsActive == true ? "#d1fae5" : "#fee2e2"); color: @(currentUser?.IsActive == true ? "#065f46" : "#991b1b"); border-radius: 20px; font-size: 14px; font-weight: 600; margin-bottom: 24px;">
+                @(currentUser?.IsActive == true ? "✓ Verified Account" : "Account Inactive")
             </div>
-            <div>
-                <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Email Address</div>
-                <div style="font-size: 16px; font-weight: 600; color: #1f2937;">juan.delacruz@finsys.com</div>
-            </div>
-            <div>
-                <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Phone Number</div>
-                <div style="font-size: 16px; font-weight: 600; color: #1f2937;">+63 912 345 6789</div>
-            </div>
-            <div>
-                <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Date of Birth</div>
-                <div style="font-size: 16px; font-weight: 600; color: #1f2937;">January 15, 1990</div>
-            </div>
-            <div>
-                <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Address</div>
-                <div style="font-size: 16px; font-weight: 600; color: #1f2937;">123 Main St, Makati City</div>
-            </div>
-            <div>
-                <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Member Since</div>
-                <div style="font-size: 16px; font-weight: 600; color: #1f2937;">January 2024</div>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button @onclick="() => isEditing = true" style="padding: 12px 24px; background: linear-gradient(135deg, var(--accent), #059669); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; display: @(isEditing ? "none" : "block");">
+                    Edit Profile
+                </button>
+                <InputFile OnChange="HandleProfilePictureUpload" accept="image/*" style="display: none;" id="profilePicUpload" />
+                <label for="profilePicUpload" style="padding: 12px 24px; background: #f3f4f6; border: none; border-radius: 8px; color: #374151; font-weight: 600; cursor: pointer; display: inline-block;">
+                    Change Photo
+                </label>
             </div>
         </div>
-    </div>
 
-    <!-- Account Overview -->
-    <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Account Overview</h3>
-        
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-            <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 12px; padding: 20px;">
-                <div style="font-size: 14px; color: #1e40af; margin-bottom: 8px;">Account Number</div>
-                <div style="font-size: 20px; font-weight: 700; color: #1e3a8a;">**** **** 1234</div>
+        <!-- Personal Information -->
+        <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0;">Personal Information</h3>
+                @if (isEditing)
+                {
+                    <div style="display: flex; gap: 8px;">
+                        <button @onclick="SaveProfile" disabled="@isSaving" style="padding: 8px 16px; background: #059669; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                            @(isSaving ? "Saving..." : "Save")
+                        </button>
+                        <button @onclick="CancelEdit" style="padding: 8px 16px; background: #f3f4f6; color: #374151; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                            Cancel
+                        </button>
+                    </div>
+                }
             </div>
-            <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 20px;">
-                <div style="font-size: 14px; color: #15803d; margin-bottom: 8px;">Account Status</div>
-                <div style="font-size: 20px; font-weight: 700; color: #166534;">Active</div>
-            </div>
-            <div style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border-radius: 12px; padding: 20px;">
-                <div style="font-size: 14px; color: #b91c1c; margin-bottom: 8px;">Account Type</div>
-                <div style="font-size: 20px; font-weight: 700; color: #991b1b;">Savings</div>
+            
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div style="padding: 12px; background: #fee2e2; border-radius: 8px; color: #991b1b; margin-bottom: 16px;">@errorMessage</div>
+            }
+            
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
+                <div>
+                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Full Name</div>
+                    @if (isEditing)
+                    {
+                        <input type="text" @bind="editFullName" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 16px; font-weight: 600; box-sizing: border-box;" />
+                    }
+                    else
+                    {
+                        <div style="font-size: 16px; font-weight: 600; color: #1f2937;">@(currentUser?.FullName ?? "Not set")</div>
+                    }
+                </div>
+                <div>
+                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Email Address</div>
+                    @if (isEditing)
+                    {
+                        <input type="email" @bind="editEmail" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 16px; font-weight: 600; box-sizing: border-box;" />
+                    }
+                    else
+                    {
+                        <div style="font-size: 16px; font-weight: 600; color: #1f2937;">@(currentUser?.Email ?? "Not set")</div>
+                    }
+                </div>
+                <div>
+                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Phone Number</div>
+                    @if (isEditing)
+                    {
+                        <input type="tel" @bind="editPhone" maxlength="11" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 16px; font-weight: 600; box-sizing: border-box;" />
+                    }
+                    else
+                    {
+                        <div style="font-size: 16px; font-weight: 600; color: #1f2937;">@(currentUser?.PhoneNumber ?? "Not set")</div>
+                    }
+                </div>
+                <div>
+                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Role</div>
+                    <div style="font-size: 16px; font-weight: 600; color: #1f2937;">@(currentUser?.Role ?? "Customer")</div>
+                </div>
+                <div>
+                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Username</div>
+                    <div style="font-size: 16px; font-weight: 600; color: #1f2937;">@(currentUser?.Username ?? "Not set")</div>
+                </div>
+                <div>
+                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">Member Since</div>
+                    <div style="font-size: 16px; font-weight: 600; color: #1f2937;">@(currentUser?.CreatedAt.ToString("MMMM yyyy") ?? "Unknown")</div>
+                </div>
             </div>
         </div>
-    </div>
+
+        <!-- Account Overview -->
+        <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Account Overview</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 12px; padding: 20px;">
+                    <div style="font-size: 14px; color: #1e40af; margin-bottom: 8px;">Account Number</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #1e3a8a;">@(primaryAccount?.AccountNumber ?? "N/A")</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 20px;">
+                    <div style="font-size: 14px; color: #15803d; margin-bottom: 8px;">Account Status</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #166534;">@(primaryAccount?.Status ?? "N/A")</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 12px; padding: 20px;">
+                    <div style="font-size: 14px; color: #92400e; margin-bottom: 8px;">Available Balance</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #78350f;">₱@((primaryAccount?.AvailableBalance ?? 0).ToString("N2"))</div>
+                </div>
+            </div>
+
+            @if (savingsAccounts.Any())
+            {
+                <h4 style="font-size: 16px; font-weight: 600; color: #1f2937; margin: 24px 0 16px;">Savings Accounts</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                    @foreach (var savings in savingsAccounts)
+                    {
+                        <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 16px; border: 1px solid #a7f3d0;">
+                            <div style="font-size: 13px; color: #065f46; margin-bottom: 4px;">@savings.AccountNumber</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #047857;">₱@savings.Balance.ToString("N2")</div>
+                            <div style="font-size: 12px; color: #059669; margin-top: 4px;">@savings.Status</div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
 </div>
 
+<style>
+    @@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
 @code {
+    private Toast? toastComponent;
+    private AuthUser? currentUser;
+    private CustomerAccount? primaryAccount;
+    private List<SavingsAccount> savingsAccounts = new();
+    private string? profilePicturePreview;
+    
+    private bool isLoading = true;
+    private bool isEditing = false;
+    private bool isSaving = false;
+    private string errorMessage = "";
+    
+    // Edit fields
+    private string editFullName = "";
+    private string editEmail = "";
+    private string editPhone = "";
+    
+    // Offline state
+    private bool isOffline = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfile();
+    }
+
+    private async Task LoadProfile()
+    {
+        isLoading = true;
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            
+            // Load user
+            currentUser = await context.Users.FirstOrDefaultAsync(u => u.Username == AuthService.CurrentUser);
+            
+            if (currentUser != null)
+            {
+                // Load profile picture
+                if (currentUser.ProfilePicture != null && currentUser.ProfilePicture.Length > 0)
+                {
+                    var base64 = Convert.ToBase64String(currentUser.ProfilePicture);
+                    var contentType = currentUser.ProfilePictureContentType ?? "image/jpeg";
+                    profilePicturePreview = $"data:{contentType};base64,{base64}";
+                }
+                
+                // Load primary account
+                primaryAccount = await context.CustomerAccounts
+                    .FirstOrDefaultAsync(a => a.CustomerId == currentUser.UserId && a.IsActive);
+                
+                // Load savings accounts
+                savingsAccounts = await context.SavingsAccounts
+                    .Where(s => s.CustomerId == currentUser.UserId && s.Status == "ACTIVE")
+                    .ToListAsync();
+                
+                // Set edit fields
+                editFullName = currentUser.FullName ?? "";
+                editEmail = currentUser.Email ?? "";
+                editPhone = currentUser.PhoneNumber ?? "";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Check if it's a connection/database error
+            if (ex.Message.Contains("connection") || ex.Message.Contains("network") || 
+                ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
+                ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
+            {
+                isOffline = true;
+                errorMessage = "Unable to connect to the database. Please check your network connection and ensure the database server is running.";
+                
+                // Use cached auth data as fallback
+                editFullName = AuthService.FullName ?? "";
+                editEmail = AuthService.Email ?? "";
+            }
+            else
+            {
+                errorMessage = $"Error loading profile: {ex.Message}";
+            }
+            System.Diagnostics.Debug.WriteLine($"Profile load error: {ex}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void CancelEdit()
+    {
+        isEditing = false;
+        errorMessage = "";
+        editFullName = currentUser?.FullName ?? "";
+        editEmail = currentUser?.Email ?? "";
+        editPhone = currentUser?.PhoneNumber ?? "";
+    }
+
+    private async Task SaveProfile()
+    {
+        errorMessage = "";
+        
+        if (string.IsNullOrWhiteSpace(editFullName))
+        {
+            errorMessage = "Full name is required";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(editEmail))
+        {
+            errorMessage = "Email is required";
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(editPhone) && (editPhone.Length != 11 || !editPhone.All(char.IsDigit)))
+        {
+            errorMessage = "Phone number must be exactly 11 digits";
+            return;
+        }
+
+        isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            var user = await context.Users.FirstOrDefaultAsync(u => u.UserId == currentUser!.UserId);
+            
+            if (user != null)
+            {
+                // Check if email is taken by another user
+                var emailExists = await context.Users.AnyAsync(u => u.Email == editEmail && u.UserId != user.UserId);
+                if (emailExists)
+                {
+                    errorMessage = "Email is already in use by another account";
+                    return;
+                }
+
+                user.FullName = editFullName;
+                user.Email = editEmail;
+                user.PhoneNumber = editPhone;
+                
+                await context.SaveChangesAsync();
+                
+                // Update local state
+                currentUser = user;
+                isEditing = false;
+                
+                if (toastComponent != null)
+                {
+                    await toastComponent.Show("Success", "Profile updated successfully!");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Check if it's a connection/database error
+            if (ex.Message.Contains("connection") || ex.Message.Contains("network") || 
+                ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
+                ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
+            {
+                isOffline = true;
+                errorMessage = "Unable to save changes - database connection unavailable. Your changes will be saved when connection is restored.";
+            }
+            else
+            {
+                errorMessage = $"Error saving profile: {ex.Message}";
+            }
+            System.Diagnostics.Debug.WriteLine($"Profile save error: {ex}");
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleProfilePictureUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            if (e.FileCount == 0) return;
+
+            var file = e.GetMultipleFiles(1).FirstOrDefault();
+            if (file == null) return;
+
+            // Validate file size (2MB max)
+            const long maxFileSize = 2 * 1024 * 1024;
+            if (file.Size > maxFileSize)
+            {
+                errorMessage = "Profile picture must be less than 2MB";
+                return;
+            }
+
+            // Read file
+            using var memoryStream = new MemoryStream();
+            await file.OpenReadStream(maxFileSize).CopyToAsync(memoryStream);
+            var pictureData = memoryStream.ToArray();
+
+            // Save to database
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            var user = await context.Users.FirstOrDefaultAsync(u => u.UserId == currentUser!.UserId);
+            
+            if (user != null)
+            {
+                user.ProfilePicture = pictureData;
+                user.ProfilePictureFileName = file.Name;
+                user.ProfilePictureContentType = file.ContentType;
+                
+                await context.SaveChangesAsync();
+                
+                // Update preview
+                var base64 = Convert.ToBase64String(pictureData);
+                profilePicturePreview = $"data:{file.ContentType};base64,{base64}";
+                
+                currentUser = user;
+                
+                if (toastComponent != null)
+                {
+                    await toastComponent.Show("Success", "Profile picture updated!");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error uploading picture: {ex.Message}";
+        }
+        
+        StateHasChanged();
+    }
+
     private string GetUserInitials()
     {
-        var fullName = AuthService.FullName ?? AuthService.CurrentUser ?? "User";
+        var fullName = currentUser?.FullName ?? AuthService.FullName ?? AuthService.CurrentUser ?? "User";
         var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length == 0) return "U";
         if (parts.Length == 1) return parts[0].Substring(0, 1).ToUpperInvariant();

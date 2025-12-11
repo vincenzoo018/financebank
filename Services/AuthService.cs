@@ -190,8 +190,8 @@ namespace FinanceBank.Services
                     // Find the last time the account was unlocked or password reset (counter reset point)
                     var lastCounterReset = await context.AuditLogs
                         .Where(a => a.CustomerAccountId == user.UserId &&
-                                   (a.Action == "ACCOUNT_UNLOCKED" || 
-                                    a.Action == "ADMIN_ACCOUNT_UNLOCK" || 
+                                   (a.Action == "ACCOUNT_UNLOCKED" ||
+                                    a.Action == "ADMIN_ACCOUNT_UNLOCK" ||
                                     a.Action == "PASSWORD_RESET" ||
                                     a.Action == "LOGIN_SUCCESS"))
                         .OrderByDescending(a => a.CreatedAt)
@@ -199,8 +199,8 @@ namespace FinanceBank.Services
                         .FirstOrDefaultAsync();
 
                     // Count failed attempts only since the last counter reset (or last hour if no reset)
-                    var countAfterTime = lastCounterReset > DateTime.MinValue 
-                        ? lastCounterReset 
+                    var countAfterTime = lastCounterReset > DateTime.MinValue
+                        ? lastCounterReset
                         : DateTime.Now.AddHours(-1);
 
                     var failedAttempts = await context.AuditLogs

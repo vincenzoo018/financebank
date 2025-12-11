@@ -54,8 +54,8 @@ public class LoanProcessService
     }
 
     public LoanProcessService(
-        IDbContextFactory<BFASDbContext> contextFactory, 
-        AutomaticGLPostingService? glPostingService = null, 
+        IDbContextFactory<BFASDbContext> contextFactory,
+        AutomaticGLPostingService? glPostingService = null,
         TransactionHistoryService? transactionHistoryService = null,
         AuditLogService? auditLogService = null)
     {

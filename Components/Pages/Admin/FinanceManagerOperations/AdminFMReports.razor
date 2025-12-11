@@ -10,22 +10,26 @@
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div
+        style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
             <div style="display: flex; align-items: center; gap: 16px;">
                 <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
                     <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        <path
+                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </div>
                 <div>
                     <h1 style="font-size: 24px; font-weight: 700; margin: 0;">Finance Manager Reports</h1>
-                    <p style="font-size: 14px; opacity: 0.9; margin: 4px 0 0 0;">Generate and export financial reports &amp; analytics</p>
+                    <p style="font-size: 14px; opacity: 0.9; margin: 4px 0 0 0;">Generate and export financial reports
+                        &amp; analytics</p>
                 </div>
             </div>
-            <button @onclick="RefreshData" style="padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <button @onclick="RefreshData"
+                style="padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                    <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
                 </svg>
                 Refresh
             </button>
@@ -34,50 +38,64 @@
 
     @if (isLoading)
     {
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px; color: #6b7280;">
-            <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <div
+            style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px; color: #6b7280;">
+            <div
+                style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite;">
+            </div>
             <p style="margin-top: 16px;">Loading reports...</p>
         </div>
     }
     else
     {
         <!-- Report Categories -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 24px;">
-            <div @onclick='() => SelectCategory("financial")' style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; border: 2px solid @(selectedCategory == "financial" ? "#059669" : "transparent");">
-                <div style="width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, #059669, #047857); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 24px;">
+            <div @onclick='() => SelectCategory("financial")'
+                style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; border: 2px solid @(selectedCategory == "financial" ? "#059669" : "transparent");">
+                <div
+                    style="width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, #059669, #047857); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                     <svg width="28" height="28" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+                        <path d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
                     </svg>
                 </div>
                 <h3 style="font-size: 18px; font-weight: 600; color: #1f2937; margin: 0 0 8px 0;">Financial Reports</h3>
                 <p style="color: #6b7280; font-size: 14px; margin: 0;">Income statements, balance sheets, cash flow</p>
             </div>
 
-            <div @onclick='() => SelectCategory("loan")' style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; border: 2px solid @(selectedCategory == "loan" ? "#059669" : "transparent");">
-                <div style="width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+            <div @onclick='() => SelectCategory("loan")'
+                style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; border: 2px solid @(selectedCategory == "loan" ? "#059669" : "transparent");">
+                <div
+                    style="width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                     <svg width="28" height="28" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                        <rect x="2" y="6" width="20" height="12" rx="2"/>
-                        <path d="M2 10h20"/>
+                        <rect x="2" y="6" width="20" height="12" rx="2" />
+                        <path d="M2 10h20" />
                     </svg>
                 </div>
                 <h3 style="font-size: 18px; font-weight: 600; color: #1f2937; margin: 0 0 8px 0;">Loan Reports</h3>
                 <p style="color: #6b7280; font-size: 14px; margin: 0;">Loan portfolio, approvals, delinquency</p>
             </div>
 
-            <div @onclick='() => SelectCategory("savings")' style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; border: 2px solid @(selectedCategory == "savings" ? "#059669" : "transparent");">
-                <div style="width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, #34d399, #10b981); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+            <div @onclick='() => SelectCategory("savings")'
+                style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; border: 2px solid @(selectedCategory == "savings" ? "#059669" : "transparent");">
+                <div
+                    style="width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, #34d399, #10b981); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                     <svg width="28" height="28" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <path
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
                 <h3 style="font-size: 18px; font-weight: 600; color: #1f2937; margin: 0 0 8px 0;">Savings Reports</h3>
                 <p style="color: #6b7280; font-size: 14px; margin: 0;">Account statistics, interest analysis</p>
             </div>
 
-            <div @onclick='() => SelectCategory("risk")' style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; border: 2px solid @(selectedCategory == "risk" ? "#059669" : "transparent");">
-                <div style="width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+            <div @onclick='() => SelectCategory("risk")'
+                style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; border: 2px solid @(selectedCategory == "risk" ? "#059669" : "transparent");">
+                <div
+                    style="width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                     <svg width="28" height="28" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        <path
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                 </div>
                 <h3 style="font-size: 18px; font-weight: 600; color: #1f2937; margin: 0 0 8px 0;">Risk Reports</h3>
@@ -86,13 +104,16 @@
         </div>
 
         <!-- Report Generation Section -->
-        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 24px; border: 1px solid #e5e7eb;">
+        <div
+            style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 24px; border: 1px solid #e5e7eb;">
             <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 20px 0;">Generate Report</h2>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     <label style="font-weight: 500; color: #374151; font-size: 14px;">Report Type</label>
-                    <select @bind="selectedReportType" style="padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white;">
+                    <select @bind="selectedReportType"
+                        style="padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white;">
                         <option value="">Select Report Type</option>
                         <option value="income_statement">Income Statement</option>
                         <option value="balance_sheet">Balance Sheet</option>
@@ -105,10 +126,11 @@
                         <option value="audit_trail">Audit Trail Report</option>
                     </select>
                 </div>
-                
+
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     <label style="font-weight: 500; color: #374151; font-size: 14px;">Date Range</label>
-                    <select @bind="selectedDateRange" style="padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white;">
+                    <select @bind="selectedDateRange"
+                        style="padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white;">
                         <option value="today">Today</option>
                         <option value="week">This Week</option>
                         <option value="month">This Month</option>
@@ -120,7 +142,8 @@
 
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     <label style="font-weight: 500; color: #374151; font-size: 14px;">Export Format</label>
-                    <select @bind="exportFormat" style="padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white;">
+                    <select @bind="exportFormat"
+                        style="padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white;">
                         <option value="pdf">PDF</option>
                         <option value="excel">Excel</option>
                         <option value="csv">CSV</option>
@@ -133,28 +156,31 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                         <label style="font-weight: 500; color: #374151; font-size: 14px;">Start Date</label>
-                        <input type="date" @bind="startDate" style="padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+                        <input type="date" @bind="startDate"
+                            style="padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                         <label style="font-weight: 500; color: #374151; font-size: 14px;">End Date</label>
-                        <input type="date" @bind="endDate" style="padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+                        <input type="date" @bind="endDate"
+                            style="padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
                     </div>
                 </div>
             }
 
-            <button @onclick="GenerateReport" disabled="@isGenerating" 
+            <button @onclick="GenerateReport" disabled="@isGenerating"
                 style="padding: 12px 24px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; opacity: @(isGenerating ? "0.7" : "1");">
                 @if (isGenerating)
                 {
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
-                        <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                        style="animation: spin 1s linear infinite;">
+                        <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
                     </svg>
                     <span>Generating...</span>
                 }
                 else
                 {
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <polygon points="5 3 19 12 5 21 5 3"/>
+                        <polygon points="5 3 19 12 5 21 5 3" />
                     </svg>
                     <span>Generate Report</span>
                 }
@@ -162,12 +188,15 @@
         </div>
 
         <!-- Report Summary Stats -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
-            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 16px; border-left: 4px solid #059669;">
-                <div style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, #059669, #047857); display: flex; align-items: center; justify-content: center;">
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
+            <div
+                style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 16px; border-left: 4px solid #059669;">
+                <div
+                    style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, #059669, #047857); display: flex; align-items: center; justify-content: center;">
                     <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
                     </svg>
                 </div>
                 <div>
@@ -175,11 +204,13 @@
                     <p style="font-size: 14px; color: #6b7280; margin: 0;">Total Reports</p>
                 </div>
             </div>
-            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 16px; border-left: 4px solid #10b981;">
-                <div style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center;">
+            <div
+                style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 16px; border-left: 4px solid #10b981;">
+                <div
+                    style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center;">
                     <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-                        <polyline points="22 4 12 14.01 9 11.01"/>
+                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
                     </svg>
                 </div>
                 <div>
@@ -187,11 +218,13 @@
                     <p style="font-size: 14px; color: #6b7280; margin: 0;">Completed</p>
                 </div>
             </div>
-            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 16px; border-left: 4px solid #f59e0b;">
-                <div style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center;">
+            <div
+                style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 16px; border-left: 4px solid #f59e0b;">
+                <div
+                    style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center;">
                     <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
                     </svg>
                 </div>
                 <div>
@@ -199,13 +232,15 @@
                     <p style="font-size: 14px; color: #6b7280; margin: 0;">Pending</p>
                 </div>
             </div>
-            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 16px; border-left: 4px solid #8b5cf6;">
-                <div style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center;">
+            <div
+                style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 16px; border-left: 4px solid #8b5cf6;">
+                <div
+                    style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center;">
                     <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
                     </svg>
                 </div>
                 <div>
@@ -216,29 +251,45 @@
         </div>
 
         <!-- Recent Reports Table -->
-        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;">
+        <div
+            style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0;">Recent Reports</h2>
-                <span style="padding: 4px 12px; background: #ecfdf5; color: #059669; border-radius: 20px; font-size: 13px; font-weight: 600;">@recentReports.Count reports</span>
+                <span
+                    style="padding: 4px 12px; background: #ecfdf5; color: #059669; border-radius: 20px; font-size: 13px; font-weight: 600;">@recentReports.Count
+                    reports</span>
             </div>
-            
+
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="background: #f8fafc;">
-                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Report Name</th>
-                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Type</th>
-                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Generated By</th>
-                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Date</th>
-                            <th style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
-                            <th style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Actions</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Report Name</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Type</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Generated By</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Date</th>
+                            <th
+                                style="padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Status</th>
+                            <th
+                                style="padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (recentReports.Count == 0)
                         {
                             <tr>
-                                <td colspan="6" style="padding: 40px; text-align: center; color: #6b7280;">No reports generated yet</td>
+                                <td colspan="6" style="padding: 40px; text-align: center; color: #6b7280;">No reports generated
+                                    yet</td>
                             </tr>
                         }
                         else
@@ -248,30 +299,39 @@
                                 <tr style="border-bottom: 1px solid #e5e7eb;">
                                     <td style="padding: 14px 16px; font-weight: 500; color: #1f2937;">@report.Name</td>
                                     <td style="padding: 14px 16px;">
-                                        <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; background: #e0e7ff; color: #4338ca;">@report.Type</span>
+                                        <span
+                                            style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; background: #e0e7ff; color: #4338ca;">@report.Type</span>
                                     </td>
                                     <td style="padding: 14px 16px; color: #6b7280;">@report.GeneratedBy</td>
                                     <td style="padding: 14px 16px; color: #6b7280;">@report.GeneratedDate.ToString("MMM dd, yyyy HH:mm")</td>
                                     <td style="padding: 14px 16px;">
-                                        <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; @GetStatusStyle(report.Status)">@report.Status</span>
+                                        <span
+                                            style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; @GetStatusStyle(report.Status)">@report.Status</span>
                                     </td>
                                     <td style="padding: 14px 16px;">
                                         <div style="display: flex; gap: 8px; justify-content: center;">
-                                            <button @onclick="() => ViewReport(report)" title="View" style="padding: 8px; background: #f3f4f6; border: none; border-radius: 8px; cursor: pointer;">
-                                                <svg width="16" height="16" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24">
-                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                                    <circle cx="12" cy="12" r="3"/>
+                                            <button @onclick="() => ViewReport(report)" title="View"
+                                                style="padding: 8px; background: #f3f4f6; border: none; border-radius: 8px; cursor: pointer;">
+                                                <svg width="16" height="16" fill="none" stroke="#6b7280" stroke-width="2"
+                                                    viewBox="0 0 24 24">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                    <circle cx="12" cy="12" r="3" />
                                                 </svg>
                                             </button>
-                                            <button @onclick="() => DownloadReport(report)" title="Download" style="padding: 8px; background: #ecfdf5; border: none; border-radius: 8px; cursor: pointer;">
-                                                <svg width="16" height="16" fill="none" stroke="#059669" stroke-width="2" viewBox="0 0 24 24">
-                                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                                            <button @onclick="() => DownloadReport(report)" title="Download"
+                                                style="padding: 8px; background: #ecfdf5; border: none; border-radius: 8px; cursor: pointer;">
+                                                <svg width="16" height="16" fill="none" stroke="#059669" stroke-width="2"
+                                                    viewBox="0 0 24 24">
+                                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
                                                 </svg>
                                             </button>
-                                            <button @onclick="() => DeleteReport(report)" title="Delete" style="padding: 8px; background: #fef2f2; border: none; border-radius: 8px; cursor: pointer;">
-                                                <svg width="16" height="16" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24">
-                                                    <polyline points="3 6 5 6 21 6"/>
-                                                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                            <button @onclick="() => DeleteReport(report)" title="Delete"
+                                                style="padding: 8px; background: #fef2f2; border: none; border-radius: 8px; cursor: pointer;">
+                                                <svg width="16" height="16" fill="none" stroke="#dc2626" stroke-width="2"
+                                                    viewBox="0 0 24 24">
+                                                    <polyline points="3 6 5 6 21 6" />
+                                                    <path
+                                                        d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
                                                 </svg>
                                             </button>
                                         </div>
@@ -288,7 +348,9 @@
 
 <style>
     @@keyframes spin {
-        to { transform: rotate(360deg); }
+        to {
+            transform: rotate(360deg);
+        }
     }
 </style>
 
@@ -319,15 +381,19 @@
         try
         {
             using var context = await DbFactory.CreateDbContextAsync();
-            
+
             // Load sample data that reflects real reporting
             recentReports = new List<ReportItem>
-            {
-                new ReportItem { Name = "Monthly Income Statement", Type = "Financial", GeneratedBy = AuthService.FullName ?? "Admin", GeneratedDate = DateTime.Now.AddDays(-1), Status = "Completed" },
-                new ReportItem { Name = "Loan Portfolio Summary", Type = "Loan", GeneratedBy = AuthService.FullName ?? "Admin", GeneratedDate = DateTime.Now.AddDays(-2), Status = "Completed" },
-                new ReportItem { Name = "Risk Assessment Q4", Type = "Risk", GeneratedBy = AuthService.FullName ?? "Admin", GeneratedDate = DateTime.Now.AddDays(-3), Status = "Pending" },
-                new ReportItem { Name = "Savings Account Analysis", Type = "Savings", GeneratedBy = AuthService.FullName ?? "Admin", GeneratedDate = DateTime.Now.AddDays(-5), Status = "Completed" }
-            };
+{
+new ReportItem { Name = "Monthly Income Statement", Type = "Financial", GeneratedBy = AuthService.FullName ?? "Admin",
+GeneratedDate = DateTime.Now.AddDays(-1), Status = "Completed" },
+new ReportItem { Name = "Loan Portfolio Summary", Type = "Loan", GeneratedBy = AuthService.FullName ?? "Admin",
+GeneratedDate = DateTime.Now.AddDays(-2), Status = "Completed" },
+new ReportItem { Name = "Risk Assessment Q4", Type = "Risk", GeneratedBy = AuthService.FullName ?? "Admin",
+GeneratedDate = DateTime.Now.AddDays(-3), Status = "Pending" },
+new ReportItem { Name = "Savings Account Analysis", Type = "Savings", GeneratedBy = AuthService.FullName ?? "Admin",
+GeneratedDate = DateTime.Now.AddDays(-5), Status = "Completed" }
+};
 
             // Count reports by status
             totalReportsGenerated = recentReports.Count + 43;
@@ -385,7 +451,7 @@
 
             var reportName = GetReportName(selectedReportType);
             var dateRangeText = GetDateRangeText();
-            
+
             recentReports.Insert(0, new ReportItem
             {
                 Name = $"{reportName} - {dateRangeText}",
@@ -476,7 +542,7 @@
             totalReportsGenerated--;
             if (report.Status == "Completed") completedReports--;
             else if (report.Status == "Pending") pendingReports--;
-            
+
             await LogAuditAction($"Deleted report: {report.Name}");
             Notification.ShowSuccess("Deleted", $"Report '{report.Name}' deleted");
             StateHasChanged();

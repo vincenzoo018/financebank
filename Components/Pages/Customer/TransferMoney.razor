@@ -13,6 +13,21 @@
 @inject PasswordHashingService PasswordHasher
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+    @if (isOffline)
+    {
+        <div style="background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 12px; padding: 16px; margin-bottom: 24px; color: white; display: flex; align-items: center; gap: 12px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <div>
+                <strong>Database Connection Required</strong>
+                <p style="margin: 0; font-size: 13px;">@offlineError</p>
+            </div>
+        </div>
+    }
+
     <!-- Header -->
     <div style="background: linear-gradient(135deg, #0891b2, #0e7490); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
         <div style="display: flex; align-items: center; gap: 16px;">
@@ -460,15 +475,34 @@
     private bool showInvoiceModal = false;
     private InvoiceData? lastInvoice = null;
 
+    // Offline state
+    private bool isOffline = false;
+    private string offlineError = "";
+
     private List<TransferHistory> recentTransfers = new();
 
     protected override async Task OnInitializedAsync()
     {
-        // Load authenticated user's account
-        senderAccount = await BankingService.GetPrimaryAccountForCurrentCustomerAsync();
-        
-        // Load real transfer history from database
-        await LoadTransferHistory();
+        try
+        {
+            // Load authenticated user's account
+            senderAccount = await BankingService.GetPrimaryAccountForCurrentCustomerAsync();
+            
+            // Load real transfer history from database
+            await LoadTransferHistory();
+            isOffline = false;
+        }
+        catch (Exception ex)
+        {
+            if (ex.Message.Contains("connection") || ex.Message.Contains("network") || 
+                ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
+                ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
+            {
+                isOffline = true;
+                offlineError = "Unable to connect to the database. Transfers require an active database connection.";
+            }
+            System.Diagnostics.Debug.WriteLine($"TransferMoney init error: {ex.Message}");
+        }
     }
 
     private async Task LoadTransferHistory()
@@ -690,7 +724,18 @@
         catch (Exception ex)
         {
             transferSuccess = false;
-            transferMessage = $"✗ Error: {ex.Message}";
+            // Check if it's a connection/database error
+            if (ex.Message.Contains("connection") || ex.Message.Contains("network") || 
+                ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
+                ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
+            {
+                isOffline = true;
+                transferMessage = "✗ Transfer failed: Unable to connect to the database. Please check your connection and try again.";
+            }
+            else
+            {
+                transferMessage = $"✗ Error: {ex.Message}";
+            }
             System.Diagnostics.Debug.WriteLine($"Transfer error: {ex.Message}");
         }
         finally

@@ -3245,7 +3245,7 @@ public class AuditLogService
         string? notes = null)
     {
         var riskLevel = DetermineTransactionRiskLevel(amount, "Deposit");
-        
+
         await CreateAsync(new AuditLog
         {
             UserId = employeeId?.ToString() ?? "System",
@@ -3255,31 +3255,31 @@ public class AuditLogService
             Amount = amount,
             BalanceBefore = balanceBefore,
             BalanceAfter = balanceAfter,
-            
+
             // Employee Info
             EmployeeId = employeeId,
             EmployeeName = employeeName,
             EmployeeRole = employeeRole,
-            
+
             // Customer Info
             CustomerId = customerId,
             CustomerName = customerName,
             CustomerAccountId = customerId,
-            
+
             // Transaction Details
             TransactionType = "Deposit",
             TransactionStatus = status,
             TransactionNumber = transactionNumber,
             ReferenceNumber = referenceNumber,
-            
+
             // Account Info
             AccountNumber = accountNumber,
             AccountType = accountType,
-            
+
             // Method
             TransactionMethod = depositMethod,
             TransactionChannel = transactionChannel,
-            
+
             // Risk Assessment
             RiskLevel = riskLevel,
             RequiresReview = amount >= 50000 // Flag large deposits for review
@@ -3308,7 +3308,7 @@ public class AuditLogService
         string? notes = null)
     {
         var riskLevel = DetermineTransactionRiskLevel(amount, "Withdrawal");
-        
+
         await CreateAsync(new AuditLog
         {
             UserId = employeeId?.ToString() ?? "System",
@@ -3318,31 +3318,31 @@ public class AuditLogService
             Amount = amount,
             BalanceBefore = balanceBefore,
             BalanceAfter = balanceAfter,
-            
+
             // Employee Info
             EmployeeId = employeeId,
             EmployeeName = employeeName,
             EmployeeRole = employeeRole,
-            
+
             // Customer Info
             CustomerId = customerId,
             CustomerName = customerName,
             CustomerAccountId = customerId,
-            
+
             // Transaction Details
             TransactionType = "Withdrawal",
             TransactionStatus = status,
             TransactionNumber = transactionNumber,
             ReferenceNumber = referenceNumber,
-            
+
             // Account Info
             AccountNumber = accountNumber,
             AccountType = accountType,
-            
+
             // Method
             TransactionMethod = withdrawalMethod,
             TransactionChannel = transactionChannel,
-            
+
             // Risk Assessment
             RiskLevel = riskLevel,
             RequiresReview = amount >= 50000 // Flag large withdrawals for review
@@ -3374,7 +3374,7 @@ public class AuditLogService
         string? notes = null)
     {
         var riskLevel = DetermineTransactionRiskLevel(amount, "Transfer");
-        
+
         await CreateAsync(new AuditLog
         {
             UserId = customerId?.ToString() ?? employeeId?.ToString() ?? "System",
@@ -3385,35 +3385,35 @@ public class AuditLogService
             BalanceBefore = sourceBalanceBefore,
             BalanceAfter = sourceBalanceAfter,
             Fee = fee,
-            
+
             // Employee Info (if teller-initiated)
             EmployeeId = employeeId,
             EmployeeName = employeeName,
             EmployeeRole = employeeRole,
-            
+
             // Customer Info
             CustomerId = customerId,
             CustomerName = customerName,
             CustomerAccountId = customerId,
-            
+
             // Transaction Details
             TransactionType = "Transfer",
             TransactionStatus = status,
             TransactionNumber = transactionNumber,
             ReferenceNumber = referenceNumber,
-            
+
             // Source Account
             AccountNumber = sourceAccountNumber,
             AccountType = sourceAccountType,
-            
+
             // Target Account
             TargetAccountNumber = targetAccountNumber,
             TargetAccountName = targetAccountName,
-            
+
             // Method
             TransactionMethod = transferMethod,
             TransactionChannel = transactionChannel,
-            
+
             // Risk Assessment
             RiskLevel = riskLevel,
             RequiresReview = amount >= 100000 // Flag large transfers for review
@@ -3451,39 +3451,39 @@ public class AuditLogService
             Amount = amount,
             BalanceBefore = 0,
             BalanceAfter = balanceAfter,
-            
+
             // Employee Info
             EmployeeId = employeeId,
             EmployeeName = employeeName,
             EmployeeRole = employeeRole,
-            
+
             // Customer Info
             CustomerId = customerId,
             CustomerName = customerName,
             CustomerAccountId = customerId,
-            
+
             // Transaction Details
             TransactionType = "LoanDisbursement",
             TransactionStatus = status,
             TransactionNumber = transactionNumber,
             ReferenceNumber = referenceNumber,
-            
+
             // Account Info
             AccountNumber = accountNumber,
-            
+
             // Loan Info
             LoanId = loanId,
             LoanNumber = loanNumber,
             LoanType = loanType,
-            
+
             // Approval Info
             ApprovedBy = approvedBy,
             ApprovedAt = approvedAt,
-            
+
             // Method
             TransactionMethod = "Disbursement",
             TransactionChannel = "Loan Processing",
-            
+
             // Risk Assessment
             RiskLevel = "Medium",
             RequiresReview = false // Already approved through loan workflow
@@ -3525,35 +3525,35 @@ public class AuditLogService
             Amount = amount,
             BalanceBefore = balanceBefore,
             BalanceAfter = balanceAfter,
-            
+
             // Employee Info (if teller-initiated)
             EmployeeId = employeeId,
             EmployeeName = employeeName,
             EmployeeRole = employeeRole,
-            
+
             // Customer Info
             CustomerId = customerId,
             CustomerName = customerName,
             CustomerAccountId = customerId,
-            
+
             // Transaction Details
             TransactionType = "LoanPayment",
             TransactionStatus = status,
             TransactionNumber = transactionNumber,
             ReferenceNumber = referenceNumber,
-            
+
             // Account Info
             AccountNumber = accountNumber,
-            
+
             // Loan Info
             LoanId = loanId,
             LoanNumber = loanNumber,
             LoanType = loanType,
-            
+
             // Method
             TransactionMethod = paymentMethod,
             TransactionChannel = transactionChannel,
-            
+
             // Risk Assessment
             RiskLevel = "Low",
             RequiresReview = false
@@ -3581,7 +3581,7 @@ public class AuditLogService
         string? notes = null)
     {
         var riskLevel = DetermineTransactionRiskLevel(amount, "SavingsDeposit");
-        
+
         await CreateAsync(new AuditLog
         {
             UserId = customerId?.ToString() ?? employeeId?.ToString() ?? "System",
@@ -3591,31 +3591,31 @@ public class AuditLogService
             Amount = amount,
             BalanceBefore = balanceBefore,
             BalanceAfter = balanceAfter,
-            
+
             // Employee Info
             EmployeeId = employeeId,
             EmployeeName = employeeName,
             EmployeeRole = employeeRole,
-            
+
             // Customer Info
             CustomerId = customerId,
             CustomerName = customerName,
             CustomerAccountId = customerId,
-            
+
             // Transaction Details
             TransactionType = "SavingsDeposit",
             TransactionStatus = status,
             TransactionNumber = transactionNumber,
             ReferenceNumber = referenceNumber,
-            
+
             // Account Info
             AccountNumber = savingsAccountNumber,
             AccountType = "Savings",
-            
+
             // Method
             TransactionMethod = depositMethod,
             TransactionChannel = transactionChannel,
-            
+
             // Risk Assessment
             RiskLevel = riskLevel,
             RequiresReview = amount >= 50000
@@ -3643,7 +3643,7 @@ public class AuditLogService
         string? notes = null)
     {
         var riskLevel = DetermineTransactionRiskLevel(amount, "SavingsWithdrawal");
-        
+
         await CreateAsync(new AuditLog
         {
             UserId = customerId?.ToString() ?? employeeId?.ToString() ?? "System",
@@ -3653,31 +3653,31 @@ public class AuditLogService
             Amount = amount,
             BalanceBefore = balanceBefore,
             BalanceAfter = balanceAfter,
-            
+
             // Employee Info
             EmployeeId = employeeId,
             EmployeeName = employeeName,
             EmployeeRole = employeeRole,
-            
+
             // Customer Info
             CustomerId = customerId,
             CustomerName = customerName,
             CustomerAccountId = customerId,
-            
+
             // Transaction Details
             TransactionType = "SavingsWithdrawal",
             TransactionStatus = status,
             TransactionNumber = transactionNumber,
             ReferenceNumber = referenceNumber,
-            
+
             // Account Info
             AccountNumber = savingsAccountNumber,
             AccountType = "Savings",
-            
+
             // Method
             TransactionMethod = withdrawalMethod,
             TransactionChannel = transactionChannel,
-            
+
             // Risk Assessment
             RiskLevel = riskLevel,
             RequiresReview = amount >= 50000
@@ -3709,26 +3709,26 @@ public class AuditLogService
             Amount = interestAmount,
             BalanceBefore = balanceBefore,
             BalanceAfter = balanceAfter,
-            
+
             // Customer Info
             CustomerId = customerId,
             CustomerName = customerName,
             CustomerAccountId = customerId,
-            
+
             // Transaction Details
             TransactionType = "InterestPosting",
             TransactionStatus = "Completed",
             TransactionNumber = transactionNumber,
             ReferenceNumber = referenceNumber,
-            
+
             // Account Info
             AccountNumber = accountNumber,
             AccountType = accountType,
-            
+
             // Method
             TransactionMethod = "System",
             TransactionChannel = "Automated Process",
-            
+
             // Risk Assessment
             RiskLevel = "Low",
             RequiresReview = false
@@ -3757,24 +3757,24 @@ public class AuditLogService
             Module = "Loan Processing",
             Description = $"Loan application submitted for ₱{requestedAmount:N2}. Type: {loanType}, Term: {termMonths} months, Rate: {interestRate}%. {notes}",
             Amount = requestedAmount,
-            
+
             // Customer Info
             CustomerId = customerId,
             CustomerName = customerName,
             CustomerAccountId = customerId,
-            
+
             // Transaction Details
             TransactionType = "LoanApplication",
             TransactionStatus = status,
-            
+
             // Loan Info
             LoanId = loanId,
             LoanNumber = loanNumber,
             LoanType = loanType,
-            
+
             // Method
             TransactionChannel = "Online Application",
-            
+
             // Risk Assessment
             RiskLevel = requestedAmount >= 100000 ? "High" : "Medium",
             RequiresReview = true
@@ -3805,31 +3805,31 @@ public class AuditLogService
             Module = "Loan Processing",
             Description = $"Loan {loanNumber} {approvalStatus.ToLower()} by {employeeName}. Amount: ₱{approvedAmount:N2}. Remarks: {approvalRemarks}. {notes}",
             Amount = approvedAmount,
-            
+
             // Employee Info
             EmployeeId = employeeId,
             EmployeeName = employeeName,
             EmployeeRole = employeeRole,
-            
+
             // Customer Info
             CustomerId = customerId,
             CustomerName = customerName,
             CustomerAccountId = customerId,
-            
+
             // Transaction Details
             TransactionType = "LoanApproval",
             TransactionStatus = approvalStatus,
-            
+
             // Loan Info
             LoanId = loanId,
             LoanNumber = loanNumber,
             LoanType = loanType,
-            
+
             // Approval Info
             ApprovedBy = employeeName,
             ApprovedAt = DateTime.Now,
             ApprovalRemarks = approvalRemarks,
-            
+
             // Risk Assessment
             RiskLevel = "Medium",
             RequiresReview = false
@@ -3864,12 +3864,12 @@ public class AuditLogService
         string? riskLevel = null,
         int limit = 500)
     {
-        var bankingActions = new[] { 
-            "DEPOSIT", "WITHDRAWAL", "FUND_TRANSFER", 
-            "LOAN_DISBURSEMENT", "LOAN_PAYMENT", 
-            "SAVINGS_DEPOSIT", "SAVINGS_WITHDRAWAL", 
-            "INTEREST_POSTING", "LOAN_APPLICATION", 
-            "LOAN_APPROVED", "LOAN_REJECTED" 
+        var bankingActions = new[] {
+            "DEPOSIT", "WITHDRAWAL", "FUND_TRANSFER",
+            "LOAN_DISBURSEMENT", "LOAN_PAYMENT",
+            "SAVINGS_DEPOSIT", "SAVINGS_WITHDRAWAL",
+            "INTEREST_POSTING", "LOAN_APPLICATION",
+            "LOAN_APPROVED", "LOAN_REJECTED"
         };
 
         var query = _context.AuditLogs

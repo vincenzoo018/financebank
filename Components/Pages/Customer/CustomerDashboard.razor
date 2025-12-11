@@ -8,6 +8,21 @@
 @inject CustomerTransactionService TransactionService
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
+    @if (isOffline)
+    {
+        <div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 12px; padding: 16px; margin-bottom: 24px; color: #78350f; display: flex; align-items: center; gap: 12px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <div>
+                <strong>Connection Issue</strong>
+                <p style="margin: 0; font-size: 13px;">@offlineMessage</p>
+            </div>
+        </div>
+    }
+
     <!-- Welcome Section - BPI/BDO Style -->
     <div style="margin-bottom: 24px;">
         <h1 style="font-size: 28px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">Hello, @(AuthService.FullName ?? "Customer")!</h1>
@@ -244,6 +259,8 @@
     private decimal currentBalance = 0;
     private decimal monthlyIncome = 0;
     private decimal monthlyExpenses = 0;
+    private bool isOffline = false;
+    private string offlineMessage = "";
 
     private List<Transaction> recentTransactions = new();
 
@@ -284,10 +301,20 @@
                         SenderName = ExtractSenderName(t)
                     })
                     .ToList();
+                    
+                isOffline = false;
             }
         }
         catch (Exception ex)
         {
+            // Check if it's a connection/database error
+            if (ex.Message.Contains("connection") || ex.Message.Contains("network") || 
+                ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
+                ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
+            {
+                isOffline = true;
+                offlineMessage = "Unable to load account data. Please check your database connection.";
+            }
             System.Diagnostics.Debug.WriteLine($"Error loading dashboard: {ex.Message}");
         }
     }

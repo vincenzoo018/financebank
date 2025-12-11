@@ -239,7 +239,17 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading deposit history: {ex.Message}");
+            // Check if it's a connection/database error - just log silently for deposits (view-only page)
+            if (ex.Message.Contains("connection") || ex.Message.Contains("network") || 
+                ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
+                ex.Message.Contains("timeout"))
+            {
+                System.Diagnostics.Debug.WriteLine($"Deposit history - offline mode: {ex.Message}");
+            }
+            else
+            {
+                Console.WriteLine($"Error loading deposit history: {ex.Message}");
+            }
         }
     }
 

@@ -342,7 +342,18 @@
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error loading account: {ex.Message}";
+            // Check if it's a connection/database error
+            if (ex.Message.Contains("connection") || ex.Message.Contains("network") || 
+                ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
+                ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
+            {
+                errorMessage = "Unable to load account data - database connection unavailable. Bill payments require an active connection.";
+            }
+            else
+            {
+                errorMessage = $"Error loading account: {ex.Message}";
+            }
+            System.Diagnostics.Debug.WriteLine($"Bills page load error: {ex.Message}");
         }
 
         savedBillers = new List<SavedBiller>
@@ -451,8 +462,19 @@
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error processing payment: {ex.Message}";
+            // Check if it's a connection/database error
+            if (ex.Message.Contains("connection") || ex.Message.Contains("network") || 
+                ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
+                ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
+            {
+                errorMessage = "Unable to process payment - database connection unavailable. Please try again when connected.";
+            }
+            else
+            {
+                errorMessage = $"Error processing payment: {ex.Message}";
+            }
             showConfirmationModal = false;
+            System.Diagnostics.Debug.WriteLine($"Bills payment error: {ex.Message}");
         }
         finally
         {
