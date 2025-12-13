@@ -265,6 +265,39 @@ public class CustomerAccount
 
     public DateTime? LastTransactionAt { get; set; }
 
+    // =====================================================================
+    // ACCOUNT TYPE AND ELIGIBILITY FIELDS
+    // =====================================================================
+
+    [MaxLength(50)]
+    public string AccountType { get; set; } = "Savings"; // Savings, Checking, Time Deposit
+
+    [MaxLength(200)]
+    public string? AccountPurpose { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? InitialDeposit { get; set; }
+
+    [MaxLength(50)]
+    public string EligibilityStatus { get; set; } = "PENDING"; // PENDING, ELIGIBLE, NOT_ELIGIBLE
+
+    [MaxLength(500)]
+    public string? EligibilityRemarks { get; set; }
+
+    [MaxLength(100)]
+    public string? EligibilityCheckedBy { get; set; }
+
+    public DateTime? EligibilityCheckedAt { get; set; }
+
+    // Loan Eligibility
+    public bool CanApplyForLoan { get; set; } = false;
+
+    [MaxLength(500)]
+    public string? LoanEligibilityReason { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? MaxLoanAmount { get; set; }
+
     // Navigation
     [ForeignKey("CustomerId")]
     public virtual AuthUser? Customer { get; set; }

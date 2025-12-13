@@ -2,6 +2,7 @@
 @layout TellerLayout
 @inject AuthService AuthService
 @inject TellerBankingService TellerBankingService
+@inject NotificationService NotificationService
 @using System.Collections.Generic
 @using FinanceBank.Data
 @using FinanceBank.Models
@@ -969,46 +970,53 @@ Please keep this invoice for your records.
         successMessage = "";
         lastReceiptNumber = "";
 
-        // Validation with specific error messages
+        // Validation with popup notifications
         if (string.IsNullOrWhiteSpace(accountNumber))
         {
-            errorMessage = "⚠️ Account number is required. Please enter a valid account number.";
+            NotificationService.ShowError("Validation Error", "Account number is required. Please enter a valid account number.");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(customerName))
         {
-            errorMessage = "⚠️ Invalid account number. Customer not found.";
+            NotificationService.ShowError("Validation Error", "Invalid account number. Customer not found.");
             return;
         }
 
         if (withdrawalAmount <= 0)
         {
-            errorMessage = "⚠️ Withdrawal amount must be greater than ₱0.00";
+            NotificationService.ShowError("Validation Error", "Withdrawal amount must be greater than ₱0.00");
             return;
         }
 
         if (withdrawalAmount > currentAccountBalance)
         {
-            errorMessage = $"⚠️ Insufficient balance. Available: ₱{currentAccountBalance:N2}";
+            NotificationService.ShowError("Insufficient Balance", $"Available balance: ₱{currentAccountBalance:N2}. Cannot withdraw ₱{withdrawalAmount:N2}");
+            return;
+        }
+
+        // Check minimum balance requirement - must leave at least ₱1.00 in account
+        if ((currentAccountBalance - withdrawalAmount) <= 0.99m)
+        {
+            NotificationService.ShowError("Minimum Balance Required", $"Account must maintain a minimum balance of ₱1.00. Maximum withdrawal: ₱{(currentAccountBalance - 1):N2}");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(withdrawalMethod))
         {
-            errorMessage = "⚠️ Please select a withdrawal method";
+            NotificationService.ShowError("Validation Error", "Please select a withdrawal method before proceeding.");
             return;
         }
 
         if (!passwordVerified)
         {
-            errorMessage = "⚠️ Customer password verification is required before processing";
+            NotificationService.ShowError("Verification Required", "Customer password verification is required before processing.");
             return;
         }
 
         if (!tellerPinVerified)
         {
-            errorMessage = "⚠️ Teller PIN verification is required before processing";
+            NotificationService.ShowError("Verification Required", "Teller PIN verification is required before processing.");
             return;
         }
 

@@ -402,7 +402,9 @@
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error loading applications: {ex.Message}";
+            var innerMsg = ex.InnerException?.Message ?? "";
+            errorMessage = $"Error loading applications: {ex.Message} {(string.IsNullOrEmpty(innerMsg) ? "" : $"[Inner: {innerMsg}]")}";
+            System.Diagnostics.Debug.WriteLine($"LoadPendingApplications error: {ex}");
         }
         finally
         {

@@ -247,6 +247,153 @@
                         </div>
                     </div>
 
+                    <!-- =====================================================================
+                         TELLER REVIEW SECTION
+                    ===================================================================== -->
+                    @if (!string.IsNullOrEmpty(selectedAssessment.Application?.TellerRemarks))
+                    {
+                        <div style="background: #fef3c7; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #f59e0b;">
+                            <h5 style="margin: 0 0 12px 0; color: #92400e; font-size: 14px; font-weight: 600;">
+                                📝 Teller Review (Document Verification)
+                            </h5>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                                <div>
+                                    <span style="font-size: 11px; color: #78350f;">Reviewed By</span>
+                                    <p style="margin: 2px 0 0 0; font-weight: 600; color: #92400e;">@(selectedAssessment.Application.TellerReviewedBy ?? "N/A")</p>
+                                </div>
+                                <div>
+                                    <span style="font-size: 11px; color: #78350f;">Reviewed At</span>
+                                    <p style="margin: 2px 0 0 0; font-weight: 600; color: #92400e;">@(selectedAssessment.Application.TellerReviewedAt?.ToString("MMM dd, yyyy HH:mm") ?? "N/A")</p>
+                                </div>
+                                <div>
+                                    <span style="font-size: 11px; color: #78350f;">Recommendation</span>
+                                    <p style="margin: 2px 0 0 0; font-weight: 700; color: @(selectedAssessment.Application.TellerRecommendation?.Contains("RECOMMEND") == true ? "#059669" : "#dc2626");">
+                                        @(selectedAssessment.Application.TellerRecommendation ?? "N/A")
+                                    </p>
+                                </div>
+                            </div>
+                            <div style="padding: 10px; background: rgba(255,255,255,0.5); border-radius: 8px;">
+                                <span style="font-size: 11px; color: #78350f;">Teller Remarks:</span>
+                                <p style="margin: 4px 0 0 0; color: #78350f; font-size: 13px; white-space: pre-wrap;">@selectedAssessment.Application.TellerRemarks</p>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- =====================================================================
+                         ACCOUNTANT ASSESSMENT SECTION
+                    ===================================================================== -->
+                    <div style="background: #eff6ff; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #3b82f6;">
+                        <h5 style="margin: 0 0 12px 0; color: #1e40af; font-size: 14px; font-weight: 600;">
+                            📊 Accountant Assessment (Credit Analysis)
+                        </h5>
+                        
+                        <!-- Credit Score & DTI Row -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div style="background: @GetCreditScoreColor(selectedAssessment.CreditScore ?? 0); border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: white;">@(selectedAssessment.CreditScore ?? 0)</div>
+                                <div style="font-size: 10px; color: rgba(255,255,255,0.9);">Credit Score</div>
+                            </div>
+                            <div style="background: @GetDTIColor(selectedAssessment.DebtToIncomeRatio ?? 0); border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: white;">@((selectedAssessment.DebtToIncomeRatio ?? 0).ToString("N1"))%</div>
+                                <div style="font-size: 10px; color: rgba(255,255,255,0.9);">DTI Ratio</div>
+                            </div>
+                            <div style="background: @GetRiskColor(selectedAssessment.RiskCategory ?? "MEDIUM"); border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 14px; font-weight: 700; color: white;">@(selectedAssessment.RiskCategory ?? "N/A")</div>
+                                <div style="font-size: 10px; color: rgba(255,255,255,0.9);">Risk: @(selectedAssessment.RiskScore ?? 0)/100</div>
+                            </div>
+                            <div style="background: @GetRecommendationColor(selectedAssessment.AccountantRecommendation ?? ""); border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; font-weight: 700; color: white;">@(selectedAssessment.AccountantRecommendation ?? "N/A")</div>
+                                <div style="font-size: 10px; color: rgba(255,255,255,0.9);">Recommendation</div>
+                            </div>
+                        </div>
+
+                        <!-- Verification Status -->
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="color: @(selectedAssessment.IdentityVerified ? "#059669" : "#dc2626");">
+                                    @(selectedAssessment.IdentityVerified ? "✓" : "✗")
+                                </span>
+                                <span style="font-size: 11px; color: #1e3a8a;">Identity Verified</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="color: @(selectedAssessment.IncomeVerified ? "#059669" : "#dc2626");">
+                                    @(selectedAssessment.IncomeVerified ? "✓" : "✗")
+                                </span>
+                                <span style="font-size: 11px; color: #1e3a8a;">Income Verified</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="color: @(selectedAssessment.EmploymentVerified ? "#059669" : "#dc2626");">
+                                    @(selectedAssessment.EmploymentVerified ? "✓" : "✗")
+                                </span>
+                                <span style="font-size: 11px; color: #1e3a8a;">Employment Verified</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="color: @(selectedAssessment.BankStatementsReviewed ? "#059669" : "#dc2626");">
+                                    @(selectedAssessment.BankStatementsReviewed ? "✓" : "✗")
+                                </span>
+                                <span style="font-size: 11px; color: #1e3a8a;">Bank Statements</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="color: @(selectedAssessment.CollateralVerified ? "#059669" : "#dc2626");">
+                                    @(selectedAssessment.CollateralVerified ? "✓" : "✗")
+                                </span>
+                                <span style="font-size: 11px; color: #1e3a8a;">Collateral Verified</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="color: @(selectedAssessment.CoBorrowerVerified ? "#059669" : "#dc2626");">
+                                    @(selectedAssessment.CoBorrowerVerified ? "✓" : "✗")
+                                </span>
+                                <span style="font-size: 11px; color: #1e3a8a;">Co-Borrower Verified</span>
+                            </div>
+                        </div>
+
+                        <!-- Accountant Suggested Terms -->
+                        @if (selectedAssessment.SuggestedAmount.HasValue || selectedAssessment.SuggestedTerm.HasValue)
+                        {
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                                <div>
+                                    <span style="font-size: 11px; color: #1e3a8a;">Suggested Amount</span>
+                                    <p style="margin: 2px 0 0 0; font-weight: 600; color: #1e40af;">₱@((selectedAssessment.SuggestedAmount ?? 0).ToString("N2"))</p>
+                                </div>
+                                <div>
+                                    <span style="font-size: 11px; color: #1e3a8a;">Suggested Term</span>
+                                    <p style="margin: 2px 0 0 0; font-weight: 600; color: #1e40af;">@(selectedAssessment.SuggestedTerm ?? 0) months</p>
+                                </div>
+                                <div>
+                                    <span style="font-size: 11px; color: #1e3a8a;">Avg. Monthly Balance</span>
+                                    <p style="margin: 2px 0 0 0; font-weight: 600; color: #1e40af;">₱@((selectedAssessment.AverageMonthlyBalance ?? 0).ToString("N2"))</p>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Reason and Risk Notes -->
+                        @if (!string.IsNullOrEmpty(selectedAssessment.RecommendationReason) || !string.IsNullOrEmpty(selectedAssessment.RiskAssessmentDetails))
+                        {
+                            <div style="padding: 10px; background: rgba(255,255,255,0.5); border-radius: 8px;">
+                                @if (!string.IsNullOrEmpty(selectedAssessment.RecommendationReason))
+                                {
+                                    <div style="margin-bottom: 8px;">
+                                        <span style="font-size: 11px; color: #1e3a8a; font-weight: 600;">Recommendation Reason:</span>
+                                        <p style="margin: 4px 0 0 0; color: #1e40af; font-size: 13px;">@selectedAssessment.RecommendationReason</p>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(selectedAssessment.RiskAssessmentDetails))
+                                {
+                                    <div>
+                                        <span style="font-size: 11px; color: #1e3a8a; font-weight: 600;">Risk Assessment Notes:</span>
+                                        <p style="margin: 4px 0 0 0; color: #1e40af; font-size: 13px;">@selectedAssessment.RiskAssessmentDetails</p>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <!-- Assessed By -->
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #93c5fd; font-size: 12px; color: #6b7280;">
+                            <strong>Assessed By:</strong> @selectedAssessment.AssessedBy | 
+                            <strong>Date:</strong> @selectedAssessment.AssessmentDate.ToString("MMM dd, yyyy HH:mm")
+                        </div>
+                    </div>
+
                     <h4 style="margin: 0 0 16px 0; color: #374151; font-size: 16px; font-weight: 600;">⚖️ Make Your Decision</h4>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
@@ -849,6 +996,58 @@
         }
         
         filteredApprovals = query.ToList();
+    }
+
+    // =====================================================================
+    // HELPER METHODS FOR ASSESSMENT DISPLAY COLORS
+    // =====================================================================
+
+    private string GetCreditScoreColor(int score)
+    {
+        return score switch
+        {
+            >= 750 => "#059669", // Excellent - Green
+            >= 700 => "#10b981", // Good - Light Green
+            >= 650 => "#f59e0b", // Fair - Amber
+            >= 600 => "#f97316", // Poor - Orange
+            _ => "#dc2626"       // Very Poor - Red
+        };
+    }
+
+    private string GetDTIColor(decimal dti)
+    {
+        return dti switch
+        {
+            <= 20 => "#059669",  // Excellent
+            <= 35 => "#10b981",  // Good
+            <= 43 => "#f59e0b",  // Acceptable
+            <= 50 => "#f97316",  // High
+            _ => "#dc2626"       // Very High
+        };
+    }
+
+    private string GetRiskColor(string riskCategory)
+    {
+        return riskCategory?.ToUpper() switch
+        {
+            "LOW" => "#059669",
+            "MEDIUM" => "#f59e0b",
+            "HIGH" => "#f97316",
+            "VERY_HIGH" => "#dc2626",
+            _ => "#6b7280"
+        };
+    }
+
+    private string GetRecommendationColor(string recommendation)
+    {
+        return recommendation?.ToUpper() switch
+        {
+            "STRONGLY_RECOMMEND" => "#059669",
+            "RECOMMEND" => "#10b981",
+            "CONDITIONAL" => "#f59e0b",
+            "NOT_RECOMMEND" => "#dc2626",
+            _ => "#6b7280"
+        };
     }
 
     private void ShowToast(string message, string type)

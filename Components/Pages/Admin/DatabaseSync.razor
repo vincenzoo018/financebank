@@ -316,28 +316,7 @@
                 </button>
             </div>
 
-            <div class="sync-button-card">
-                <div class="sync-direction">
-                    <span class="db-label cloud">CLOUD</span>
-                    <i class="fas fa-arrow-right"></i>
-                    <span class="db-label local">LOCAL</span>
-                </div>
-                <h4>Download from Cloud</h4>
-                <p>Pull cloud data to your local database</p>
-                <button class="btn btn-info" @onclick="SyncCloudToLocal" 
-                        disabled="@(isSyncing || !localConnected || !cloudConnected)">
-                    @if (isSyncing && syncDirection == "CLOUD_TO_LOCAL")
-                    {
-                        <span class="spinner-border spinner-border-sm me-2"></span>
-                        <span>Syncing...</span>
-                    }
-                    else
-                    {
-                        <i class="fas fa-cloud-download-alt me-2"></i>
-                        <span>Sync from Cloud</span>
-                    }
-                </button>
-            </div>
+            
 
             <div class="sync-button-card highlight">
                 <div class="sync-direction">

@@ -606,6 +606,13 @@ All admin transactions are logged for audit purposes.
             return;
         }
 
+        // Check minimum balance requirement - must leave at least ₱1.00 in account
+        if ((currentAccountBalance - withdrawalAmount) <= 0.99m)
+        {
+            NotificationService.ShowError("Minimum Balance Required", $"Account must maintain a minimum balance of ₱1.00. Maximum withdrawal: ₱{(currentAccountBalance - 1):N2}");
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(withdrawalMethod))
         {
             NotificationService.ShowError("Validation Error", "Please select a withdrawal method before proceeding.");

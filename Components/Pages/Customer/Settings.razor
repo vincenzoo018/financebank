@@ -12,7 +12,8 @@
 
 @if (isOffline)
 {
-    <div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 12px; padding: 16px; margin-bottom: 24px; color: #78350f; display: flex; align-items: center; gap: 12px;">
+    <div
+        style="background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 12px; padding: 16px; margin-bottom: 24px; color: #78350f; display: flex; align-items: center; gap: 12px;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
             <line x1="12" y1="9" x2="12" y2="13"></line>
@@ -20,23 +21,30 @@
         </svg>
         <div>
             <strong>Offline Mode</strong>
-            <p style="margin: 0; font-size: 13px;">Unable to connect to database. Password and PIN changes require an active connection.</p>
+            <p style="margin: 0; font-size: 13px;">Unable to connect to database. Password and PIN changes require an active
+                connection.</p>
         </div>
     </div>
 }
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 32px; margin-bottom: 24px; color: white;">
+<div
+    style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 32px; margin-bottom: 24px; color: white;">
     <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+        <div
+            style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"
+                stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"></circle>
-                <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path>
+                <path
+                    d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24">
+                </path>
             </svg>
         </div>
         <div>
             <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Settings</h1>
-            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Customize your banking experience</p>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Customize your banking
+                experience</p>
         </div>
     </div>
 </div>
@@ -45,13 +53,16 @@
 <div style="display: grid; grid-template-columns: 1fr; gap: 24px; max-width: 800px;">
     <!-- Appearance & Accessibility -->
     <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Appearance & Accessibility</h2>
-        
+        <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Appearance & Accessibility
+        </h2>
+
         <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="display: inline-block; margin-right: 8px; vertical-align: middle;">
                             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                         </svg>
                         Dark Mode
@@ -59,9 +70,12 @@
                     <div style="font-size: 14px; color: #6b7280;">Enable dark mode for better viewing at night</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                    <input type="checkbox" @bind="darkMode" @bind:after="SaveSettings" style="opacity: 0; width: 0; height: 0;" />
-                    <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(darkMode ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
-                        <span style="position: absolute; height: 26px; width: 26px; left: @(darkMode ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
+                    <input type="checkbox" @bind="darkMode" @bind:after="SaveSettings"
+                        style="opacity: 0; width: 0; height: 0;" />
+                    <span
+                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(darkMode ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
+                        <span
+                            style="position: absolute; height: 26px; width: 26px; left: @(darkMode ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
                     </span>
                 </label>
             </div>
@@ -69,12 +83,15 @@
 
         <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 20px;">
             <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"
+                    style="display: inline-block; margin-right: 8px; vertical-align: middle;">
                     <path d="M4 7h16M4 12h16M4 17h16"></path>
                 </svg>
                 Font Size
             </div>
-            <select @bind="fontSize" @bind:after="SaveSettings" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            <select @bind="fontSize" @bind:after="SaveSettings"
+                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
                 <option value="small">Small</option>
                 <option value="medium">Medium</option>
                 <option value="large">Large</option>
@@ -86,7 +103,9 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="display: inline-block; margin-right: 8px; vertical-align: middle;">
                             <circle cx="12" cy="12" r="5"></circle>
                             <line x1="12" y1="1" x2="12" y2="3"></line>
                             <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -102,9 +121,12 @@
                     <div style="font-size: 14px; color: #6b7280;">Increase contrast for better visibility</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                    <input type="checkbox" @bind="highContrast" @bind:after="SaveSettings" style="opacity: 0; width: 0; height: 0;" />
-                    <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(highContrast ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
-                        <span style="position: absolute; height: 26px; width: 26px; left: @(highContrast ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
+                    <input type="checkbox" @bind="highContrast" @bind:after="SaveSettings"
+                        style="opacity: 0; width: 0; height: 0;" />
+                    <span
+                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(highContrast ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
+                        <span
+                            style="position: absolute; height: 26px; width: 26px; left: @(highContrast ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
                     </span>
                 </label>
             </div>
@@ -112,14 +134,19 @@
 
         <div style="padding: 20px; background: #f9fafb; border-radius: 12px;">
             <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"
+                    style="display: inline-block; margin-right: 8px; vertical-align: middle;">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="2" y1="12" x2="22" y2="12"></line>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    <path
+                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                    </path>
                 </svg>
                 Language
             </div>
-            <select @bind="language" @bind:after="SaveSettings" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            <select @bind="language" @bind:after="SaveSettings"
+                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
                 <option value="en">English</option>
                 <option value="fil">Filipino</option>
                 <option value="es">Español</option>
@@ -131,10 +158,12 @@
     <!-- Security -->
     <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
         <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Security</h2>
-        
+
         <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 16px;">
             <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"
+                    style="display: inline-block; margin-right: 8px; vertical-align: middle;">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
@@ -142,32 +171,42 @@
             </div>
             @if (!showPasswordForm)
             {
-                <button @onclick="() => showPasswordForm = true" style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Update Password</button>
+                <button @onclick="() => showPasswordForm = true"
+                    style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Update
+                    Password</button>
             }
             else
             {
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <div>
-                        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Current Password</label>
-                        <input type="password" @bind="currentPassword" placeholder="Enter current password" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box;" />
+                        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Current
+                            Password</label>
+                        <input type="password" @bind="currentPassword" placeholder="Enter current password"
+                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box;" />
                     </div>
                     <div>
-                        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">New Password</label>
-                        <input type="password" @bind="newPassword" placeholder="Enter new password (min 12 chars)" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box;" />
+                        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">New
+                            Password</label>
+                        <input type="password" @bind="newPassword" placeholder="Enter new password (min 12 chars)"
+                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box;" />
                     </div>
                     <div>
-                        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Confirm New Password</label>
-                        <input type="password" @bind="confirmPassword" placeholder="Confirm new password" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box;" />
+                        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Confirm New
+                            Password</label>
+                        <input type="password" @bind="confirmPassword" placeholder="Confirm new password"
+                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box;" />
                     </div>
                     @if (!string.IsNullOrEmpty(passwordError))
                     {
                         <div style="color: #dc2626; font-size: 13px;">@passwordError</div>
                     }
                     <div style="display: flex; gap: 8px;">
-                        <button @onclick="ChangePassword" disabled="@isChangingPassword" style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        <button @onclick="ChangePassword" disabled="@isChangingPassword"
+                            style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
                             @(isChangingPassword ? "Changing..." : "Change Password")
                         </button>
-                        <button @onclick="CancelPasswordForm" style="background: #f3f4f6; color: #374151; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Cancel</button>
+                        <button @onclick="CancelPasswordForm"
+                            style="background: #f3f4f6; color: #374151; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Cancel</button>
                     </div>
                 </div>
             }
@@ -175,7 +214,9 @@
 
         <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 16px;">
             <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"
+                    style="display: inline-block; margin-right: 8px; vertical-align: middle;">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
@@ -183,32 +224,42 @@
             </div>
             @if (!showPinForm)
             {
-                <button @onclick="() => showPinForm = true" style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Update PIN</button>
+                <button @onclick="() => showPinForm = true"
+                    style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Update
+                    PIN</button>
             }
             else
             {
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <div>
-                        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Current PIN</label>
-                        <input type="password" @bind="currentPin" placeholder="Enter current PIN" maxlength="4" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box; letter-spacing: 6px; text-align: center;" />
+                        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Current
+                            PIN</label>
+                        <input type="password" @bind="currentPin" placeholder="Enter current PIN" maxlength="4"
+                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box; letter-spacing: 6px; text-align: center;" />
                     </div>
                     <div>
-                        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">New PIN (4 digits)</label>
-                        <input type="password" @bind="newPin" placeholder="Enter new PIN" maxlength="4" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box; letter-spacing: 6px; text-align: center;" />
+                        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">New PIN (4
+                            digits)</label>
+                        <input type="password" @bind="newPin" placeholder="Enter new PIN" maxlength="4"
+                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box; letter-spacing: 6px; text-align: center;" />
                     </div>
                     <div>
-                        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Confirm New PIN</label>
-                        <input type="password" @bind="confirmPin" placeholder="Confirm new PIN" maxlength="4" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box; letter-spacing: 6px; text-align: center;" />
+                        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Confirm New
+                            PIN</label>
+                        <input type="password" @bind="confirmPin" placeholder="Confirm new PIN" maxlength="4"
+                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box; letter-spacing: 6px; text-align: center;" />
                     </div>
                     @if (!string.IsNullOrEmpty(pinError))
                     {
                         <div style="color: #dc2626; font-size: 13px;">@pinError</div>
                     }
                     <div style="display: flex; gap: 8px;">
-                        <button @onclick="ChangePin" disabled="@isChangingPin" style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        <button @onclick="ChangePin" disabled="@isChangingPin"
+                            style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
                             @(isChangingPin ? "Changing..." : "Change PIN")
                         </button>
-                        <button @onclick="CancelPinForm" style="background: #f3f4f6; color: #374151; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Cancel</button>
+                        <button @onclick="CancelPinForm"
+                            style="background: #f3f4f6; color: #374151; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Cancel</button>
                     </div>
                 </div>
             }
@@ -218,7 +269,9 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="display: inline-block; margin-right: 8px; vertical-align: middle;">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                         </svg>
                         Two-Factor Authentication
@@ -226,9 +279,12 @@
                     <div style="font-size: 14px; color: #6b7280;">Add an extra layer of security</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                    <input type="checkbox" @bind="twoFactorAuth" @bind:after="SaveSettings" style="opacity: 0; width: 0; height: 0;" />
-                    <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(twoFactorAuth ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
-                        <span style="position: absolute; height: 26px; width: 26px; left: @(twoFactorAuth ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
+                    <input type="checkbox" @bind="twoFactorAuth" @bind:after="SaveSettings"
+                        style="opacity: 0; width: 0; height: 0;" />
+                    <span
+                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(twoFactorAuth ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
+                        <span
+                            style="position: absolute; height: 26px; width: 26px; left: @(twoFactorAuth ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
                     </span>
                 </label>
             </div>
@@ -237,8 +293,9 @@
 
     <!-- Notifications -->
     <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Notification Preferences</h2>
-        
+        <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Notification Preferences
+        </h2>
+
         <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
@@ -246,9 +303,12 @@
                     <div style="font-size: 14px; color: #6b7280;">Receive updates via email</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                    <input type="checkbox" @bind="emailNotifications" @bind:after="SaveSettings" style="opacity: 0; width: 0; height: 0;" />
-                    <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(emailNotifications ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
-                        <span style="position: absolute; height: 26px; width: 26px; left: @(emailNotifications ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
+                    <input type="checkbox" @bind="emailNotifications" @bind:after="SaveSettings"
+                        style="opacity: 0; width: 0; height: 0;" />
+                    <span
+                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(emailNotifications ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
+                        <span
+                            style="position: absolute; height: 26px; width: 26px; left: @(emailNotifications ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
                     </span>
                 </label>
             </div>
@@ -261,9 +321,12 @@
                     <div style="font-size: 14px; color: #6b7280;">Receive alerts via text message</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                    <input type="checkbox" @bind="smsNotifications" @bind:after="SaveSettings" style="opacity: 0; width: 0; height: 0;" />
-                    <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(smsNotifications ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
-                        <span style="position: absolute; height: 26px; width: 26px; left: @(smsNotifications ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
+                    <input type="checkbox" @bind="smsNotifications" @bind:after="SaveSettings"
+                        style="opacity: 0; width: 0; height: 0;" />
+                    <span
+                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(smsNotifications ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
+                        <span
+                            style="position: absolute; height: 26px; width: 26px; left: @(smsNotifications ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
                     </span>
                 </label>
             </div>
@@ -276,9 +339,12 @@
                     <div style="font-size: 14px; color: #6b7280;">Get notified for every transaction</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                    <input type="checkbox" @bind="transactionAlerts" @bind:after="SaveSettings" style="opacity: 0; width: 0; height: 0;" />
-                    <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(transactionAlerts ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
-                        <span style="position: absolute; height: 26px; width: 26px; left: @(transactionAlerts ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
+                    <input type="checkbox" @bind="transactionAlerts" @bind:after="SaveSettings"
+                        style="opacity: 0; width: 0; height: 0;" />
+                    <span
+                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(transactionAlerts ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
+                        <span
+                            style="position: absolute; height: 26px; width: 26px; left: @(transactionAlerts ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
                     </span>
                 </label>
             </div>
@@ -288,7 +354,8 @@
     <!-- Save Status -->
     @if (!string.IsNullOrEmpty(saveMessage))
     {
-        <div style="background: #d1fae5; border-radius: 12px; padding: 16px; color: #065f46; display: flex; align-items: center; gap: 12px;">
+        <div
+            style="background: #d1fae5; border-radius: 12px; padding: 16px; color: #065f46; display: flex; align-items: center; gap: 12px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
@@ -302,13 +369,13 @@
 
 @code {
     private Toast? toastComponent;
-    
+
     // Appearance settings
     private bool darkMode = false;
     private string fontSize = "medium";
     private bool highContrast = false;
     private string language = "en";
-    
+
     // Security settings
     private bool twoFactorAuth = false;
     private bool showPasswordForm = false;
@@ -323,16 +390,16 @@
     private string confirmPin = "";
     private string pinError = "";
     private bool isChangingPin = false;
-    
+
     // Notification settings
     private bool emailNotifications = true;
     private bool smsNotifications = true;
     private bool transactionAlerts = true;
-    
+
     // Status
     private string saveMessage = "";
     private int? currentUserId;
-    
+
     // Offline state
     private bool isOffline = false;
 
@@ -350,7 +417,7 @@
             if (user != null)
             {
                 currentUserId = user.UserId;
-                
+
                 // Load user preferences from database if stored
                 // For now, use defaults - these can be stored in a UserPreferences table later
             }
@@ -359,9 +426,9 @@
         catch (Exception ex)
         {
             // Check if it's a connection/database error
-            if (ex.Message.Contains("connection") || ex.Message.Contains("network") || 
-                ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
-                ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
+            if (ex.Message.Contains("connection") || ex.Message.Contains("network") ||
+            ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
+            ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
             {
                 isOffline = true;
                 saveMessage = "Offline mode - some features may be limited";
@@ -378,7 +445,7 @@
             // For now, show a confirmation message
             saveMessage = "Settings saved successfully!";
             StateHasChanged();
-            
+
             await Task.Delay(3000);
             saveMessage = "";
             StateHasChanged();
@@ -392,7 +459,7 @@
     private async Task ChangePassword()
     {
         passwordError = "";
-        
+
         if (string.IsNullOrEmpty(currentPassword) || string.IsNullOrEmpty(newPassword) || string.IsNullOrEmpty(confirmPassword))
         {
             passwordError = "All fields are required";
@@ -418,7 +485,7 @@
         {
             using var context = await DbContextFactory.CreateDbContextAsync();
             var user = await context.Users.FirstOrDefaultAsync(u => u.Username == AuthService.CurrentUser);
-            
+
             if (user == null)
             {
                 passwordError = "User not found";
@@ -448,7 +515,7 @@
             currentPassword = "";
             newPassword = "";
             confirmPassword = "";
-            
+
             if (toastComponent != null)
             {
                 await toastComponent.Show("Success", "Password changed successfully!");
@@ -457,9 +524,9 @@
         catch (Exception ex)
         {
             // Check if it's a connection/database error
-            if (ex.Message.Contains("connection") || ex.Message.Contains("network") || 
-                ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
-                ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
+            if (ex.Message.Contains("connection") || ex.Message.Contains("network") ||
+            ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
+            ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
             {
                 isOffline = true;
                 passwordError = "Unable to change password - database connection unavailable. Please try again when connected.";
@@ -480,7 +547,7 @@
     private async Task ChangePin()
     {
         pinError = "";
-        
+
         if (string.IsNullOrEmpty(currentPin) || string.IsNullOrEmpty(newPin) || string.IsNullOrEmpty(confirmPin))
         {
             pinError = "All fields are required";
@@ -506,7 +573,7 @@
         {
             using var context = await DbContextFactory.CreateDbContextAsync();
             var user = await context.Users.FirstOrDefaultAsync(u => u.Username == AuthService.CurrentUser);
-            
+
             if (user == null)
             {
                 pinError = "User not found";
@@ -528,7 +595,7 @@
             currentPin = "";
             newPin = "";
             confirmPin = "";
-            
+
             if (toastComponent != null)
             {
                 await toastComponent.Show("Success", "Transfer PIN changed successfully!");
@@ -537,9 +604,9 @@
         catch (Exception ex)
         {
             // Check if it's a connection/database error
-            if (ex.Message.Contains("connection") || ex.Message.Contains("network") || 
-                ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
-                ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
+            if (ex.Message.Contains("connection") || ex.Message.Contains("network") ||
+            ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
+            ex.Message.Contains("timeout") || ex.InnerException?.Message?.Contains("connection") == true)
             {
                 isOffline = true;
                 pinError = "Unable to change PIN - database connection unavailable. Please try again when connected.";

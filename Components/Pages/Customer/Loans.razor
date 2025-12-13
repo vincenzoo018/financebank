@@ -103,7 +103,7 @@
                     </div>
                     <div>
                         <p style="margin: 0; color: #3b82f6; font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Borrowed</p>
-                        <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #1e40af;">₱@(activeLoans?.Sum(l => l.Principal) ?? 0).ToString("N2")</p>
+                        <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #1e40af;">₱@((activeLoans?.Sum(l => l.Principal) ?? 0).ToString("N2"))</p>
                     </div>
                 </div>
             </div>
@@ -117,7 +117,7 @@
                     </div>
                     <div>
                         <p style="margin: 0; color: #ca8a04; font-size: 12px; font-weight: 600; text-transform: uppercase;">Outstanding</p>
-                        <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #854d0e;">₱@(activeLoans?.Sum(l => l.Outstanding) ?? 0).ToString("N2")</p>
+                        <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #854d0e;">₱@((activeLoans?.Sum(l => l.Outstanding) ?? 0).ToString("N2"))</p>
                     </div>
                 </div>
             </div>
@@ -618,13 +618,12 @@
 {
     <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
         @onclick="CloseApplication">
-        <div style="background: white; border-radius: 20px; max-width: 600px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
+        <div style="background: white; border-radius: 20px; max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
             @onclick:stopPropagation>
             <div
                 style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px 28px; border-radius: 20px 20px 0 0;">
                 <h4 style="margin: 0; font-weight: 700; font-size: 22px;">Apply for @(selectedProduct?.Name ?? "Loan")</h4>
-                <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">Fill out the form to submit your application
-                </p>
+                <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">Complete all sections for faster processing</p>
             </div>
 
             <div style="padding: 28px;">
@@ -641,95 +640,270 @@
                         <div>
                             <div style="font-weight: 600; color: #1f2937;">@selectedProduct.Name</div>
                             <div style="font-size: 14px; color: #6b7280;">@selectedProduct.Description</div>
-                            <div style="font-size: 13px; color: #059669; font-weight: 600; margin-top: 4px;">Interest Rate:
-                                @selectedProduct.InterestRate%</div>
+                            <div style="font-size: 13px; color: #059669; font-weight: 600; margin-top: 4px;">Interest Rate: @selectedProduct.InterestRate%</div>
                         </div>
                     </div>
                 }
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
-                    <div>
-                        <label
-                            style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan
-                            Type <span style="color: #ef4444;">*</span></label>
-                        <select @bind="applicationLoanType"
-                            style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; background: white;">
-                            <option value="">Select Type</option>
-                            <option value="Personal">Personal Loan</option>
-                            <option value="Home">Home Loan</option>
-                            <option value="Auto">Auto Loan</option>
-                            <option value="Education">Education Loan</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label
-                            style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan
-                            Amount <span style="color: #ef4444;">*</span></label>
-                        <input type="number" @bind="applicationAmount" placeholder="Enter amount"
-                            style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px;" />
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
-                    <div>
-                        <label
-                            style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan
-                            Term <span style="color: #ef4444;">*</span></label>
-                        <select @bind="applicationTerm"
-                            style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; background: white;">
-                            <option value="12">12 months</option>
-                            <option value="24">24 months</option>
-                            <option value="36">36 months</option>
-                            <option value="48">48 months</option>
-                            <option value="60">60 months</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label
-                            style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Employment
-                            Status <span style="color: #ef4444;">*</span></label>
-                        <select @bind="employmentStatus"
-                            style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; background: white;">
-                            <option value="">Select Status</option>
-                            <option value="Employed">Employed</option>
-                            <option value="Self-Employed">Self-Employed</option>
-                            <option value="Retired">Retired</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 20px;">
-                    <label
-                        style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Monthly
-                        Income <span style="color: #ef4444;">*</span></label>
-                    <input type="number" @bind="monthlyIncome" placeholder="Enter monthly income"
-                        style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px;" />
-                </div>
-
+                <!-- Section 1: Basic Loan Information -->
                 <div style="margin-bottom: 24px;">
-                    <label
-                        style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Purpose
-                        <span style="color: #ef4444;">*</span></label>
-                    <textarea @bind="applicationPurpose" rows="3" placeholder="State the purpose of the loan"
-                        style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; resize: vertical;"></textarea>
+                    <h5 style="font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 24px; height: 24px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">1</span>
+                        Loan Details
+                    </h5>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan Type <span style="color: #ef4444;">*</span></label>
+                            <select @bind="applicationLoanType" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                                <option value="">Select Type</option>
+                                <option value="Personal">Personal Loan</option>
+                                <option value="Home">Home Loan</option>
+                                <option value="Auto">Auto Loan</option>
+                                <option value="Education">Education Loan</option>
+                                <option value="Business">Business Loan</option>
+                                <option value="Emergency">Emergency Loan</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan Category</label>
+                            <select @bind="applicationLoanCategory" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                                <option value="Unsecured">Unsecured (No Collateral)</option>
+                                <option value="Secured">Secured (With Collateral)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan Amount <span style="color: #ef4444;">*</span></label>
+                            <input type="number" @bind="applicationAmount" placeholder="Enter amount" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan Term <span style="color: #ef4444;">*</span></label>
+                            <select @bind="applicationTerm" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                                <option value="6">6 months</option>
+                                <option value="12">12 months</option>
+                                <option value="24">24 months</option>
+                                <option value="36">36 months</option>
+                                <option value="48">48 months</option>
+                                <option value="60">60 months</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px;">
+                        <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Purpose Category</label>
+                        <select @bind="applicationPurposeCategory" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                            <option value="">Select Purpose</option>
+                            <option value="Medical">Medical/Healthcare</option>
+                            <option value="Education">Education/Tuition</option>
+                            <option value="Home Improvement">Home Improvement</option>
+                            <option value="Vehicle Purchase">Vehicle Purchase</option>
+                            <option value="Business Capital">Business Capital</option>
+                            <option value="Debt Consolidation">Debt Consolidation</option>
+                            <option value="Travel">Travel</option>
+                            <option value="Wedding">Wedding/Special Event</option>
+                            <option value="Emergency">Emergency Expense</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 16px;">
+                        <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Detailed Purpose <span style="color: #ef4444;">*</span></label>
+                        <textarea @bind="applicationPurpose" rows="2" placeholder="Describe in detail how you will use the loan" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; resize: vertical;"></textarea>
+                    </div>
                 </div>
 
-                <div
-                    style="background: #fef3c7; padding: 16px; border-radius: 10px; margin-bottom: 24px; border: 1px solid #fde68a;">
-                    <h6 style="margin: 0 0 8px 0; color: #92400e; font-size: 13px; font-weight: 700;">📋 INTEREST RATES</h6>
-                    <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #78350f;">
-                        <li>Personal: 12.5% • Home: 8.5% • Auto: 9.5%</li>
-                        <li>Late Payment Penalty: 0.05% daily</li>
-                    </ul>
+                <!-- Section 2: Financial Information (Optional - already on file from registration) -->
+                <div style="margin-bottom: 24px;">
+                    <h5 style="font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 24px; height: 24px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">2</span>
+                        Additional Financial Information <span style="font-size: 11px; color: #6b7280; font-weight: normal;">(Optional)</span>
+                    </h5>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Existing Debts (Monthly)</label>
+                            <input type="number" @bind="existingDebtsMonthly" placeholder="Total monthly debt payments" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Other Income (Monthly)</label>
+                            <input type="number" @bind="otherIncomeMonthly" placeholder="Rental, business, etc." style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Section 3: Collateral Information (if Secured) -->
+                @if (applicationLoanCategory == "Secured")
+                {
+                    <div style="margin-bottom: 24px; background: #f0fdf4; border-radius: 12px; padding: 20px; border: 1px solid #bbf7d0;">
+                        <h5 style="font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 24px; height: 24px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">3</span>
+                            Collateral Information
+                        </h5>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Collateral Type <span style="color: #ef4444;">*</span></label>
+                                <select @bind="collateralType" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                                    <option value="">Select Type</option>
+                                    <option value="Real Estate">Real Estate/Property</option>
+                                    <option value="Vehicle">Vehicle</option>
+                                    <option value="Jewelry">Jewelry</option>
+                                    <option value="Equipment">Business Equipment</option>
+                                    <option value="Savings Account">Savings Account (Hold-out)</option>
+                                    <option value="Time Deposit">Time Deposit</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Estimated Value</label>
+                                <input type="number" @bind="collateralEstimatedValue" placeholder="Enter estimated value" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                            </div>
+                        </div>
+                        <div style="margin-top: 16px;">
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Collateral Description</label>
+                            <textarea @bind="collateralDescription" rows="2" placeholder="Describe the collateral (e.g., property address, vehicle model, etc.)" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; resize: vertical;"></textarea>
+                        </div>
+                    </div>
+                }
+
+                <!-- Section 4: Co-Borrower/Guarantor (Optional) -->
+                <div style="margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <h5 style="font-size: 15px; font-weight: 700; color: #1f2937; margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 24px; height: 24px; background: #6b7280; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">@(applicationLoanCategory == "Secured" ? "4" : "3")</span>
+                            Co-Borrower / Guarantor
+                        </h5>
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6b7280; cursor: pointer;">
+                            <input type="checkbox" @bind="hasCoBorrower" style="width: 16px; height: 16px;" />
+                            Add a co-borrower/guarantor
+                        </label>
+                    </div>
+                    @if (hasCoBorrower)
+                    {
+                        <div style="background: #eff6ff; border-radius: 12px; padding: 20px; border: 1px solid #bfdbfe;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div>
+                                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Full Name <span style="color: #ef4444;">*</span></label>
+                                    <input type="text" @bind="coBorrowerName" placeholder="Enter full name" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Relationship</label>
+                                    <select @bind="coBorrowerRelationship" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                                        <option value="">Select...</option>
+                                        <option value="Spouse">Spouse</option>
+                                        <option value="Parent">Parent</option>
+                                        <option value="Sibling">Sibling</option>
+                                        <option value="Relative">Other Relative</option>
+                                        <option value="Friend">Friend</option>
+                                        <option value="Business Partner">Business Partner</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Contact Number</label>
+                                    <input type="tel" @bind="coBorrowerContact" placeholder="09XXXXXXXXX" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Monthly Income</label>
+                                    <input type="number" @bind="coBorrowerIncome" placeholder="Enter monthly income" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                                </div>
+                            </div>
+                            <div style="margin-top: 16px;">
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Address</label>
+                                <input type="text" @bind="coBorrowerAddress" placeholder="Enter complete address" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Section 5: Document Submission Checklist -->
+                <div style="margin-bottom: 24px;">
+                    <h5 style="font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 24px; height: 24px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">@(applicationLoanCategory == "Secured" ? (hasCoBorrower ? "5" : "4") : (hasCoBorrower ? "4" : "3"))</span>
+                        Document Submission
+                    </h5>
+                    <div style="background: #fef3c7; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #fde68a;">
+                        <p style="margin: 0; font-size: 13px; color: #92400e;"><strong>⚠️ Important:</strong> Please confirm which documents you will submit. All checked documents must be provided to the Teller within 3 business days.</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docBankStatement ? "#d1fae5" : "#f9fafb"); border: 1px solid @(docBankStatement ? "#059669" : "#e5e7eb"); border-radius: 8px; cursor: pointer;">
+                            <input type="checkbox" @bind="docBankStatement" style="width: 18px; height: 18px;" />
+                            <span style="font-size: 14px; color: #374151;">Bank Statements (3 months)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docPayslips ? "#d1fae5" : "#f9fafb"); border: 1px solid @(docPayslips ? "#059669" : "#e5e7eb"); border-radius: 8px; cursor: pointer;">
+                            <input type="checkbox" @bind="docPayslips" style="width: 18px; height: 18px;" />
+                            <span style="font-size: 14px; color: #374151;">Latest Payslips (2 months)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docITR ? "#d1fae5" : "#f9fafb"); border: 1px solid @(docITR ? "#059669" : "#e5e7eb"); border-radius: 8px; cursor: pointer;">
+                            <input type="checkbox" @bind="docITR" style="width: 18px; height: 18px;" />
+                            <span style="font-size: 14px; color: #374151;">Income Tax Return (ITR)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docCOE ? "#d1fae5" : "#f9fafb"); border: 1px solid @(docCOE ? "#059669" : "#e5e7eb"); border-radius: 8px; cursor: pointer;">
+                            <input type="checkbox" @bind="docCOE" style="width: 18px; height: 18px;" />
+                            <span style="font-size: 14px; color: #374151;">Certificate of Employment</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docValidID ? "#d1fae5" : "#f9fafb"); border: 1px solid @(docValidID ? "#059669" : "#e5e7eb"); border-radius: 8px; cursor: pointer;">
+                            <input type="checkbox" @bind="docValidID" style="width: 18px; height: 18px;" />
+                            <span style="font-size: 14px; color: #374151;">Valid Government ID</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docProofOfBilling ? "#d1fae5" : "#f9fafb"); border: 1px solid @(docProofOfBilling ? "#059669" : "#e5e7eb"); border-radius: 8px; cursor: pointer;">
+                            <input type="checkbox" @bind="docProofOfBilling" style="width: 18px; height: 18px;" />
+                            <span style="font-size: 14px; color: #374151;">Proof of Billing Address</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Section 6: Terms and Legal Acknowledgment -->
+                <div style="margin-bottom: 24px;">
+                    <h5 style="font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 24px; height: 24px; background: #dc2626; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">!</span>
+                        Terms & Legal Acknowledgment
+                    </h5>
+                    <div style="background: #fef2f2; border: 2px solid #fecaca; border-radius: 12px; padding: 20px;">
+                        <div style="margin-bottom: 16px;">
+                            <h6 style="margin: 0 0 8px 0; color: #991b1b; font-size: 14px; font-weight: 700;">📋 LOAN TERMS & CONDITIONS</h6>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #7f1d1d; line-height: 1.6;">
+                                <li><strong>Interest Rate:</strong> As per selected loan type (Personal: 12.5%, Home: 8.5%, Auto: 9.5%)</li>
+                                <li><strong>Grace Period:</strong> 5 days after due date before penalty applies</li>
+                                <li><strong>Late Payment Penalty:</strong> 0.05% per day of outstanding balance</li>
+                                <li><strong>Prepayment:</strong> Allowed without penalty after 6 months</li>
+                            </ul>
+                        </div>
+                        <div style="margin-bottom: 16px; padding: 16px; background: #fee2e2; border-radius: 8px;">
+                            <h6 style="margin: 0 0 8px 0; color: #991b1b; font-size: 14px; font-weight: 700;">⚠️ LEGAL CONSEQUENCES FOR NON-PAYMENT</h6>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #7f1d1d; line-height: 1.6;">
+                                <li><strong>30 Days Overdue:</strong> Formal demand letter and credit report notation</li>
+                                <li><strong>60 Days Overdue:</strong> Legal action may be initiated; lawyer fees apply</li>
+                                <li><strong>90 Days Overdue:</strong> Account referred to collection agency; possible police report for fraud if applicable</li>
+                                <li><strong>Collateral:</strong> For secured loans, collateral may be foreclosed/repossessed</li>
+                            </ul>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <label style="display: flex; align-items: start; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" @bind="acknowledgeTerms" style="width: 18px; height: 18px; margin-top: 2px;" />
+                                <span style="font-size: 13px; color: #374151;">I have read and agree to the <strong>Loan Terms and Conditions</strong> including interest rates, fees, and payment schedule.</span>
+                            </label>
+                            <label style="display: flex; align-items: start; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" @bind="acknowledgeLegalAction" style="width: 18px; height: 18px; margin-top: 2px;" />
+                                <span style="font-size: 13px; color: #374151;">I understand that <strong>failure to pay may result in legal action</strong>, including but not limited to demand letters, collection agency referral, court proceedings, and possible police report for fraud.</span>
+                            </label>
+                            <label style="display: flex; align-items: start; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" @bind="acknowledgeInfoAccuracy" style="width: 18px; height: 18px; margin-top: 2px;" />
+                                <span style="font-size: 13px; color: #374151;">I certify that all information provided in this application is <strong>true, accurate, and complete</strong>. I understand that providing false information may result in application rejection and potential legal consequences.</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validation Messages -->
+                @if (!string.IsNullOrEmpty(applicationValidationError))
+                {
+                    <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;">
+                        <p style="margin: 0; color: #991b1b; font-size: 14px;">@applicationValidationError</p>
+                    </div>
+                }
 
                 <div style="display: flex; gap: 12px;">
                     <button @onclick="CloseApplication"
                         style="flex: 1; padding: 14px; background: #f1f5f9; border: none; border-radius: 10px; color: #475569; font-size: 15px; font-weight: 600; cursor: pointer;">
                         Cancel
                     </button>
-                    <button @onclick="SubmitApplication" disabled="@isSubmitting"
-                        style="flex: 1; padding: 14px; background: linear-gradient(135deg, #059669, #10b981); border: none; border-radius: 10px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; opacity: @(isSubmitting ? "0.6" : "1");">
+                    <button @onclick="SubmitApplication" disabled="@(isSubmitting || !CanSubmitApplication())"
+                        style="flex: 1; padding: 14px; background: linear-gradient(135deg, #059669, #10b981); border: none; border-radius: 10px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; opacity: @((isSubmitting || !CanSubmitApplication()) ? "0.6" : "1");">
                         @(isSubmitting ? "Submitting..." : "Submit Application")
                     </button>
                 </div>
@@ -1014,6 +1188,40 @@
     private string applicationPurpose = "";
     private string employmentStatus = "";
     private decimal monthlyIncome = 0;
+    
+    // Enhanced application fields
+    private string applicationLoanCategory = "Unsecured";
+    private string applicationPurposeCategory = "";
+    private decimal existingDebtsMonthly = 0;
+    private decimal otherIncomeMonthly = 0;
+    
+    // Collateral fields
+    private string collateralType = "";
+    private decimal collateralEstimatedValue = 0;
+    private string collateralDescription = "";
+    
+    // Co-borrower fields
+    private bool hasCoBorrower = false;
+    private string coBorrowerName = "";
+    private string coBorrowerRelationship = "";
+    private string coBorrowerContact = "";
+    private decimal coBorrowerIncome = 0;
+    private string coBorrowerAddress = "";
+    
+    // Document submission flags
+    private bool docBankStatement = false;
+    private bool docPayslips = false;
+    private bool docITR = false;
+    private bool docCOE = false;
+    private bool docValidID = false;
+    private bool docProofOfBilling = false;
+    
+    // Legal acknowledgments
+    private bool acknowledgeTerms = false;
+    private bool acknowledgeLegalAction = false;
+    private bool acknowledgeInfoAccuracy = false;
+    
+    private string applicationValidationError = "";
 
     // Edit application form fields
     private decimal editApplicationAmount = 0;
@@ -1168,13 +1376,39 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
         selectedProduct = product;
         applicationLoanType = product.Name.Replace(" Loan", "");
         showApplicationModal = true;
+        _ = PreFillFromUserDataAsync(); // Pre-fill in background
     }
 
-    private void ShowLoanApplication()
+    private async void ShowLoanApplication()
     {
         selectedProduct = null;
         applicationLoanType = "";
         showApplicationModal = true;
+        await PreFillFromUserDataAsync();
+    }
+
+    private async Task PreFillFromUserDataAsync()
+    {
+        try
+        {
+            var userData = await AuthService.GetCurrentUserDataAsync();
+            if (userData != null)
+            {
+                // Pre-fill employment and income data from user's registration info
+                if (!string.IsNullOrEmpty(userData.EmploymentStatus))
+                    employmentStatus = userData.EmploymentStatus;
+                if (userData.MonthlyGrossIncome.HasValue && userData.MonthlyGrossIncome.Value > 0)
+                    monthlyIncome = userData.MonthlyGrossIncome.Value;
+                if (userData.OtherIncomeAmount.HasValue && userData.OtherIncomeAmount.Value > 0)
+                    otherIncomeMonthly = userData.OtherIncomeAmount.Value;
+                    
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error pre-filling user data: {ex.Message}");
+        }
     }
 
     private void CloseApplication()
@@ -1187,14 +1421,78 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
         applicationPurpose = "";
         employmentStatus = "";
         monthlyIncome = 0;
+        // Reset enhanced fields
+        applicationLoanCategory = "Unsecured";
+        applicationPurposeCategory = "";
+        existingDebtsMonthly = 0;
+        otherIncomeMonthly = 0;
+        // Reset collateral fields
+        collateralType = "";
+        collateralEstimatedValue = 0;
+        collateralDescription = "";
+        // Reset co-borrower fields
+        hasCoBorrower = false;
+        coBorrowerName = "";
+        coBorrowerRelationship = "";
+        coBorrowerContact = "";
+        coBorrowerIncome = 0;
+        coBorrowerAddress = "";
+        // Reset document flags
+        docBankStatement = false;
+        docPayslips = false;
+        docITR = false;
+        docCOE = false;
+        docValidID = false;
+        docProofOfBilling = false;
+        // Reset acknowledgments
+        acknowledgeTerms = false;
+        acknowledgeLegalAction = false;
+        acknowledgeInfoAccuracy = false;
+        applicationValidationError = "";
+    }
+
+    private bool CanSubmitApplication()
+    {
+        return acknowledgeTerms && acknowledgeLegalAction && acknowledgeInfoAccuracy;
     }
 
     private async Task SubmitApplication()
     {
+        applicationValidationError = "";
+        
+        // Validate required fields
         if (string.IsNullOrWhiteSpace(applicationLoanType) || applicationAmount <= 0 ||
-        string.IsNullOrWhiteSpace(applicationPurpose))
+            string.IsNullOrWhiteSpace(applicationPurpose))
         {
+            applicationValidationError = "Please fill all required fields (Loan Type, Amount, and Purpose)";
             ShowAlert("Please fill all required fields", true);
+            return;
+        }
+
+        // Employment fields are optional - already captured during account creation
+        // Just proceed with the application
+
+        // Validate collateral if secured loan
+        if (applicationLoanCategory == "Secured" && string.IsNullOrWhiteSpace(collateralType))
+        {
+            applicationValidationError = "Please specify the collateral type for secured loans";
+            ShowAlert("Collateral type is required for secured loans", true);
+            return;
+        }
+
+        // Validate co-borrower if added
+        if (hasCoBorrower && string.IsNullOrWhiteSpace(coBorrowerName))
+        {
+            applicationValidationError = "Please enter the co-borrower's full name";
+            ShowAlert("Co-borrower name is required", true);
+            return;
+        }
+
+        // Validate acknowledgments
+        if (!acknowledgeTerms || !acknowledgeLegalAction || !acknowledgeInfoAccuracy)
+        {
+            applicationValidationError = "You must agree to all terms and acknowledgments to proceed";
+            ShowAlert("Please accept all terms and acknowledgments", true);
             return;
         }
 
@@ -1208,15 +1506,50 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
                 return;
             }
 
+            // Check if account balance is greater than zero
+            if (account.Balance <= 0)
+            {
+                ShowAlert("⚠️ Cannot apply for a loan. Your account balance must be greater than zero.", true);
+                return;
+            }
+
             var submittedBy = AuthService.CurrentUser ?? "customer";
-            var application = await LoanProcessService.SubmitApplicationAsync(
-            accountId: account.AccountId,
-            loanType: applicationLoanType,
-            requestedAmount: applicationAmount,
-            purpose: applicationPurpose,
-            employmentStatus: employmentStatus,
-            monthlyIncome: monthlyIncome,
-            submittedBy: submittedBy
+            var application = await LoanProcessService.SubmitEnhancedApplicationAsync(
+                accountId: account.AccountId,
+                loanType: applicationLoanType,
+                requestedAmount: applicationAmount,
+                requestedTermMonths: applicationTerm,
+                purpose: applicationPurpose,
+                purposeCategory: applicationPurposeCategory,
+                loanCategory: applicationLoanCategory,
+                employmentStatus: employmentStatus,
+                monthlyIncome: monthlyIncome,
+                existingDebtsTotal: existingDebtsMonthly,
+                otherIncome: otherIncomeMonthly,
+                // Collateral
+                hasCollateral: applicationLoanCategory == "Secured",
+                collateralType: collateralType,
+                collateralValue: collateralEstimatedValue,
+                collateralDescription: collateralDescription,
+                // Co-borrower
+                hasCoBorrower: hasCoBorrower,
+                coBorrowerName: coBorrowerName,
+                coBorrowerRelationship: coBorrowerRelationship,
+                coBorrowerContact: coBorrowerContact,
+                coBorrowerIncome: coBorrowerIncome,
+                coBorrowerAddress: coBorrowerAddress,
+                // Documents
+                bankStatementSubmitted: docBankStatement,
+                payslipsSubmitted: docPayslips,
+                itrSubmitted: docITR,
+                coeSubmitted: docCOE,
+                validIdSubmitted: docValidID,
+                proofOfBillingSubmitted: docProofOfBilling,
+                // Acknowledgments
+                acknowledgedTerms: acknowledgeTerms,
+                acknowledgedLegalAction: acknowledgeLegalAction,
+                acknowledgedInfoAccuracy: acknowledgeInfoAccuracy,
+                submittedBy: submittedBy
             );
 
             ShowAlert($"✓ Loan application {application.ApplicationNumber} submitted successfully! Waiting for approval.");

@@ -526,6 +526,7 @@ namespace FinanceBank.Data
         public DbSet<LoanDisbursal> LoanDisbursals { get; set; }
         public DbSet<LoanTransactionHistory> LoanTransactionHistory { get; set; }
         public DbSet<LoanInvoice> LoanInvoices { get; set; }
+        public DbSet<LoanDocument> LoanDocuments { get; set; }
 
         // Approval Module Tables
         public DbSet<ApprovalQueueEntity> ApprovalQueues { get; set; }
@@ -563,6 +564,90 @@ namespace FinanceBank.Data
                 entity.Property(e => e.Role).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
+            });
+
+            // =====================================================================
+            // IGNORE NEW CustomerAccount COLUMNS THAT DON'T EXIST IN DATABASE YET
+            // Run LOAN_PROCESS_ENHANCEMENT.sql to add these columns, then remove this section
+            // =====================================================================
+            modelBuilder.Entity<CustomerAccount>(entity =>
+            {
+                entity.HasKey(e => e.AccountId);
+
+                // Ignore new columns that don't exist in the database yet
+                entity.Ignore(e => e.AccountType);
+                entity.Ignore(e => e.AccountPurpose);
+                entity.Ignore(e => e.InitialDeposit);
+                entity.Ignore(e => e.EligibilityStatus);
+                entity.Ignore(e => e.EligibilityRemarks);
+                entity.Ignore(e => e.EligibilityCheckedBy);
+                entity.Ignore(e => e.EligibilityCheckedAt);
+                entity.Ignore(e => e.CanApplyForLoan);
+                entity.Ignore(e => e.LoanEligibilityReason);
+                entity.Ignore(e => e.MaxLoanAmount);
+            });
+
+            // =====================================================================
+            // LOAN APPLICATION CONFIGURATION
+            // Database columns added via ADD_LOAN_DOCUMENT_COLUMNS.sql
+            // =====================================================================
+            modelBuilder.Entity<LoanApplication>(entity =>
+            {
+                entity.HasKey(e => e.ApplicationId);
+
+                // These columns still need to be added via LOAN_PROCESS_ENHANCEMENT.sql
+                entity.Ignore(e => e.RequestedInterestRate);
+                entity.Ignore(e => e.ExistingDebtsDetails);
+            });
+
+            // =====================================================================
+            // IGNORE NEW LoanAssessment COLUMNS THAT DON'T EXIST IN DATABASE YET
+            // =====================================================================
+            modelBuilder.Entity<LoanAssessment>(entity =>
+            {
+                entity.HasKey(e => e.AssessmentId);
+
+                // Ignore new columns that don't exist in the database yet
+                entity.Ignore(e => e.CreditScore);
+                entity.Ignore(e => e.CreditScoreSource);
+                entity.Ignore(e => e.DebtToIncomeRatio);
+                entity.Ignore(e => e.RiskScore);
+                entity.Ignore(e => e.RiskCategory);
+                entity.Ignore(e => e.RiskAssessmentDetails);
+                entity.Ignore(e => e.IdentityVerified);
+                entity.Ignore(e => e.IncomeVerified);
+                entity.Ignore(e => e.AddressVerified);
+                entity.Ignore(e => e.EmploymentVerified);
+                entity.Ignore(e => e.CollateralVerified);
+                entity.Ignore(e => e.CoBorrowerVerified);
+                entity.Ignore(e => e.BankStatementsReviewed);
+                entity.Ignore(e => e.AverageMonthlyBalance);
+                entity.Ignore(e => e.VerificationNotes);
+                entity.Ignore(e => e.AccountantRecommendation);
+                entity.Ignore(e => e.RecommendationReason);
+                entity.Ignore(e => e.SuggestedAmount);
+                entity.Ignore(e => e.SuggestedTerm);
+                entity.Ignore(e => e.SuggestedRate);
+                // NOTE: RejectionReason, RejectedAt, RejectedBy exist in DB but not in model - no need to ignore
+            });
+
+            // =====================================================================
+            // IGNORE NEW LoanApproval COLUMNS THAT DON'T EXIST IN DATABASE YET
+            // =====================================================================
+            modelBuilder.Entity<LoanApproval>(entity =>
+            {
+                entity.HasKey(e => e.ApprovalId);
+
+                // Ignore new columns that don't exist in the database yet
+                entity.Ignore(e => e.ApprovalReason);
+                entity.Ignore(e => e.ReviewedCreditScore);
+                entity.Ignore(e => e.ReviewedDTI);
+                entity.Ignore(e => e.ReviewedRiskAssessment);
+                entity.Ignore(e => e.ReviewedCollateral);
+                entity.Ignore(e => e.ReviewedCoBorrower);
+                entity.Ignore(e => e.FinalDecisionNotes);
+                entity.Ignore(e => e.RequiresAdditionalDocuments);
+                entity.Ignore(e => e.AdditionalDocumentsRequired);
             });
 
             // Configure LoginHistory entity

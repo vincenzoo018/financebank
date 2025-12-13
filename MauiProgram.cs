@@ -128,6 +128,7 @@ namespace FinanceBank
             // Register Loan Process Services
             builder.Services.AddScoped<LoanProcessService>();
             builder.Services.AddScoped<LoanPaymentService>();
+            builder.Services.AddScoped<LoanContractService>();
             builder.Services.AddScoped<LoanEligibilityService>();
 
             // Register Teller Report Service (analytics and report generation)

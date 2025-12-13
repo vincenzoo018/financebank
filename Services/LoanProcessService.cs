@@ -173,6 +173,186 @@ public class LoanProcessService
         }
     }
 
+    /// <summary>
+    /// Submit enhanced loan application with collateral, co-borrower, document tracking, and legal acknowledgments
+    /// </summary>
+    public async Task<LoanApplication> SubmitEnhancedApplicationAsync(
+        int accountId,
+        string loanType,
+        decimal requestedAmount,
+        int requestedTermMonths,
+        string? purpose,
+        string? purposeCategory,
+        string? loanCategory,
+        string? employmentStatus,
+        decimal? monthlyIncome,
+        decimal? existingDebtsTotal,
+        decimal? otherIncome,
+        // Collateral
+        bool hasCollateral,
+        string? collateralType,
+        decimal? collateralValue,
+        string? collateralDescription,
+        // Co-borrower
+        bool hasCoBorrower,
+        string? coBorrowerName,
+        string? coBorrowerRelationship,
+        string? coBorrowerContact,
+        decimal? coBorrowerIncome,
+        string? coBorrowerAddress,
+        // Documents
+        bool bankStatementSubmitted,
+        bool payslipsSubmitted,
+        bool itrSubmitted,
+        bool coeSubmitted,
+        bool validIdSubmitted,
+        bool proofOfBillingSubmitted,
+        // Acknowledgments
+        bool acknowledgedTerms,
+        bool acknowledgedLegalAction,
+        bool acknowledgedInfoAccuracy,
+        string submittedBy)
+    {
+        using var _context = await _contextFactory.CreateDbContextAsync();
+        try
+        {
+            // LOAN RESTRICTION CHECK: Block application if user has existing unpaid loans
+            var hasUnpaidLoan = await _context.Loans
+                .AnyAsync(l => l.AccountId == accountId &&
+                              l.Status == "ACTIVE" &&
+                              l.OutstandingBalance > 0);
+
+            if (hasUnpaidLoan)
+            {
+                throw new InvalidOperationException("You have an existing loan that is not fully paid. Please complete all payments on your current loan before applying for a new one.");
+            }
+
+            // Check for pending applications (excluding CANCELLED)
+            var hasPendingApplication = await _context.LoanApplications
+                .AnyAsync(a => a.AccountId == accountId &&
+                              !a.Status.Contains("REJECTED") &&
+                              a.Status != LoanStatus.COMPLETED_RELEASED &&
+                              a.Status != "REJECTED" &&
+                              a.Status != "CANCELLED");
+
+            if (hasPendingApplication)
+            {
+                throw new InvalidOperationException("You have a pending loan application. Please wait for it to be processed.");
+            }
+
+            var applicationNumber = $"APP-{DateTime.Now:yyyyMMddHHmmss}";
+
+            // Create enhanced loan application
+            var application = new LoanApplication
+            {
+                ApplicationNumber = applicationNumber,
+                AccountId = accountId,
+                LoanType = loanType,
+                RequestedAmount = requestedAmount,
+                RequestedTermMonths = requestedTermMonths,
+                Purpose = purpose,
+                PurposeCategory = purposeCategory,
+                LoanCategory = loanCategory ?? "Unsecured",
+                EmploymentStatus = employmentStatus,
+                MonthlyIncome = monthlyIncome,
+                ExistingDebtsTotal = existingDebtsTotal ?? 0,
+                OtherIncome = otherIncome ?? 0,
+                HasCollateral = hasCollateral,
+                HasCoBorrower = hasCoBorrower,
+                // Document submission flags
+                BankStatementSubmitted = bankStatementSubmitted,
+                PayslipsSubmitted = payslipsSubmitted,
+                ITRSubmitted = itrSubmitted,
+                COESubmitted = coeSubmitted,
+                ValidIdSubmitted = validIdSubmitted,
+                ProofOfBillingSubmitted = proofOfBillingSubmitted,
+                // Legal acknowledgments
+                AcknowledgedTerms = acknowledgedTerms,
+                AcknowledgedLegalAction = acknowledgedLegalAction,
+                AcknowledgedInfoAccuracy = acknowledgedInfoAccuracy,
+                Status = LoanStatus.PENDING_TELLER_REVIEW,
+                SubmittedBy = submittedBy,
+                ApplicationDate = DateTime.Now
+            };
+
+            _context.LoanApplications.Add(application);
+            await _context.SaveChangesAsync();
+
+            // NOTE: LoanCollaterals and LoanCoBorrowers tables don't exist in database yet
+            // Collateral and co-borrower information is stored in the application for now
+            // TODO: Run LOAN_PROCESS_ENHANCEMENT.sql to add these tables, then enable this code
+            /*
+            // Create collateral record if applicable
+            if (hasCollateral && !string.IsNullOrEmpty(collateralType))
+            {
+                var collateral = new LoanCollateral
+                {
+                    ApplicationId = application.ApplicationId,
+                    CollateralType = collateralType,
+                    CollateralDescription = collateralDescription ?? "",
+                    EstimatedValue = collateralValue ?? 0,
+                    VerificationStatus = "PENDING",
+                    OwnerName = submittedBy,
+                    CreatedAt = DateTime.Now
+                };
+                _context.Set<LoanCollateral>().Add(collateral);
+                await _context.SaveChangesAsync();
+            }
+
+            // Create co-borrower record if applicable
+            if (hasCoBorrower && !string.IsNullOrEmpty(coBorrowerName))
+            {
+                var coBorrower = new LoanCoBorrower
+                {
+                    ApplicationId = application.ApplicationId,
+                    FullName = coBorrowerName,
+                    RelationshipToBorrower = coBorrowerRelationship,
+                    PhoneNumber = coBorrowerContact,
+                    Address = coBorrowerAddress,
+                    MonthlyIncome = coBorrowerIncome ?? 0,
+                    RelationshipType = "GUARANTOR",
+                    VerificationStatus = "PENDING",
+                    CreatedAt = DateTime.Now
+                };
+                _context.Set<LoanCoBorrower>().Add(coBorrower);
+                await _context.SaveChangesAsync();
+            }
+            */
+
+            // Log transaction history
+            await LogTransactionHistoryAsync(
+                accountId: accountId,
+                transactionType: "APPLICATION",
+                amount: requestedAmount,
+                description: $"Enhanced loan application submitted: {loanType} - ₱{requestedAmount:N2} ({requestedTermMonths} months, {loanCategory})",
+                processedBy: submittedBy,
+                applicationId: application.ApplicationId,
+                status: application.Status
+            );
+
+            // Log to audit log
+            if (_auditLogService != null)
+            {
+                await _auditLogService.LogDataChangeAsync(
+                    userId: submittedBy,
+                    userName: submittedBy,
+                    action: "CREATE",
+                    module: "Loans",
+                    entityName: "LoanApplication",
+                    entityId: application.ApplicationId.ToString()
+                );
+            }
+
+            return application;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(ex.Message.Contains("unpaid loan") || ex.Message.Contains("pending")
+                ? ex.Message
+                : "Failed to submit loan application", ex);
+        }
+    }
+
     // =====================================================================
     // STAGE 2: TELLER REVIEW (TELLER)
     // =====================================================================
@@ -196,6 +376,10 @@ public class LoanProcessService
                 throw new InvalidOperationException("Application is not pending teller review");
 
             application.Status = LoanStatus.PENDING_ACCOUNTANT_REVIEW;
+            application.TellerReviewedBy = approvedBy;
+            application.TellerReviewedAt = DateTime.Now;
+            application.TellerRemarks = remarks;
+            
             _context.LoanApplications.Update(application);
             await _context.SaveChangesAsync();
 
@@ -215,6 +399,94 @@ public class LoanProcessService
         catch (Exception ex)
         {
             throw new InvalidOperationException("Failed to approve application", ex);
+        }
+    }
+
+    /// <summary>
+    /// Enhanced Teller review with verification checklist and recommendation
+    /// </summary>
+    public async Task<LoanApplication> TellerEnhancedReviewAsync(
+        int applicationId,
+        string approvedBy,
+        string recommendation,
+        string remarks,
+        bool verifyIdentity,
+        bool verifyDocuments,
+        bool verifySignature,
+        bool verifyAccountGoodStanding)
+    {
+        using var _context = await _contextFactory.CreateDbContextAsync();
+        try
+        {
+            var application = await _context.LoanApplications.FindAsync(applicationId);
+            if (application == null)
+                throw new KeyNotFoundException($"Application {applicationId} not found");
+
+            if (application.Status != LoanStatus.PENDING_TELLER_REVIEW &&
+                application.Status != LoanStatus.SUBMITTED)
+                throw new InvalidOperationException("Application is not pending teller review");
+
+            // Update application with teller review details
+            application.Status = LoanStatus.PENDING_ACCOUNTANT_REVIEW;
+            application.TellerReviewedBy = approvedBy;
+            application.TellerReviewedAt = DateTime.Now;
+            application.TellerRecommendation = recommendation;
+            application.TellerRemarks = $"TELLER VERIFICATION CHECKLIST:\n" +
+                $"• Identity Verified: {(verifyIdentity ? "✓" : "✗")}\n" +
+                $"• Documents Verified: {(verifyDocuments ? "✓" : "✗")}\n" +
+                $"• Signature Verified: {(verifySignature ? "✓" : "✗")}\n" +
+                $"• Account Good Standing: {(verifyAccountGoodStanding ? "✓" : "✗")}\n" +
+                $"---\n" +
+                $"Recommendation: {recommendation}\n" +
+                $"Remarks: {remarks}";
+
+            _context.LoanApplications.Update(application);
+            await _context.SaveChangesAsync();
+
+            // Create verification checklist record
+            var checklist = new LoanVerificationChecklist
+            {
+                ApplicationId = applicationId,
+                VerificationStage = "TELLER",
+                ValidIdChecked = verifyIdentity,
+                PhotoMatchesId = verifyIdentity,
+                SignatureVerified = verifySignature,
+                ProofOfAddressChecked = verifyAccountGoodStanding,
+                VerifiedBy = approvedBy,
+                VerifiedAt = DateTime.Now,
+                Remarks = remarks,
+                OverallStatus = recommendation == "Highly Recommended" || recommendation == "Recommended" 
+                    ? "COMPLETE" : "INCOMPLETE"
+            };
+            _context.Set<LoanVerificationChecklist>().Add(checklist);
+            await _context.SaveChangesAsync();
+
+            // Log to audit log
+            await LogAuditAsync(
+                action: "TELLER_ENHANCED_REVIEW",
+                tableName: "LoanApplications",
+                recordId: applicationId,
+                oldValues: null,
+                newValues: $"Recommendation: {recommendation}, Verified: ID={verifyIdentity}, Docs={verifyDocuments}, Sig={verifySignature}, Standing={verifyAccountGoodStanding}",
+                performedBy: approvedBy
+            );
+
+            // Log transaction history
+            await LogTransactionHistoryAsync(
+                accountId: application.AccountId,
+                transactionType: "TELLER_ENHANCED_REVIEW",
+                amount: application.RequestedAmount,
+                description: $"Teller completed enhanced review. Recommendation: {recommendation}",
+                processedBy: approvedBy,
+                applicationId: applicationId,
+                status: application.Status
+            );
+
+            return application;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to complete enhanced teller review", ex);
         }
     }
 
@@ -374,6 +646,128 @@ public class LoanProcessService
         catch (Exception ex)
         {
             throw new InvalidOperationException("Failed to create loan assessment", ex);
+        }
+    }
+
+    /// <summary>
+    /// Enhanced Accountant Assessment with credit score, DTI, risk assessment, and recommendation
+    /// </summary>
+    public async Task<LoanAssessment> CreateEnhancedAssessmentAsync(
+        int applicationId,
+        int accountId,
+        decimal loanAmount,
+        decimal interestRate,
+        int termMonths,
+        string assessedBy,
+        // Credit Assessment
+        int creditScore,
+        string creditScoreSource,
+        decimal debtToIncomeRatio,
+        // Risk Assessment
+        int riskScore,
+        string riskCategory,
+        string? riskAssessmentNotes,
+        // Verification
+        bool identityVerified,
+        bool incomeVerified,
+        bool employmentVerified,
+        bool bankStatementsReviewed,
+        bool collateralVerified,
+        bool coBorrowerVerified,
+        decimal? averageMonthlyBalance,
+        // Recommendation
+        string recommendation,
+        string? recommendationReason,
+        decimal? suggestedAmount,
+        int? suggestedTerm,
+        decimal? suggestedRate,
+        string? remarks)
+    {
+        using var _context = await _contextFactory.CreateDbContextAsync();
+        try
+        {
+            var application = await _context.LoanApplications.FindAsync(applicationId);
+            if (application == null)
+                throw new KeyNotFoundException($"Application {applicationId} not found");
+
+            if (application.Status != LoanStatus.PENDING_ACCOUNTANT_REVIEW &&
+                application.Status != LoanStatus.ENCODED)
+                throw new InvalidOperationException("Application must be pending accountant review");
+
+            // Compute monthly payment and total payable
+            var monthlyRate = interestRate / 100 / 12;
+            var monthlyPayment = loanAmount * (monthlyRate * (decimal)Math.Pow(1 + (double)monthlyRate, termMonths))
+                / ((decimal)Math.Pow(1 + (double)monthlyRate, termMonths) - 1);
+            var totalPayable = monthlyPayment * termMonths;
+
+            var assessment = new LoanAssessment
+            {
+                ApplicationId = applicationId,
+                AccountId = accountId,
+                LoanAmount = loanAmount,
+                InterestRate = interestRate,
+                TermMonths = termMonths,
+                ComputedMonthlyPayment = Math.Round(monthlyPayment, 2),
+                TotalPayable = Math.Round(totalPayable, 2),
+                AssessmentStatus = "ASSESSED",
+                AssessedBy = assessedBy,
+                Remarks = remarks,
+                AssessmentDate = DateTime.Now,
+                // Credit Assessment
+                CreditScore = creditScore,
+                CreditScoreSource = creditScoreSource,
+                DebtToIncomeRatio = debtToIncomeRatio,
+                // Risk Assessment
+                RiskScore = riskScore,
+                RiskCategory = riskCategory,
+                RiskAssessmentDetails = riskAssessmentNotes,
+                // Verification
+                IdentityVerified = identityVerified,
+                IncomeVerified = incomeVerified,
+                EmploymentVerified = employmentVerified,
+                BankStatementsReviewed = bankStatementsReviewed,
+                CollateralVerified = collateralVerified,
+                CoBorrowerVerified = coBorrowerVerified,
+                AverageMonthlyBalance = averageMonthlyBalance,
+                // Recommendation
+                AccountantRecommendation = recommendation,
+                RecommendationReason = recommendationReason,
+                SuggestedAmount = suggestedAmount,
+                SuggestedTerm = suggestedTerm,
+                SuggestedRate = suggestedRate
+            };
+
+            application.Status = LoanStatus.PENDING_FINANCEMANAGER_APPROVAL;
+            _context.LoanApplications.Update(application);
+            _context.LoanAssessments.Add(assessment);
+            await _context.SaveChangesAsync();
+
+            // Log to audit log
+            await LogAuditAsync(
+                action: "ACCOUNTANT_ENHANCED_ASSESSMENT",
+                tableName: "LoanAssessments",
+                recordId: assessment.AssessmentId,
+                oldValues: null,
+                newValues: $"CreditScore={creditScore}, DTI={debtToIncomeRatio}%, Risk={riskCategory}, Recommendation={recommendation}",
+                performedBy: assessedBy
+            );
+
+            // Log transaction history
+            await LogTransactionHistoryAsync(
+                accountId: accountId,
+                transactionType: "ACCOUNTANT_ENHANCED_ASSESSMENT",
+                amount: loanAmount,
+                description: $"Enhanced assessment: Credit={creditScore}, DTI={debtToIncomeRatio}%, Risk={riskCategory}, Rec={recommendation}",
+                processedBy: assessedBy,
+                applicationId: applicationId,
+                status: application.Status
+            );
+
+            return assessment;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to create enhanced loan assessment", ex);
         }
     }
 
@@ -1583,8 +1977,9 @@ public class LoanProcessService
     {
         using var _context = await _contextFactory.CreateDbContextAsync();
         IQueryable<LoanApplication> query = _context.LoanApplications
+            .AsNoTracking()
             .Include(a => a.Account)
-            .ThenInclude(a => a.Customer);
+            .ThenInclude(a => a!.Customer);
 
         // Filter based on role-specific status
         if (role == "TELLER")
@@ -1794,6 +2189,38 @@ public class LoanProcessService
         catch (Exception)
         {
             // Silently fail - history logging should not break main operation
+        }
+    }
+
+    /// <summary>
+    /// Log to Audit Log for compliance tracking
+    /// </summary>
+    private async Task LogAuditAsync(
+        string action,
+        string tableName,
+        int recordId,
+        string? oldValues,
+        string? newValues,
+        string performedBy)
+    {
+        if (_auditLogService == null) return;
+
+        try
+        {
+            await _auditLogService.LogDataChangeAsync(
+                userId: performedBy,
+                userName: performedBy,
+                action: action,
+                module: "Loans",
+                entityName: tableName,
+                entityId: recordId.ToString(),
+                oldValues: oldValues,
+                newValues: newValues
+            );
+        }
+        catch (Exception)
+        {
+            // Silently fail - audit logging should not break main operation
         }
     }
 
@@ -2084,13 +2511,14 @@ public class LoanProcessService
     {
         using var _context = await _contextFactory.CreateDbContextAsync();
         return await _context.LoanApplications
+            .AsNoTracking()
             .Where(a => a.Status == "CANCELLED" ||
                  a.Status == LoanStatus.REJECTED_TELLER ||
                  a.Status == LoanStatus.REJECTED_ACCOUNTANT ||
                  a.Status == LoanStatus.REJECTED_FINANCEMANAGER ||
                  a.Status == "REJECTED")
             .Include(a => a.Account)
-            .ThenInclude(a => a.Customer)
+            .ThenInclude(a => a!.Customer)
             .OrderByDescending(a => a.RejectedAt ?? a.ApplicationDate)
             .ToListAsync();
     }

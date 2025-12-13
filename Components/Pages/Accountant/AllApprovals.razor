@@ -200,7 +200,7 @@
                                 </td>
                                 <td style="padding: 16px; font-size: 14px; color: #64748b;">@item.SubmittedAt.ToString("MMM dd, yyyy")</td>
                                 <td style="padding: 16px; text-align: center;">
-                                    <button @onclick="() => OpenReviewModal(item)"
+                                    <button @onclick="async () => await OpenReviewModal(item)"
                                         style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; margin-right: 8px;">
                                         👁️ Review
                                     </button>
@@ -308,7 +308,8 @@ else
     <div
         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
         <div
-            style="background: white; border-radius: 20px; padding: 0; max-width: 600px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.3); overflow: hidden;">
+            style="background: white; border-radius: 20px; padding: 0; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.3);"
+            @onclick:stopPropagation>
             <!-- Modal Header -->
             <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px 32px;">
                 <h2 style="font-size: 22px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 12px;">
@@ -397,34 +398,429 @@ else
                             </div>
                         }
                     </div>
+
+                    <!-- LOAN APPLICATION SPECIFIC DETAILS -->
+                    @if ((selectedItem.SourceType == "LoanApplication" || selectedItem.SourceType == "LoanAssessment") && loanDetails != null)
+                    {
+                        <!-- Teller Review Summary -->
+                        @if (!string.IsNullOrEmpty(loanDetails.Application?.TellerRemarks))
+                        {
+                            <div style="background: #fef3c7; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #f59e0b;">
+                                <h5 style="margin: 0 0 8px 0; color: #92400e; font-size: 14px; font-weight: 600;">
+                                    📝 Teller Review Summary
+                                </h5>
+                                <p style="margin: 0 0 8px 0; color: #78350f; font-size: 14px;">@loanDetails.Application.TellerRemarks</p>
+                                <div style="display: flex; gap: 16px; font-size: 12px; color: #92400e;">
+                                    <span><strong>Reviewed by:</strong> @loanDetails.Application.TellerReviewedBy</span>
+                                    <span><strong>Recommendation:</strong> @(loanDetails.Application.TellerRecommendation ?? "N/A")</span>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Customer Financial Profile -->
+                        <div style="background: #eff6ff; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #3b82f6;">
+                            <h5 style="margin: 0 0 12px 0; color: #1e40af; font-size: 14px; font-weight: 600;">
+                                👤 Customer Financial Profile
+                            </h5>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                                <div>
+                                    <span style="font-size: 11px; color: #6b7280;">Monthly Income</span>
+                                    <p style="margin: 2px 0 0 0; font-weight: 600; color: #1e3a5f;">₱@((loanDetails.Application?.MonthlyIncome ?? 0).ToString("N2"))</p>
+                                </div>
+                                <div>
+                                    <span style="font-size: 11px; color: #6b7280;">Existing Debts</span>
+                                    <p style="margin: 2px 0 0 0; font-weight: 600; color: #dc2626;">₱@((loanDetails.Application?.ExistingMonthlyPayments ?? 0).ToString("N2"))/mo</p>
+                                </div>
+                                <div>
+                                    <span style="font-size: 11px; color: #6b7280;">Account Age</span>
+                                    <p style="margin: 2px 0 0 0; font-weight: 600; color: #1e3a5f;">@loanDetails.AccountAgeMonths months</p>
+                                </div>
+                                <div>
+                                    <span style="font-size: 11px; color: #6b7280;">Average Balance</span>
+                                    <p style="margin: 2px 0 0 0; font-weight: 600; color: #059669;">₱@loanDetails.AverageBalance.ToString("N2")</p>
+                                </div>
+                                <div>
+                                    <span style="font-size: 11px; color: #6b7280;">Transaction Count</span>
+                                    <p style="margin: 2px 0 0 0; font-weight: 600; color: #1e3a5f;">@loanDetails.TransactionCount</p>
+                                </div>
+                                <div>
+                                    <span style="font-size: 11px; color: #6b7280;">Previous Loans</span>
+                                    <p style="margin: 2px 0 0 0; font-weight: 600; color: @(loanDetails.HasOverdueHistory ? "#dc2626" : "#059669");">
+                                        @loanDetails.PreviousLoansCount @(loanDetails.HasOverdueHistory ? "(Has overdue)" : "(Good standing)")
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Collateral Information (if secured loan) -->
+                        @if (loanDetails.Collateral != null)
+                        {
+                            <div style="background: #fdf4ff; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #a855f7;">
+                                <h5 style="margin: 0 0 12px 0; color: #7e22ce; font-size: 14px; font-weight: 600;">
+                                    🏠 Collateral Information
+                                </h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    <div>
+                                        <span style="font-size: 11px; color: #6b7280;">Type</span>
+                                        <p style="margin: 2px 0 0 0; font-weight: 600; color: #581c87;">@loanDetails.Collateral.CollateralType</p>
+                                    </div>
+                                    <div>
+                                        <span style="font-size: 11px; color: #6b7280;">Estimated Value</span>
+                                        <p style="margin: 2px 0 0 0; font-weight: 600; color: #581c87;">₱@loanDetails.Collateral.EstimatedValue.ToString("N2")</p>
+                                    </div>
+                                    <div style="grid-column: span 2;">
+                                        <span style="font-size: 11px; color: #6b7280;">Description</span>
+                                        <p style="margin: 2px 0 0 0; color: #581c87; font-size: 13px;">@loanDetails.Collateral.CollateralDescription</p>
+                                    </div>
+                                    <div>
+                                        <span style="font-size: 11px; color: #6b7280;">Owner</span>
+                                        <p style="margin: 2px 0 0 0; font-weight: 600; color: #581c87;">@loanDetails.Collateral.OwnerName (@(loanDetails.Collateral.OwnerRelationship ?? "Self"))</p>
+                                    </div>
+                                    <div>
+                                        <span style="font-size: 11px; color: #6b7280;">LTV Ratio</span>
+                                        <p style="margin: 2px 0 0 0; font-weight: 600; color: @(CalculateLTV(selectedItem.Amount, loanDetails.Collateral.EstimatedValue) > 80 ? "#dc2626" : "#059669");">
+                                            @CalculateLTV(selectedItem.Amount, loanDetails.Collateral.EstimatedValue).ToString("N1")%
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Co-Borrower Information -->
+                        @if (loanDetails.CoBorrower != null)
+                        {
+                            <div style="background: #f0fdf4; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #22c55e;">
+                                <h5 style="margin: 0 0 12px 0; color: #166534; font-size: 14px; font-weight: 600;">
+                                    👥 @loanDetails.CoBorrower.RelationshipType Information
+                                </h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    <div>
+                                        <span style="font-size: 11px; color: #6b7280;">Name</span>
+                                        <p style="margin: 2px 0 0 0; font-weight: 600; color: #14532d;">@loanDetails.CoBorrower.FullName</p>
+                                    </div>
+                                    <div>
+                                        <span style="font-size: 11px; color: #6b7280;">Contact</span>
+                                        <p style="margin: 2px 0 0 0; font-weight: 600; color: #14532d;">@(loanDetails.CoBorrower.PhoneNumber ?? "N/A")</p>
+                                    </div>
+                                    <div>
+                                        <span style="font-size: 11px; color: #6b7280;">Employment</span>
+                                        <p style="margin: 2px 0 0 0; font-weight: 600; color: #14532d;">@(loanDetails.CoBorrower.EmploymentStatus ?? "N/A")</p>
+                                    </div>
+                                    <div>
+                                        <span style="font-size: 11px; color: #6b7280;">Employer</span>
+                                        <p style="margin: 2px 0 0 0; font-weight: 600; color: #14532d;">@(loanDetails.CoBorrower.EmployerName ?? "N/A")</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Document Submission Status -->
+                        <div style="background: #f8fafc; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #64748b;">
+                            <h5 style="margin: 0 0 12px 0; color: #334155; font-size: 14px; font-weight: 600;">
+                                📄 Document Submission Status
+                            </h5>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="color: @(loanDetails.Application?.BankStatementSubmitted == true ? "#059669" : "#dc2626");">
+                                        @(loanDetails.Application?.BankStatementSubmitted == true ? "✓" : "✗")
+                                    </span>
+                                    <span style="font-size: 12px; color: #475569;">Bank Statements</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="color: @(loanDetails.Application?.PayslipsSubmitted == true ? "#059669" : "#dc2626");">
+                                        @(loanDetails.Application?.PayslipsSubmitted == true ? "✓" : "✗")
+                                    </span>
+                                    <span style="font-size: 12px; color: #475569;">Payslips</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="color: @(loanDetails.Application?.ITRSubmitted == true ? "#059669" : "#dc2626");">
+                                        @(loanDetails.Application?.ITRSubmitted == true ? "✓" : "✗")
+                                    </span>
+                                    <span style="font-size: 12px; color: #475569;">ITR</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="color: @(loanDetails.Application?.COESubmitted == true ? "#059669" : "#dc2626");">
+                                        @(loanDetails.Application?.COESubmitted == true ? "✓" : "✗")
+                                    </span>
+                                    <span style="font-size: 12px; color: #475569;">Certificate of Employment</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="color: @(loanDetails.Application?.AcknowledgedTerms == true ? "#059669" : "#dc2626");">
+                                        @(loanDetails.Application?.AcknowledgedTerms == true ? "✓" : "✗")
+                                    </span>
+                                    <span style="font-size: 12px; color: #475569;">Terms Acknowledged</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="color: @(loanDetails.Application?.AcknowledgedLegalAction == true ? "#059669" : "#dc2626");">
+                                        @(loanDetails.Application?.AcknowledgedLegalAction == true ? "✓" : "✗")
+                                    </span>
+                                    <span style="font-size: 12px; color: #475569;">Legal Terms Acknowledged</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Uploaded Documents Section -->
+                        @if (uploadedDocuments.Any())
+                        {
+                            <div style="background: #f0fdf4; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #10b981;">
+                                <h5 style="margin: 0 0 12px 0; color: #065f46; font-size: 14px; font-weight: 600;">
+                                    📎 Uploaded Documents (for verification)
+                                </h5>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                    @foreach (var doc in uploadedDocuments)
+                                    {
+                                        <div style="background: white; border-radius: 8px; padding: 12px; border: 1px solid #d1d5db; display: flex; justify-content: space-between; align-items: center;">
+                                            <div>
+                                                <div style="font-weight: 600; color: #1f2937; font-size: 13px;">@GetDocumentTypeLabel(doc.DocumentType)</div>
+                                                <div style="font-size: 11px; color: #6b7280;">@doc.FileName (@FormatFileSize(doc.FileSize ?? 0))</div>
+                                                <div style="font-size: 10px; color: #9ca3af;">Uploaded: @doc.UploadedAt.ToString("MMM dd, HH:mm")</div>
+                                            </div>
+                                            <div style="display: flex; gap: 8px;">
+                                                <button @onclick="() => ViewDocument(doc)" 
+                                                        style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                                                    👁 View
+                                                </button>
+                                                @if (doc.VerificationStatus == "PENDING")
+                                                {
+                                                    <button @onclick="() => VerifyDocument(doc.DocumentId, true)" 
+                                                            style="background: #059669; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                                                        ✓
+                                                    </button>
+                                                    <button @onclick="() => VerifyDocument(doc.DocumentId, false)" 
+                                                            style="background: #dc2626; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                                                        ✗
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <span style="padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
+                                                           background: @(doc.VerificationStatus == "VERIFIED" ? "#d1fae5" : "#fee2e2");
+                                                           color: @(doc.VerificationStatus == "VERIFIED" ? "#065f46" : "#991b1b");">
+                                                        @doc.VerificationStatus
+                                                    </span>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="background: #fef3c7; border-radius: 12px; padding: 12px; margin-bottom: 16px; border-left: 4px solid #f59e0b;">
+                                <p style="margin: 0; color: #92400e; font-size: 13px;">
+                                    ⚠️ No documents have been uploaded by the Teller yet. Documents should be uploaded during the Teller review stage.
+                                </p>
+                            </div>
+                        }
+                    }
+                    @if ((selectedItem.SourceType == "LoanApplication" || selectedItem.SourceType == "LoanAssessment") && isLoadingLoanDetails)
+                    {
+                        <div style="text-align: center; padding: 20px; color: #6b7280;">
+                            <div style="font-size: 24px; margin-bottom: 8px;">⏳</div>
+                            <p>Loading loan details...</p>
+                        </div>
+                    }
                 }
                 else if (currentStep == 2)
                 {
-                    <!-- Step 2: Decision -->
+                    <!-- Step 2: Decision (Enhanced for Loan Applications) -->
                     <div style="margin-bottom: 20px;">
-                        <h4 style="margin: 0 0 16px 0; color: #374151; font-size: 16px; font-weight: 600;">⚖️ Make Your Decision
+                        
+                        <!-- LOAN ASSESSMENT SECTION (For Loan Applications Only) -->
+                        @if ((selectedItem.SourceType == "LoanApplication" || selectedItem.SourceType == "LoanAssessment") && loanDetails != null)
+                        {
+                            <!-- Credit Score Simulation -->
+                            <div style="background: linear-gradient(135deg, #1e40af, #3b82f6); border-radius: 12px; padding: 16px; margin-bottom: 16px; color: white;">
+                                <h5 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">
+                                    📊 Credit Score Simulation
+                                </h5>
+                                <div style="display: flex; align-items: center; gap: 16px;">
+                                    <div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; text-align: center; min-width: 100px;">
+                                        <div style="font-size: 32px; font-weight: 700;">@simulatedCreditScore</div>
+                                        <div style="font-size: 11px; opacity: 0.8;">Credit Score</div>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                            <span style="font-size: 12px;">Category: <strong>@creditScoreCategory</strong></span>
+                                            <span style="font-size: 12px;">Source: @creditScoreSource</span>
+                                        </div>
+                                        <input type="range" min="300" max="850" @bind="simulatedCreditScore" @bind:event="oninput"
+                                            style="width: 100%; accent-color: white;" />
+                                        <div style="display: flex; justify-content: space-between; font-size: 10px; opacity: 0.7;">
+                                            <span>300 (Poor)</span>
+                                            <span>550</span>
+                                            <span>700</span>
+                                            <span>850 (Excellent)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 12px; font-size: 11px; opacity: 0.85;">
+                                    <em>Based on: Account age (@loanDetails.AccountAgeMonths mo), Transaction history (@loanDetails.TransactionCount), 
+                                    Previous loans (@loanDetails.PreviousLoansCount), Average balance (₱@loanDetails.AverageBalance.ToString("N0"))</em>
+                                </div>
+                            </div>
+
+                            <!-- DTI Ratio Calculation -->
+                            <div style="background: #fef3c7; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #f59e0b;">
+                                <h5 style="margin: 0 0 12px 0; color: #92400e; font-size: 14px; font-weight: 600;">
+                                    📈 Debt-to-Income (DTI) Ratio Analysis
+                                </h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                                    <div>
+                                        <label style="font-size: 11px; color: #78350f;">Monthly Income</label>
+                                        <input type="number" @bind="monthlyIncome" 
+                                            style="width: 100%; padding: 8px; border: 1px solid #fbbf24; border-radius: 6px; font-size: 13px;" />
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; color: #78350f;">Existing Debts/mo</label>
+                                        <input type="number" @bind="existingMonthlyDebts" 
+                                            style="width: 100%; padding: 8px; border: 1px solid #fbbf24; border-radius: 6px; font-size: 13px;" />
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; color: #78350f;">Proposed Payment</label>
+                                        <input type="number" @bind="proposedMonthlyPayment" 
+                                            style="width: 100%; padding: 8px; border: 1px solid #fbbf24; border-radius: 6px; font-size: 13px;" />
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; color: #78350f;">DTI Ratio</label>
+                                        <div style="padding: 8px; background: @(dtiRatio <= 43 ? "#d1fae5" : "#fee2e2"); border-radius: 6px; text-align: center; font-weight: 700; color: @(dtiRatio <= 43 ? "#059669" : "#dc2626");">
+                                            @dtiRatio%
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; color: #78350f;">
+                                    <strong>Category:</strong> @dtiCategory | 
+                                    <em>Philippine banking standard: DTI ≤ 43% for loan approval</em>
+                                </div>
+                            </div>
+
+                            <!-- Risk Assessment -->
+                            <div style="background: #fdf2f8; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #ec4899;">
+                                <h5 style="margin: 0 0 12px 0; color: #9d174d; font-size: 14px; font-weight: 600;">
+                                    ⚠️ Risk Assessment
+                                </h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                                    <div>
+                                        <label style="font-size: 11px; color: #831843;">Risk Category</label>
+                                        <select @bind="riskCategory" 
+                                            style="width: 100%; padding: 8px; border: 1px solid #f9a8d4; border-radius: 6px; font-size: 13px;">
+                                            <option value="LOW">🟢 LOW RISK</option>
+                                            <option value="MEDIUM">🟡 MEDIUM RISK</option>
+                                            <option value="HIGH">🟠 HIGH RISK</option>
+                                            <option value="VERY_HIGH">🔴 VERY HIGH RISK</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; color: #831843;">Risk Score (1-100)</label>
+                                        <input type="number" min="1" max="100" @bind="riskScore" 
+                                            style="width: 100%; padding: 8px; border: 1px solid #f9a8d4; border-radius: 6px; font-size: 13px;" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style="font-size: 11px; color: #831843;">Risk Assessment Notes</label>
+                                    <textarea @bind="riskAssessmentNotes" rows="2" placeholder="Enter risk factors and concerns..."
+                                        style="width: 100%; padding: 8px; border: 1px solid #f9a8d4; border-radius: 6px; font-size: 12px; resize: none;"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Verification Checklist -->
+                            <div style="background: #f0fdf4; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #22c55e;">
+                                <h5 style="margin: 0 0 12px 0; color: #166534; font-size: 14px; font-weight: 600;">
+                                    ✅ Verification Checklist
+                                </h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #14532d; cursor: pointer;">
+                                        <input type="checkbox" @bind="verifyIdentity" style="width: 16px; height: 16px;" /> Identity Verified
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #14532d; cursor: pointer;">
+                                        <input type="checkbox" @bind="verifyIncome" style="width: 16px; height: 16px;" /> Income Verified
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #14532d; cursor: pointer;">
+                                        <input type="checkbox" @bind="verifyEmployment" style="width: 16px; height: 16px;" /> Employment Verified
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #14532d; cursor: pointer;">
+                                        <input type="checkbox" @bind="verifyBankStatements" style="width: 16px; height: 16px;" /> Bank Statements Reviewed
+                                    </label>
+                                    @if (loanDetails.Collateral != null)
+                                    {
+                                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #14532d; cursor: pointer;">
+                                            <input type="checkbox" @bind="verifyCollateral" style="width: 16px; height: 16px;" /> Collateral Verified
+                                        </label>
+                                    }
+                                    @if (loanDetails.CoBorrower != null)
+                                    {
+                                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #14532d; cursor: pointer;">
+                                            <input type="checkbox" @bind="verifyCoBorrower" style="width: 16px; height: 16px;" /> Co-Borrower Verified
+                                        </label>
+                                    }
+                                </div>
+                                <div style="margin-top: 12px;">
+                                    <label style="font-size: 11px; color: #166534;">Average Monthly Balance (from statements)</label>
+                                    <input type="number" @bind="averageMonthlyBalance" placeholder="₱0.00"
+                                        style="width: 100%; padding: 8px; border: 1px solid #86efac; border-radius: 6px; font-size: 13px; margin-top: 4px;" />
+                                </div>
+                            </div>
+
+                            <!-- Accountant Recommendation -->
+                            <div style="background: #eff6ff; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #3b82f6;">
+                                <h5 style="margin: 0 0 12px 0; color: #1e40af; font-size: 14px; font-weight: 600;">
+                                    💼 Accountant Recommendation
+                                </h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                                    <div>
+                                        <label style="font-size: 11px; color: #1e3a8a;">Recommendation</label>
+                                        <select @bind="accountantRecommendation" 
+                                            style="width: 100%; padding: 8px; border: 1px solid #93c5fd; border-radius: 6px; font-size: 13px;">
+                                            <option value="">-- Select --</option>
+                                            <option value="STRONGLY_RECOMMEND">✓✓ Strongly Recommend</option>
+                                            <option value="RECOMMEND">✓ Recommend</option>
+                                            <option value="CONDITIONAL">⚠️ Conditional Approval</option>
+                                            <option value="NOT_RECOMMEND">✗ Not Recommended</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; color: #1e3a8a;">Suggested Amount</label>
+                                        <input type="number" @bind="suggestedAmount" placeholder="₱0.00"
+                                            style="width: 100%; padding: 8px; border: 1px solid #93c5fd; border-radius: 6px; font-size: 13px;" />
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; color: #1e3a8a;">Suggested Term (months)</label>
+                                        <input type="number" @bind="suggestedTerm" placeholder="12"
+                                            style="width: 100%; padding: 8px; border: 1px solid #93c5fd; border-radius: 6px; font-size: 13px;" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style="font-size: 11px; color: #1e3a8a;">Recommendation Reason *</label>
+                                    <textarea @bind="recommendationReason" rows="2" placeholder="Provide detailed reason for your recommendation..."
+                                        style="width: 100%; padding: 8px; border: 1px solid #93c5fd; border-radius: 6px; font-size: 12px; resize: none;"></textarea>
+                                </div>
+                            </div>
+                        }
+
+                        <h4 style="margin: 0 0 16px 0; color: #374151; font-size: 16px; font-weight: 600;">⚖️ Final Decision
                         </h4>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
                             <button @onclick='() => approvalDecision = "Approved"'
                                 style="padding: 20px; border: 3px solid @(approvalDecision == "Approved" ? "#059669" : "#e5e7eb"); border-radius: 12px; background: @(approvalDecision == "Approved" ? "#d1fae5" : "white"); cursor: pointer; transition: all 0.2s;">
                                 <div style="font-size: 32px; margin-bottom: 8px;">✓</div>
-                                <div style="font-weight: 700; color: #059669; font-size: 16px;">APPROVE</div>
-                                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Accept this request</div>
+                                <div style="font-weight: 700; color: #059669; font-size: 16px;">FORWARD TO FM</div>
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Recommend for approval</div>
                             </button>
                             <button @onclick='() => approvalDecision = "Declined"'
                                 style="padding: 20px; border: 3px solid @(approvalDecision == "Declined" ? "#dc2626" : "#e5e7eb"); border-radius: 12px; background: @(approvalDecision == "Declined" ? "#fee2e2" : "white"); cursor: pointer; transition: all 0.2s;">
                                 <div style="font-size: 32px; margin-bottom: 8px;">✗</div>
                                 <div style="font-weight: 700; color: #dc2626; font-size: 16px;">DECLINE</div>
-                                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Reject this request</div>
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Reject this application</div>
                             </button>
                         </div>
 
                         <div>
-                            <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Notes / Reason
+                            <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Additional Notes
                                 (Optional)</label>
                             <textarea @bind="approvalNotes" rows="3"
-                                placeholder="Enter any notes or reason for your decision..."
+                                placeholder="Enter any additional notes for the Finance Manager..."
                                 style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; resize: none;"></textarea>
                         </div>
                     </div>
@@ -513,6 +909,78 @@ else
     </div>
 }
 
+<!-- Document Viewer Modal -->
+@if (showDocumentViewer && currentViewingDocument != null)
+{
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2000;" @onclick="CloseDocumentViewer">
+        <div style="background: white; border-radius: 16px; padding: 0; max-width: 90vw; max-height: 90vh; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.5);" @onclick:stopPropagation>
+            <div style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="margin: 0; font-weight: 600;">📄 @GetDocumentTypeLabel(currentViewingDocument.DocumentType)</h4>
+                    <p style="margin: 4px 0 0 0; opacity: 0.9; font-size: 13px;">@currentViewingDocument.FileName</p>
+                </div>
+                <button @onclick="CloseDocumentViewer" 
+                        style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 18px;">
+                    ✕
+                </button>
+            </div>
+            <div style="padding: 16px; max-height: 70vh; overflow: auto;">
+                @if (currentViewingDocument.ContentType?.Contains("image") == true)
+                {
+                    <img src="@documentViewerDataUrl" alt="@currentViewingDocument.FileName" 
+                         style="max-width: 100%; max-height: 60vh; display: block; margin: 0 auto; border-radius: 8px;" />
+                }
+                else if (currentViewingDocument.ContentType?.Contains("pdf") == true)
+                {
+                    <div style="text-align: center; padding: 20px;">
+                        <p style="color: #6b7280; margin-bottom: 16px;">PDF files cannot be previewed in-app. Click below to download.</p>
+                        <a href="@documentViewerDataUrl" download="@currentViewingDocument.FileName" 
+                           style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                            📥 Download PDF
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div style="text-align: center; padding: 20px;">
+                        <p style="color: #6b7280; margin-bottom: 16px;">This file type cannot be previewed. Click below to download.</p>
+                        <a href="@documentViewerDataUrl" download="@currentViewingDocument.FileName" 
+                           style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                            📥 Download File
+                        </a>
+                    </div>
+                }
+            </div>
+            <div style="padding: 16px 24px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e5e7eb;">
+                <div style="font-size: 13px; color: #6b7280;">
+                    Uploaded by: @currentViewingDocument.UploadedBy on @currentViewingDocument.UploadedAt.ToString("MMM dd, yyyy HH:mm")
+                </div>
+                @if (currentViewingDocument.VerificationStatus == "PENDING")
+                {
+                    <div style="display: flex; gap: 10px;">
+                        <button @onclick="() => { VerifyDocument(currentViewingDocument.DocumentId, true); CloseDocumentViewer(); }" 
+                                style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            ✓ Verify
+                        </button>
+                        <button @onclick="() => { VerifyDocument(currentViewingDocument.DocumentId, false); CloseDocumentViewer(); }" 
+                                style="background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            ✗ Reject
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <span style="padding: 8px 16px; border-radius: 8px; font-weight: 600;
+                           background: @(currentViewingDocument.VerificationStatus == "VERIFIED" ? "#d1fae5" : "#fee2e2");
+                           color: @(currentViewingDocument.VerificationStatus == "VERIFIED" ? "#065f46" : "#991b1b");">
+                        @currentViewingDocument.VerificationStatus
+                    </span>
+                }
+            </div>
+        </div>
+    </div>
+}
+
 <style>
     @@keyframes spin {
         to {
@@ -566,6 +1034,83 @@ else
     private int currentStep = 1;
     private string? approvalDecision;
     private string approvalNotes = "";
+
+    // =====================================================================
+    // LOAN ASSESSMENT FIELDS (For Credit Analysis)
+    // =====================================================================
+    private LoanApplicationDetails? loanDetails;
+    private bool isLoadingLoanDetails = false;
+
+    // Credit Score Simulation
+    private int simulatedCreditScore = 650;
+    private string creditScoreSource = "INTERNAL";
+    private string creditScoreCategory => simulatedCreditScore switch
+    {
+        >= 750 => "Excellent",
+        >= 700 => "Good",
+        >= 650 => "Fair",
+        >= 600 => "Poor",
+        _ => "Very Poor"
+    };
+
+    // DTI Calculation
+    private decimal monthlyIncome = 0;
+    private decimal existingMonthlyDebts = 0;
+    private decimal proposedMonthlyPayment = 0;
+    private decimal dtiRatio => monthlyIncome > 0 
+        ? Math.Round(((existingMonthlyDebts + proposedMonthlyPayment) / monthlyIncome) * 100, 2) 
+        : 0;
+    private string dtiCategory => dtiRatio switch
+    {
+        <= 20 => "Excellent",
+        <= 35 => "Good",
+        <= 43 => "Acceptable",
+        <= 50 => "High",
+        _ => "Very High"
+    };
+
+    // Risk Assessment
+    private string riskCategory = "MEDIUM";
+    private int riskScore = 50;
+    private string riskAssessmentNotes = "";
+
+    // Accountant Recommendation
+    private string accountantRecommendation = "";
+    private string recommendationReason = "";
+    private decimal? suggestedAmount;
+    private int? suggestedTerm;
+    private decimal? suggestedRate;
+
+    // Verification Checks
+    private bool verifyIdentity = false;
+    private bool verifyIncome = false;
+    private bool verifyEmployment = false;
+    private bool verifyBankStatements = false;
+    private bool verifyCollateral = false;
+    private bool verifyCoBorrower = false;
+    private decimal? averageMonthlyBalance;
+
+    // Document viewing and verification
+    private List<LoanDocument> uploadedDocuments = new();
+    private bool showDocumentViewer = false;
+    private LoanDocument? currentViewingDocument;
+    private string documentViewerDataUrl = "";
+
+    // Loan-specific data class
+    private class LoanApplicationDetails
+    {
+        public LoanApplication? Application { get; set; }
+        public LoanCollateral? Collateral { get; set; }
+        public LoanCoBorrower? CoBorrower { get; set; }
+        public CustomerAccount? Account { get; set; }
+        public AuthUser? Customer { get; set; }
+        public int TransactionCount { get; set; }
+        public decimal AverageBalance { get; set; }
+        public int AccountAgeMonths { get; set; }
+        public bool HasPreviousLoans { get; set; }
+        public int PreviousLoansCount { get; set; }
+        public bool HasOverdueHistory { get; set; }
+    }
 
     private class ApprovalItem
     {
@@ -791,13 +1336,239 @@ else
         activeTab = tab;
     }
 
-    private void OpenReviewModal(ApprovalItem item)
+    private async Task OpenReviewModal(ApprovalItem item)
     {
         selectedItem = item;
         currentStep = 1;
         approvalDecision = null;
         approvalNotes = "";
         showReviewModal = true;
+
+        // Reset loan assessment fields
+        ResetLoanAssessmentFields();
+
+        // Load loan-specific data if applicable
+        if (item.SourceType == "LoanApplication" || item.SourceType == "LoanAssessment")
+        {
+            await LoadLoanDetails(item);
+        }
+    }
+
+    private void ResetLoanAssessmentFields()
+    {
+        loanDetails = null;
+        simulatedCreditScore = 650;
+        creditScoreSource = "INTERNAL";
+        monthlyIncome = 0;
+        existingMonthlyDebts = 0;
+        proposedMonthlyPayment = 0;
+        riskCategory = "MEDIUM";
+        riskScore = 50;
+        riskAssessmentNotes = "";
+        accountantRecommendation = "";
+        recommendationReason = "";
+        suggestedAmount = null;
+        suggestedTerm = null;
+        suggestedRate = null;
+        verifyIdentity = false;
+        verifyIncome = false;
+        verifyEmployment = false;
+        verifyBankStatements = false;
+        verifyCollateral = false;
+        verifyCoBorrower = false;
+        averageMonthlyBalance = null;
+    }
+
+    private async Task LoadLoanDetails(ApprovalItem item)
+    {
+        isLoadingLoanDetails = true;
+        StateHasChanged();
+
+        try
+        {
+            int applicationId = item.SourceId;
+            
+            // If it's an assessment, get the application ID from the assessment
+            if (item.SourceType == "LoanAssessment")
+            {
+                var assessment = await DbContext.LoanAssessments
+                    .FirstOrDefaultAsync(a => a.AssessmentId == item.SourceId);
+                if (assessment != null)
+                    applicationId = assessment.ApplicationId;
+            }
+
+            // Load the loan application with all related data
+            var application = await DbContext.LoanApplications
+                .Include(a => a.Account)
+                .ThenInclude(acc => acc!.Customer)
+                .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
+
+            if (application == null)
+            {
+                isLoadingLoanDetails = false;
+                return;
+            }
+
+            // Load collateral (table may not exist yet)
+            LoanCollateral? collateral = null;
+            try
+            {
+                collateral = await DbContext.Set<LoanCollateral>()
+                    .FirstOrDefaultAsync(c => c.ApplicationId == applicationId);
+            }
+            catch { /* LoanCollaterals table doesn't exist yet */ }
+
+            // Load co-borrower (table may not exist yet)
+            LoanCoBorrower? coBorrower = null;
+            try
+            {
+                coBorrower = await DbContext.Set<LoanCoBorrower>()
+                    .FirstOrDefaultAsync(c => c.ApplicationId == applicationId);
+            }
+            catch { /* LoanCoBorrowers table doesn't exist yet */ }
+
+            // Load uploaded documents
+            try
+            {
+                uploadedDocuments = await DbContext.LoanDocuments
+                    .Where(d => d.ApplicationId == applicationId)
+                    .ToListAsync();
+            }
+            catch 
+            { 
+                uploadedDocuments = new List<LoanDocument>();
+            }
+
+            // Calculate account statistics
+            var account = application.Account;
+            var transactionCount = 0;
+            decimal averageBalance = 0;
+            int accountAgeMonths = 0;
+            bool hasOverdueHistory = false;
+            int previousLoansCount = 0;
+
+            if (account != null)
+            {
+                transactionCount = await DbContext.CustomerTransactions
+                    .CountAsync(t => t.AccountId == account.AccountId);
+                
+                averageBalance = account.Balance;
+                accountAgeMonths = (int)((DateTime.Now - account.CreatedAt).TotalDays / 30);
+                
+                // Check for previous loans
+                previousLoansCount = await DbContext.LoanApplications
+                    .CountAsync(l => l.AccountId == account.AccountId && l.Status == "COMPLETED");
+                
+                // Check for overdue history (simplified)
+                hasOverdueHistory = await DbContext.LoanApplications
+                    .AnyAsync(l => l.AccountId == account.AccountId && 
+                        (l.Status == "DELINQUENT" || l.Status == "DEFAULTED"));
+            }
+
+            loanDetails = new LoanApplicationDetails
+            {
+                Application = application,
+                Collateral = collateral,
+                CoBorrower = coBorrower,
+                Account = account,
+                Customer = account?.Customer,
+                TransactionCount = transactionCount,
+                AverageBalance = averageBalance,
+                AccountAgeMonths = accountAgeMonths,
+                HasPreviousLoans = previousLoansCount > 0,
+                PreviousLoansCount = previousLoansCount,
+                HasOverdueHistory = hasOverdueHistory
+            };
+
+            // Pre-populate assessment fields with application data
+            monthlyIncome = application.MonthlyIncome ?? 0;
+            existingMonthlyDebts = application.ExistingMonthlyPayments;
+            
+            // Calculate proposed monthly payment
+            var rate = 10.0m / 100 / 12; // 10% annual
+            var term = application.RequestedTermMonths > 0 ? application.RequestedTermMonths : 12;
+            proposedMonthlyPayment = application.RequestedAmount * (rate * (decimal)Math.Pow(1 + (double)rate, term))
+                / ((decimal)Math.Pow(1 + (double)rate, term) - 1);
+            proposedMonthlyPayment = Math.Round(proposedMonthlyPayment, 2);
+
+            // Simulate credit score based on account history
+            simulatedCreditScore = CalculateInternalCreditScore(loanDetails);
+            
+            // Auto-assess risk based on DTI and credit score
+            AutoAssessRisk();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading loan details: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingLoanDetails = false;
+            StateHasChanged();
+        }
+    }
+
+    private int CalculateInternalCreditScore(LoanApplicationDetails details)
+    {
+        // Internal credit score simulation based on banking relationship
+        int score = 550; // Base score
+
+        // Account age factor (+5 per month, max +100)
+        score += Math.Min(details.AccountAgeMonths * 5, 100);
+
+        // Transaction activity (+1 per transaction, max +50)
+        score += Math.Min(details.TransactionCount, 50);
+
+        // Average balance factor (based on loan amount ratio)
+        if (selectedItem != null && selectedItem.Amount > 0)
+        {
+            var balanceRatio = details.AverageBalance / selectedItem.Amount;
+            if (balanceRatio >= 0.5m) score += 50;
+            else if (balanceRatio >= 0.25m) score += 25;
+            else if (balanceRatio >= 0.1m) score += 10;
+        }
+
+        // Previous loans in good standing
+        if (details.HasPreviousLoans && !details.HasOverdueHistory)
+            score += 75;
+
+        // Penalty for overdue history
+        if (details.HasOverdueHistory)
+            score -= 100;
+
+        // Cap between 300 and 850
+        return Math.Max(300, Math.Min(850, score));
+    }
+
+    private void AutoAssessRisk()
+    {
+        // Auto-assess risk based on DTI and credit score
+        if (dtiRatio > 50 || simulatedCreditScore < 550)
+        {
+            riskCategory = "VERY_HIGH";
+            riskScore = 85;
+        }
+        else if (dtiRatio > 43 || simulatedCreditScore < 650)
+        {
+            riskCategory = "HIGH";
+            riskScore = 70;
+        }
+        else if (dtiRatio > 35 || simulatedCreditScore < 700)
+        {
+            riskCategory = "MEDIUM";
+            riskScore = 45;
+        }
+        else
+        {
+            riskCategory = "LOW";
+            riskScore = 20;
+        }
+    }
+
+    private decimal CalculateLTV(decimal loanAmount, decimal collateralValue)
+    {
+        if (collateralValue <= 0) return 0;
+        return (loanAmount / collateralValue) * 100;
     }
 
     private void CloseReviewModal()
@@ -807,6 +1578,7 @@ else
         currentStep = 1;
         approvalDecision = null;
         approvalNotes = "";
+        ResetLoanAssessmentFields();
     }
 
     private void NextStep()
@@ -859,27 +1631,64 @@ else
                     {
                         if (isApproved)
                         {
-                            // Create assessment record for the loan application
-                            // This creates the assessment and forwards to Finance Manager
-                            var monthlyRate = 10.0m / 100 / 12; // Default 10% interest
-                            var termMonths = 36; // Default 36 months
-                            var monthlyPayment = selectedItem.Amount * (monthlyRate * (decimal)Math.Pow(1 + (double)monthlyRate, termMonths))
+                            // Create comprehensive assessment record with credit score, DTI, and risk data
+                            var termMonths = suggestedTerm ?? loanApp.RequestedTermMonths;
+                            if (termMonths <= 0) termMonths = 12;
+                            
+                            var interestRate = suggestedRate ?? 10.0m;
+                            var loanAmount = suggestedAmount ?? selectedItem.Amount;
+                            
+                            var monthlyRate = interestRate / 100 / 12;
+                            var monthlyPayment = loanAmount * (monthlyRate * (decimal)Math.Pow(1 + (double)monthlyRate, termMonths))
                                 / ((decimal)Math.Pow(1 + (double)monthlyRate, termMonths) - 1);
                             var totalPayable = monthlyPayment * termMonths;
+
+                            // Build comprehensive remarks with assessment details
+                            var assessmentRemarks = $"ACCOUNTANT ASSESSMENT SUMMARY\n" +
+                                $"═══════════════════════════════════════\n" +
+                                $"Credit Score: {simulatedCreditScore} ({creditScoreCategory}) - Source: {creditScoreSource}\n" +
+                                $"DTI Ratio: {dtiRatio}% ({dtiCategory})\n" +
+                                $"Risk Category: {riskCategory} (Score: {riskScore}/100)\n" +
+                                $"Recommendation: {accountantRecommendation}\n" +
+                                $"───────────────────────────────────────\n" +
+                                $"Reason: {recommendationReason}\n" +
+                                $"Risk Notes: {riskAssessmentNotes}\n" +
+                                $"Additional Notes: {approvalNotes}";
 
                             var newAssessment = new LoanAssessment
                             {
                                 ApplicationId = loanApp.ApplicationId,
                                 AccountId = loanApp.AccountId,
-                                LoanAmount = selectedItem.Amount,
-                                InterestRate = 10.0m, // Default interest rate
+                                LoanAmount = loanAmount,
+                                InterestRate = interestRate,
                                 TermMonths = termMonths,
                                 ComputedMonthlyPayment = Math.Round(monthlyPayment, 2),
                                 TotalPayable = Math.Round(totalPayable, 2),
                                 AssessmentStatus = "ASSESSED",
                                 AssessedBy = currentUser,
-                                Remarks = approvalNotes,
-                                AssessmentDate = DateTime.Now
+                                Remarks = assessmentRemarks,
+                                AssessmentDate = DateTime.Now,
+                                // Credit and Risk Assessment Fields
+                                CreditScore = simulatedCreditScore,
+                                CreditScoreSource = creditScoreSource,
+                                DebtToIncomeRatio = dtiRatio,
+                                RiskScore = riskScore,
+                                RiskCategory = riskCategory,
+                                RiskAssessmentDetails = riskAssessmentNotes,
+                                // Verification Results
+                                IdentityVerified = verifyIdentity,
+                                IncomeVerified = verifyIncome,
+                                EmploymentVerified = verifyEmployment,
+                                BankStatementsReviewed = verifyBankStatements,
+                                CollateralVerified = verifyCollateral,
+                                CoBorrowerVerified = verifyCoBorrower,
+                                AverageMonthlyBalance = averageMonthlyBalance,
+                                // Accountant Recommendation
+                                AccountantRecommendation = accountantRecommendation,
+                                RecommendationReason = recommendationReason,
+                                SuggestedAmount = suggestedAmount,
+                                SuggestedTerm = suggestedTerm,
+                                SuggestedRate = suggestedRate
                             };
                             DbContext.LoanAssessments.Add(newAssessment);
                             
@@ -888,8 +1697,18 @@ else
                         }
                         else
                         {
-                            loanApp.Status = "REJECTED";
-                            loanApp.RejectionReason = approvalNotes;
+                            // Rejection with detailed reason
+                            var rejectionRemarks = $"ACCOUNTANT REJECTION\n" +
+                                $"═══════════════════════════════════════\n" +
+                                $"Credit Score: {simulatedCreditScore} ({creditScoreCategory})\n" +
+                                $"DTI Ratio: {dtiRatio}% ({dtiCategory})\n" +
+                                $"Risk Category: {riskCategory}\n" +
+                                $"───────────────────────────────────────\n" +
+                                $"Reason: {recommendationReason}\n" +
+                                $"Notes: {approvalNotes}";
+                                
+                            loanApp.Status = "REJECTED_ACCOUNTANT";
+                            loanApp.RejectionReason = rejectionRemarks;
                             loanApp.RejectedAt = DateTime.Now;
                             loanApp.RejectedBy = currentUser;
                         }
@@ -905,10 +1724,29 @@ else
                     {
                         if (isApproved)
                         {
-                            // Forward to Finance Manager for final approval - DO NOT create LoanApproval yet
-                            existingAssessment.AssessmentStatus = "ASSESSED"; // Keep as ASSESSED so Finance Manager can see it
+                            // Update assessment with accountant's analysis
+                            existingAssessment.CreditScore = simulatedCreditScore;
+                            existingAssessment.CreditScoreSource = creditScoreSource;
+                            existingAssessment.DebtToIncomeRatio = dtiRatio;
+                            existingAssessment.RiskScore = riskScore;
+                            existingAssessment.RiskCategory = riskCategory;
+                            existingAssessment.RiskAssessmentDetails = riskAssessmentNotes;
+                            existingAssessment.IdentityVerified = verifyIdentity;
+                            existingAssessment.IncomeVerified = verifyIncome;
+                            existingAssessment.EmploymentVerified = verifyEmployment;
+                            existingAssessment.BankStatementsReviewed = verifyBankStatements;
+                            existingAssessment.CollateralVerified = verifyCollateral;
+                            existingAssessment.CoBorrowerVerified = verifyCoBorrower;
+                            existingAssessment.AverageMonthlyBalance = averageMonthlyBalance;
+                            existingAssessment.AccountantRecommendation = accountantRecommendation;
+                            existingAssessment.RecommendationReason = recommendationReason;
+                            existingAssessment.SuggestedAmount = suggestedAmount;
+                            existingAssessment.SuggestedTerm = suggestedTerm;
+                            existingAssessment.SuggestedRate = suggestedRate;
+                            existingAssessment.Remarks = $"{existingAssessment.Remarks}\n\nACCOUNTANT UPDATE:\n{approvalNotes}";
                             
-                            // Update the application status to indicate it's pending Finance Manager approval
+                            existingAssessment.AssessmentStatus = "ASSESSED";
+                            
                             if (existingAssessment.Application != null)
                             {
                                 existingAssessment.Application.Status = "PENDING_FINANCEMANAGER_APPROVAL";
@@ -917,10 +1755,13 @@ else
                         else
                         {
                             existingAssessment.AssessmentStatus = "DECLINED";
+                            existingAssessment.AccountantRecommendation = "NOT_RECOMMEND";
+                            existingAssessment.RecommendationReason = recommendationReason;
+                            
                             if (existingAssessment.Application != null)
                             {
                                 existingAssessment.Application.Status = "REJECTED_ACCOUNTANT";
-                                existingAssessment.Application.RejectionReason = approvalNotes;
+                                existingAssessment.Application.RejectionReason = $"Credit Score: {simulatedCreditScore}, DTI: {dtiRatio}%, Risk: {riskCategory}. Reason: {recommendationReason}. {approvalNotes}";
                                 existingAssessment.Application.RejectedAt = DateTime.Now;
                                 existingAssessment.Application.RejectedBy = currentUser;
                             }
@@ -951,8 +1792,9 @@ else
             }
 
             CloseReviewModal();
-            ShowToast($"Request {approvalDecision?.ToLower()} successfully!", "success");
-            NotificationService.ShowSuccess("Decision Processed", $"Request has been {approvalDecision?.ToLower()}. Reason: Processed by {currentUser} - {approvalNotes}");
+            var action = isApproved ? "forwarded to Finance Manager" : "declined";
+            ShowToast($"Loan application {action} successfully!", "success");
+            NotificationService.ShowSuccess("Decision Processed", $"Application has been {action}. Processed by {currentUser}");
             await LoadData();
         }
         catch (Exception ex)
@@ -1001,4 +1843,78 @@ else
         "Transfer" => "🔄",
         _ => "📄"
     };
+
+    // =====================================================================
+    // DOCUMENT VIEWING AND VERIFICATION METHODS
+    // =====================================================================
+
+    private string GetDocumentTypeLabel(string documentType) => documentType switch
+    {
+        "BankStatement" => "Bank Statements",
+        "Payslip" => "Payslips",
+        "ITR" => "ITR (Income Tax Return)",
+        "COE" => "Certificate of Employment",
+        "ValidID" => "Valid ID",
+        "ProofOfBilling" => "Proof of Billing",
+        _ => documentType
+    };
+
+    private string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024.0):F1} MB";
+    }
+
+    private void ViewDocument(LoanDocument doc)
+    {
+        currentViewingDocument = doc;
+        
+        // Create data URL for viewing
+        var mimeType = doc.ContentType ?? "application/octet-stream";
+        var base64 = Convert.ToBase64String(doc.FileData);
+        documentViewerDataUrl = $"data:{mimeType};base64,{base64}";
+        
+        showDocumentViewer = true;
+        StateHasChanged();
+    }
+
+    private void CloseDocumentViewer()
+    {
+        showDocumentViewer = false;
+        currentViewingDocument = null;
+        documentViewerDataUrl = "";
+    }
+
+    private async Task VerifyDocument(int documentId, bool isVerified)
+    {
+        try
+        {
+            var doc = await DbContext.LoanDocuments.FindAsync(documentId);
+            if (doc != null)
+            {
+                doc.VerificationStatus = isVerified ? "VERIFIED" : "REJECTED";
+                doc.VerifiedBy = AuthService.CurrentUser ?? "accountant";
+                doc.VerifiedAt = DateTime.Now;
+                
+                await DbContext.SaveChangesAsync();
+                
+                // Update local list
+                var localDoc = uploadedDocuments.FirstOrDefault(d => d.DocumentId == documentId);
+                if (localDoc != null)
+                {
+                    localDoc.VerificationStatus = doc.VerificationStatus;
+                    localDoc.VerifiedBy = doc.VerifiedBy;
+                    localDoc.VerifiedAt = doc.VerifiedAt;
+                }
+                
+                ShowToast($"Document {(isVerified ? "verified" : "rejected")} successfully!", "success");
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowToast($"Error verifying document: {ex.Message}", "error");
+        }
+    }
 }

@@ -62,6 +62,122 @@ namespace FinanceBank.Models
         [MaxLength(100)]
         public string? ValidIdContentType { get; set; }
 
+        // =====================================================================
+        // EMPLOYMENT AND INCOME VERIFICATION FIELDS (For Account Opening)
+        // =====================================================================
+
+        [MaxLength(50)]
+        public string? EmploymentStatus { get; set; } // Employed, Self-Employed, Business Owner, Student, Retired, Unemployed
+
+        [MaxLength(200)]
+        public string? EmployerName { get; set; }
+
+        [MaxLength(500)]
+        public string? EmployerAddress { get; set; }
+
+        [MaxLength(20)]
+        public string? EmployerContactNumber { get; set; }
+
+        [MaxLength(100)]
+        public string? JobTitle { get; set; }
+
+        [MaxLength(100)]
+        public string? Department { get; set; }
+
+        public int? YearsAtCurrentJob { get; set; }
+
+        public int? MonthsAtCurrentJob { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? MonthlyGrossIncome { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? AnnualIncome { get; set; }
+
+        [MaxLength(200)]
+        public string? OtherIncomeSource { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? OtherIncomeAmount { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? TotalMonthlyIncome { get; set; } // Combined income from all sources
+
+        // Government IDs
+        [MaxLength(20)]
+        public string? TaxIdentificationNumber { get; set; } // TIN
+
+        [MaxLength(20)]
+        public string? SSSNumber { get; set; }
+
+        [MaxLength(20)]
+        public string? PagIbigNumber { get; set; }
+
+        [MaxLength(20)]
+        public string? PhilHealthNumber { get; set; }
+
+        // Personal Details
+        public DateTime? DateOfBirth { get; set; }
+
+        [MaxLength(20)]
+        public string? Gender { get; set; }
+
+        [MaxLength(20)]
+        public string? CivilStatus { get; set; } // Single, Married, Widowed, Separated
+
+        [MaxLength(50)]
+        public string? Nationality { get; set; } = "Filipino";
+
+        [MaxLength(500)]
+        public string? PermanentAddress { get; set; }
+
+        [MaxLength(500)]
+        public string? PresentAddress { get; set; }
+
+        public int? YearsAtCurrentAddress { get; set; }
+
+        [MaxLength(50)]
+        public string? HomeOwnership { get; set; } // Owned, Rented, Living with Parents, Company Provided
+
+        public int? NumberOfDependents { get; set; } = 0;
+
+        [MaxLength(100)]
+        public string? EducationalAttainment { get; set; }
+
+        // Spouse Information (if married)
+        [MaxLength(200)]
+        public string? SpouseName { get; set; }
+
+        [MaxLength(200)]
+        public string? SpouseEmployer { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? SpouseIncome { get; set; }
+
+        [MaxLength(200)]
+        public string? MotherMaidenName { get; set; }
+
+        // Employment Verification Status
+        public bool EmploymentVerified { get; set; } = false;
+
+        [MaxLength(100)]
+        public string? EmploymentVerifiedBy { get; set; }
+
+        public DateTime? EmploymentVerifiedAt { get; set; }
+
+        public bool IncomeVerified { get; set; } = false;
+
+        [MaxLength(100)]
+        public string? IncomeVerifiedBy { get; set; }
+
+        public DateTime? IncomeVerifiedAt { get; set; }
+
+        // Risk Profile
+        [MaxLength(20)]
+        public string? CustomerRiskRating { get; set; } // LOW, MEDIUM, HIGH
+
+        public int? InternalCreditScore { get; set; } // 300-850 simulated score
+
         // Navigation properties
         public virtual ICollection<LoginHistory> LoginHistories { get; set; } = new List<LoginHistory>();
         public virtual ICollection<UserSession> UserSessions { get; set; } = new List<UserSession>();

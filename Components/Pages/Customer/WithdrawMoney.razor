@@ -9,10 +9,13 @@
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div
+        style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div
+                style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <rect x="2" y="3" width="20" height="14" rx="2"></rect>
                     <line x1="2" y1="17" x2="22" y2="17"></line>
                 </svg>
@@ -27,7 +30,8 @@
     <!-- Account Info Card -->
     @if (selectedAccount != null)
     {
-        <div style="background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div
+            style="background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;">
                 <div>
                     <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Account Number</div>
@@ -35,11 +39,13 @@
                 </div>
                 <div>
                     <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Account Holder</div>
-                    <div style="font-size: 16px; font-weight: 600; color: #1f2937;">@selectedAccount.Customer?.FullName</div>
+                    <div style="font-size: 16px; font-weight: 600; color: #1f2937;">@selectedAccount.Customer?.FullName
+                    </div>
                 </div>
                 <div>
                     <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Current Balance</div>
-                    <div style="font-size: 18px; font-weight: 700; color: var(--accent);">₱@selectedAccount.Balance.ToString("N2")</div>
+                    <div style="font-size: 18px; font-weight: 700; color: var(--accent);">
+                        ₱@selectedAccount.Balance.ToString("N2")</div>
                 </div>
             </div>
         </div>
@@ -58,33 +64,54 @@
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="border-bottom: 2px solid #e5e7eb; background: #f9fafb;">
-                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">DATE & TIME</th>
-                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">REFERENCE</th>
-                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">TYPE</th>
-                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">DESCRIPTION</th>
-                            <th style="padding: 12px; text-align: right; color: #6b7280; font-size: 12px; font-weight: 600;">AMOUNT</th>
-                            <th style="padding: 12px; text-align: center; color: #6b7280; font-size: 12px; font-weight: 600;">STATUS</th>
-                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">PROCESSED BY</th>
-                            <th style="padding: 12px; text-align: center; color: #6b7280; font-size: 12px; font-weight: 600;">ACTION</th>
+                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">
+                                DATE & TIME</th>
+                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">
+                                REFERENCE</th>
+                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">
+                                TYPE</th>
+                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">
+                                DESCRIPTION</th>
+                            <th
+                                style="padding: 12px; text-align: right; color: #6b7280; font-size: 12px; font-weight: 600;">
+                                AMOUNT</th>
+                            <th
+                                style="padding: 12px; text-align: center; color: #6b7280; font-size: 12px; font-weight: 600;">
+                                STATUS</th>
+                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 12px; font-weight: 600;">
+                                PROCESSED BY</th>
+                            <th
+                                style="padding: 12px; text-align: center; color: #6b7280; font-size: 12px; font-weight: 600;">
+                                ACTION</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var withdrawal in withdrawalTransactions)
                         {
-                            <tr style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s; background: @(hoveredTransactionId == withdrawal.TransactionId ? "#f9fafb" : "white");" @onmouseover="@((MouseEventArgs e) => hoveredTransactionId = withdrawal.TransactionId)" @onmouseout="@((MouseEventArgs e) => hoveredTransactionId = null)">
+                            <tr style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s; background: @(hoveredTransactionId == withdrawal.TransactionId ? "#f9fafb" : "white");"
+                                @onmouseover="@((MouseEventArgs e) => hoveredTransactionId = withdrawal.TransactionId)"
+                                @onmouseout="@((MouseEventArgs e) => hoveredTransactionId = null)">
                                 <td style="padding: 12px; color: #1f2937; font-size: 14px;">@withdrawal.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</td>
-                                <td style="padding: 12px; color: var(--accent); font-weight: 600; font-size: 13px;">@withdrawal.TransactionNumber</td>
+                                <td style="padding: 12px; color: var(--accent); font-weight: 600; font-size: 13px;">
+                                    @withdrawal.TransactionNumber</td>
                                 <td style="padding: 12px; color: #1f2937; font-size: 14px;">
-                                    <span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 12px; font-weight: 500;">Withdrawal</span>
+                                    <span
+                                        style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 12px; font-weight: 500;">Withdrawal</span>
                                 </td>
-                                <td style="padding: 12px; color: #6b7280; font-size: 14px;">@(withdrawal.Description ?? "-")</td>
-                                <td style="padding: 12px; text-align: right; color: var(--accent); font-weight: 700; font-size: 15px;">-₱@withdrawal.Amount.ToString("N2")</td>
-                                <td style="padding: 12px; text-align: center;">
-                                    <span style="padding: 4px 8px; background: @(withdrawal.Status == "Completed" ? "#d1fae5" : "#fef3c7"); color: @(withdrawal.Status == "Completed" ? "#065f46" : "#92400e"); border-radius: 6px; font-size: 12px; font-weight: 500;">@withdrawal.Status</span>
+                                <td style="padding: 12px; color: #6b7280; font-size: 14px;">@(withdrawal.Description ?? "-")
                                 </td>
-                                <td style="padding: 12px; color: #6b7280; font-size: 13px;">@GetEmployeeName(withdrawal.ProcessedByEmployee)</td>
+                                <td
+                                    style="padding: 12px; text-align: right; color: var(--accent); font-weight: 700; font-size: 15px;">
+                                    -₱@withdrawal.Amount.ToString("N2")</td>
                                 <td style="padding: 12px; text-align: center;">
-                                    <button @onclick="@(() => ShowInvoiceModal(withdrawal))" style="background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                                    <span
+                                        style="padding: 4px 8px; background: @(withdrawal.Status == "Completed" ? "#d1fae5" : "#fef3c7"); color: @(withdrawal.Status == "Completed" ? "#065f46" : "#92400e"); border-radius: 6px; font-size: 12px; font-weight: 500;">@withdrawal.Status</span>
+                                </td>
+                                <td style="padding: 12px; color: #6b7280; font-size: 13px;">
+                                    @GetEmployeeName(withdrawal.ProcessedByEmployee)</td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <button @onclick="@(() => ShowInvoiceModal(withdrawal))"
+                                        style="background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
                                         View Invoice
                                     </button>
                                 </td>
@@ -97,11 +124,13 @@
         else
         {
             <div style="text-align: center; padding: 48px 24px; color: #6b7280;">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 16px; opacity: 0.5;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="margin: 0 auto 16px; opacity: 0.5;">
                     <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5m0 0a3.5 3.5 0 0 1 0 7H6"></path>
                 </svg>
                 <p style="font-size: 16px; margin: 0;">No withdrawal transactions yet</p>
-                <p style="font-size: 14px; margin: 8px 0 0; opacity: 0.7;">Withdrawals processed by tellers will appear here</p>
+                <p style="font-size: 14px; margin: 8px 0 0; opacity: 0.7;">Withdrawals processed by tellers will appear here
+                </p>
             </div>
         }
     </div>
@@ -109,12 +138,16 @@
     <!-- Invoice Modal -->
     @if (showInvoiceModal && selectedInvoice != null)
     {
-        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="@(() => showInvoiceModal = false)">
-            <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 25px rgba(0,0,0,0.15);" @onclick:stopPropagation>
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+            @onclick="@(() => showInvoiceModal = false)">
+            <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 25px rgba(0,0,0,0.15);"
+                @onclick:stopPropagation>
                 <!-- Modal Header -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 2px solid #e5e7eb; padding-bottom: 16px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 2px solid #e5e7eb; padding-bottom: 16px;">
                     <h2 style="font-size: 20px; font-weight: 700; color: #1f2937; margin: 0;">Withdrawal Invoice</h2>
-                    <button @onclick="@(() => showInvoiceModal = false)" style="background: none; border: none; font-size: 24px; color: #6b7280; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">×</button>
+                    <button @onclick="@(() => showInvoiceModal = false)"
+                        style="background: none; border: none; font-size: 24px; color: #6b7280; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">×</button>
                 </div>
 
                 <!-- Invoice Content -->
@@ -123,84 +156,107 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
                         <div>
                             <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Invoice Number</div>
-                            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.InvoiceNumber</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.InvoiceNumber
+                            </div>
                         </div>
                         <div>
                             <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Date & Time</div>
-                            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">
+                                @selectedInvoice.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</div>
                         </div>
                     </div>
 
                     <!-- Customer Information -->
                     <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 12px;">CUSTOMER INFORMATION</div>
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 12px;">CUSTOMER
+                            INFORMATION</div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                             <div>
                                 <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">Customer Name</div>
-                                <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.CustomerName</div>
+                                <div style="font-size: 14px; font-weight: 600; color: #1f2937;">
+                                    @selectedInvoice.CustomerName</div>
                             </div>
                             <div>
                                 <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">Account Number</div>
-                                <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.AccountNumber</div>
+                                <div style="font-size: 14px; font-weight: 600; color: #1f2937;">
+                                    @selectedInvoice.AccountNumber</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Transaction Details -->
                     <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 12px;">TRANSACTION DETAILS</div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 12px;">TRANSACTION
+                            DETAILS</div>
+                        <div
+                            style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
                             <span style="font-size: 14px; color: #6b7280;">Balance Before</span>
-                            <span style="font-size: 14px; font-weight: 600; color: #1f2937;">₱@selectedInvoice.BalanceBefore.ToString("N2")</span>
+                            <span
+                                style="font-size: 14px; font-weight: 600; color: #1f2937;">₱@selectedInvoice.BalanceBefore.ToString("N2")</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                        <div
+                            style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
                             <span style="font-size: 14px; color: #6b7280;">Withdrawal Amount</span>
-                            <span style="font-size: 14px; font-weight: 600; color: var(--accent);">-₱@selectedInvoice.TransactionAmount.ToString("N2")</span>
+                            <span
+                                style="font-size: 14px; font-weight: 600; color: var(--accent);">-₱@selectedInvoice.TransactionAmount.ToString("N2")</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                        <div
+                            style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
                             <span style="font-size: 14px; color: #6b7280;">Transaction Method</span>
-                            <span style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.TransactionMethod</span>
+                            <span
+                                style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.TransactionMethod</span>
                         </div>
                         @if (!string.IsNullOrEmpty(selectedInvoice.Reference))
                         {
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                            <div
+                                style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
                                 <span style="font-size: 14px; color: #6b7280;">Reference</span>
-                                <span style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.Reference</span>
+                                <span
+                                    style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.Reference</span>
                             </div>
                         }
                         @if (!string.IsNullOrEmpty(selectedInvoice.Notes))
                         {
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                            <div
+                                style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
                                 <span style="font-size: 14px; color: #6b7280;">Notes</span>
                                 <span style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.Notes</span>
                             </div>
                         }
-                        <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 2px solid var(--accent);">
+                        <div
+                            style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 2px solid var(--accent);">
                             <span style="font-size: 14px; font-weight: 700; color: #1f2937;">Balance After</span>
-                            <span style="font-size: 16px; font-weight: 700; color: var(--accent);">₱@selectedInvoice.BalanceAfter.ToString("N2")</span>
+                            <span
+                                style="font-size: 16px; font-weight: 700; color: var(--accent);">₱@selectedInvoice.BalanceAfter.ToString("N2")</span>
                         </div>
                     </div>
 
                     <!-- Processing Information -->
                     <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 12px;">PROCESSING INFORMATION</div>
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 12px;">PROCESSING
+                            INFORMATION</div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                             <span style="font-size: 14px; color: #6b7280;">Processed By</span>
-                            <span style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.ProcessedBy</span>
+                            <span
+                                style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedInvoice.ProcessedBy</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
                             <span style="font-size: 14px; color: #6b7280;">Status</span>
-                            <span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 12px; font-weight: 600;">@selectedInvoice.Status</span>
+                            <span
+                                style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 12px; font-weight: 600;">@selectedInvoice.Status</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Modal Footer -->
-                <div style="display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 16px;">
-                    <button @onclick="@(() => showInvoiceModal = false)" style="background: #f3f4f6; color: #1f2937; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                <div
+                    style="display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+                    <button @onclick="@(() => showInvoiceModal = false)"
+                        style="background: #f3f4f6; color: #1f2937; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
                         Close
                     </button>
-                    <button @onclick="@(() => PrintInvoice(selectedInvoice))" style="background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                    <button @onclick="@(() => PrintInvoice(selectedInvoice))"
+                        style="background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
                         Print Invoice
                     </button>
                 </div>
@@ -219,7 +275,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadWithdrawalHistoryAsync();
-        
+
         // Auto-refresh every 5 seconds to show real-time teller withdrawals
         _ = AutoRefreshAsync();
     }
@@ -233,17 +289,17 @@
             {
                 var transactions = await TransactionService.GetByAccountIdAsync(selectedAccount.AccountId);
                 withdrawalTransactions = transactions
-                    .Where(t => t.TransactionType == "Withdrawal")
-                    .OrderByDescending(t => t.CreatedAt)
-                    .ToList();
+                .Where(t => t.TransactionType == "Withdrawal")
+                .OrderByDescending(t => t.CreatedAt)
+                .ToList();
             }
         }
         catch (Exception ex)
         {
             // Check if it's a connection/database error - just log silently for withdrawals (view-only page)
-            if (ex.Message.Contains("connection") || ex.Message.Contains("network") || 
-                ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
-                ex.Message.Contains("timeout"))
+            if (ex.Message.Contains("connection") || ex.Message.Contains("network") ||
+            ex.Message.Contains("SQL Server") || ex.Message.Contains("database") ||
+            ex.Message.Contains("timeout"))
             {
                 System.Diagnostics.Debug.WriteLine($"Withdrawal history - offline mode: {ex.Message}");
             }
@@ -271,7 +327,7 @@
             // Fetch the invoice for this transaction from the database
             var invoices = await BankingService.GetAccountInvoicesAsync(transaction.AccountId, 100);
             selectedInvoice = invoices.FirstOrDefault(i => i.TransactionId == transaction.TransactionId);
-            
+
             // If no invoice found, create a display invoice from transaction data
             if (selectedInvoice == null && selectedAccount != null)
             {
@@ -292,7 +348,7 @@
                     CreatedAt = transaction.CreatedAt
                 };
             }
-            
+
             if (selectedInvoice != null)
             {
                 showInvoiceModal = true;
@@ -328,11 +384,10 @@
     {
         if (employee == null)
             return "Admin";
-        
+
         var firstName = employee.FirstName ?? "";
         var lastName = employee.LastName ?? "";
         var fullName = $"{firstName} {lastName}".Trim();
         return string.IsNullOrWhiteSpace(fullName) ? "Admin" : fullName;
     }
 }
-

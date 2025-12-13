@@ -2,10 +2,12 @@
 @layout TellerLayout
 @using FinanceBank.Models
 @using FinanceBank.Services
+@using FinanceBank.Data
 @using Microsoft.EntityFrameworkCore
 @inject LoanProcessService LoanService
 @inject AuthService AuthService
 @inject NavigationManager Navigation
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
 
 <div class="sidebar-content">
     <div class="card">
@@ -193,120 +195,241 @@
     </div>
 </div>
 
-@* Review Modal *@
+@* Review Modal - 2 Step Process *@
 @if (showReviewModal && selectedApplication != null)
 {
     <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseModal">
-        <div style="background: white; border-radius: 16px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.25);" @onclick:stopPropagation>
-            <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px; border-radius: 16px 16px 0 0;">
-                <h4 style="margin: 0; font-weight: 600;">Review Loan Application</h4>
-                <p style="margin: 8px 0 0 0; opacity: 0.9;">Application #@selectedApplication.ApplicationNumber</p>
+        <div style="background: white; border-radius: 16px; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.25);" @onclick:stopPropagation>
+            <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 20px; border-radius: 16px 16px 0 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="margin: 0; font-weight: 600;">Review Loan Application</h4>
+                        <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">#@selectedApplication.ApplicationNumber | @selectedApplication.ApplicationDate.ToString("MMM dd, yyyy")</p>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <span style="background: @(reviewStep == 1 ? "white" : "rgba(255,255,255,0.3)"); color: @(reviewStep == 1 ? "#059669" : "white"); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;">1. Review</span>
+                        <span style="background: @(reviewStep == 2 ? "white" : "rgba(255,255,255,0.3)"); color: @(reviewStep == 2 ? "#059669" : "white"); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;">2. Confirm</span>
+                    </div>
+                </div>
             </div>
 
-            <div style="padding: 24px;">
-                <!-- Customer Information -->
-                <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-                    <h5 style="color: #374151; margin: 0 0 16px 0; font-weight: 600;">Customer Information</h5>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div>
-                            <label style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Full Name</label>
-                            <p style="margin: 4px 0 0 0; font-weight: 500; color: #1f2937;">@(selectedApplication.Account?.Customer?.FullName ?? "N/A")</p>
-                        </div>
-                        <div>
-                            <label style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Account Number</label>
-                            <p style="margin: 4px 0 0 0; font-weight: 500; color: #1f2937;">@(selectedApplication.Account?.AccountNumber ?? "N/A")</p>
-                        </div>
-                        <div>
-                            <label style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Employment Status</label>
-                            <p style="margin: 4px 0 0 0; font-weight: 500; color: #1f2937;">@(selectedApplication.EmploymentStatus ?? "N/A")</p>
-                        </div>
-                        <div>
-                            <label style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Monthly Income</label>
-                            <p style="margin: 4px 0 0 0; font-weight: 500; color: #059669;">₱@(selectedApplication.MonthlyIncome?.ToString("N2") ?? "N/A")</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Loan Details -->
-                <div style="background: #f0fdf4; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-                    <h5 style="color: #374151; margin: 0 0 16px 0; font-weight: 600;">Loan Request Details</h5>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div>
-                            <label style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Loan Type</label>
-                            <p style="margin: 4px 0 0 0; font-weight: 500; color: #1f2937;">@selectedApplication.LoanType</p>
-                        </div>
-                        <div>
-                            <label style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Requested Amount</label>
-                            <p style="margin: 4px 0 0 0; font-weight: 600; color: #059669; font-size: 18px;">₱@selectedApplication.RequestedAmount.ToString("N2")</p>
-                        </div>
-                        <div style="grid-column: span 2;">
-                            <label style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Purpose</label>
-                            <p style="margin: 4px 0 0 0; font-weight: 500; color: #1f2937;">@(selectedApplication.Purpose ?? "Not specified")</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Remarks -->
-                <div style="margin-bottom: 20px;">
-                    <label style="font-size: 14px; font-weight: 500; color: #374151; display: block; margin-bottom: 8px;">Internal Remarks (Optional)</label>
-                    <textarea @bind="remarks" placeholder="Add any notes or observations..." 
-                              style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
-                </div>
-
-                <!-- Rejection Reason (only visible when rejecting) -->
-                @if (isRejecting)
+            <div style="padding: 20px;">
+                @if (reviewStep == 1)
                 {
-                    <div style="margin-bottom: 20px; background: #fef2f2; padding: 16px; border-radius: 8px;">
-                        <label style="font-size: 14px; font-weight: 500; color: #991b1b; display: block; margin-bottom: 8px;">Rejection Reason *</label>
-                        <textarea @bind="rejectionReason" placeholder="Please provide a reason for rejection..." 
-                                  style="width: 100%; padding: 12px; border: 1px solid #fecaca; border-radius: 8px; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
+                    <!-- STEP 1: Application Details & Documents -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <!-- Customer Info Card -->
+                        <div style="background: #f9fafb; border-radius: 10px; padding: 16px;">
+                            <h6 style="color: #6b7280; margin: 0 0 12px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">👤 Customer</h6>
+                            <div style="font-weight: 600; color: #1f2937; font-size: 15px;">@(selectedApplication.Account?.Customer?.FullName ?? "N/A")</div>
+                            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">@(selectedApplication.Account?.AccountNumber ?? "N/A")</div>
+                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between;">
+                                <span style="font-size: 12px; color: #6b7280;">Balance:</span>
+                                <span style="font-size: 13px; font-weight: 600; color: #059669;">₱@(selectedApplication.Account?.Balance.ToString("N2") ?? "0.00")</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Loan Request Card -->
+                        <div style="background: #f0fdf4; border-radius: 10px; padding: 16px;">
+                            <h6 style="color: #6b7280; margin: 0 0 12px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">💰 Loan Request</h6>
+                            <div style="font-weight: 700; color: #059669; font-size: 22px;">₱@selectedApplication.RequestedAmount.ToString("N2")</div>
+                            <div style="font-size: 12px; color: #374151; margin-top: 4px;">@selectedApplication.LoanType • @selectedApplication.RequestedTermMonths months</div>
+                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #d1fae5; display: flex; justify-content: space-between;">
+                                <span style="font-size: 12px; color: #6b7280;">Income:</span>
+                                <span style="font-size: 13px; font-weight: 500; color: #374151;">₱@(selectedApplication.MonthlyIncome?.ToString("N2") ?? "N/A")/mo</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Stats Row -->
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px;">
+                        <div style="background: #f3f4f6; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 11px; color: #6b7280;">Employment</div>
+                            <div style="font-size: 12px; font-weight: 600; color: #374151; margin-top: 2px;">@(selectedApplication.EmploymentStatus ?? "N/A")</div>
+                        </div>
+                        <div style="background: #f3f4f6; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 11px; color: #6b7280;">Loan Type</div>
+                            <div style="font-size: 12px; font-weight: 600; color: #374151; margin-top: 2px;">@(selectedApplication.LoanCategory ?? "Unsecured")</div>
+                        </div>
+                        <div style="background: #f3f4f6; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 11px; color: #6b7280;">Existing Debts</div>
+                            <div style="font-size: 12px; font-weight: 600; color: @(selectedApplication.ExistingDebtsTotal > 0 ? "#dc2626" : "#374151"); margin-top: 2px;">₱@selectedApplication.ExistingDebtsTotal.ToString("N0")</div>
+                        </div>
+                        <div style="background: #f3f4f6; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 11px; color: #6b7280;">Purpose</div>
+                            <div style="font-size: 12px; font-weight: 600; color: #374151; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="@(selectedApplication.PurposeCategory ?? selectedApplication.Purpose)">@(selectedApplication.PurposeCategory ?? "General")</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Documents & Acknowledgments Row -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <!-- Documents Status -->
+                        <div style="background: #f9fafb; border-radius: 10px; padding: 14px;">
+                            <h6 style="color: #374151; margin: 0 0 10px 0; font-size: 12px; font-weight: 600;">📄 Documents Submitted</h6>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                                <span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: @(selectedApplication.BankStatementSubmitted == true ? "#d1fae5" : "#f3f4f6"); color: @(selectedApplication.BankStatementSubmitted == true ? "#065f46" : "#9ca3af");">
+                                    @(selectedApplication.BankStatementSubmitted == true ? "✓" : "○") Bank Stmt
+                                </span>
+                                <span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: @(selectedApplication.PayslipsSubmitted == true ? "#d1fae5" : "#f3f4f6"); color: @(selectedApplication.PayslipsSubmitted == true ? "#065f46" : "#9ca3af");">
+                                    @(selectedApplication.PayslipsSubmitted == true ? "✓" : "○") Payslips
+                                </span>
+                                <span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: @(selectedApplication.ITRSubmitted == true ? "#d1fae5" : "#f3f4f6"); color: @(selectedApplication.ITRSubmitted == true ? "#065f46" : "#9ca3af");">
+                                    @(selectedApplication.ITRSubmitted == true ? "✓" : "○") ITR
+                                </span>
+                                <span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: @(selectedApplication.COESubmitted == true ? "#d1fae5" : "#f3f4f6"); color: @(selectedApplication.COESubmitted == true ? "#065f46" : "#9ca3af");">
+                                    @(selectedApplication.COESubmitted == true ? "✓" : "○") COE
+                                </span>
+                                <span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: @(selectedApplication.ValidIdSubmitted == true ? "#d1fae5" : "#f3f4f6"); color: @(selectedApplication.ValidIdSubmitted == true ? "#065f46" : "#9ca3af");">
+                                    @(selectedApplication.ValidIdSubmitted == true ? "✓" : "○") Valid ID
+                                </span>
+                                <span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: @(selectedApplication.ProofOfBillingSubmitted == true ? "#d1fae5" : "#f3f4f6"); color: @(selectedApplication.ProofOfBillingSubmitted == true ? "#065f46" : "#9ca3af");">
+                                    @(selectedApplication.ProofOfBillingSubmitted == true ? "✓" : "○") Billing
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Legal Acknowledgments -->
+                        <div style="background: @(AllAcknowledged() ? "#f0fdf4" : "#fef2f2"); border-radius: 10px; padding: 14px;">
+                            <h6 style="color: #374151; margin: 0 0 10px 0; font-size: 12px; font-weight: 600;">⚖️ Legal Acknowledgments</h6>
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span style="font-size: 12px; color: @(selectedApplication.AcknowledgedTerms == true ? "#065f46" : "#991b1b");">
+                                    @(selectedApplication.AcknowledgedTerms == true ? "✓" : "✗") Terms & Conditions
+                                </span>
+                                <span style="font-size: 12px; color: @(selectedApplication.AcknowledgedLegalAction == true ? "#065f46" : "#991b1b");">
+                                    @(selectedApplication.AcknowledgedLegalAction == true ? "✓" : "✗") Legal Action Clause
+                                </span>
+                                <span style="font-size: 12px; color: @(selectedApplication.AcknowledgedInfoAccuracy == true ? "#065f46" : "#991b1b");">
+                                    @(selectedApplication.AcknowledgedInfoAccuracy == true ? "✓" : "✗") Info Accuracy
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Document Upload Section (Compact) -->
+                    @if (HasAnyDocumentToUpload())
+                    {
+                        <div style="background: #ecfdf5; border-radius: 10px; padding: 14px; margin-bottom: 16px; border: 1px dashed #10b981;">
+                            <h6 style="color: #065f46; margin: 0 0 10px 0; font-size: 12px; font-weight: 600;">📤 Upload Scanned Documents</h6>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                                @foreach (var docType in GetSubmittedDocumentTypes())
+                                {
+                                    var uploaded = GetUploadedDocument(docType.Key) != null;
+                                    <div style="background: white; border-radius: 6px; padding: 10px; border: 1px solid @(uploaded ? "#10b981" : "#e5e7eb");">
+                                        <div style="font-size: 11px; font-weight: 500; color: #374151; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                                            <span>@docType.Value</span>
+                                            @if (uploaded)
+                                            {
+                                                <span style="color: #10b981; font-size: 14px;">✓</span>
+                                            }
+                                        </div>
+                                        <InputFile OnChange="@(e => HandleFileUpload(e, docType.Key))" accept=".pdf,.jpg,.jpeg,.png" 
+                                                   style="font-size: 11px; width: 100%;" disabled="@isUploading" />
+                                    </div>
+                                }
+                            </div>
+                            @if (isUploading)
+                            {
+                                <div style="margin-top: 8px; text-align: center; color: #059669; font-size: 12px;">Uploading...</div>
+                            }
+                            @if (!string.IsNullOrEmpty(uploadMessage))
+                            {
+                                <div style="margin-top: 8px; font-size: 12px; color: @(uploadMessage.Contains("Error") ? "#991b1b" : "#065f46");">@uploadMessage</div>
+                            }
+                        </div>
+                    }
+                    
+                    <!-- Action Buttons for Step 1 -->
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+                        <button style="background: #f3f4f6; color: #374151; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500;" @onclick="CloseModal">
+                            Cancel
+                        </button>
+                        <button style="background: #fee2e2; color: #991b1b; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500;" @onclick="() => { reviewStep = 2; isRejecting = true; }">
+                            ❌ Reject
+                        </button>
+                        <button style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;" @onclick="() => { reviewStep = 2; isRejecting = false; }">
+                            Continue to Verification →
+                        </button>
                     </div>
                 }
-
-                <!-- Action Buttons -->
-                <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-                    <button style="background: #f3f4f6; color: #374151; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500;"
-                            @onclick="CloseModal" disabled="@isProcessing">
-                        Cancel
-                    </button>
-                    
-                    @if (!isRejecting)
+                else
+                {
+                    <!-- STEP 2: Verification & Confirm -->
+                    @if (isRejecting)
                     {
-                        <button style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500;"
-                                @onclick="() => isRejecting = true" disabled="@isProcessing">
-                            Reject
-                        </button>
-                        <button style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;"
-                                @onclick="ApproveApplication" disabled="@isProcessing">
-                            @if (isProcessing)
-                            {
-                                <span>Processing...</span>
-                            }
-                            else
-                            {
-                                <span>Approve & Forward to Accountant</span>
-                            }
-                        </button>
+                        <!-- Rejection Mode -->
+                        <div style="background: #fef2f2; border-radius: 10px; padding: 20px; margin-bottom: 16px; border: 2px solid #fecaca;">
+                            <h5 style="color: #991b1b; margin: 0 0 12px 0; font-weight: 600;">⚠️ Reject Application</h5>
+                            <p style="color: #7f1d1d; font-size: 13px; margin: 0 0 16px 0;">This action will reject the loan application. The customer will be notified with the reason provided below.</p>
+                            
+                            <label style="font-size: 13px; font-weight: 600; color: #991b1b; display: block; margin-bottom: 8px;">Rejection Reason *</label>
+                            <textarea @bind="rejectionReason" placeholder="Please provide a clear reason for rejection that will be visible to the customer..." 
+                                      style="width: 100%; padding: 12px; border: 1px solid #fecaca; border-radius: 8px; font-size: 13px; resize: vertical; min-height: 100px; box-sizing: border-box;"></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button style="background: #f3f4f6; color: #374151; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500;" 
+                                    @onclick="() => { reviewStep = 1; isRejecting = false; }" disabled="@isProcessing">
+                                ← Back
+                            </button>
+                            <button style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;"
+                                    @onclick="RejectApplication" disabled="@(isProcessing || string.IsNullOrWhiteSpace(rejectionReason))">
+                                @(isProcessing ? "Processing..." : "Confirm Rejection")
+                            </button>
+                        </div>
                     }
                     else
                     {
-                        <button style="background: #6b7280; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500;"
-                                @onclick="() => isRejecting = false" disabled="@isProcessing">
-                            Back
-                        </button>
-                        <button style="background: #dc2626; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;"
-                                @onclick="RejectApplication" disabled="@isProcessing">
-                            @if (isProcessing)
-                            {
-                                <span>Processing...</span>
-                            }
-                            else
-                            {
-                                <span>Confirm Rejection</span>
-                            }
-                        </button>
+                        <!-- Approval Verification Mode -->
+                        <div style="background: #dbeafe; border-radius: 10px; padding: 16px; margin-bottom: 16px;">
+                            <h6 style="color: #1e40af; margin: 0 0 12px 0; font-weight: 600;">✓ Teller Verification Checklist</h6>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: @(verifyIdentity ? "#d1fae5" : "white"); border: 1px solid @(verifyIdentity ? "#10b981" : "#e5e7eb"); border-radius: 6px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" @bind="verifyIdentity" style="width: 16px; height: 16px;" />
+                                    Identity Verified
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: @(verifyDocuments ? "#d1fae5" : "white"); border: 1px solid @(verifyDocuments ? "#10b981" : "#e5e7eb"); border-radius: 6px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" @bind="verifyDocuments" style="width: 16px; height: 16px;" />
+                                    Documents Complete
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: @(verifySignature ? "#d1fae5" : "white"); border: 1px solid @(verifySignature ? "#10b981" : "#e5e7eb"); border-radius: 6px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" @bind="verifySignature" style="width: 16px; height: 16px;" />
+                                    Signature Verified
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: @(verifyAccountGoodStanding ? "#d1fae5" : "white"); border: 1px solid @(verifyAccountGoodStanding ? "#10b981" : "#e5e7eb"); border-radius: 6px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" @bind="verifyAccountGoodStanding" style="width: 16px; height: 16px;" />
+                                    Account Good Standing
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <label style="font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 6px;">Recommendation</label>
+                            <select @bind="tellerRecommendation" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px;">
+                                <option value="">Select recommendation...</option>
+                                <option value="Highly Recommended">Highly Recommended</option>
+                                <option value="Recommended">Recommended</option>
+                                <option value="Conditional">Conditional - Needs more docs</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <label style="font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 6px;">Notes for Accountant (Optional)</label>
+                            <textarea @bind="remarks" placeholder="Add any notes or observations..." 
+                                      style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; resize: vertical; min-height: 70px; box-sizing: border-box;"></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+                            <button style="background: #f3f4f6; color: #374151; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500;" 
+                                    @onclick="() => reviewStep = 1" disabled="@isProcessing">
+                                ← Back
+                            </button>
+                            <button style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 10px 28px; border-radius: 8px; cursor: pointer; font-weight: 600;"
+                                    @onclick="ApproveApplication" disabled="@(isProcessing || !CanApprove())">
+                                @(isProcessing ? "Processing..." : "✓ Approve & Forward")
+                            </button>
+                        </div>
                     }
-                </div>
+                }
             </div>
         </div>
     </div>
@@ -329,10 +452,24 @@
     private bool isLoading = true;
     private bool isProcessing = false;
     private bool isRejecting = false;
+    private int reviewStep = 1; // 1 = Review, 2 = Confirm
     private string remarks = "";
     private string rejectionReason = "";
     private string successMessage = "";
     private string errorMessage = "";
+    
+    // Verification checklist
+    private bool verifyIdentity = false;
+    private bool verifyDocuments = false;
+    private bool verifySignature = false;
+    private bool verifyAccountGoodStanding = false;
+    private string tellerRecommendation = "";
+
+    // Document upload
+    private List<LoanDocument> uploadedDocuments = new();
+    private bool isUploading = false;
+    private string uploadMessage = "";
+    private const long MaxFileSize = 10 * 1024 * 1024; // 10MB max
 
     protected override async Task OnInitializedAsync()
     {
@@ -343,17 +480,22 @@
     private async Task LoadPendingApplications()
     {
         isLoading = true;
+        await InvokeAsync(StateHasChanged);
         try
         {
             pendingApplications = await LoanService.GetPendingApplicationsAsync("TELLER");
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error loading applications: {ex.Message}";
+            // Show full error details including inner exception
+            var innerMsg = ex.InnerException?.Message ?? "";
+            errorMessage = $"Error loading applications: {ex.Message} {(string.IsNullOrEmpty(innerMsg) ? "" : $"[Inner: {innerMsg}]")}";
+            System.Diagnostics.Debug.WriteLine($"LoadPendingApplications error: {ex}");
         }
         finally
         {
             isLoading = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -362,6 +504,7 @@
         try
         {
             cancelledApplications = await LoanService.GetAllCancelledAndRejectedApplicationsAsync();
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
@@ -374,9 +517,174 @@
     {
         selectedApplication = app;
         showReviewModal = true;
+        reviewStep = 1;
         isRejecting = false;
         remarks = "";
         rejectionReason = "";
+        uploadMessage = "";
+        // Reset verification checklist
+        verifyIdentity = false;
+        verifyDocuments = false;
+        verifySignature = false;
+        verifyAccountGoodStanding = false;
+        tellerRecommendation = "";
+        // Load uploaded documents for this application (use InvokeAsync to avoid threading issues)
+        _ = InvokeAsync(async () => await LoadUploadedDocuments(app.ApplicationId));
+    }
+
+    private async Task LoadUploadedDocuments(int applicationId)
+    {
+        try
+        {
+            await using var context = await DbContextFactory.CreateDbContextAsync();
+            uploadedDocuments = await context.LoanDocuments
+                .AsNoTracking()
+                .Where(d => d.ApplicationId == applicationId)
+                .ToListAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading documents: {ex.Message}");
+            uploadedDocuments = new List<LoanDocument>();
+        }
+    }
+
+    private bool AllAcknowledged()
+    {
+        if (selectedApplication == null) return false;
+        return selectedApplication.AcknowledgedTerms == true && 
+               selectedApplication.AcknowledgedLegalAction == true && 
+               selectedApplication.AcknowledgedInfoAccuracy == true;
+    }
+
+    private bool HasAnyDocumentToUpload()
+    {
+        if (selectedApplication == null) return false;
+        return selectedApplication.BankStatementSubmitted == true ||
+               selectedApplication.PayslipsSubmitted == true ||
+               selectedApplication.ITRSubmitted == true ||
+               selectedApplication.COESubmitted == true ||
+               selectedApplication.ValidIdSubmitted == true ||
+               selectedApplication.ProofOfBillingSubmitted == true;
+    }
+
+    private Dictionary<string, string> GetSubmittedDocumentTypes()
+    {
+        var docs = new Dictionary<string, string>();
+        if (selectedApplication == null) return docs;
+        
+        if (selectedApplication.BankStatementSubmitted == true) docs.Add("BankStatement", "Bank Stmt");
+        if (selectedApplication.PayslipsSubmitted == true) docs.Add("Payslip", "Payslips");
+        if (selectedApplication.ITRSubmitted == true) docs.Add("ITR", "ITR");
+        if (selectedApplication.COESubmitted == true) docs.Add("COE", "COE");
+        if (selectedApplication.ValidIdSubmitted == true) docs.Add("ValidID", "Valid ID");
+        if (selectedApplication.ProofOfBillingSubmitted == true) docs.Add("ProofOfBilling", "Billing");
+        
+        return docs;
+    }
+
+    private LoanDocument? GetUploadedDocument(string documentType)
+    {
+        return uploadedDocuments.FirstOrDefault(d => d.DocumentType == documentType);
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e, string documentType)
+    {
+        if (selectedApplication == null) return;
+
+        var file = e.File;
+        if (file == null) return;
+
+        if (file.Size > MaxFileSize)
+        {
+            uploadMessage = $"Error: File size exceeds 10MB limit. Please compress or reduce the file size.";
+            return;
+        }
+
+        isUploading = true;
+        uploadMessage = "";
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            await using var context = await DbContextFactory.CreateDbContextAsync();
+
+            // Read file data
+            using var stream = file.OpenReadStream(MaxFileSize);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var fileData = memoryStream.ToArray();
+
+            // Check if document already exists for this type
+            var existingDoc = await context.LoanDocuments
+                .FirstOrDefaultAsync(d => d.ApplicationId == selectedApplication.ApplicationId && d.DocumentType == documentType);
+
+            if (existingDoc != null)
+            {
+                // Update existing document
+                existingDoc.FileName = file.Name;
+                existingDoc.ContentType = file.ContentType;
+                existingDoc.FileData = fileData;
+                existingDoc.FileSize = file.Size;
+                existingDoc.UploadedBy = AuthService.CurrentUser ?? "teller";
+                existingDoc.UploadedAt = DateTime.Now;
+                existingDoc.VerificationStatus = "PENDING";
+            }
+            else
+            {
+                // Create new document
+                var newDoc = new LoanDocument
+                {
+                    ApplicationId = selectedApplication.ApplicationId,
+                    DocumentType = documentType,
+                    FileName = file.Name,
+                    ContentType = file.ContentType,
+                    FileData = fileData,
+                    FileSize = file.Size,
+                    UploadedBy = AuthService.CurrentUser ?? "teller",
+                    UploadedAt = DateTime.Now,
+                    VerificationStatus = "PENDING"
+                };
+                context.LoanDocuments.Add(newDoc);
+            }
+
+            await context.SaveChangesAsync();
+            uploadMessage = $"✓ {GetDocumentTypeLabel(documentType)} uploaded successfully!";
+
+            // Reload documents
+            await LoadUploadedDocuments(selectedApplication.ApplicationId);
+        }
+        catch (Exception ex)
+        {
+            uploadMessage = $"Error uploading file: {ex.Message}";
+        }
+        finally
+        {
+            isUploading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private string GetDocumentTypeLabel(string documentType)
+    {
+        return documentType switch
+        {
+            "BankStatement" => "Bank Statements",
+            "Payslip" => "Payslips",
+            "ITR" => "ITR",
+            "COE" => "Certificate of Employment",
+            "ValidID" => "Valid ID",
+            "ProofOfBilling" => "Proof of Billing",
+            _ => documentType
+        };
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024.0):F1} MB";
     }
 
     private void CloseModal()
@@ -384,21 +692,49 @@
         showReviewModal = false;
         selectedApplication = null;
         isRejecting = false;
+        reviewStep = 1;
+        uploadedDocuments = new List<LoanDocument>();
+        uploadMessage = "";
+        // Reset verification checklist
+        verifyIdentity = false;
+        verifyDocuments = false;
+        verifySignature = false;
+        verifyAccountGoodStanding = false;
+        tellerRecommendation = "";
+    }
+
+    private bool CanApprove()
+    {
+        // Require all verification steps to be completed
+        return verifyIdentity && verifyDocuments && verifySignature && verifyAccountGoodStanding && !string.IsNullOrEmpty(tellerRecommendation);
     }
 
     private async Task ApproveApplication()
     {
         if (selectedApplication == null) return;
 
+        if (!CanApprove())
+        {
+            errorMessage = "Please complete all verification steps and select a recommendation before approving.";
+            return;
+        }
+
         isProcessing = true;
         errorMessage = "";
+        await InvokeAsync(StateHasChanged);
 
         try
         {
+            // Build comprehensive remarks with verification and recommendation
+            var fullRemarks = $"[Teller Review - {DateTime.Now:MMM dd, yyyy}]\n" +
+                             $"Recommendation: {tellerRecommendation}\n" +
+                             $"Verification: Identity ✓, Documents ✓, Signature ✓, Account Standing ✓\n" +
+                             (string.IsNullOrEmpty(remarks) ? "" : $"Notes: {remarks}");
+
             await LoanService.TellerApproveAsync(
                 selectedApplication.ApplicationId,
                 AuthService.CurrentUser ?? "teller",
-                remarks
+                fullRemarks
             );
 
             successMessage = $"Application {selectedApplication.ApplicationNumber} has been approved and forwarded to the Accountant for assessment.";
@@ -412,6 +748,7 @@
         finally
         {
             isProcessing = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -427,6 +764,7 @@
 
         isProcessing = true;
         errorMessage = "";
+        await InvokeAsync(StateHasChanged);
 
         try
         {
@@ -448,6 +786,7 @@
         finally
         {
             isProcessing = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 }

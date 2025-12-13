@@ -50,6 +50,38 @@ namespace FinanceBank.Services
         }
 
         /// <summary>
+        /// Helper: Get account by ID.
+        /// Returns a tracked entity that can be modified.
+        /// </summary>
+        private async Task<CustomerAccount?> GetAccountByIdRawSqlAsync(int accountId)
+        {
+            if (_context == null) return null;
+
+            // EF Core now ignores the new columns, so regular LINQ works
+            return await _context.CustomerAccounts
+                .FirstOrDefaultAsync(a => a.AccountId == accountId);
+        }
+
+        /// <summary>
+        /// Helper: Get account for customer by ID.
+        /// </summary>
+        private async Task<CustomerAccount?> GetCustomerAccountRawSqlAsync(int customerId, int? accountId = null)
+        {
+            if (_context == null) return null;
+
+            // EF Core now ignores the new columns, so regular LINQ works
+            var query = _context.CustomerAccounts
+                .Where(a => a.CustomerId == customerId && a.IsActive);
+
+            if (accountId.HasValue && accountId.Value > 0)
+            {
+                query = query.Where(a => a.AccountId == accountId.Value);
+            }
+
+            return await query.OrderBy(a => a.AccountId).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
         /// Gets the primary active account for the currently authenticated customer.
         /// </summary>
         public async Task<CustomerAccount?> GetPrimaryAccountForCurrentCustomerAsync()
@@ -59,9 +91,11 @@ namespace FinanceBank.Services
 
             var customerId = _authService.CurrentUserId.Value;
 
+            // EF Core now ignores the new columns, so regular LINQ works
             return await _context.CustomerAccounts
                 .Where(a => a.CustomerId == customerId && a.IsActive)
                 .OrderBy(a => a.AccountId)
+                .AsNoTracking()
                 .FirstOrDefaultAsync();
         }
 
@@ -73,9 +107,11 @@ namespace FinanceBank.Services
             if (_context == null || string.IsNullOrWhiteSpace(accountNumber))
                 return null;
 
+            // EF Core now ignores the new columns, so regular LINQ works
             return await _context.CustomerAccounts
-                .Include(ca => ca.Customer)
-                .FirstOrDefaultAsync(ca => ca.AccountNumber == accountNumber && ca.IsActive);
+                .Where(a => a.AccountNumber == accountNumber && a.IsActive)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
         }
 
         /// <summary>
@@ -94,9 +130,11 @@ namespace FinanceBank.Services
 
             var customerId = _authService.CurrentUserId.Value;
 
+            // EF Core now ignores the new columns, so regular LINQ works
             var account = await _context.CustomerAccounts
-                .Include(ca => ca.Customer)
-                .FirstOrDefaultAsync(ca => ca.AccountNumber == accountNumber && ca.CustomerId == customerId && ca.IsActive);
+                .Where(a => a.AccountNumber == accountNumber && a.CustomerId == customerId && a.IsActive)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
 
             if (account == null)
                 return (false, null, "Account not found or does not belong to this customer");
@@ -125,15 +163,8 @@ namespace FinanceBank.Services
 
             var customerId = _authService.CurrentUserId.Value;
 
-            var accountQuery = _context.CustomerAccounts
-                .Where(a => a.CustomerId == customerId && a.IsActive);
-
-            if (accountId.HasValue && accountId.Value > 0)
-            {
-                accountQuery = accountQuery.Where(a => a.AccountId == accountId.Value);
-            }
-
-            var account = await accountQuery.FirstOrDefaultAsync();
+            // Use raw SQL helper to avoid errors with new columns that don't exist yet
+            var account = await GetCustomerAccountRawSqlAsync(customerId, accountId);
             if (account == null)
                 return (false, "No active account found for this customer.", null);
 
@@ -216,15 +247,8 @@ namespace FinanceBank.Services
 
             var customerId = _authService.CurrentUserId.Value;
 
-            var accountQuery = _context.CustomerAccounts
-                .Where(a => a.CustomerId == customerId && a.IsActive);
-
-            if (accountId.HasValue && accountId.Value > 0)
-            {
-                accountQuery = accountQuery.Where(a => a.AccountId == accountId.Value);
-            }
-
-            var account = await accountQuery.FirstOrDefaultAsync();
+            // Use raw SQL helper to avoid errors with new columns that don't exist yet
+            var account = await GetCustomerAccountRawSqlAsync(customerId, accountId);
             if (account == null)
                 return (false, "No active account found for this customer.", null);
 
@@ -309,15 +333,8 @@ namespace FinanceBank.Services
 
             var customerId = _authService.CurrentUserId.Value;
 
-            var accountQuery = _context.CustomerAccounts
-                .Where(a => a.CustomerId == customerId && a.IsActive);
-
-            if (accountId.HasValue && accountId.Value > 0)
-            {
-                accountQuery = accountQuery.Where(a => a.AccountId == accountId.Value);
-            }
-
-            var account = await accountQuery.FirstOrDefaultAsync();
+            // Use raw SQL helper to avoid errors with new columns that don't exist yet
+            var account = await GetCustomerAccountRawSqlAsync(customerId, accountId);
             if (account == null)
                 return (false, "No active account found for this customer.", null);
 
@@ -404,9 +421,8 @@ namespace FinanceBank.Services
             {
                 try
                 {
-                    // Get sender account
-                    var senderAccount = await _context.CustomerAccounts
-                        .FirstOrDefaultAsync(a => a.AccountId == fromAccountId && a.IsActive);
+                    // Get sender account using raw SQL (compatible with old DBs)
+                    var senderAccount = await GetAccountByIdRawSqlAsync(fromAccountId);
 
                     if (senderAccount == null)
                         return (false, "Sender account not found.");
@@ -417,8 +433,9 @@ namespace FinanceBank.Services
                     if (senderAccount.Balance < totalDeduction)
                         return (false, $"Insufficient balance. You need ₱{totalDeduction:N2} (₱{amount:N2} + ₱{TRANSFER_FEE:N2} fee) but only have ₱{senderAccount.Balance:N2}.");
 
-                    // Get recipient account
+                    // Get recipient account - EF Core now ignores the new columns
                     var recipientAccount = await _context.CustomerAccounts
+                        .Include(a => a.Customer)
                         .FirstOrDefaultAsync(a => a.AccountNumber == toAccountNumber && a.IsActive);
 
                     if (recipientAccount == null)
