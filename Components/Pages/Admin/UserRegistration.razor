@@ -692,8 +692,7 @@
                 return;
             }
 
-            // Create new user - Only set core fields that exist in all database versions
-            // Employment/Income fields will be null until database is updated with new columns
+            // Create new user with all employment and income fields
             var newUser = new AuthUser
             {
                 Username = username,
@@ -707,29 +706,38 @@
                 ProfilePicture = profilePictureData,
                 ProfilePictureFileName = profilePictureFileName,
                 ProfilePictureContentType = profilePictureContentType,
-                TransferPinHash = hashedPin
-                // NOTE: Employment & Income fields are NOT set here to avoid database column errors
-                // Run the LOAN_PROCESS_ENHANCEMENT.sql script to add these columns, then uncomment below:
-                // EmploymentStatus = employmentStatus,
-                // EmployerName = employerName,
-                // EmployerAddress = employerAddress,
-                // EmployerContactNumber = employerContactNumber,
-                // JobTitle = jobTitle,
-                // YearsAtCurrentJob = yearsAtCurrentJob,
-                // MonthsAtCurrentJob = monthsAtCurrentJob,
-                // MonthlyGrossIncome = monthlyGrossIncome,
-                // OtherIncomeSource = otherIncomeSource,
-                // OtherIncomeAmount = otherIncomeAmount,
-                // TaxIdentificationNumber = taxIdentificationNumber,
-                // SSSNumber = sssNumber,
-                // PagIbigNumber = pagIbigNumber,
-                // PhilHealthNumber = philHealthNumber,
-                // CivilStatus = civilStatus,
-                // MotherMaidenName = motherMaidenName,
-                // SpouseName = spouseName,
-                // SpouseEmployer = spouseEmployer,
-                // SpouseIncome = spouseIncome,
-                // TotalMonthlyIncome = monthlyGrossIncome + otherIncomeAmount + spouseIncome
+                TransferPinHash = hashedPin,
+                // Personal Details
+                DateOfBirth = DateTime.TryParse(dateOfBirthString, out var dob) ? dob : null,
+                Gender = !string.IsNullOrEmpty(gender) ? gender : null,
+                CivilStatus = !string.IsNullOrEmpty(civilStatus) ? civilStatus : null,
+                Nationality = "Filipino",
+                MotherMaidenName = !string.IsNullOrEmpty(motherMaidenName) ? motherMaidenName : null,
+                PermanentAddress = address,
+                PresentAddress = address,
+                // Employment Information
+                EmploymentStatus = !string.IsNullOrEmpty(employmentStatus) ? employmentStatus : null,
+                EmployerName = !string.IsNullOrEmpty(employerName) ? employerName : null,
+                EmployerAddress = !string.IsNullOrEmpty(employerAddress) ? employerAddress : null,
+                EmployerContactNumber = !string.IsNullOrEmpty(employerContactNumber) ? employerContactNumber : null,
+                JobTitle = !string.IsNullOrEmpty(jobTitle) ? jobTitle : null,
+                YearsAtCurrentJob = yearsAtCurrentJob > 0 ? yearsAtCurrentJob : null,
+                MonthsAtCurrentJob = monthsAtCurrentJob > 0 ? monthsAtCurrentJob : null,
+                // Income Information
+                MonthlyGrossIncome = monthlyGrossIncome > 0 ? monthlyGrossIncome : null,
+                OtherIncomeSource = !string.IsNullOrEmpty(otherIncomeSource) ? otherIncomeSource : null,
+                OtherIncomeAmount = otherIncomeAmount > 0 ? otherIncomeAmount : null,
+                TotalMonthlyIncome = monthlyGrossIncome + otherIncomeAmount + spouseIncome,
+                AnnualIncome = (monthlyGrossIncome + otherIncomeAmount + spouseIncome) * 12,
+                // Government IDs
+                TaxIdentificationNumber = !string.IsNullOrEmpty(taxIdentificationNumber) ? taxIdentificationNumber : null,
+                SSSNumber = !string.IsNullOrEmpty(sssNumber) ? sssNumber : null,
+                PagIbigNumber = !string.IsNullOrEmpty(pagIbigNumber) ? pagIbigNumber : null,
+                PhilHealthNumber = !string.IsNullOrEmpty(philHealthNumber) ? philHealthNumber : null,
+                // Spouse Information
+                SpouseName = !string.IsNullOrEmpty(spouseName) ? spouseName : null,
+                SpouseEmployer = !string.IsNullOrEmpty(spouseEmployer) ? spouseEmployer : null,
+                SpouseIncome = spouseIncome > 0 ? spouseIncome : null
             };
 
             context.Users.Add(newUser);
