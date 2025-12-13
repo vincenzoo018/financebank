@@ -107,8 +107,9 @@ namespace FinanceBank.Services
             if (_context == null || string.IsNullOrWhiteSpace(accountNumber))
                 return null;
 
-            // EF Core now ignores the new columns, so regular LINQ works
+            // Include Customer for displaying recipient name in transfers
             return await _context.CustomerAccounts
+                .Include(a => a.Customer)
                 .Where(a => a.AccountNumber == accountNumber && a.IsActive)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();

@@ -4,7 +4,7 @@
 @using FinanceBank.Services
 @using FinanceBank.Models
 @using Microsoft.EntityFrameworkCore
-@inject BFASDbContext DbContext
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
 @inject LoanProcessService LoanProcessService
 @inject AuthService AuthService
 @inject NavigationManager Navigation
@@ -1144,8 +1144,11 @@ else
             pendingItems.Clear();
             historyItems.Clear();
 
+            await using var DbContext = await DbContextFactory.CreateDbContextAsync();
+
             // Load Loan Applications pending for Accountant review
             var loanApps = await DbContext.LoanApplications
+            .AsNoTracking()
             .Include(a => a.Account)
             .ThenInclude(a => a!.Customer)
             .Where(a => a.Status == "PENDING_ACCOUNTANT_REVIEW" || a.Status == "ENCODED" || a.Status == "VERIFIED")
@@ -1172,6 +1175,7 @@ else
 
             // Load Loan Assessments pending approval
             var assessments = await DbContext.LoanAssessments
+            .AsNoTracking()
             .Include(a => a.Application)
             .ThenInclude(app => app!.Account)
             .ThenInclude(acc => acc!.Customer)
@@ -1199,6 +1203,7 @@ else
 
             // Load Transactions pending approval
             var transactions = await DbContext.CustomerTransactions
+            .AsNoTracking()
             .Include(t => t.Account)
             .ThenInclude(a => a!.Customer)
             .Include(t => t.ProcessedByEmployee)
@@ -1229,6 +1234,7 @@ else
 
             // Load Fund Transfers pending approval
             var transfers = await DbContext.FundTransfers
+            .AsNoTracking()
             .Include(t => t.FromAccount)
             .Where(t => t.Status == "Pending" || t.Status == "PendingApproval")
             .OrderByDescending(t => t.CreatedAt)
@@ -1254,6 +1260,7 @@ else
 
             // Load History - Approved/Declined Loan Approvals
             var loanApprovals = await DbContext.LoanApprovals
+            .AsNoTracking()
             .Include(a => a.Application)
             .ThenInclude(app => app!.Account)
             .ThenInclude(acc => acc!.Customer)
@@ -1283,6 +1290,7 @@ else
 
             // Load History - Completed Transactions
             var completedTrans = await DbContext.CustomerTransactions
+            .AsNoTracking()
             .Include(t => t.Account)
             .ThenInclude(a => a!.Customer)
             .Include(t => t.ProcessedByEmployee)
@@ -1382,16 +1390,19 @@ else
     private async Task LoadLoanDetails(ApprovalItem item)
     {
         isLoadingLoanDetails = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
         try
         {
+            await using var DbContext = await DbContextFactory.CreateDbContextAsync();
+            
             int applicationId = item.SourceId;
             
             // If it's an assessment, get the application ID from the assessment
             if (item.SourceType == "LoanAssessment")
             {
                 var assessment = await DbContext.LoanAssessments
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(a => a.AssessmentId == item.SourceId);
                 if (assessment != null)
                     applicationId = assessment.ApplicationId;
@@ -1399,6 +1410,7 @@ else
 
             // Load the loan application with all related data
             var application = await DbContext.LoanApplications
+                .AsNoTracking()
                 .Include(a => a.Account)
                 .ThenInclude(acc => acc!.Customer)
                 .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
@@ -1414,6 +1426,7 @@ else
             try
             {
                 collateral = await DbContext.Set<LoanCollateral>()
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(c => c.ApplicationId == applicationId);
             }
             catch { /* LoanCollaterals table doesn't exist yet */ }
@@ -1423,6 +1436,7 @@ else
             try
             {
                 coBorrower = await DbContext.Set<LoanCoBorrower>()
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(c => c.ApplicationId == applicationId);
             }
             catch { /* LoanCoBorrowers table doesn't exist yet */ }
@@ -1431,6 +1445,7 @@ else
             try
             {
                 uploadedDocuments = await DbContext.LoanDocuments
+                    .AsNoTracking()
                     .Where(d => d.ApplicationId == applicationId)
                     .ToListAsync();
             }
@@ -1504,7 +1519,7 @@ else
         finally
         {
             isLoadingLoanDetails = false;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -1617,8 +1632,12 @@ else
             return;
 
         isProcessing = true;
+        await InvokeAsync(StateHasChanged);
+        
         try
         {
+            await using var DbContext = await DbContextFactory.CreateDbContextAsync();
+            
             var currentUser = AuthService.CurrentUser ?? "Accountant";
             var isApproved = approvalDecision == "Approved";
 
@@ -1806,6 +1825,7 @@ else
         finally
         {
             isProcessing = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -1821,7 +1841,7 @@ else
     {
         await Task.Delay(4000);
         showToast = false;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private string GetTypeBadgeColor(string type) => type switch
@@ -1866,7 +1886,7 @@ else
         return $"{bytes / (1024.0 * 1024.0):F1} MB";
     }
 
-    private void ViewDocument(LoanDocument doc)
+    private async Task ViewDocument(LoanDocument doc)
     {
         currentViewingDocument = doc;
         
@@ -1876,7 +1896,7 @@ else
         documentViewerDataUrl = $"data:{mimeType};base64,{base64}";
         
         showDocumentViewer = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private void CloseDocumentViewer()
@@ -1890,6 +1910,8 @@ else
     {
         try
         {
+            await using var DbContext = await DbContextFactory.CreateDbContextAsync();
+            
             var doc = await DbContext.LoanDocuments.FindAsync(documentId);
             if (doc != null)
             {
@@ -1909,7 +1931,7 @@ else
                 }
                 
                 ShowToast($"Document {(isVerified ? "verified" : "rejected")} successfully!", "success");
-                StateHasChanged();
+                await InvokeAsync(StateHasChanged);
             }
         }
         catch (Exception ex)

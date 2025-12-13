@@ -7,7 +7,7 @@
 @using Microsoft.EntityFrameworkCore
 @using FinanceBank.Components.Shared
 @inject LoanProcessService LoanService
-@inject BFASDbContext DbContext
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
@@ -767,6 +767,8 @@
     private async Task LoadData()
     {
         isLoading = true;
+        await InvokeAsync(StateHasChanged);
+        
         try
         {
             // Load pending assessments
@@ -785,6 +787,7 @@
         finally
         {
             isLoading = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -844,6 +847,8 @@
         if (selectedAssessment == null) return;
 
         isProcessing = true;
+        await InvokeAsync(StateHasChanged);
+        
         try
         {
             var currentUser = AuthService.FullName ?? AuthService.CurrentUser ?? "Finance Manager";
@@ -884,6 +889,7 @@
         finally
         {
             isProcessing = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -892,6 +898,8 @@
     {
         showHistoryModal = true;
         isLoadingHistory = true;
+        await InvokeAsync(StateHasChanged);
+        
         try
         {
             allApprovals = await LoanService.GetApprovalHistoryAsync();
@@ -904,6 +912,7 @@
         finally
         {
             isLoadingHistory = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -1062,7 +1071,7 @@
     {
         await Task.Delay(4000);
         showToast = false;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 }
 </div>

@@ -136,28 +136,10 @@ namespace FinanceBank.Services
                 // Create a new DbContext instance for this operation
                 using var context = await _contextFactory.CreateDbContextAsync();
 
-                // Find user by username using raw SQL to only select essential columns
-                // This avoids errors when new columns haven't been added to the database yet
+                // Find user by username - use LINQ to select all columns properly
                 var user = await context.Users
-                    .FromSqlRaw(@"SELECT UserId, Username, PasswordHash, Role, FullName, Email, PhoneNumber, 
-                                  IsActive, CreatedAt, LastLoginAt, EmployeeId_FK, TransferPinHash,
-                                  ProfilePicture, ProfilePictureFileName, ProfilePictureContentType,
-                                  ValidIdDocument, ValidIdFileName, ValidIdContentType,
-                                  NULL as EmploymentStatus, NULL as EmployerName, NULL as EmployerAddress,
-                                  NULL as EmployerContactNumber, NULL as JobTitle, NULL as Department,
-                                  NULL as YearsAtCurrentJob, NULL as MonthsAtCurrentJob, NULL as MonthlyGrossIncome,
-                                  NULL as AnnualIncome, NULL as OtherIncomeSource, NULL as OtherIncomeAmount,
-                                  NULL as TotalMonthlyIncome, NULL as TaxIdentificationNumber, NULL as SSSNumber,
-                                  NULL as PagIbigNumber, NULL as PhilHealthNumber, NULL as DateOfBirth,
-                                  NULL as Gender, NULL as CivilStatus, NULL as Nationality, NULL as PermanentAddress,
-                                  NULL as PresentAddress, NULL as YearsAtCurrentAddress, NULL as HomeOwnership,
-                                  NULL as NumberOfDependents, NULL as EducationalAttainment, NULL as SpouseName,
-                                  NULL as SpouseEmployer, NULL as SpouseIncome, NULL as MotherMaidenName,
-                                  CAST(0 as BIT) as EmploymentVerified, NULL as EmploymentVerifiedBy, NULL as EmploymentVerifiedAt,
-                                  CAST(0 as BIT) as IncomeVerified, NULL as IncomeVerifiedBy, NULL as IncomeVerifiedAt,
-                                  NULL as CustomerRiskRating, NULL as InternalCreditScore
-                                  FROM Users WHERE Username = {0} AND IsActive = 1", username)
-                    .FirstOrDefaultAsync();
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
 
                 if (user == null)
                 {

@@ -822,7 +822,7 @@
         finally
         {
             isProcessing = false;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 

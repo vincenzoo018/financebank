@@ -728,7 +728,20 @@
         string.IsNullOrWhiteSpace(phoneNumber) || string.IsNullOrWhiteSpace(address) ||
         string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(initialPassword))
         {
-            errorMessage = "Please fill in all required fields";
+            errorMessage = "Please fill in all required personal information fields";
+            return;
+        }
+
+        // Validate employment fields (required for loan applications)
+        if (string.IsNullOrWhiteSpace(employmentStatus))
+        {
+            errorMessage = "Employment Status is required. Please select your employment status.";
+            return;
+        }
+
+        if (monthlyGrossIncome <= 0)
+        {
+            errorMessage = "Monthly Gross Income is required. Please enter your income.";
             return;
         }
 
@@ -888,6 +901,10 @@
                 PhilHealthNumber = philHealthNumber,
                 // Personal Details
                 DateOfBirth = DateTime.TryParse(dateOfBirthString, out var dob) ? dob : null,
+                Gender = !string.IsNullOrEmpty(gender) ? gender : null,
+                CivilStatus = !string.IsNullOrEmpty(civilStatus) ? civilStatus : null,
+                Nationality = "Filipino",
+                MotherMaidenName = !string.IsNullOrEmpty(motherMaidenName) ? motherMaidenName : null,
                 PermanentAddress = address,
                 PresentAddress = address,
                 SpouseName = spouseName,
