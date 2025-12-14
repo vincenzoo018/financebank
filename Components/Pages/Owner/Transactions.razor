@@ -1,0 +1,705 @@
+@page "/owner/transactions"
+@layout OwnerLayout
+@inject NavigationManager Navigation
+
+<div class="transactions-page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <h2>Transaction Management</h2>
+            <span class="subtitle">View and record all payments</span>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-primary" @onclick="ShowRecordPayment">
+                <span class="icon">➕</span> Record Payment
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <span class="stat-value">₱@transactions.Where(t => t.TransactionDate.Month == DateTime.Now.Month).Sum(t => t.Amount).ToString("N0")</span>
+            <span class="stat-label">This Month</span>
+        </div>
+        <div class="stat-card pending">
+            <span class="stat-value">@transactions.Count(t => t.Status == "Pending")</span>
+            <span class="stat-label">Pending Verification</span>
+        </div>
+        <div class="stat-card completed">
+            <span class="stat-value">@transactions.Count(t => t.Status == "Completed")</span>
+            <span class="stat-label">Completed</span>
+        </div>
+        <div class="stat-card total">
+            <span class="stat-value">₱@transactions.Where(t => t.Status == "Completed").Sum(t => t.Amount).ToString("N0")</span>
+            <span class="stat-label">Total Collected</span>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="Search transactions..." @bind="searchTerm" @bind:event="oninput" />
+        </div>
+        <select @bind="statusFilter">
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Completed">Completed</option>
+            <option value="Failed">Failed</option>
+            <option value="Refunded">Refunded</option>
+        </select>
+        <select @bind="methodFilter">
+            <option value="">All Methods</option>
+            <option value="GCash">GCash</option>
+            <option value="PayMaya">PayMaya</option>
+            <option value="BDO">BDO Bank Transfer</option>
+            <option value="BPI">BPI Bank Transfer</option>
+            <option value="Cash">Cash</option>
+        </select>
+        <input type="date" @bind="startDate" />
+        <span>to</span>
+        <input type="date" @bind="endDate" />
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="table-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Transaction #</th>
+                    <th>Date</th>
+                    <th>Client</th>
+                    <th>Type</th>
+                    <th>Method</th>
+                    <th>Amount</th>
+                    <th>Reference</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var txn in FilteredTransactions)
+                {
+                    <tr class="@(txn.Status == "Pending" ? "highlight" : "")">
+                        <td><strong>@txn.TransactionNumber</strong></td>
+                        <td>@txn.TransactionDate.ToString("MMM dd, yyyy")</td>
+                        <td>@txn.ClientName</td>
+                        <td>
+                            <span class="type-badge @txn.TransactionType.ToLower()">@txn.TransactionType</span>
+                        </td>
+                        <td>
+                            <div class="method-cell">
+                                <span class="method-icon">@GetMethodIcon(txn.PaymentMethod)</span>
+                                <span>@txn.PaymentMethod</span>
+                            </div>
+                        </td>
+                        <td class="@(txn.TransactionType == "Refund" ? "text-danger" : "text-success")">
+                            @(txn.TransactionType == "Refund" ? "-" : "+")₱@txn.Amount.ToString("N2")
+                        </td>
+                        <td>@txn.Reference</td>
+                        <td><span class="status-badge @txn.Status.ToLower()">@txn.Status</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn" @onclick="() => ViewTransaction(txn)" title="View">👁️</button>
+                                @if (txn.Status == "Pending")
+                                {
+                                    <button class="action-btn approve" @onclick="() => ApproveTransaction(txn)" title="Approve">✓</button>
+                                    <button class="action-btn reject" @onclick="() => RejectTransaction(txn)" title="Reject">✕</button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Record Payment Modal -->
+    @if (showRecordModal)
+    {
+        <div class="modal-overlay" @onclick="CloseModal">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>Record New Payment</h3>
+                    <button class="close-btn" @onclick="CloseModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Client *</label>
+                        <select @bind="newTransaction.ClientId">
+                            <option value="0">Select Client</option>
+                            @foreach (var client in clients)
+                            {
+                                <option value="@client.ClientId">@client.CompanyName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Invoice (Optional)</label>
+                        <select @bind="newTransaction.InvoiceId">
+                            <option value="0">Select Invoice</option>
+                            <option value="7">INV-2024-007 - ₱5,999.00 (Pending)</option>
+                            <option value="5">INV-2024-005 - ₱2,999.00 (Overdue)</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Payment Method *</label>
+                            <select @bind="newTransaction.PaymentMethod">
+                                <option value="GCash">GCash</option>
+                                <option value="PayMaya">PayMaya</option>
+                                <option value="BDO">BDO Bank Transfer</option>
+                                <option value="BPI">BPI Bank Transfer</option>
+                                <option value="Cash">Cash</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount *</label>
+                            <input type="number" @bind="newTransaction.Amount" step="0.01" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Reference Number</label>
+                            <input type="text" @bind="newTransaction.Reference" placeholder="GCash Ref, Receipt #" />
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Date</label>
+                            <input type="date" @bind="newTransaction.TransactionDate" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea @bind="newTransaction.Description" rows="2" placeholder="Payment notes..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Proof (Optional)</label>
+                        <div class="file-upload">
+                            <span>📎 Click or drag to upload screenshot</span>
+                            <input type="file" accept="image/*" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveTransaction">Record Payment</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- View Transaction Modal -->
+    @if (showViewModal && selectedTransaction != null)
+    {
+        <div class="modal-overlay" @onclick="() => showViewModal = false">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>Transaction Details</h3>
+                    <button class="close-btn" @onclick="() => showViewModal = false">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="transaction-detail">
+                        <div class="detail-row">
+                            <span class="label">Transaction #</span>
+                            <span class="value">@selectedTransaction.TransactionNumber</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Client</span>
+                            <span class="value">@selectedTransaction.ClientName</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Date</span>
+                            <span class="value">@selectedTransaction.TransactionDate.ToString("MMMM dd, yyyy")</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Payment Method</span>
+                            <span class="value">@selectedTransaction.PaymentMethod</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Reference</span>
+                            <span class="value">@selectedTransaction.Reference</span>
+                        </div>
+                        <div class="detail-row highlight">
+                            <span class="label">Amount</span>
+                            <span class="value amount">₱@selectedTransaction.Amount.ToString("N2")</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Status</span>
+                            <span class="status-badge @selectedTransaction.Status.ToLower()">@selectedTransaction.Status</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Description</span>
+                            <span class="value">@selectedTransaction.Description</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    @if (selectedTransaction.Status == "Pending")
+                    {
+                        <button class="btn btn-danger" @onclick="() => RejectTransaction(selectedTransaction)">Reject</button>
+                        <button class="btn btn-success" @onclick="() => ApproveTransaction(selectedTransaction)">✓ Approve</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary" @onclick="() => showViewModal = false">Close</button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .transactions-page { padding: 0; }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .header-left h2 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .header-left .subtitle {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+    .btn-success { background: #10b981; color: white; }
+    .btn-danger { background: #ef4444; color: white; }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-left: 4px solid #6366f1;
+    }
+
+    .stat-card.pending { border-left-color: #f59e0b; }
+    .stat-card.completed { border-left-color: #10b981; }
+    .stat-card.total { border-left-color: #8b5cf6; }
+
+    .stat-value {
+        display: block;
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .filters-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+
+    .search-box {
+        flex: 1;
+        position: relative;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 12px 12px 12px 40px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .filters-bar select,
+    .filters-bar input[type="date"] {
+        padding: 12px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: white;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th {
+        background: #f9fafb;
+        padding: 14px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+    }
+
+    .data-table td {
+        padding: 14px 16px;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .data-table tr.highlight {
+        background: #fffbeb;
+    }
+
+    .type-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .type-badge.payment { background: #d1fae5; color: #059669; }
+    .type-badge.refund { background: #fee2e2; color: #dc2626; }
+    .type-badge.credit { background: #dbeafe; color: #1d4ed8; }
+
+    .method-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .method-icon {
+        font-size: 18px;
+    }
+
+    .text-success { color: #059669; font-weight: 600; }
+    .text-danger { color: #dc2626; font-weight: 600; }
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-badge.pending { background: #fef3c7; color: #d97706; }
+    .status-badge.completed { background: #d1fae5; color: #059669; }
+    .status-badge.failed { background: #fee2e2; color: #dc2626; }
+    .status-badge.refunded { background: #f3f4f6; color: #6b7280; }
+
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        background: #f3f4f6;
+    }
+
+    .action-btn.approve { background: #d1fae5; color: #059669; }
+    .action-btn.reject { background: #fee2e2; color: #dc2626; }
+
+    /* Modal styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 550px;
+        max-height: 90vh;
+        overflow: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-header h3 { margin: 0; font-size: 18px; }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #6b7280;
+    }
+
+    .modal-body { padding: 24px; }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 16px 24px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .file-upload {
+        border: 2px dashed #e5e7eb;
+        border-radius: 8px;
+        padding: 24px;
+        text-align: center;
+        color: #6b7280;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .file-upload:hover {
+        border-color: #6366f1;
+        background: #f5f3ff;
+    }
+
+    .file-upload input {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .transaction-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: #f9fafb;
+        border-radius: 8px;
+    }
+
+    .detail-row.highlight {
+        background: #f5f3ff;
+    }
+
+    .detail-row .label {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .detail-row .value {
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .detail-row .amount {
+        font-size: 20px;
+        font-weight: 700;
+        color: #059669;
+    }
+</style>
+
+@code {
+    private List<TransactionData> transactions = new();
+    private List<ClientData> clients = new();
+    private string searchTerm = "";
+    private string statusFilter = "";
+    private string methodFilter = "";
+    private DateTime? startDate;
+    private DateTime? endDate;
+
+    private bool showRecordModal = false;
+    private bool showViewModal = false;
+    private TransactionData newTransaction = new();
+    private TransactionData? selectedTransaction;
+
+    private IEnumerable<TransactionData> FilteredTransactions => transactions
+        .Where(t => string.IsNullOrEmpty(searchTerm) || 
+            t.TransactionNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+            t.ClientName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+        .Where(t => string.IsNullOrEmpty(statusFilter) || t.Status == statusFilter)
+        .Where(t => string.IsNullOrEmpty(methodFilter) || t.PaymentMethod == methodFilter)
+        .Where(t => !startDate.HasValue || t.TransactionDate >= startDate.Value)
+        .Where(t => !endDate.HasValue || t.TransactionDate <= endDate.Value)
+        .OrderByDescending(t => t.TransactionDate);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSampleData();
+    }
+
+    private async Task LoadSampleData()
+    {
+        await Task.Delay(100);
+
+        clients = new List<ClientData>
+        {
+            new ClientData { ClientId = 1, CompanyName = "FineBank Cooperative" },
+            new ClientData { ClientId = 2, CompanyName = "Demo Company Inc." },
+            new ClientData { ClientId = 3, CompanyName = "Metro Credit Union" },
+        };
+
+        transactions = new List<TransactionData>
+        {
+            new TransactionData { TransactionId = 1, TransactionNumber = "TXN-2024-001", ClientId = 1, ClientName = "FineBank Cooperative", TransactionDate = DateTime.Now.AddMonths(-6).AddDays(5), TransactionType = "Payment", PaymentMethod = "GCash", Amount = 5999, Reference = "GC-123456789", Status = "Completed", Description = "Monthly subscription - July 2024" },
+            new TransactionData { TransactionId = 2, TransactionNumber = "TXN-2024-002", ClientId = 1, ClientName = "FineBank Cooperative", TransactionDate = DateTime.Now.AddMonths(-5).AddDays(3), TransactionType = "Payment", PaymentMethod = "BDO", Amount = 5999, Reference = "BDO-987654321", Status = "Completed", Description = "Monthly subscription - August 2024" },
+            new TransactionData { TransactionId = 3, TransactionNumber = "TXN-2024-003", ClientId = 3, ClientName = "Metro Credit Union", TransactionDate = DateTime.Now.AddMonths(-4).AddDays(2), TransactionType = "Payment", PaymentMethod = "GCash", Amount = 5999, Reference = "GC-111222333", Status = "Completed", Description = "Monthly subscription - September 2024" },
+            new TransactionData { TransactionId = 4, TransactionNumber = "TXN-2024-004", ClientId = 1, ClientName = "FineBank Cooperative", TransactionDate = DateTime.Now.AddMonths(-3).AddDays(1), TransactionType = "Payment", PaymentMethod = "GCash", Amount = 5999, Reference = "GC-444555666", Status = "Completed", Description = "Monthly subscription - October 2024" },
+            new TransactionData { TransactionId = 5, TransactionNumber = "TXN-2024-005", ClientId = 2, ClientName = "Demo Company Inc.", TransactionDate = DateTime.Now.AddMonths(-2).AddDays(4), TransactionType = "Payment", PaymentMethod = "BDO", Amount = 2999, Reference = "BDO-777888999", Status = "Completed", Description = "Monthly subscription - November 2024" },
+            new TransactionData { TransactionId = 6, TransactionNumber = "TXN-2024-006", ClientId = 1, ClientName = "FineBank Cooperative", TransactionDate = DateTime.Now.AddMonths(-1).AddDays(2), TransactionType = "Payment", PaymentMethod = "GCash", Amount = 5999, Reference = "GC-999000111", Status = "Completed", Description = "Monthly subscription - December 2024" },
+            new TransactionData { TransactionId = 7, TransactionNumber = "TXN-2024-007", ClientId = 3, ClientName = "Metro Credit Union", TransactionDate = DateTime.Now.AddDays(-2), TransactionType = "Payment", PaymentMethod = "PayMaya", Amount = 5999, Reference = "PM-123123123", Status = "Pending", Description = "Monthly subscription - January 2025" },
+        };
+    }
+
+    private void ShowRecordPayment()
+    {
+        newTransaction = new TransactionData
+        {
+            TransactionDate = DateTime.Today,
+            TransactionType = "Payment",
+            PaymentMethod = "GCash",
+            Status = "Completed"
+        };
+        showRecordModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showRecordModal = false;
+    }
+
+    private void SaveTransaction()
+    {
+        var nextNum = transactions.Max(t => t.TransactionId) + 1;
+        newTransaction.TransactionId = nextNum;
+        newTransaction.TransactionNumber = $"TXN-2024-{nextNum:D3}";
+        var client = clients.FirstOrDefault(c => c.ClientId == newTransaction.ClientId);
+        newTransaction.ClientName = client?.CompanyName ?? "";
+        transactions.Insert(0, newTransaction);
+        CloseModal();
+    }
+
+    private void ViewTransaction(TransactionData txn)
+    {
+        selectedTransaction = txn;
+        showViewModal = true;
+    }
+
+    private void ApproveTransaction(TransactionData txn)
+    {
+        txn.Status = "Completed";
+        showViewModal = false;
+    }
+
+    private void RejectTransaction(TransactionData txn)
+    {
+        txn.Status = "Failed";
+        showViewModal = false;
+    }
+
+    private string GetMethodIcon(string method) => method switch
+    {
+        "GCash" => "📱",
+        "PayMaya" => "💳",
+        "BDO" => "🏦",
+        "BPI" => "🏦",
+        "Cash" => "💵",
+        _ => "💳"
+    };
+
+    private class TransactionData
+    {
+        public int TransactionId { get; set; }
+        public string TransactionNumber { get; set; } = "";
+        public int ClientId { get; set; }
+        public string ClientName { get; set; } = "";
+        public int InvoiceId { get; set; }
+        public DateTime TransactionDate { get; set; }
+        public string TransactionType { get; set; } = "";
+        public string PaymentMethod { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string Reference { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string Description { get; set; } = "";
+    }
+
+    private class ClientData
+    {
+        public int ClientId { get; set; }
+        public string CompanyName { get; set; } = "";
+    }
+}

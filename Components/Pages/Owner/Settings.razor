@@ -1,0 +1,846 @@
+@page "/owner/settings"
+@layout OwnerLayout
+
+<div class="settings-page">
+    <!-- Header -->
+    <div class="page-header">
+        <h2>Settings</h2>
+        <span class="subtitle">Manage your account and company settings</span>
+    </div>
+
+    <!-- Settings Tabs -->
+    <div class="settings-tabs">
+        <button class="tab @(activeTab == "profile" ? "active" : "")" @onclick='() => activeTab = "profile"'>
+            👤 Profile
+        </button>
+        <button class="tab @(activeTab == "company" ? "active" : "")" @onclick='() => activeTab = "company"'>
+            🏢 Company
+        </button>
+        <button class="tab @(activeTab == "payment" ? "active" : "")" @onclick='() => activeTab = "payment"'>
+            💳 Payment Methods
+        </button>
+        <button class="tab @(activeTab == "notifications" ? "active" : "")" @onclick='() => activeTab = "notifications"'>
+            🔔 Notifications
+        </button>
+        <button class="tab @(activeTab == "security" ? "active" : "")" @onclick='() => activeTab = "security"'>
+            🔒 Security
+        </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="settings-content">
+        @if (activeTab == "profile")
+        {
+            <div class="settings-section">
+                <h3>Owner Profile</h3>
+                <div class="profile-header">
+                    <div class="avatar-section">
+                        <div class="avatar">
+                            <img src="@profilePictureUrl" alt="Profile" onerror="this.style.display='none'" />
+                            <span class="avatar-text">A</span>
+                        </div>
+                        <button class="btn btn-secondary btn-sm">Change Photo</button>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" @bind="profile.FullName" />
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" @bind="profile.Email" />
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" @bind="profile.Phone" />
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <input type="text" value="System Owner" readonly />
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" @onclick="SaveProfile">💾 Save Changes</button>
+                </div>
+            </div>
+        }
+
+        @if (activeTab == "company")
+        {
+            <div class="settings-section">
+                <h3>Company Information</h3>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Company Name</label>
+                        <input type="text" @bind="company.Name" />
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Business Address</label>
+                        <textarea @bind="company.Address" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>TIN Number</label>
+                        <input type="text" @bind="company.TIN" />
+                    </div>
+                    <div class="form-group">
+                        <label>SEC Registration</label>
+                        <input type="text" @bind="company.SECReg" />
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Email</label>
+                        <input type="email" @bind="company.Email" />
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Phone</label>
+                        <input type="tel" @bind="company.Phone" />
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Website</label>
+                        <input type="url" @bind="company.Website" />
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" @onclick="SaveCompany">💾 Save Changes</button>
+                </div>
+            </div>
+        }
+
+        @if (activeTab == "payment")
+        {
+            <div class="settings-section">
+                <h3>Payment Method Accounts</h3>
+                <p class="section-desc">Configure your payment receiving accounts. These will be shown to clients when paying invoices.</p>
+                
+                <div class="payment-methods">
+                    @foreach (var method in paymentMethods)
+                    {
+                        <div class="payment-method-card">
+                            <div class="method-icon" style="background: @method.Color;">
+                                @method.Icon
+                            </div>
+                            <div class="method-info">
+                                <h4>@method.Name</h4>
+                                <div class="method-details">
+                                    <div class="detail">
+                                        <span class="label">Account Name:</span>
+                                        <input type="text" @bind="method.AccountName" />
+                                    </div>
+                                    <div class="detail">
+                                        <span class="label">Account Number:</span>
+                                        <input type="text" @bind="method.AccountNumber" />
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(method.Instructions))
+                                    {
+                                        <div class="detail full">
+                                            <span class="label">Instructions:</span>
+                                            <textarea @bind="method.Instructions" rows="2"></textarea>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="method-toggle">
+                                <label class="switch">
+                                    <input type="checkbox" @bind="method.IsActive" />
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="toggle-label">@(method.IsActive ? "Active" : "Disabled")</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" @onclick="SavePaymentMethods">💾 Save Payment Methods</button>
+                </div>
+            </div>
+        }
+
+        @if (activeTab == "notifications")
+        {
+            <div class="settings-section">
+                <h3>Notification Settings</h3>
+                <p class="section-desc">Configure when you receive notifications.</p>
+
+                <div class="notification-settings">
+                    <div class="notification-group">
+                        <h4>📧 Email Notifications</h4>
+                        <div class="notification-items">
+                            <label class="notification-item">
+                                <input type="checkbox" @bind="notifications.EmailNewPayment" />
+                                <span class="text">New payment received</span>
+                            </label>
+                            <label class="notification-item">
+                                <input type="checkbox" @bind="notifications.EmailNewClient" />
+                                <span class="text">New client registration</span>
+                            </label>
+                            <label class="notification-item">
+                                <input type="checkbox" @bind="notifications.EmailSupportTicket" />
+                                <span class="text">New support ticket</span>
+                            </label>
+                            <label class="notification-item">
+                                <input type="checkbox" @bind="notifications.EmailOverdueInvoice" />
+                                <span class="text">Overdue invoices (daily digest)</span>
+                            </label>
+                            <label class="notification-item">
+                                <input type="checkbox" @bind="notifications.EmailUpcomingRenewal" />
+                                <span class="text">Upcoming subscription renewals</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="notification-group">
+                        <h4>📱 SMS Notifications</h4>
+                        <div class="notification-items">
+                            <label class="notification-item">
+                                <input type="checkbox" @bind="notifications.SmsNewPayment" />
+                                <span class="text">New payment received</span>
+                            </label>
+                            <label class="notification-item">
+                                <input type="checkbox" @bind="notifications.SmsHighPriorityTicket" />
+                                <span class="text">High priority support tickets</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="notification-group">
+                        <h4>⏰ Auto-reminders</h4>
+                        <div class="reminder-settings">
+                            <div class="reminder-item">
+                                <label>Invoice Due Reminder:</label>
+                                <select @bind="notifications.InvoiceDueReminderDays">
+                                    <option value="3">3 days before</option>
+                                    <option value="5">5 days before</option>
+                                    <option value="7">7 days before</option>
+                                </select>
+                            </div>
+                            <div class="reminder-item">
+                                <label>Subscription Renewal Reminder:</label>
+                                <select @bind="notifications.RenewalReminderDays">
+                                    <option value="7">7 days before</option>
+                                    <option value="14">14 days before</option>
+                                    <option value="30">30 days before</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" @onclick="SaveNotifications">💾 Save Notification Settings</button>
+                </div>
+            </div>
+        }
+
+        @if (activeTab == "security")
+        {
+            <div class="settings-section">
+                <h3>Security Settings</h3>
+                
+                <div class="security-section">
+                    <h4>🔑 Change Password</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" @bind="security.CurrentPassword" />
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" @bind="security.NewPassword" />
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" @bind="security.ConfirmPassword" />
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" @onclick="ChangePassword">Update Password</button>
+                </div>
+
+                <div class="security-section">
+                    <h4>🔐 Two-Factor Authentication</h4>
+                    <div class="two-factor">
+                        <p>Add an extra layer of security to your account.</p>
+                        <div class="two-factor-status">
+                            <span class="status @(security.TwoFactorEnabled ? "enabled" : "disabled")">
+                                @(security.TwoFactorEnabled ? "✅ Enabled" : "⚠️ Disabled")
+                            </span>
+                            <button class="btn btn-secondary btn-sm" @onclick="ToggleTwoFactor">
+                                @(security.TwoFactorEnabled ? "Disable" : "Enable")
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="security-section">
+                    <h4>📋 Recent Login Activity</h4>
+                    <div class="login-activity">
+                        <div class="activity-item">
+                            <div class="activity-icon">🖥️</div>
+                            <div class="activity-info">
+                                <span class="device">Windows PC - Chrome</span>
+                                <span class="details">Manila, Philippines • @DateTime.Now.ToString("MMM dd, yyyy h:mm tt")</span>
+                            </div>
+                            <span class="current-badge">Current</span>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon">📱</div>
+                            <div class="activity-info">
+                                <span class="device">iPhone - Safari</span>
+                                <span class="details">Makati, Philippines • @DateTime.Now.AddDays(-1).ToString("MMM dd, yyyy h:mm tt")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (showSaveSuccess)
+    {
+        <div class="toast success">
+            <span class="toast-icon">✅</span>
+            <span>Settings saved successfully!</span>
+        </div>
+    }
+</div>
+
+<style>
+    .settings-page { padding: 0; }
+
+    .page-header { margin-bottom: 24px; }
+    .page-header h2 { font-size: 24px; font-weight: 700; color: #1f2937; margin: 0; }
+    .page-header .subtitle { font-size: 14px; color: #6b7280; }
+
+    .settings-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 16px;
+    }
+
+    .tab {
+        padding: 10px 20px;
+        border: none;
+        background: none;
+        font-size: 14px;
+        font-weight: 500;
+        color: #6b7280;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .tab:hover { background: #f3f4f6; }
+    .tab.active {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+    }
+
+    .settings-content {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .settings-section {
+        padding: 24px;
+    }
+
+    .settings-section h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+    }
+
+    .section-desc {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 0 0 20px 0;
+    }
+
+    .profile-header {
+        margin-bottom: 24px;
+    }
+
+    .avatar-section {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-text {
+        font-size: 32px;
+        font-weight: 600;
+        color: white;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .form-group { display: flex; flex-direction: column; }
+    .form-group.full-width { grid-column: 1 / -1; }
+    .form-group label { font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    .form-group input, .form-group textarea, .form-group select {
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .form-group input:read-only {
+        background: #f9fafb;
+        color: #6b7280;
+    }
+
+    .form-actions { display: flex; gap: 12px; }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+    .btn-sm { padding: 8px 16px; font-size: 13px; }
+
+    /* Payment Methods */
+    .payment-methods {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .payment-method-card {
+        display: flex;
+        gap: 16px;
+        padding: 20px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        align-items: flex-start;
+    }
+
+    .method-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .method-info { flex: 1; }
+    .method-info h4 { margin: 0 0 12px 0; font-size: 16px; font-weight: 600; }
+
+    .method-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .method-details .detail { display: flex; flex-direction: column; }
+    .method-details .detail.full { grid-column: 1 / -1; }
+    .method-details .label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+    .method-details input, .method-details textarea {
+        padding: 8px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .method-toggle {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .toggle-label { font-size: 12px; color: #6b7280; }
+
+    .switch {
+        position: relative;
+        width: 44px;
+        height: 24px;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #ccc;
+        transition: .3s;
+        border-radius: 24px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .3s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* Notifications */
+    .notification-settings {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin-bottom: 20px;
+    }
+
+    .notification-group h4 { margin: 0 0 12px 0; font-size: 15px; }
+
+    .notification-items {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .notification-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: #f9fafb;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .notification-item input[type="checkbox"] { width: 18px; height: 18px; }
+    .notification-item .text { font-size: 14px; color: #374151; }
+
+    .reminder-settings {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .reminder-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .reminder-item label { font-size: 14px; color: #374151; min-width: 200px; }
+    .reminder-item select {
+        padding: 8px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+    }
+
+    /* Security */
+    .security-section {
+        padding: 20px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .security-section h4 { margin: 0 0 16px 0; font-size: 15px; }
+
+    .two-factor p { margin: 0 0 12px 0; font-size: 14px; color: #6b7280; }
+
+    .two-factor-status {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .two-factor-status .status {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .two-factor-status .status.enabled { color: #10b981; }
+    .two-factor-status .status.disabled { color: #f59e0b; }
+
+    .login-activity {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: #f9fafb;
+        border-radius: 8px;
+    }
+
+    .activity-icon { font-size: 20px; }
+
+    .activity-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .activity-info .device { font-size: 14px; font-weight: 500; color: #1f2937; }
+    .activity-info .details { font-size: 12px; color: #6b7280; }
+
+    .current-badge {
+        font-size: 11px;
+        padding: 4px 10px;
+        background: #d1fae5;
+        color: #059669;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    /* Toast */
+    .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 24px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        animation: slideIn 0.3s ease;
+    }
+
+    .toast.success { border-left: 4px solid #10b981; }
+
+    @@keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+</style>
+
+@code {
+    private string activeTab = "profile";
+    private string profilePictureUrl = "";
+    private bool showSaveSuccess = false;
+
+    private ProfileData profile = new();
+    private CompanyData company = new();
+    private List<PaymentMethodData> paymentMethods = new();
+    private NotificationSettings notifications = new();
+    private SecuritySettings security = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSampleData();
+    }
+
+    private async Task LoadSampleData()
+    {
+        await Task.Delay(100);
+        
+        profile = new ProfileData
+        {
+            FullName = "System Administrator",
+            Email = "admin@finebank.com",
+            Phone = "+63 917 123 4567"
+        };
+
+        company = new CompanyData
+        {
+            Name = "FineBank Software Solutions",
+            Address = "123 Business Park, Makati City, Metro Manila, Philippines 1200",
+            TIN = "123-456-789-000",
+            SECReg = "CS201912345",
+            Email = "info@finebank.com",
+            Phone = "+63 2 8123 4567",
+            Website = "https://www.finebank.com"
+        };
+
+        paymentMethods = new List<PaymentMethodData>
+        {
+            new PaymentMethodData {
+                Name = "GCash",
+                Icon = "📱",
+                Color = "#0d6efd",
+                AccountName = "FineBank Software Solutions",
+                AccountNumber = "0917-123-4567",
+                Instructions = "Send to the number above and upload receipt",
+                IsActive = true
+            },
+            new PaymentMethodData {
+                Name = "PayMaya",
+                Icon = "💳",
+                Color = "#10b981",
+                AccountName = "FineBank Software Solutions",
+                AccountNumber = "0918-765-4321",
+                Instructions = "",
+                IsActive = true
+            },
+            new PaymentMethodData {
+                Name = "BDO",
+                Icon = "🏦",
+                Color = "#0066a1",
+                AccountName = "FineBank Software Solutions Inc.",
+                AccountNumber = "1234-5678-9012",
+                Instructions = "BDO Savings Account - Makati Branch",
+                IsActive = true
+            },
+            new PaymentMethodData {
+                Name = "BPI",
+                Icon = "🏛️",
+                Color = "#a51c30",
+                AccountName = "FineBank Software Solutions Inc.",
+                AccountNumber = "9876-5432-1098",
+                Instructions = "BPI Savings Account - BGC Branch",
+                IsActive = true
+            }
+        };
+
+        notifications = new NotificationSettings
+        {
+            EmailNewPayment = true,
+            EmailNewClient = true,
+            EmailSupportTicket = true,
+            EmailOverdueInvoice = true,
+            EmailUpcomingRenewal = true,
+            SmsNewPayment = false,
+            SmsHighPriorityTicket = true,
+            InvoiceDueReminderDays = 5,
+            RenewalReminderDays = 14
+        };
+
+        security = new SecuritySettings
+        {
+            TwoFactorEnabled = false
+        };
+    }
+
+    private async Task SaveProfile()
+    {
+        await ShowSuccess();
+    }
+
+    private async Task SaveCompany()
+    {
+        await ShowSuccess();
+    }
+
+    private async Task SavePaymentMethods()
+    {
+        await ShowSuccess();
+    }
+
+    private async Task SaveNotifications()
+    {
+        await ShowSuccess();
+    }
+
+    private async Task ChangePassword()
+    {
+        if (security.NewPassword == security.ConfirmPassword)
+        {
+            await ShowSuccess();
+            security.CurrentPassword = "";
+            security.NewPassword = "";
+            security.ConfirmPassword = "";
+        }
+    }
+
+    private void ToggleTwoFactor()
+    {
+        security.TwoFactorEnabled = !security.TwoFactorEnabled;
+    }
+
+    private async Task ShowSuccess()
+    {
+        showSaveSuccess = true;
+        StateHasChanged();
+        await Task.Delay(3000);
+        showSaveSuccess = false;
+        StateHasChanged();
+    }
+
+    private class ProfileData
+    {
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Phone { get; set; } = "";
+    }
+
+    private class CompanyData
+    {
+        public string Name { get; set; } = "";
+        public string Address { get; set; } = "";
+        public string TIN { get; set; } = "";
+        public string SECReg { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Phone { get; set; } = "";
+        public string Website { get; set; } = "";
+    }
+
+    private class PaymentMethodData
+    {
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string Color { get; set; } = "";
+        public string AccountName { get; set; } = "";
+        public string AccountNumber { get; set; } = "";
+        public string Instructions { get; set; } = "";
+        public bool IsActive { get; set; }
+    }
+
+    private class NotificationSettings
+    {
+        public bool EmailNewPayment { get; set; }
+        public bool EmailNewClient { get; set; }
+        public bool EmailSupportTicket { get; set; }
+        public bool EmailOverdueInvoice { get; set; }
+        public bool EmailUpcomingRenewal { get; set; }
+        public bool SmsNewPayment { get; set; }
+        public bool SmsHighPriorityTicket { get; set; }
+        public int InvoiceDueReminderDays { get; set; }
+        public int RenewalReminderDays { get; set; }
+    }
+
+    private class SecuritySettings
+    {
+        public string CurrentPassword { get; set; } = "";
+        public string NewPassword { get; set; } = "";
+        public string ConfirmPassword { get; set; } = "";
+        public bool TwoFactorEnabled { get; set; }
+    }
+}

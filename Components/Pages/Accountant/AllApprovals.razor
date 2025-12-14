@@ -57,41 +57,32 @@
 
 <!-- Statistics Cards -->
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px;">
-    <div
-        style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; padding: 24px; border: 1px solid #6ee7b7;">
-        <div style="font-size: 13px; color: #047857; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">⏳
-            Pending</div>
-        <div style="font-size: 32px; font-weight: 700; color: #059669;">@pendingCount</div>
+    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">⏳ Pending</div>
+        <div style="font-size: 32px; font-weight: 700; color: #111827;">@pendingCount</div>
     </div>
-    <div
-        style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 16px; padding: 24px; border: 1px solid #6ee7b7;">
-        <div style="font-size: 13px; color: #065f46; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">✓
-            Approved</div>
-        <div style="font-size: 32px; font-weight: 700; color: #059669;">@approvedCount</div>
+    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">✓ Approved</div>
+        <div style="font-size: 32px; font-weight: 700; color: #111827;">@approvedCount</div>
     </div>
-    <div
-        style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; padding: 24px; border: 1px solid #6ee7b7;">
-        <div style="font-size: 13px; color: #047857; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">✗
-            Declined</div>
-        <div style="font-size: 32px; font-weight: 700; color: #059669;">@declinedCount</div>
+    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">✗ Declined</div>
+        <div style="font-size: 32px; font-weight: 700; color: #111827;">@declinedCount</div>
     </div>
-    <div
-        style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; padding: 24px; border: 1px solid #6ee7b7;">
-        <div style="font-size: 13px; color: #047857; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
-            📋 Total</div>
-        <div style="font-size: 32px; font-weight: 700; color: #059669;">@totalCount</div>
+    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">📋 Total</div>
+        <div style="font-size: 32px; font-weight: 700; color: #111827;">@totalCount</div>
     </div>
 </div>
 
 <!-- Tab Navigation -->
-<div
-    style="display: flex; gap: 8px; margin-bottom: 24px; background: white; padding: 8px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+<div style="display: flex; gap: 12px; margin-bottom: 24px;">
     <button @onclick='() => SetActiveTab("pending")'
-        style="flex: 1; padding: 14px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; @(activeTab == "pending" ? "background: linear-gradient(135deg, #059669, #10b981); color: white;" : "background: transparent; color: #64748b;")">
+        style="@(activeTab == "pending" ? "background: linear-gradient(135deg, #059669, #10b981); color: white;" : "background: white; color: #64748b;") padding: 14px 24px; border: 2px solid @(activeTab == "pending" ? "#059669" : "#e5e7eb"); border-radius: 12px; font-weight: 600; cursor: pointer; flex: 1;">
         ⏳ Pending Approvals
     </button>
     <button @onclick='() => SetActiveTab("history")'
-        style="flex: 1; padding: 14px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; @(activeTab == "history" ? "background: linear-gradient(135deg, #059669, #10b981); color: white;" : "background: transparent; color: #64748b;")">
+        style="@(activeTab == "history" ? "background: linear-gradient(135deg, #059669, #10b981); color: white;" : "background: white; color: #64748b;") padding: 14px 24px; border: 2px solid @(activeTab == "history" ? "#059669" : "#e5e7eb"); border-radius: 12px; font-weight: 600; cursor: pointer; flex: 1;">
         📜 Approval History
     </button>
 </div>

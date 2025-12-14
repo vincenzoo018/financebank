@@ -1,0 +1,868 @@
+@page "/owner/client/{ClientId:int}"
+@layout OwnerLayout
+@using FinanceBank.Models.SaaS
+@inject NavigationManager Navigation
+
+<div class="client-details-page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <button class="back-btn" @onclick="GoBack">← Back to Clients</button>
+            <h2>@client.CompanyName</h2>
+            <span class="status-badge @client.Status.ToLower()">@client.Status</span>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-secondary" @onclick="EditClient">✏️ Edit</button>
+            @if (client.Status == "Active")
+            {
+                <button class="btn btn-danger" @onclick="SuspendClient">⏸️ Suspend</button>
+            }
+            else
+            {
+                <button class="btn btn-success" @onclick="ActivateClient">▶️ Activate</button>
+            }
+        </div>
+    </div>
+
+    <!-- Info Cards Row -->
+    <div class="info-row">
+        <div class="info-card">
+            <div class="info-icon">📋</div>
+            <div class="info-content">
+                <span class="info-label">Subscription Plan</span>
+                <span class="info-value">@subscription.PlanName</span>
+                <span class="info-sub">@subscription.BillingCycle</span>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-icon">💰</div>
+            <div class="info-content">
+                <span class="info-label">Monthly Fee</span>
+                <span class="info-value">₱@subscription.MonthlyPrice.ToString("N2")</span>
+                <span class="info-sub">Next: @subscription.NextBilling</span>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-icon">💳</div>
+            <div class="info-content">
+                <span class="info-label">Outstanding Balance</span>
+                <span class="info-value @(client.OutstandingBalance > 0 ? "text-danger" : "text-success")">₱@client.OutstandingBalance.ToString("N2")</span>
+                <span class="info-sub">Total Paid: ₱@client.TotalPaid.ToString("N0")</span>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-icon">📅</div>
+            <div class="info-content">
+                <span class="info-label">Client Since</span>
+                <span class="info-value">@client.CreatedAt.ToString("MMM dd, yyyy")</span>
+                <span class="info-sub">@GetMemberDuration()</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Tabs -->
+    <div class="tabs-container">
+        <div class="tabs-header">
+            <button class="tab-btn @(activeTab == "details" ? "active" : "")" @onclick='() => activeTab = "details"'>Details</button>
+            <button class="tab-btn @(activeTab == "invoices" ? "active" : "")" @onclick='() => activeTab = "invoices"'>Invoices (@invoices.Count)</button>
+            <button class="tab-btn @(activeTab == "payments" ? "active" : "")" @onclick='() => activeTab = "payments"'>Payments (@payments.Count)</button>
+            <button class="tab-btn @(activeTab == "modules" ? "active" : "")" @onclick='() => activeTab = "modules"'>Modules (@modules.Count)</button>
+        </div>
+
+        <div class="tab-content">
+            @if (activeTab == "details")
+            {
+                <div class="details-tab">
+                    <div class="detail-section">
+                        <h4>Company Information</h4>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Company Name</span>
+                                <span class="detail-value">@client.CompanyName</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Client Code</span>
+                                <span class="detail-value">@client.ClientCode</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Business Type</span>
+                                <span class="detail-value">@(client.BusinessType ?? "Cooperative")</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Tax ID</span>
+                                <span class="detail-value">@(client.TaxId ?? "—")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Contact Information</h4>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Primary Email</span>
+                                <span class="detail-value">@client.PrimaryEmail</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Phone</span>
+                                <span class="detail-value">@(client.Phone ?? "—")</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Mobile</span>
+                                <span class="detail-value">@(client.Mobile ?? "—")</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Address</span>
+                                <span class="detail-value">@(client.Address ?? "—"), @(client.City ?? "")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Contact Person</h4>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Name</span>
+                                <span class="detail-value">@(client.ContactPersonName ?? "—")</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Title</span>
+                                <span class="detail-value">@(client.ContactPersonTitle ?? "—")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (activeTab == "invoices")
+            {
+                <div class="invoices-tab">
+                    <div class="tab-actions">
+                        <button class="btn btn-primary btn-sm" @onclick="CreateInvoice">➕ Create Invoice</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Period</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var inv in invoices)
+                            {
+                                <tr>
+                                    <td><strong>@inv.InvoiceNumber</strong></td>
+                                    <td>@inv.PeriodStart?.ToString("MMM yyyy")</td>
+                                    <td>₱@inv.TotalAmount.ToString("N2")</td>
+                                    <td><span class="status-badge @inv.Status.ToLower()">@inv.Status</span></td>
+                                    <td>@inv.DueDate.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        <button class="action-btn" title="View">👁️</button>
+                                        @if (inv.Status == "Pending")
+                                        {
+                                            <button class="action-btn" @onclick="() => RecordPayment(inv)" title="Record Payment">💳</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else if (activeTab == "payments")
+            {
+                <div class="payments-tab">
+                    <div class="tab-actions">
+                        <button class="btn btn-primary btn-sm" @onclick="ShowRecordPayment">➕ Record Payment</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Transaction #</th>
+                                <th>Date</th>
+                                <th>Method</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Reference</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pmt in payments)
+                            {
+                                <tr>
+                                    <td><strong>@pmt.TransactionNumber</strong></td>
+                                    <td>@pmt.TransactionDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@pmt.PaymentMethodName</td>
+                                    <td class="text-success">₱@pmt.Amount.ToString("N2")</td>
+                                    <td><span class="status-badge @pmt.Status.ToLower()">@pmt.Status</span></td>
+                                    <td>@pmt.PaymentReference</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else if (activeTab == "modules")
+            {
+                <div class="modules-tab">
+                    <div class="modules-grid">
+                        @foreach (var mod in modules)
+                        {
+                            <div class="module-card @(mod.IsEnabled ? "enabled" : "disabled")">
+                                <div class="module-icon">@mod.Icon</div>
+                                <div class="module-info">
+                                    <span class="module-name">@mod.ModuleName</span>
+                                    <span class="module-desc">@mod.Description</span>
+                                </div>
+                                <div class="module-toggle">
+                                    <label class="switch">
+                                        <input type="checkbox" checked="@mod.IsEnabled" @onchange="() => ToggleModule(mod)" />
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Record Payment Modal -->
+    @if (showPaymentModal)
+    {
+        <div class="modal-overlay" @onclick="() => showPaymentModal = false">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>Record Payment</h3>
+                    <button class="close-btn" @onclick="() => showPaymentModal = false">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Invoice</label>
+                        <select @bind="paymentInvoiceId">
+                            <option value="0">Select Invoice</option>
+                            @foreach (var inv in invoices.Where(i => i.Status == "Pending"))
+                            {
+                                <option value="@inv.InvoiceId">@inv.InvoiceNumber - ₱@inv.BalanceDue.ToString("N2")</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <select @bind="paymentMethod">
+                            <option value="GCash">GCash</option>
+                            <option value="PayMaya">PayMaya</option>
+                            <option value="BDO">BDO Bank Transfer</option>
+                            <option value="BPI">BPI Bank Transfer</option>
+                            <option value="Cash">Cash</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" @bind="paymentAmount" step="0.01" />
+                    </div>
+                    <div class="form-group">
+                        <label>Reference Number</label>
+                        <input type="text" @bind="paymentReference" placeholder="Transaction/Receipt number" />
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Date</label>
+                        <input type="date" @bind="paymentDate" />
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea @bind="paymentNotes" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="() => showPaymentModal = false">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SavePayment">Record Payment</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .client-details-page {
+        padding: 0;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .back-btn {
+        background: none;
+        border: none;
+        color: #6366f1;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .header-left h2 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .header-right {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+    .btn-danger { background: #fee2e2; color: #dc2626; }
+    .btn-success { background: #d1fae5; color: #059669; }
+    .btn-sm { padding: 8px 16px; font-size: 13px; }
+
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-badge.active { background: #d1fae5; color: #059669; }
+    .status-badge.trial { background: #fef3c7; color: #d97706; }
+    .status-badge.suspended { background: #fee2e2; color: #dc2626; }
+    .status-badge.pending { background: #fef3c7; color: #d97706; }
+    .status-badge.paid { background: #d1fae5; color: #059669; }
+    .status-badge.completed { background: #d1fae5; color: #059669; }
+
+    .info-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .info-icon {
+        font-size: 24px;
+        width: 48px;
+        height: 48px;
+        background: #f5f3ff;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .info-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-label {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .info-value {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .info-sub {
+        font-size: 12px;
+        color: #9ca3af;
+    }
+
+    .text-danger { color: #dc2626 !important; }
+    .text-success { color: #059669 !important; }
+
+    .tabs-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .tabs-header {
+        display: flex;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0 24px;
+    }
+
+    .tab-btn {
+        padding: 16px 24px;
+        border: none;
+        background: none;
+        font-size: 14px;
+        font-weight: 500;
+        color: #6b7280;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+        color: #6366f1;
+        border-bottom-color: #6366f1;
+    }
+
+    .tab-content {
+        padding: 24px;
+    }
+
+    .tab-actions {
+        margin-bottom: 16px;
+    }
+
+    .detail-section {
+        margin-bottom: 24px;
+    }
+
+    .detail-section h4 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .detail-label {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .detail-value {
+        font-size: 14px;
+        color: #1f2937;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th {
+        background: #f9fafb;
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+    }
+
+    .data-table td {
+        padding: 14px 16px;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        background: #f3f4f6;
+        margin-right: 4px;
+    }
+
+    .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .module-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        transition: all 0.2s;
+    }
+
+    .module-card.enabled {
+        border-color: #6366f1;
+        background: #f5f3ff;
+    }
+
+    .module-icon {
+        font-size: 24px;
+        width: 48px;
+        height: 48px;
+        background: white;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .module-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .module-name {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .module-desc {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .switch {
+        position: relative;
+        width: 48px;
+        height: 24px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #e5e7eb;
+        border-radius: 24px;
+        transition: 0.3s;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background: white;
+        border-radius: 50%;
+        transition: 0.3s;
+    }
+
+    input:checked + .slider {
+        background: #6366f1;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(24px);
+    }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 500px;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #6b7280;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 16px 24px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+</style>
+
+@code {
+    [Parameter] public int ClientId { get; set; }
+
+    private SaaSClient client = new();
+    private SubscriptionInfo subscription = new();
+    private List<InvoiceInfo> invoices = new();
+    private List<PaymentInfo> payments = new();
+    private List<ModuleInfo> modules = new();
+    private string activeTab = "details";
+    private bool showPaymentModal = false;
+
+    // Payment form
+    private int paymentInvoiceId = 0;
+    private string paymentMethod = "GCash";
+    private decimal paymentAmount = 0;
+    private string paymentReference = "";
+    private DateTime paymentDate = DateTime.Today;
+    private string paymentNotes = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSampleData();
+    }
+
+    private async Task LoadSampleData()
+    {
+        await Task.Delay(100);
+        
+        // Sample client
+        client = new SaaSClient
+        {
+            ClientId = ClientId,
+            ClientCode = "FINEBANK001",
+            CompanyName = "FineBank Cooperative",
+            TradeName = "FINEBANK",
+            BusinessType = "Cooperative",
+            PrimaryEmail = "admin@finebank.com",
+            Phone = "(02) 8123-4567",
+            Mobile = "09171234567",
+            Address = "456 Finance Avenue, Makati Business District",
+            City = "Makati City",
+            Province = "Metro Manila",
+            ContactPersonName = "System Administrator",
+            ContactPersonTitle = "IT Manager",
+            Status = "Active",
+            OutstandingBalance = 5999,
+            TotalPaid = 71988,
+            CreatedAt = DateTime.Now.AddMonths(-12)
+        };
+
+        subscription = new SubscriptionInfo
+        {
+            PlanName = "Professional Plan",
+            BillingCycle = "Monthly",
+            MonthlyPrice = 5999,
+            NextBilling = DateTime.Now.AddDays(15).ToString("MMM dd, yyyy")
+        };
+
+        invoices = new List<InvoiceInfo>
+        {
+            new InvoiceInfo { InvoiceId = 7, InvoiceNumber = "INV-2024-007", PeriodStart = DateTime.Now.AddMonths(-1), TotalAmount = 5999, BalanceDue = 5999, DueDate = DateTime.Now.AddDays(15), Status = "Pending" },
+            new InvoiceInfo { InvoiceId = 6, InvoiceNumber = "INV-2024-006", PeriodStart = DateTime.Now.AddMonths(-2), TotalAmount = 5999, BalanceDue = 0, DueDate = DateTime.Now.AddMonths(-1), Status = "Paid" },
+            new InvoiceInfo { InvoiceId = 5, InvoiceNumber = "INV-2024-005", PeriodStart = DateTime.Now.AddMonths(-3), TotalAmount = 5999, BalanceDue = 0, DueDate = DateTime.Now.AddMonths(-2), Status = "Paid" },
+            new InvoiceInfo { InvoiceId = 4, InvoiceNumber = "INV-2024-004", PeriodStart = DateTime.Now.AddMonths(-4), TotalAmount = 5999, BalanceDue = 0, DueDate = DateTime.Now.AddMonths(-3), Status = "Paid" },
+            new InvoiceInfo { InvoiceId = 3, InvoiceNumber = "INV-2024-003", PeriodStart = DateTime.Now.AddMonths(-5), TotalAmount = 5999, BalanceDue = 0, DueDate = DateTime.Now.AddMonths(-4), Status = "Paid" },
+        };
+
+        payments = new List<PaymentInfo>
+        {
+            new PaymentInfo { TransactionNumber = "TXN-2024-006", TransactionDate = DateTime.Now.AddMonths(-1).AddDays(2), PaymentMethodName = "GCash", Amount = 5999, Status = "Completed", PaymentReference = "GC-123456789" },
+            new PaymentInfo { TransactionNumber = "TXN-2024-005", TransactionDate = DateTime.Now.AddMonths(-2).AddDays(4), PaymentMethodName = "BDO", Amount = 5999, Status = "Completed", PaymentReference = "BDO-987654321" },
+            new PaymentInfo { TransactionNumber = "TXN-2024-004", TransactionDate = DateTime.Now.AddMonths(-3).AddDays(1), PaymentMethodName = "GCash", Amount = 5999, Status = "Completed", PaymentReference = "GC-111222333" },
+            new PaymentInfo { TransactionNumber = "TXN-2024-003", TransactionDate = DateTime.Now.AddMonths(-4).AddDays(2), PaymentMethodName = "GCash", Amount = 5999, Status = "Completed", PaymentReference = "GC-444555666" },
+        };
+
+        modules = new List<ModuleInfo>
+        {
+            new ModuleInfo { ModuleId = 1, ModuleName = "Core System", Description = "Core banking foundation", Icon = "💎", IsEnabled = true },
+            new ModuleInfo { ModuleId = 2, ModuleName = "Teller Operations", Description = "Deposits & withdrawals", Icon = "💵", IsEnabled = true },
+            new ModuleInfo { ModuleId = 3, ModuleName = "Loan Management", Description = "Loan applications & payments", Icon = "💰", IsEnabled = true },
+            new ModuleInfo { ModuleId = 4, ModuleName = "Savings Accounts", Description = "Savings & interest", Icon = "🏦", IsEnabled = true },
+            new ModuleInfo { ModuleId = 5, ModuleName = "General Ledger", Description = "Chart of accounts", Icon = "📊", IsEnabled = true },
+            new ModuleInfo { ModuleId = 6, ModuleName = "Financial Reports", Description = "Balance sheets", Icon = "📈", IsEnabled = true },
+            new ModuleInfo { ModuleId = 7, ModuleName = "User Administration", Description = "User management", Icon = "👥", IsEnabled = true },
+            new ModuleInfo { ModuleId = 8, ModuleName = "Audit Trail", Description = "Security logs", Icon = "🔒", IsEnabled = true },
+        };
+
+        paymentAmount = client.OutstandingBalance;
+    }
+
+    private void GoBack() => Navigation.NavigateTo("/owner/clients");
+    private void EditClient() => Navigation.NavigateTo($"/owner/clients");
+    private void SuspendClient() => client.Status = "Suspended";
+    private void ActivateClient() => client.Status = "Active";
+    private void CreateInvoice() { }
+
+    private void RecordPayment(InvoiceInfo invoice)
+    {
+        paymentInvoiceId = invoice.InvoiceId;
+        paymentAmount = invoice.BalanceDue;
+        showPaymentModal = true;
+    }
+
+    private void ShowRecordPayment()
+    {
+        paymentInvoiceId = 0;
+        paymentAmount = 0;
+        showPaymentModal = true;
+    }
+
+    private void SavePayment()
+    {
+        var newPayment = new PaymentInfo
+        {
+            TransactionNumber = $"TXN-2024-{(payments.Count + 1):D3}",
+            TransactionDate = paymentDate,
+            PaymentMethodName = paymentMethod,
+            Amount = paymentAmount,
+            Status = "Completed",
+            PaymentReference = paymentReference
+        };
+        payments.Insert(0, newPayment);
+
+        // Update invoice
+        var invoice = invoices.FirstOrDefault(i => i.InvoiceId == paymentInvoiceId);
+        if (invoice != null)
+        {
+            invoice.Status = "Paid";
+            invoice.BalanceDue = 0;
+        }
+
+        client.OutstandingBalance -= paymentAmount;
+        client.TotalPaid += paymentAmount;
+        showPaymentModal = false;
+    }
+
+    private void ToggleModule(ModuleInfo module)
+    {
+        module.IsEnabled = !module.IsEnabled;
+    }
+
+    private string GetMemberDuration()
+    {
+        var months = (DateTime.Now - client.CreatedAt).Days / 30;
+        return months == 1 ? "1 month" : $"{months} months";
+    }
+
+    // Helper classes
+    private class SubscriptionInfo
+    {
+        public string PlanName { get; set; } = "";
+        public string BillingCycle { get; set; } = "";
+        public decimal MonthlyPrice { get; set; }
+        public string NextBilling { get; set; } = "";
+    }
+
+    private class InvoiceInfo
+    {
+        public int InvoiceId { get; set; }
+        public string InvoiceNumber { get; set; } = "";
+        public DateTime? PeriodStart { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal BalanceDue { get; set; }
+        public DateTime DueDate { get; set; }
+        public string Status { get; set; } = "";
+    }
+
+    private class PaymentInfo
+    {
+        public string TransactionNumber { get; set; } = "";
+        public DateTime TransactionDate { get; set; }
+        public string PaymentMethodName { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string Status { get; set; } = "";
+        public string PaymentReference { get; set; } = "";
+    }
+
+    private class ModuleInfo
+    {
+        public int ModuleId { get; set; }
+        public string ModuleName { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public bool IsEnabled { get; set; }
+    }
+}

@@ -10,7 +10,8 @@
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Header with Filter -->
-    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px; color: white;">
+    <div
+        style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px; color: white;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
             <div style="display: flex; align-items: center; gap: 16px;">
                 <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
@@ -22,17 +23,21 @@
                 </div>
                 <div>
                     <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Accountant Dashboard</h1>
-                    <p style="margin: 4px 0 0; font-size: 14px; opacity: 0.9; color: rgba(255,255,255,0.8);">Real-time financial records & accounting operations</p>
+                    <p style="margin: 4px 0 0; font-size: 14px; opacity: 0.9; color: rgba(255,255,255,0.8);">Real-time
+                        financial records & accounting operations</p>
                 </div>
             </div>
             <div style="display: flex; gap: 8px;">
                 <button @onclick='() => SetPeriod("day")'
                     style="padding: 8px 16px; background: @(selectedPeriod == "day" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "day" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Today</button>
                 <button @onclick='() => SetPeriod("week")'
-                    style="padding: 8px 16px; background: @(selectedPeriod == "week" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "week" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">This Week</button>
+                    style="padding: 8px 16px; background: @(selectedPeriod == "week" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "week" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">This
+                    Week</button>
                 <button @onclick='() => SetPeriod("month")'
-                    style="padding: 8px 16px; background: @(selectedPeriod == "month" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "month" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">This Month</button>
-                <button @onclick="LoadData" style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                    style="padding: 8px 16px; background: @(selectedPeriod == "month" ? "white" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "month" ? "#059669" : "white"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">This
+                    Month</button>
+                <button @onclick="LoadData"
+                    style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
                     🔄 Refresh
                 </button>
             </div>
@@ -42,103 +47,92 @@
     @if (isLoading)
     {
         <div style="text-align: center; padding: 60px;">
-            <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            <div
+                style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+            </div>
             <p style="margin-top: 16px; color: #6b7280;">Loading dashboard data...</p>
         </div>
     }
     else
     {
         <!-- Stats Cards -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
             <!-- Journal Entries -->
-            <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 20px; border: 1px solid #6ee7b7;">
-                <div style="margin-bottom: 12px;">
-                    <div style="font-size: 12px; color: #047857; font-weight: 600; text-transform: uppercase;">📝 Journal Entries</div>
-                    <div style="font-size: 32px; font-weight: 700; color: #059669;">@totalJournalEntries</div>
+            <div
+                style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">📝 Journal Entries</div>
+                <div style="font-size: 32px; font-weight: 700; color: #111827; margin-bottom: 4px;">@totalJournalEntries
                 </div>
-                <div style="font-size: 12px; color: #059669;">
-                    @pendingJournalEntries pending review
-                </div>
+                <div style="font-size: 13px; color: #6b7280;">@pendingJournalEntries pending review</div>
             </div>
 
             <!-- Accounts Payable -->
-            <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 20px; border: 1px solid #6ee7b7;">
-                <div style="margin-bottom: 12px;">
-                    <div style="font-size: 12px; color: #047857; font-weight: 600; text-transform: uppercase;">💳 Accounts Payable</div>
-                    <div style="font-size: 32px; font-weight: 700; color: #059669;">₱@FormatAmount(totalPayables)</div>
+            <div
+                style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">💳 Accounts Payable
                 </div>
-                <div style="font-size: 12px; color: #047857;">
-                    @pendingPayables invoices pending
-                </div>
+                <div style="font-size: 32px; font-weight: 700; color: #111827; margin-bottom: 4px;">
+                    ₱@FormatAmount(totalPayables)</div>
+                <div style="font-size: 13px; color: #6b7280;">@pendingPayables invoices pending</div>
             </div>
 
             <!-- Accounts Receivable -->
-            <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 20px; border: 1px solid #6ee7b7;">
-                <div style="margin-bottom: 12px;">
-                    <div style="font-size: 12px; color: #047857; font-weight: 600; text-transform: uppercase;">💰 Accounts Receivable</div>
-                    <div style="font-size: 32px; font-weight: 700; color: #059669;">₱@FormatAmount(totalReceivables)</div>
+            <div
+                style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">💰 Accounts Receivable
                 </div>
-                <div style="font-size: 12px; color: #059669;">
-                    @pendingReceivables pending collection
-                </div>
+                <div style="font-size: 32px; font-weight: 700; color: #111827; margin-bottom: 4px;">
+                    ₱@FormatAmount(totalReceivables)</div>
+                <div style="font-size: 13px; color: #6b7280;">@pendingReceivables pending collection</div>
             </div>
 
             <!-- General Ledger Entries -->
-            <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 20px; border: 1px solid #6ee7b7;">
-                <div style="margin-bottom: 12px;">
-                    <div style="font-size: 12px; color: #047857; font-weight: 600; text-transform: uppercase;">📒 GL Entries</div>
-                    <div style="font-size: 32px; font-weight: 700; color: #059669;">@totalGLEntries</div>
-                </div>
-                <div style="font-size: 12px; color: #047857;">
-                    Posted to ledger
-                </div>
+            <div
+                style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">📒 GL Entries</div>
+                <div style="font-size: 32px; font-weight: 700; color: #111827; margin-bottom: 4px;">@totalGLEntries</div>
+                <div style="font-size: 13px; color: #6b7280;">Posted to ledger</div>
             </div>
         </div>
 
         <!-- Second Row Stats -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
             <!-- Total Deposits -->
-            <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 20px; border: 1px solid #6ee7b7;">
-                <div style="margin-bottom: 12px;">
-                    <div style="font-size: 12px; color: #047857; font-weight: 600; text-transform: uppercase;">⬆️ Total Deposits</div>
-                    <div style="font-size: 32px; font-weight: 700; color: #059669;">₱@FormatAmount(totalDeposits)</div>
-                </div>
-                <div style="font-size: 12px; color: #059669;">
-                    @periodLabel
-                </div>
+            <div
+                style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">⬆️ Total Deposits</div>
+                <div style="font-size: 32px; font-weight: 700; color: #111827; margin-bottom: 4px;">
+                    ₱@FormatAmount(totalDeposits)</div>
+                <div style="font-size: 13px; color: #6b7280;">@periodLabel</div>
             </div>
 
             <!-- Total Withdrawals -->
-            <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 20px; border: 1px solid #6ee7b7;">
-                <div style="margin-bottom: 12px;">
-                    <div style="font-size: 12px; color: #047857; font-weight: 600; text-transform: uppercase;">⬇️ Total Withdrawals</div>
-                    <div style="font-size: 32px; font-weight: 700; color: #059669;">₱@FormatAmount(totalWithdrawals)</div>
+            <div
+                style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">⬇️ Total Withdrawals
                 </div>
-                <div style="font-size: 12px; color: #047857;">
-                    @periodLabel
-                </div>
+                <div style="font-size: 32px; font-weight: 700; color: #111827; margin-bottom: 4px;">
+                    ₱@FormatAmount(totalWithdrawals)</div>
+                <div style="font-size: 13px; color: #6b7280;">@periodLabel</div>
             </div>
 
             <!-- Active Loans -->
-            <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 20px; border: 1px solid #6ee7b7;">
-                <div style="margin-bottom: 12px;">
-                    <div style="font-size: 12px; color: #047857; font-weight: 600; text-transform: uppercase;">🏦 Active Loans</div>
-                    <div style="font-size: 32px; font-weight: 700; color: #059669;">@activeLoans</div>
-                </div>
-                <div style="font-size: 12px; color: #047857;">
-                    ₱@FormatAmount(totalLoanAmount) outstanding
-                </div>
+            <div
+                style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">🏦 Active Loans</div>
+                <div style="font-size: 32px; font-weight: 700; color: #111827; margin-bottom: 4px;">@activeLoans</div>
+                <div style="font-size: 13px; color: #6b7280;">₱@FormatAmount(totalLoanAmount) outstanding</div>
             </div>
 
             <!-- Financial Statements -->
-            <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 20px; border: 1px solid #6ee7b7;">
-                <div style="margin-bottom: 12px;">
-                    <div style="font-size: 12px; color: #047857; font-weight: 600; text-transform: uppercase;">📄 Financial Statements</div>
-                    <div style="font-size: 32px; font-weight: 700; color: #059669;">@totalStatements</div>
+            <div
+                style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">📄 Financial Statements
                 </div>
-                <div style="font-size: 12px; color: #059669;">
-                    Generated reports
-                </div>
+                <div style="font-size: 32px; font-weight: 700; color: #111827; margin-bottom: 4px;">@totalStatements</div>
+                <div style="font-size: 13px; color: #6b7280;">Generated reports</div>
             </div>
         </div>
 
@@ -159,20 +153,23 @@
                         </div>
                     </div>
                 </div>
-                
+
                 @if (transactionChartData.Any())
                 {
-                    <div style="display: flex; align-items: flex-end; gap: 8px; height: 200px; padding-bottom: 30px; border-bottom: 2px solid #e5e7eb;">
+                    <div
+                        style="display: flex; align-items: flex-end; gap: 8px; height: 200px; padding-bottom: 30px; border-bottom: 2px solid #e5e7eb;">
                         @foreach (var data in transactionChartData)
                         {
                             var maxVal = transactionChartData.Max(d => Math.Max(d.Deposits, d.Withdrawals));
                             var depositHeight = maxVal > 0 ? (data.Deposits / maxVal * 100) : 0;
                             var withdrawalHeight = maxVal > 0 ? (data.Withdrawals / maxVal * 100) : 0;
-                            
+
                             <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;">
                                 <div style="display: flex; gap: 2px; align-items: flex-end; height: 160px;">
-                                    <div style="width: 16px; background: linear-gradient(180deg, #059669, #047857); border-radius: 4px 4px 0 0; height: @(depositHeight)%; min-height: 4px;" title="Deposits: ₱@data.Deposits.ToString("N0")"></div>
-                                    <div style="width: 16px; background: linear-gradient(180deg, #10b981, #059669); border-radius: 4px 4px 0 0; height: @(withdrawalHeight)%; min-height: 4px;" title="Withdrawals: ₱@data.Withdrawals.ToString("N0")"></div>
+                                    <div style="width: 16px; background: linear-gradient(180deg, #059669, #047857); border-radius: 4px 4px 0 0; height: @(depositHeight)%; min-height: 4px;"
+                                        title="Deposits: ₱@data.Deposits.ToString("N0")"></div>
+                                    <div style="width: 16px; background: linear-gradient(180deg, #10b981, #059669); border-radius: 4px 4px 0 0; height: @(withdrawalHeight)%; min-height: 4px;"
+                                        title="Withdrawals: ₱@data.Withdrawals.ToString("N0")"></div>
                                 </div>
                                 <div style="font-size: 10px; color: #6b7280; font-weight: 600;">@data.Label</div>
                             </div>
@@ -187,15 +184,19 @@
                 }
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 16px;">
-                    <div style="text-align: center; padding: 12px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 8px;">
+                    <div
+                        style="text-align: center; padding: 12px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 8px;">
                         <div style="font-size: 11px; color: #047857;">Total Deposits</div>
                         <div style="font-size: 18px; font-weight: 700; color: #059669;">₱@FormatAmount(totalDeposits)</div>
                     </div>
-                    <div style="text-align: center; padding: 12px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 8px;">
+                    <div
+                        style="text-align: center; padding: 12px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 8px;">
                         <div style="font-size: 11px; color: #047857;">Total Withdrawals</div>
-                        <div style="font-size: 18px; font-weight: 700; color: #059669;">₱@FormatAmount(totalWithdrawals)</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #059669;">₱@FormatAmount(totalWithdrawals)
+                        </div>
                     </div>
-                    <div style="text-align: center; padding: 12px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 8px;">
+                    <div
+                        style="text-align: center; padding: 12px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 8px;">
                         <div style="font-size: 11px; color: #047857;">Net Flow</div>
                         <div style="font-size: 18px; font-weight: 700; color: #059669;">₱@FormatAmount(netFlow)</div>
                     </div>
@@ -208,21 +209,26 @@
                 <div style="display: flex; flex-direction: column; gap: 16px;">
                     <div style="padding: 16px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px;">
                         <div style="font-size: 12px; color: #047857; font-weight: 600;">Total Assets (Receivables)</div>
-                        <div style="font-size: 24px; font-weight: 700; margin-top: 4px; color: #059669;">₱@FormatAmount(totalReceivables)</div>
+                        <div style="font-size: 24px; font-weight: 700; margin-top: 4px; color: #059669;">
+                            ₱@FormatAmount(totalReceivables)</div>
                     </div>
                     <div style="padding: 16px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px;">
                         <div style="font-size: 12px; color: #047857; font-weight: 600;">Total Liabilities (Payables)</div>
-                        <div style="font-size: 24px; font-weight: 700; margin-top: 4px; color: #059669;">₱@FormatAmount(totalPayables)</div>
+                        <div style="font-size: 24px; font-weight: 700; margin-top: 4px; color: #059669;">
+                            ₱@FormatAmount(totalPayables)</div>
                     </div>
                     <div style="padding: 16px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px;">
                         <div style="font-size: 12px; color: #047857; font-weight: 600;">Net Position</div>
-                        <div style="font-size: 24px; font-weight: 700; margin-top: 4px; color: #059669;">₱@FormatAmount(netPosition)</div>
+                        <div style="font-size: 24px; font-weight: 700; margin-top: 4px; color: #059669;">
+                            ₱@FormatAmount(netPosition)</div>
                     </div>
                     <div style="padding: 12px; background: #f9fafb; border-radius: 8px;">
                         <div style="font-size: 12px; color: #6b7280;">Data Accuracy</div>
                         <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
                             <div style="flex: 1; height: 10px; background: #e5e7eb; border-radius: 5px; overflow: hidden;">
-                                <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                                <div
+                                    style="width: 100%; height: 100%; background: linear-gradient(90deg, #10b981, #059669);">
+                                </div>
                             </div>
                             <span style="font-size: 16px; font-weight: 700; color: #059669;">100%</span>
                         </div>
@@ -245,17 +251,21 @@
                         var color = isDeposit ? "#059669" : (isWithdrawal ? "#dc2626" : "#3b82f6");
                         var bgColor = isDeposit ? "#d1fae5" : (isWithdrawal ? "#fee2e2" : "#dbeafe");
                         var icon = isDeposit ? "⬆️" : (isWithdrawal ? "⬇️" : "↔️");
-                        
-                        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f9fafb; border-radius: 8px; border-left: 4px solid @color;">
-                            <div style="width: 36px; height: 36px; background: @bgColor; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+
+                        <div
+                            style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f9fafb; border-radius: 8px; border-left: 4px solid @color;">
+                            <div
+                                style="width: 36px; height: 36px; background: @bgColor; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                 <span style="font-size: 16px;">@icon</span>
                             </div>
                             <div style="flex: 1;">
                                 <div style="font-weight: 600; font-size: 14px; color: #111827;">@tx.TransactionType</div>
-                                <div style="font-size: 12px; color: #6b7280;">Account: @tx.AccountId • Ref: @(tx.Reference ?? "N/A")</div>
+                                <div style="font-size: 12px; color: #6b7280;">Account: @tx.AccountId • Ref: @(tx.Reference ?? "N/A")
+                                </div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-weight: 700; font-size: 16px; color: @color;">@(isWithdrawal ? "-" : "+")₱@tx.Amount.ToString("N2")</div>
+                                <div style="font-weight: 700; font-size: 16px; color: @color;">@(isWithdrawal ? "-" :
+                                                            "+")₱@tx.Amount.ToString("N2")</div>
                                 <div style="font-size: 11px; color: #9ca3af;">@tx.CreatedAt.ToString("MMM dd, HH:mm")</div>
                             </div>
                         </div>
@@ -274,7 +284,9 @@
 
 <style>
     @@keyframes spin {
-        to { transform: rotate(360deg); }
+        to {
+            transform: rotate(360deg);
+        }
     }
 </style>
 
@@ -282,7 +294,7 @@
     private string selectedPeriod = "month";
     private string periodLabel = "This Month";
     private bool isLoading = true;
-    
+
     // Stats
     private int totalJournalEntries = 0;
     private int pendingJournalEntries = 0;
@@ -298,7 +310,7 @@
     private int activeLoans = 0;
     private decimal totalLoanAmount = 0;
     private int totalStatements = 0;
-    
+
     // Data
     private List<TransactionChartData> transactionChartData = new();
     private List<CustomerTransaction> recentTransactions = new();
@@ -325,7 +337,7 @@
     {
         isLoading = true;
         StateHasChanged();
-        
+
         try
         {
             var startDate = selectedPeriod switch
@@ -339,7 +351,8 @@
 
             // Load Journal Entries
             var journalEntries = await JournalEntryService.GetAllAsync();
-            var periodJournalEntries = journalEntries.Where(j => j.TransactionDate >= startDate && j.TransactionDate <= endDate).ToList();
+            var periodJournalEntries = journalEntries.Where(j => j.TransactionDate >= startDate && j.TransactionDate <=
+            endDate).ToList();
             totalJournalEntries = periodJournalEntries.Count;
             pendingJournalEntries = periodJournalEntries.Count(j => j.Status == "Draft" || j.Status == "Pending");
 
@@ -360,12 +373,12 @@
             // Load Customer Transactions
             var transactions = await CustomerTransactionService.GetAllAsync();
             var periodTransactions = transactions.Where(t => t.CreatedAt >= startDate && t.CreatedAt <= endDate).ToList();
-            
+
             totalDeposits = periodTransactions.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount);
             totalWithdrawals = periodTransactions.Where(t => t.TransactionType == "Withdrawal").Sum(t => t.Amount);
             netFlow = totalDeposits - totalWithdrawals;
             netPosition = totalReceivables - totalPayables;
-            
+
             recentTransactions = transactions.OrderByDescending(t => t.CreatedAt).Take(10).ToList();
 
             // Load Loans
@@ -394,7 +407,7 @@
     private void BuildChartData(List<CustomerTransaction> transactions, DateTime startDate, DateTime endDate)
     {
         transactionChartData.Clear();
-        
+
         if (selectedPeriod == "day")
         {
             // Hourly breakdown for today
@@ -403,7 +416,7 @@
                 var hourStart = startDate.AddHours(hour);
                 var hourEnd = startDate.AddHours(hour + 4);
                 var hourTransactions = transactions.Where(t => t.CreatedAt >= hourStart && t.CreatedAt < hourEnd);
-                
+
                 transactionChartData.Add(new TransactionChartData
                 {
                     Label = $"{hour}:00",
@@ -420,7 +433,7 @@
             {
                 var dayDate = startDate.AddDays(i);
                 var dayTransactions = transactions.Where(t => t.CreatedAt.Date == dayDate.Date);
-                
+
                 transactionChartData.Add(new TransactionChartData
                 {
                     Label = days[(int)dayDate.DayOfWeek],
@@ -438,14 +451,14 @@
             {
                 var weekEnd = weekStart.AddDays(7) > endDate ? endDate : weekStart.AddDays(7);
                 var weekTransactions = transactions.Where(t => t.CreatedAt >= weekStart && t.CreatedAt < weekEnd);
-                
+
                 transactionChartData.Add(new TransactionChartData
                 {
                     Label = $"Wk {weekNum}",
                     Deposits = weekTransactions.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount),
                     Withdrawals = weekTransactions.Where(t => t.TransactionType == "Withdrawal").Sum(t => t.Amount)
                 });
-                
+
                 weekStart = weekEnd;
                 weekNum++;
             }

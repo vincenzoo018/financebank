@@ -1,0 +1,634 @@
+@page "/owner/plans"
+@layout OwnerLayout
+
+<div class="plans-page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <h2>Subscription Plans</h2>
+            <span class="subtitle">Manage your pricing plans</span>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-primary" @onclick="ShowAddPlan">
+                <span class="icon">➕</span> Add New Plan
+            </button>
+        </div>
+    </div>
+
+    <!-- Plans Grid -->
+    <div class="plans-grid">
+        @foreach (var plan in plans)
+        {
+            <div class="plan-card @(plan.IsPopular ? "popular" : "")">
+                @if (plan.IsPopular)
+                {
+                    <div class="popular-badge">⭐ Most Popular</div>
+                }
+                <div class="plan-header">
+                    <h3>@plan.PlanName</h3>
+                    <p class="plan-desc">@plan.Description</p>
+                </div>
+                <div class="plan-pricing">
+                    <div class="price-row">
+                        <span class="price">₱@plan.MonthlyPrice.ToString("N0")</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <div class="yearly-price">
+                        or ₱@plan.YearlyPrice.ToString("N0")/year (save 17%)
+                    </div>
+                </div>
+                <div class="plan-features">
+                    <h4>Features:</h4>
+                    <ul>
+                        @foreach (var feature in plan.FeatureList)
+                        {
+                            <li>✓ @feature</li>
+                        }
+                    </ul>
+                </div>
+                <div class="plan-limits">
+                    <div class="limit-item">
+                        <span class="limit-icon">👥</span>
+                        <span>@plan.MaxUsers Users</span>
+                    </div>
+                    <div class="limit-item">
+                        <span class="limit-icon">🏢</span>
+                        <span>@plan.MaxBranches Branch@(plan.MaxBranches > 1 ? "es" : "")</span>
+                    </div>
+                    <div class="limit-item">
+                        <span class="limit-icon">💾</span>
+                        <span>@plan.MaxStorageGB GB Storage</span>
+                    </div>
+                </div>
+                <div class="plan-stats">
+                    <div class="stat">
+                        <span class="stat-value">@plan.ActiveSubscribers</span>
+                        <span class="stat-label">Active Subscribers</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">₱@plan.MonthlyRevenue.ToString("N0")</span>
+                        <span class="stat-label">Monthly Revenue</span>
+                    </div>
+                </div>
+                <div class="plan-actions">
+                    <button class="btn btn-secondary btn-sm" @onclick="() => EditPlan(plan)">✏️ Edit</button>
+                    <button class="btn btn-secondary btn-sm" @onclick="() => ViewSubscribers(plan)">👥 Subscribers</button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Edit Plan Modal -->
+    @if (showModal)
+    {
+        <div class="modal-overlay" @onclick="CloseModal">
+            <div class="modal-content large" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>@(isEditing ? "Edit Plan" : "Add New Plan")</h3>
+                    <button class="close-btn" @onclick="CloseModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Plan Name *</label>
+                            <input type="text" @bind="editPlan.PlanName" placeholder="e.g., Professional Plan" />
+                        </div>
+                        <div class="form-group">
+                            <label>Plan Code *</label>
+                            <input type="text" @bind="editPlan.PlanCode" placeholder="e.g., PRO" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea @bind="editPlan.Description" rows="2"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Monthly Price (₱)</label>
+                            <input type="number" @bind="editPlan.MonthlyPrice" step="0.01" />
+                        </div>
+                        <div class="form-group">
+                            <label>Yearly Price (₱)</label>
+                            <input type="number" @bind="editPlan.YearlyPrice" step="0.01" />
+                        </div>
+                        <div class="form-group">
+                            <label>Setup Fee (₱)</label>
+                            <input type="number" @bind="editPlan.SetupFee" step="0.01" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Max Users</label>
+                            <input type="number" @bind="editPlan.MaxUsers" min="1" />
+                        </div>
+                        <div class="form-group">
+                            <label>Max Branches</label>
+                            <input type="number" @bind="editPlan.MaxBranches" min="1" />
+                        </div>
+                        <div class="form-group">
+                            <label>Storage (GB)</label>
+                            <input type="number" @bind="editPlan.MaxStorageGB" min="1" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Features (one per line)</label>
+                        <textarea @bind="featuresText" rows="5" placeholder="Core System&#10;Teller Operations&#10;Loan Management"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Support Level</label>
+                            <select @bind="editPlan.SupportLevel">
+                                <option value="Email">Email Support</option>
+                                <option value="Priority Email">Priority Email</option>
+                                <option value="24/7 Phone & Email">24/7 Phone & Email</option>
+                            </select>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" @bind="editPlan.IsPopular" />
+                                Mark as Popular
+                            </label>
+                            <label>
+                                <input type="checkbox" @bind="editPlan.IsActive" />
+                                Active
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SavePlan">@(isEditing ? "Update Plan" : "Create Plan")</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .plans-page { padding: 0; }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .header-left h2 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .header-left .subtitle {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+    .btn-sm { padding: 8px 16px; font-size: 13px; }
+
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+
+    .plan-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 2px solid transparent;
+        position: relative;
+        transition: all 0.3s;
+    }
+
+    .plan-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+
+    .plan-card.popular {
+        border-color: #6366f1;
+        background: linear-gradient(180deg, #f5f3ff 0%, #ffffff 100%);
+    }
+
+    .popular-badge {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .plan-header {
+        text-align: center;
+        margin-bottom: 20px;
+        padding-top: 8px;
+    }
+
+    .plan-header h3 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0 0 8px 0;
+    }
+
+    .plan-desc {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .plan-pricing {
+        text-align: center;
+        padding: 20px 0;
+        border-top: 1px solid #f3f4f6;
+        border-bottom: 1px solid #f3f4f6;
+        margin-bottom: 20px;
+    }
+
+    .price-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .price {
+        font-size: 36px;
+        font-weight: 800;
+        color: #6366f1;
+    }
+
+    .period {
+        font-size: 16px;
+        color: #6b7280;
+    }
+
+    .yearly-price {
+        font-size: 13px;
+        color: #9ca3af;
+        margin-top: 4px;
+    }
+
+    .plan-features {
+        margin-bottom: 20px;
+    }
+
+    .plan-features h4 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin: 0 0 12px 0;
+    }
+
+    .plan-features ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .plan-features li {
+        padding: 6px 0;
+        font-size: 14px;
+        color: #4b5563;
+    }
+
+    .plan-limits {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 12px;
+    }
+
+    .limit-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: #374151;
+    }
+
+    .plan-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .plan-stats .stat {
+        text-align: center;
+    }
+
+    .plan-stats .stat-value {
+        display: block;
+        font-size: 20px;
+        font-weight: 700;
+        color: #6366f1;
+    }
+
+    .plan-stats .stat-label {
+        font-size: 11px;
+        color: #6b7280;
+    }
+
+    .plan-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .plan-actions .btn {
+        flex: 1;
+    }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow: auto;
+    }
+
+    .modal-content.large { max-width: 700px; }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-header h3 { margin: 0; font-size: 18px; }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #6b7280;
+    }
+
+    .modal-body { padding: 24px; }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 16px 24px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .checkbox-group {
+        display: flex;
+        gap: 16px;
+    }
+
+    .checkbox-group label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: auto;
+    }
+</style>
+
+@code {
+    private List<PlanData> plans = new();
+    private PlanData editPlan = new();
+    private bool showModal = false;
+    private bool isEditing = false;
+    private string featuresText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSampleData();
+    }
+
+    private async Task LoadSampleData()
+    {
+        await Task.Delay(100);
+        plans = new List<PlanData>
+        {
+            new PlanData { 
+                PlanId = 1, 
+                PlanCode = "BASIC", 
+                PlanName = "Basic Plan", 
+                Description = "Essential features for small cooperatives",
+                MonthlyPrice = 2999,
+                YearlyPrice = 29990,
+                SetupFee = 5000,
+                MaxUsers = 5,
+                MaxBranches = 1,
+                MaxStorageGB = 5,
+                Features = "Core System,Teller Operations,Savings Accounts,Basic Reports",
+                SupportLevel = "Email",
+                IsActive = true,
+                IsPopular = false,
+                ActiveSubscribers = 3,
+                MonthlyRevenue = 8997
+            },
+            new PlanData { 
+                PlanId = 2, 
+                PlanCode = "PRO", 
+                PlanName = "Professional Plan", 
+                Description = "Complete solution for growing cooperatives",
+                MonthlyPrice = 5999,
+                YearlyPrice = 59990,
+                SetupFee = 10000,
+                MaxUsers = 15,
+                MaxBranches = 3,
+                MaxStorageGB = 25,
+                Features = "All Basic Features,Loan Management,General Ledger,Advanced Reports,Audit Trail",
+                SupportLevel = "Priority Email",
+                IsActive = true,
+                IsPopular = true,
+                ActiveSubscribers = 5,
+                MonthlyRevenue = 29995
+            },
+            new PlanData { 
+                PlanId = 3, 
+                PlanCode = "ENTERPRISE", 
+                PlanName = "Enterprise Plan", 
+                Description = "Full-featured solution for large organizations",
+                MonthlyPrice = 9999,
+                YearlyPrice = 99990,
+                SetupFee = 20000,
+                MaxUsers = 50,
+                MaxBranches = 10,
+                MaxStorageGB = 100,
+                Features = "All Pro Features,Multi-Branch Support,Custom Reports,API Access,Dedicated Support,Custom Integrations",
+                SupportLevel = "24/7 Phone & Email",
+                IsActive = true,
+                IsPopular = false,
+                ActiveSubscribers = 2,
+                MonthlyRevenue = 19998
+            }
+        };
+    }
+
+    private void ShowAddPlan()
+    {
+        editPlan = new PlanData { IsActive = true, MaxUsers = 5, MaxBranches = 1, MaxStorageGB = 5 };
+        featuresText = "";
+        isEditing = false;
+        showModal = true;
+    }
+
+    private void EditPlan(PlanData plan)
+    {
+        editPlan = new PlanData
+        {
+            PlanId = plan.PlanId,
+            PlanCode = plan.PlanCode,
+            PlanName = plan.PlanName,
+            Description = plan.Description,
+            MonthlyPrice = plan.MonthlyPrice,
+            YearlyPrice = plan.YearlyPrice,
+            SetupFee = plan.SetupFee,
+            MaxUsers = plan.MaxUsers,
+            MaxBranches = plan.MaxBranches,
+            MaxStorageGB = plan.MaxStorageGB,
+            Features = plan.Features,
+            SupportLevel = plan.SupportLevel,
+            IsActive = plan.IsActive,
+            IsPopular = plan.IsPopular
+        };
+        featuresText = plan.Features.Replace(",", "\n");
+        isEditing = true;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private void SavePlan()
+    {
+        editPlan.Features = featuresText.Replace("\n", ",").Replace("\r", "");
+        
+        if (isEditing)
+        {
+            var existing = plans.FirstOrDefault(p => p.PlanId == editPlan.PlanId);
+            if (existing != null)
+            {
+                existing.PlanName = editPlan.PlanName;
+                existing.PlanCode = editPlan.PlanCode;
+                existing.Description = editPlan.Description;
+                existing.MonthlyPrice = editPlan.MonthlyPrice;
+                existing.YearlyPrice = editPlan.YearlyPrice;
+                existing.SetupFee = editPlan.SetupFee;
+                existing.MaxUsers = editPlan.MaxUsers;
+                existing.MaxBranches = editPlan.MaxBranches;
+                existing.MaxStorageGB = editPlan.MaxStorageGB;
+                existing.Features = editPlan.Features;
+                existing.SupportLevel = editPlan.SupportLevel;
+                existing.IsActive = editPlan.IsActive;
+                existing.IsPopular = editPlan.IsPopular;
+            }
+        }
+        else
+        {
+            editPlan.PlanId = plans.Max(p => p.PlanId) + 1;
+            plans.Add(editPlan);
+        }
+        CloseModal();
+    }
+
+    private void ViewSubscribers(PlanData plan)
+    {
+        // Navigate to clients filtered by this plan
+    }
+
+    private class PlanData
+    {
+        public int PlanId { get; set; }
+        public string PlanCode { get; set; } = "";
+        public string PlanName { get; set; } = "";
+        public string Description { get; set; } = "";
+        public decimal MonthlyPrice { get; set; }
+        public decimal YearlyPrice { get; set; }
+        public decimal SetupFee { get; set; }
+        public int MaxUsers { get; set; }
+        public int MaxBranches { get; set; }
+        public int MaxStorageGB { get; set; }
+        public string Features { get; set; } = "";
+        public string SupportLevel { get; set; } = "";
+        public bool IsActive { get; set; }
+        public bool IsPopular { get; set; }
+        public int ActiveSubscribers { get; set; }
+        public decimal MonthlyRevenue { get; set; }
+
+        public List<string> FeatureList => Features.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+    }
+}

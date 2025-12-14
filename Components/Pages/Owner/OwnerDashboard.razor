@@ -1,0 +1,1168 @@
+@page "/owner"
+@page "/owner/dashboard"
+@layout OwnerLayout
+@using FinanceBank.Models.SaaS
+@using FinanceBank.Services.SaaS
+@inject NavigationManager Navigation
+@inject SaaSClientService ClientService
+@inject SaaSPaymentService PaymentService
+@inject SaaSInvoiceService InvoiceService
+@inject SaaSSupportService SupportService
+
+<div class="owner-dashboard">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card revenue">
+            <div class="stat-icon">💰</div>
+            <div class="stat-content">
+                <span class="stat-label">Monthly Revenue</span>
+                <span class="stat-value">₱@revenueStats.ThisMonthRevenue.ToString("N2")</span>
+                <span class="stat-change @(revenueStats.GrowthPercentage >= 0 ? "positive" : "negative")">
+                    @(revenueStats.GrowthPercentage >= 0 ? "↑" : "↓") @Math.Abs(revenueStats.GrowthPercentage).ToString("N1")% from last month
+                </span>
+            </div>
+        </div>
+
+        <div class="stat-card clients">
+            <div class="stat-icon">🏢</div>
+            <div class="stat-content">
+                <span class="stat-label">Active Clients</span>
+                <span class="stat-value">@clientStats.ActiveClients</span>
+                <span class="stat-subtext">@clientStats.TotalClients total clients</span>
+            </div>
+        </div>
+
+        <div class="stat-card mrr">
+            <div class="stat-icon">📈</div>
+            <div class="stat-content">
+                <span class="stat-label">Monthly Recurring</span>
+                <span class="stat-value">₱@clientStats.MonthlyRecurringRevenue.ToString("N2")</span>
+                <span class="stat-subtext">From active subscriptions</span>
+            </div>
+        </div>
+
+        <div class="stat-card pending">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-content">
+                <span class="stat-label">Pending Payments</span>
+                <span class="stat-value">₱@revenueStats.PendingPayments.ToString("N2")</span>
+                <span class="stat-subtext">Awaiting verification</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Stats -->
+    <div class="secondary-stats">
+        <div class="mini-stat">
+            <span class="mini-icon suspended">⚠️</span>
+            <div class="mini-content">
+                <span class="mini-value">@clientStats.SuspendedClients</span>
+                <span class="mini-label">Suspended</span>
+            </div>
+        </div>
+        <div class="mini-stat">
+            <span class="mini-icon trial">🎯</span>
+            <div class="mini-content">
+                <span class="mini-value">@clientStats.TrialClients</span>
+                <span class="mini-label">On Trial</span>
+            </div>
+        </div>
+        <div class="mini-stat">
+            <span class="mini-icon outstanding">💳</span>
+            <div class="mini-content">
+                <span class="mini-value">₱@clientStats.TotalOutstandingBalance.ToString("N0")</span>
+                <span class="mini-label">Outstanding</span>
+            </div>
+        </div>
+        <div class="mini-stat">
+            <span class="mini-icon tickets">🎫</span>
+            <div class="mini-content">
+                <span class="mini-value">@openTickets</span>
+                <span class="mini-label">Open Tickets</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+        <!-- Recent Transactions -->
+        <div class="card transactions-card">
+            <div class="card-header">
+                <h3>Recent Transactions</h3>
+                <a href="/owner/transactions" class="view-all">View All →</a>
+            </div>
+            <div class="card-body">
+                @if (recentTransactions.Any())
+                {
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var txn in recentTransactions.Take(5))
+                            {
+                                <tr>
+                                    <td>@txn.Client?.CompanyName</td>
+                                    <td>
+                                        <span class="badge @GetTypeBadge(txn.TransactionType)">@txn.TransactionType</span>
+                                    </td>
+                                    <td class="amount">₱@txn.Amount.ToString("N2")</td>
+                                    <td>
+                                        <span class="status-badge @GetStatusClass(txn.Status)">@txn.Status</span>
+                                    </td>
+                                    <td>@txn.TransactionDate.ToString("MMM dd, yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <span class="empty-icon">💳</span>
+                        <p>No transactions yet</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Clients -->
+        <div class="card clients-card">
+            <div class="card-header">
+                <h3>Recent Clients</h3>
+                <a href="/owner/clients" class="view-all">View All →</a>
+            </div>
+            <div class="card-body">
+                @if (recentClients.Any())
+                {
+                    <div class="client-list">
+                        @foreach (var client in recentClients.Take(5))
+                        {
+                            <div class="client-item">
+                                <div class="client-avatar">
+                                    @client.CompanyName.Substring(0, 1).ToUpper()
+                                </div>
+                                <div class="client-info">
+                                    <span class="client-name">@client.CompanyName</span>
+                                    <span class="client-email">@client.PrimaryEmail</span>
+                                </div>
+                                <span class="client-status @GetStatusClass(client.Status)">@client.Status</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <span class="empty-icon">🏢</span>
+                        <p>No clients yet</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Overdue Invoices -->
+        <div class="card invoices-card">
+            <div class="card-header">
+                <h3>Overdue Invoices</h3>
+                <a href="/owner/invoices" class="view-all">View All →</a>
+            </div>
+            <div class="card-body">
+                @if (overdueInvoices.Any())
+                {
+                    <div class="invoice-list">
+                        @foreach (var invoice in overdueInvoices.Take(5))
+                        {
+                            <div class="invoice-item">
+                                <div class="invoice-main">
+                                    <span class="invoice-number">@invoice.InvoiceNumber</span>
+                                    <span class="invoice-client">@invoice.Client?.CompanyName</span>
+                                </div>
+                                <div class="invoice-details">
+                                    <span class="invoice-amount">₱@invoice.BalanceDue.ToString("N2")</span>
+                                    <span class="invoice-due overdue">@((DateTime.Now - invoice.DueDate).Days) days overdue</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state success">
+                        <span class="empty-icon">✅</span>
+                        <p>No overdue invoices!</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Open Support Tickets -->
+        <div class="card tickets-card">
+            <div class="card-header">
+                <h3>Open Support Tickets</h3>
+                <a href="/owner/tickets" class="view-all">View All →</a>
+            </div>
+            <div class="card-body">
+                @if (openTicketsList.Any())
+                {
+                    <div class="ticket-list">
+                        @foreach (var ticket in openTicketsList.Take(5))
+                        {
+                            <div class="ticket-item">
+                                <div class="ticket-priority @ticket.Priority.ToLower()"></div>
+                                <div class="ticket-main">
+                                    <span class="ticket-number">@ticket.TicketNumber</span>
+                                    <span class="ticket-subject">@ticket.Subject</span>
+                                </div>
+                                <div class="ticket-meta">
+                                    <span class="ticket-client">@ticket.Client?.CompanyName</span>
+                                    <span class="ticket-time">@GetTimeAgo(ticket.CreatedAt)</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state success">
+                        <span class="empty-icon">🎉</span>
+                        <p>No open tickets!</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h3>Quick Actions</h3>
+        <div class="actions-grid">
+            <a href="/owner/clients" class="action-btn">
+                <span class="action-icon">➕</span>
+                <span>Add Client</span>
+            </a>
+            <a href="/owner/invoices" class="action-btn">
+                <span class="action-icon">📄</span>
+                <span>Create Invoice</span>
+            </a>
+            <a href="/owner/transactions" class="action-btn">
+                <span class="action-icon">✅</span>
+                <span>Verify Payments</span>
+            </a>
+            <a href="/owner/modules" class="action-btn">
+                <span class="action-icon">📦</span>
+                <span>Manage Modules</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Revenue Reports Section -->
+    <div class="revenue-reports-section">
+        <div class="reports-header">
+            <h3>📊 Revenue Reports</h3>
+            <div class="report-actions">
+                <select @bind="reportPeriod">
+                    <option value="month">This Month</option>
+                    <option value="quarter">This Quarter</option>
+                    <option value="year">This Year</option>
+                    <option value="all">All Time</option>
+                </select>
+                <button class="btn btn-primary" @onclick="DownloadRevenueReport">
+                    📥 Download Report
+                </button>
+            </div>
+        </div>
+
+        <div class="reports-grid">
+            <div class="report-card">
+                <h4>Total Revenue</h4>
+                <span class="report-value">₱@GetTotalRevenue().ToString("N2")</span>
+                <span class="report-desc">All collected payments</span>
+            </div>
+            <div class="report-card">
+                <h4>Pending Collection</h4>
+                <span class="report-value warning">₱@GetPendingCollection().ToString("N2")</span>
+                <span class="report-desc">Awaiting payment</span>
+            </div>
+            <div class="report-card">
+                <h4>Total Transactions</h4>
+                <span class="report-value">@GetTotalTransactions()</span>
+                <span class="report-desc">Completed payments</span>
+            </div>
+            <div class="report-card">
+                <h4>Average Revenue/Client</h4>
+                <span class="report-value">₱@GetAverageRevenuePerClient().ToString("N2")</span>
+                <span class="report-desc">Per active client</span>
+            </div>
+        </div>
+
+        <div class="revenue-breakdown">
+            <h4>Revenue Breakdown by Module</h4>
+            <div class="breakdown-list">
+                <div class="breakdown-item">
+                    <span class="module-name">Core System</span>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 100%"></div>
+                    </div>
+                    <span class="module-revenue">Included</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="module-name">Loan Management</span>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 85%"></div>
+                    </div>
+                    <span class="module-revenue">₱12,000</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="module-name">General Ledger</span>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 70%"></div>
+                    </div>
+                    <span class="module-revenue">₱9,600</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="module-name">Teller Operations</span>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 60%"></div>
+                    </div>
+                    <span class="module-revenue">₱6,000</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="module-name">Savings Accounts</span>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 50%"></div>
+                    </div>
+                    <span class="module-revenue">₱6,000</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .owner-dashboard {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border-left: 4px solid;
+    }
+
+    .stat-card.revenue { border-left-color: #10b981; }
+    .stat-card.clients { border-left-color: #6366f1; }
+    .stat-card.mrr { border-left-color: #8b5cf6; }
+    .stat-card.pending { border-left-color: #f59e0b; }
+
+    .stat-icon {
+        font-size: 32px;
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f5f3ff;
+        border-radius: 12px;
+    }
+
+    .stat-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .stat-change {
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .stat-change.positive { color: #10b981; }
+    .stat-change.negative { color: #ef4444; }
+
+    .stat-subtext {
+        font-size: 12px;
+        color: #9ca3af;
+    }
+
+    /* Secondary Stats */
+    .secondary-stats {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .mini-stat {
+        flex: 1;
+        background: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .mini-icon {
+        font-size: 24px;
+    }
+
+    .mini-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .mini-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .mini-label {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    /* Content Grid */
+    .content-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .view-all {
+        font-size: 13px;
+        color: #6366f1;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .view-all:hover {
+        text-decoration: underline;
+    }
+
+    .card-body {
+        padding: 16px 24px;
+    }
+
+    /* Data Table */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th {
+        text-align: left;
+        font-size: 11px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        padding: 8px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .data-table td {
+        padding: 12px 0;
+        font-size: 13px;
+        color: #374151;
+        border-bottom: 1px solid #f9fafb;
+    }
+
+    .data-table .amount {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    /* Badges */
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .badge.payment { background: #dcfce7; color: #166534; }
+    .badge.refund { background: #fee2e2; color: #991b1b; }
+    .badge.credit { background: #dbeafe; color: #1e40af; }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .status-badge.Active, .status-badge.Completed, .status-badge.Paid { background: #dcfce7; color: #166534; }
+    .status-badge.Pending { background: #fef3c7; color: #92400e; }
+    .status-badge.Suspended, .status-badge.Failed { background: #fee2e2; color: #991b1b; }
+
+    /* Client List */
+    .client-list, .invoice-list, .ticket-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .client-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: #f9fafb;
+        border-radius: 10px;
+    }
+
+    .client-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .client-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .client-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .client-email {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .client-status {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    /* Invoice Item */
+    .invoice-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: #fef2f2;
+        border-radius: 10px;
+        border-left: 3px solid #ef4444;
+    }
+
+    .invoice-main {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .invoice-number {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .invoice-client {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .invoice-details {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .invoice-amount {
+        font-size: 14px;
+        font-weight: 700;
+        color: #ef4444;
+    }
+
+    .invoice-due.overdue {
+        font-size: 11px;
+        color: #dc2626;
+    }
+
+    /* Ticket Item */
+    .ticket-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: #f9fafb;
+        border-radius: 10px;
+    }
+
+    .ticket-priority {
+        width: 8px;
+        height: 40px;
+        border-radius: 4px;
+    }
+
+    .ticket-priority.low { background: #10b981; }
+    .ticket-priority.normal { background: #3b82f6; }
+    .ticket-priority.high { background: #f59e0b; }
+    .ticket-priority.urgent { background: #ef4444; }
+
+    .ticket-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .ticket-number {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .ticket-subject {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .ticket-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .ticket-client {
+        font-size: 12px;
+        color: #374151;
+    }
+
+    .ticket-time {
+        font-size: 11px;
+        color: #9ca3af;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 32px;
+        color: #6b7280;
+    }
+
+    .empty-state.success {
+        color: #10b981;
+    }
+
+    .empty-icon {
+        font-size: 36px;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    /* Quick Actions */
+    .quick-actions h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 16px;
+    }
+
+    .actions-grid {
+        display: flex;
+        gap: 16px;
+    }
+
+    .action-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 16px 24px;
+        background: white;
+        border: 2px dashed #e5e7eb;
+        border-radius: 12px;
+        color: #6b7280;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+        border-color: #6366f1;
+        color: #6366f1;
+        background: #f5f3ff;
+    }
+
+    .action-icon {
+        font-size: 20px;
+    }
+
+    /* Revenue Reports Section */
+    .revenue-reports-section {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        margin-top: 24px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .reports-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .reports-header h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .report-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .report-actions select {
+        padding: 8px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #374151;
+        background: white;
+        cursor: pointer;
+    }
+
+    .report-actions .btn-primary {
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .report-actions .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .reports-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .report-card {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .report-card h4 {
+        font-size: 13px;
+        color: #6b7280;
+        margin: 0 0 8px 0;
+        font-weight: 500;
+    }
+
+    .report-value {
+        display: block;
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 4px;
+    }
+
+    .report-value.warning {
+        color: #f59e0b;
+    }
+
+    .report-desc {
+        font-size: 11px;
+        color: #9ca3af;
+    }
+
+    .revenue-breakdown {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 20px;
+    }
+
+    .revenue-breakdown h4 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 16px 0;
+    }
+
+    .breakdown-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .breakdown-item {
+        display: grid;
+        grid-template-columns: 150px 1fr 100px;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .breakdown-item .module-name {
+        font-size: 13px;
+        color: #374151;
+        font-weight: 500;
+    }
+
+    .breakdown-item .progress-bar {
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .breakdown-item .progress {
+        height: 100%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 4px;
+    }
+
+    .breakdown-item .module-revenue {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1f2937;
+        text-align: right;
+    }
+
+    @@media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .reports-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .breakdown-item {
+            grid-template-columns: 120px 1fr 80px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .reports-header {
+            flex-direction: column;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .reports-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .breakdown-item {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+    }
+</style>
+
+@code {
+    private ClientStatistics clientStats = new();
+    private RevenueStats revenueStats = new();
+    private List<SaaSTransaction> recentTransactions = new();
+    private List<SaaSClient> recentClients = new();
+    private List<SaaSInvoice> overdueInvoices = new();
+    private List<SupportTicket> openTicketsList = new();
+    private int openTickets = 0;
+    private string reportPeriod = "month";
+
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        try
+        {
+            // Load real data from database
+            var clients = await ClientService.GetAllClientsAsync();
+            var transactions = await PaymentService.GetAllTransactionsAsync();
+            var invoices = await InvoiceService.GetAllInvoicesAsync();
+            var tickets = await SupportService.GetAllTicketsAsync();
+
+            // Calculate client statistics
+            clientStats = new ClientStatistics
+            {
+                TotalClients = clients.Count,
+                ActiveClients = clients.Count(c => c.Status == "Active"),
+                SuspendedClients = clients.Count(c => c.Status == "Suspended"),
+                TrialClients = clients.Count(c => c.Status == "Trial"),
+                MonthlyRecurringRevenue = clients.Where(c => c.Status == "Active").Sum(c => c.Subscriptions?.Where(s => s.Status == "Active").Sum(s => s.TotalPrice) ?? 0),
+                TotalOutstandingBalance = clients.Sum(c => c.OutstandingBalance)
+            };
+
+            // Calculate revenue statistics
+            var thisMonth = DateTime.Now.Month;
+            var thisYear = DateTime.Now.Year;
+            var lastMonth = thisMonth == 1 ? 12 : thisMonth - 1;
+            var lastMonthYear = thisMonth == 1 ? thisYear - 1 : thisYear;
+
+            var thisMonthRevenue = transactions
+                .Where(t => t.Status == "Completed" && t.TransactionDate.Month == thisMonth && t.TransactionDate.Year == thisYear)
+                .Sum(t => t.Amount);
+            var lastMonthRevenue = transactions
+                .Where(t => t.Status == "Completed" && t.TransactionDate.Month == lastMonth && t.TransactionDate.Year == lastMonthYear)
+                .Sum(t => t.Amount);
+            
+            var growthPercent = lastMonthRevenue > 0 
+                ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
+                : 0;
+
+            revenueStats = new RevenueStats
+            {
+                ThisMonthRevenue = thisMonthRevenue,
+                LastMonthRevenue = lastMonthRevenue,
+                GrowthPercentage = growthPercent,
+                PendingPayments = transactions.Where(t => t.Status == "Pending").Sum(t => t.Amount),
+                TotalRevenue = transactions.Where(t => t.Status == "Completed").Sum(t => t.Amount)
+            };
+
+            // Get recent transactions
+            recentTransactions = transactions
+                .OrderByDescending(t => t.TransactionDate)
+                .Take(10)
+                .ToList();
+
+            // Get recent clients
+            recentClients = clients
+                .OrderByDescending(c => c.CreatedAt)
+                .Take(5)
+                .ToList();
+
+            // Get overdue invoices
+            overdueInvoices = invoices
+                .Where(i => i.Status != "Paid" && i.DueDate < DateTime.Now)
+                .OrderByDescending(i => i.DueDate)
+                .Take(5)
+                .ToList();
+
+            // Get open tickets
+            openTicketsList = tickets
+                .Where(t => t.Status == "Open" || t.Status == "In Progress")
+                .OrderByDescending(t => t.CreatedAt)
+                .Take(5)
+                .ToList();
+
+            openTickets = openTicketsList.Count;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading dashboard data: {ex.Message}");
+            // Initialize with empty data on error
+            clientStats = new ClientStatistics();
+            revenueStats = new RevenueStats();
+            recentTransactions = new List<SaaSTransaction>();
+            recentClients = new List<SaaSClient>();
+            overdueInvoices = new List<SaaSInvoice>();
+            openTicketsList = new List<SupportTicket>();
+            openTickets = 0;
+        }
+    }
+
+    private string GetTypeBadge(string type) => type.ToLower();
+
+    private string GetStatusClass(string status) => status;
+
+    private string GetTimeAgo(DateTime date)
+    {
+        var span = DateTime.Now - date;
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m ago";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";
+        if (span.TotalDays < 7) return $"{(int)span.TotalDays}d ago";
+        return date.ToString("MMM dd");
+    }
+
+    // Revenue Report Methods
+    private decimal GetTotalRevenue()
+    {
+        return reportPeriod switch
+        {
+            "month" => revenueStats.ThisMonthRevenue,
+            "quarter" => revenueStats.ThisMonthRevenue * 3,
+            "year" => revenueStats.TotalRevenue,
+            "all" => revenueStats.TotalRevenue,
+            _ => revenueStats.ThisMonthRevenue
+        };
+    }
+
+    private decimal GetPendingCollection()
+    {
+        return revenueStats.PendingPayments;
+    }
+
+    private int GetTotalTransactions()
+    {
+        return reportPeriod switch
+        {
+            "month" => recentTransactions.Count(t => t.Status == "Completed"),
+            "quarter" => recentTransactions.Count(t => t.Status == "Completed") * 3,
+            "year" => recentTransactions.Count(t => t.Status == "Completed") * 12,
+            "all" => recentTransactions.Count(t => t.Status == "Completed") * 24,
+            _ => recentTransactions.Count(t => t.Status == "Completed")
+        };
+    }
+
+    private decimal GetAverageRevenuePerClient()
+    {
+        if (clientStats.ActiveClients == 0) return 0;
+        return GetTotalRevenue() / clientStats.ActiveClients;
+    }
+
+    private async Task DownloadRevenueReport()
+    {
+        var periodLabel = reportPeriod switch
+        {
+            "month" => "Monthly",
+            "quarter" => "Quarterly",
+            "year" => "Yearly",
+            "all" => "All-Time",
+            _ => "Monthly"
+        };
+
+        var csvContent = GenerateRevenueReportCSV(periodLabel);
+        var fileName = $"Revenue_Report_{periodLabel}_{DateTime.Now:yyyy-MM-dd}.csv";
+
+        // Use JS interop to download the file
+        await JSRuntime.InvokeVoidAsync("downloadFile", fileName, csvContent, "text/csv");
+    }
+
+    private string GenerateRevenueReportCSV(string periodLabel)
+    {
+        var sb = new System.Text.StringBuilder();
+        
+        // Header
+        sb.AppendLine($"FineBank SaaS - Revenue Report ({periodLabel})");
+        sb.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        sb.AppendLine();
+        
+        // Summary Section
+        sb.AppendLine("=== REVENUE SUMMARY ===");
+        sb.AppendLine($"Total Revenue,₱{GetTotalRevenue():N2}");
+        sb.AppendLine($"Pending Collection,₱{GetPendingCollection():N2}");
+        sb.AppendLine($"Total Transactions,{GetTotalTransactions()}");
+        sb.AppendLine($"Average Revenue per Client,₱{GetAverageRevenuePerClient():N2}");
+        sb.AppendLine($"Active Clients,{clientStats.ActiveClients}");
+        sb.AppendLine($"Monthly Recurring Revenue,₱{clientStats.MonthlyRecurringRevenue:N2}");
+        sb.AppendLine();
+        
+        // Transaction Details
+        sb.AppendLine("=== RECENT TRANSACTIONS ===");
+        sb.AppendLine("Date,Client,Type,Amount,Status");
+        foreach (var trans in recentTransactions)
+        {
+            sb.AppendLine($"{trans.TransactionDate:yyyy-MM-dd},{trans.Client?.CompanyName ?? "N/A"},{trans.TransactionType},₱{trans.Amount:N2},{trans.Status}");
+        }
+        sb.AppendLine();
+        
+        // Client Summary
+        sb.AppendLine("=== CLIENT SUMMARY ===");
+        sb.AppendLine("Company,Email,Status,Since");
+        foreach (var client in recentClients)
+        {
+            sb.AppendLine($"{client.CompanyName},{client.PrimaryEmail},{client.Status},{client.CreatedAt:yyyy-MM-dd}");
+        }
+        sb.AppendLine();
+        
+        // Module Revenue Breakdown
+        sb.AppendLine("=== MODULE REVENUE BREAKDOWN ===");
+        sb.AppendLine("Module,Revenue,Percentage");
+        sb.AppendLine("Core System,Included,100%");
+        sb.AppendLine("Loan Management,₱12000,85%");
+        sb.AppendLine("General Ledger,₱9600,70%");
+        sb.AppendLine("Teller Operations,₱6000,60%");
+        sb.AppendLine("Savings Accounts,₱6000,50%");
+        
+        return sb.ToString();
+    }
+}

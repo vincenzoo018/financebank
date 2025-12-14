@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using FinanceBank.Services;
+using FinanceBank.Services.SaaS;
 using FinanceBank.Data;
 using Microsoft.EntityFrameworkCore;
 using FinanceBank.Models;
@@ -142,6 +143,25 @@ namespace FinanceBank
 
             // Register Notification Service (global toast/popup notifications)
             builder.Services.AddSingleton<NotificationService>();
+
+            // ===== SaaS Management Portal Services =====
+            // Register SaaS Database Context (separate SQLite database for subscription management)
+            builder.Services.AddDbContext<SaaSDbContext>(options =>
+            {
+                var appDataPath = FileSystem.Current.AppDataDirectory;
+                var dbPath = Path.Combine(appDataPath, "saas_management.db");
+                options.UseSqlite($"Data Source={dbPath}");
+            });
+
+            // Register SaaS Management Services
+            builder.Services.AddScoped<SaaSClientService>();
+            builder.Services.AddScoped<SaaSModuleService>();
+            builder.Services.AddScoped<SaaSPlanService>();
+            builder.Services.AddScoped<SaaSInvoiceService>();
+            builder.Services.AddScoped<SaaSPaymentService>();
+            builder.Services.AddScoped<SaaSSupportService>();
+            builder.Services.AddScoped<SaaSLicenseService>();
+            builder.Services.AddScoped<SaaSOwnerService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

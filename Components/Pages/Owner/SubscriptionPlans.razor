@@ -1,0 +1,795 @@
+@page "/owner/subscription-plans"
+@layout OwnerLayout
+@using FinanceBank.Services.SaaS
+@using FinanceBank.Models.SaaS
+@inject SaaSPlanService PlanService
+@inject SaaSModuleService ModuleService
+
+<div class="plans-page">
+    <div class="page-header">
+        <div class="header-left">
+            <h2>Subscription Plans</h2>
+            <span class="count">@plans.Count plans</span>
+        </div>
+        <button class="btn-primary" @onclick="ShowAddForm">+ Create Plan</button>
+    </div>
+
+    @if (showForm)
+    {
+        <div class="modal-overlay" @onclick="HideForm">
+            <div class="modal-content large" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <h3>@(isEditing ? "Edit Plan" : "Create New Plan")</h3>
+                    <button class="close-btn" @onclick="HideForm">×</button>
+                </div>
+                <div class="modal-body">
+                    <form @onsubmit="SavePlan">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Plan Code *</label>
+                                <input type="text" @bind="editPlan.PlanCode" required placeholder="e.g., PRO" />
+                            </div>
+                            <div class="form-group">
+                                <label>Plan Name *</label>
+                                <input type="text" @bind="editPlan.PlanName" required placeholder="e.g., Professional" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea rows="2" @bind="editPlan.Description" placeholder="Brief description of this plan..."></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Monthly Price</label>
+                                <div class="input-prefix">
+                                    <span>₱</span>
+                                    <input type="number" step="0.01" @bind="editPlan.MonthlyPrice" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Yearly Price (optional)</label>
+                                <div class="input-prefix">
+                                    <span>₱</span>
+                                    <input type="number" step="0.01" @bind="editPlan.YearlyPrice" placeholder="Leave empty for 10% discount" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Max Users</label>
+                                <input type="number" @bind="editPlan.MaxUsers" placeholder="0 = Unlimited" />
+                            </div>
+                            <div class="form-group">
+                                <label>Max Branches</label>
+                                <input type="number" @bind="editPlan.MaxBranches" placeholder="0 = Unlimited" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Features (comma-separated)</label>
+                            <textarea rows="2" @bind="editPlan.Features" placeholder="Email support, Phone support, Priority updates..."></textarea>
+                        </div>
+
+                        <div class="modules-section">
+                            <h4>Included Modules</h4>
+                            <div class="modules-grid">
+                                @foreach (var module in allModules)
+                                {
+                                    <div class="module-checkbox @(selectedModuleIds.Contains(module.ModuleId) ? "selected" : "")">
+                                        <input type="checkbox" 
+                                               id="mod_@module.ModuleId" 
+                                               checked="@selectedModuleIds.Contains(module.ModuleId)"
+                                               @onchange="() => ToggleModule(module.ModuleId)" />
+                                        <label for="mod_@module.ModuleId">
+                                            <span class="mod-icon">@module.Icon</span>
+                                            <span class="mod-name">@module.ModuleName</span>
+                                            <span class="mod-price">₱@module.BasePrice.ToString("N0")</span>
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="form-row checkboxes">
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="editPlan.IsActive" />
+                                <span>Active</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="editPlan.IsPopular" />
+                                <span>Mark as Popular</span>
+                            </label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" @onclick="HideForm">Cancel</button>
+                            <button type="submit" class="btn-primary">@(isEditing ? "Update" : "Create") Plan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="plans-grid">
+        @foreach (var plan in plans)
+        {
+            <div class="plan-card @(plan.IsPopular ? "popular" : "") @(!plan.IsActive ? "inactive" : "")">
+                @if (plan.IsPopular)
+                {
+                    <div class="popular-badge">Most Popular</div>
+                }
+                <div class="plan-header">
+                    <h3>@plan.PlanName</h3>
+                    <p class="plan-code">@plan.PlanCode</p>
+                </div>
+                <div class="plan-price">
+                    <span class="currency">₱</span>
+                    <span class="amount">@plan.MonthlyPrice.ToString("N0")</span>
+                    <span class="period">/month</span>
+                </div>
+                @if (plan.YearlyPrice > 0)
+                {
+                    <p class="yearly-price">₱@plan.YearlyPrice.ToString("N0")/year (Save @(((1 - plan.YearlyPrice / (plan.MonthlyPrice * 12)) * 100).ToString("N0"))%)</p>
+                }
+                <p class="plan-desc">@plan.Description</p>
+
+                <div class="plan-features">
+                    <div class="feature">
+                        <span class="feature-icon">👥</span>
+                        <span>@(plan.MaxUsers > 0 ? $"Up to {plan.MaxUsers} users" : "Unlimited users")</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🏢</span>
+                        <span>@(plan.MaxBranches > 0 ? $"Up to {plan.MaxBranches} branches" : "Unlimited branches")</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(plan.Features))
+                    {
+                        @foreach (var feature in plan.Features.Split(',', StringSplitOptions.RemoveEmptyEntries).Take(3))
+                        {
+                            <div class="feature">
+                                <span class="feature-icon">✓</span>
+                                <span>@feature.Trim()</span>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <div class="plan-modules">
+                    <h4>@(plan.PlanModules?.Count ?? 0) Modules Included</h4>
+                    <div class="module-icons">
+                        @if (plan.PlanModules != null)
+                        {
+                            @foreach (var pm in plan.PlanModules.Take(6))
+                            {
+                                <span class="mod-icon" title="@pm.Module?.ModuleName">@pm.Module?.Icon</span>
+                            }
+                            @if (plan.PlanModules.Count > 6)
+                            {
+                                <span class="mod-more">+@(plan.PlanModules.Count - 6)</span>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="plan-stats">
+                    <div class="stat">
+                        <span class="stat-value">@(plan.Subscriptions?.Count(s => s.Status == "Active") ?? 0)</span>
+                        <span class="stat-label">Active Subscribers</span>
+                    </div>
+                </div>
+
+                <div class="plan-actions">
+                    <button class="btn-edit" @onclick="() => EditPlan(plan)">Edit</button>
+                    <button class="btn-toggle" @onclick="() => TogglePlanActive(plan)">
+                        @(plan.IsActive ? "Deactivate" : "Activate")
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!plans.Any())
+    {
+        <div class="empty-state">
+            <span class="empty-icon">📋</span>
+            <h3>No subscription plans</h3>
+            <p>Create your first plan to start accepting subscriptions</p>
+            <button class="btn-primary" @onclick="ShowAddForm">+ Create Plan</button>
+        </div>
+    }
+</div>
+
+<style>
+    .plans-page {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-left h2 {
+        margin: 0;
+        font-size: 24px;
+        color: #1f2937;
+    }
+
+    .count {
+        background: #e5e7eb;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .btn-primary {
+        background: #6366f1;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .btn-primary:hover {
+        background: #4f46e5;
+    }
+
+    .btn-secondary {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    /* Plans Grid */
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 24px;
+    }
+
+    .plan-card {
+        background: white;
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+        position: relative;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .plan-card:hover {
+        box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    }
+
+    .plan-card.popular {
+        border-color: #6366f1;
+    }
+
+    .plan-card.inactive {
+        opacity: 0.6;
+        background: #f9fafb;
+    }
+
+    .popular-badge {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        padding: 6px 20px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .plan-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .plan-header h3 {
+        margin: 0 0 4px 0;
+        font-size: 22px;
+        color: #1f2937;
+    }
+
+    .plan-code {
+        font-size: 12px;
+        color: #6b7280;
+        font-family: monospace;
+    }
+
+    .plan-price {
+        text-align: center;
+        margin-bottom: 8px;
+    }
+
+    .plan-price .currency {
+        font-size: 24px;
+        color: #6366f1;
+        vertical-align: super;
+    }
+
+    .plan-price .amount {
+        font-size: 48px;
+        font-weight: 800;
+        color: #1f2937;
+    }
+
+    .plan-price .period {
+        font-size: 16px;
+        color: #6b7280;
+    }
+
+    .yearly-price {
+        text-align: center;
+        font-size: 13px;
+        color: #059669;
+        margin-bottom: 16px;
+    }
+
+    .plan-desc {
+        text-align: center;
+        color: #6b7280;
+        font-size: 14px;
+        margin-bottom: 24px;
+        line-height: 1.5;
+    }
+
+    .plan-features {
+        margin-bottom: 24px;
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 12px;
+    }
+
+    .feature {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .feature-icon {
+        font-size: 16px;
+    }
+
+    .plan-modules {
+        margin-bottom: 20px;
+    }
+
+    .plan-modules h4 {
+        font-size: 13px;
+        color: #6b7280;
+        margin: 0 0 12px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .module-icons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .module-icons .mod-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .mod-more {
+        width: 40px;
+        height: 40px;
+        background: #e5e7eb;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+    }
+
+    .plan-stats {
+        text-align: center;
+        padding: 16px 0;
+        border-top: 1px solid #f3f4f6;
+        margin-bottom: 16px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #6366f1;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .plan-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-edit {
+        flex: 1;
+        background: #6366f1;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .btn-toggle {
+        flex: 1;
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+        padding: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow: auto;
+    }
+
+    .modal-content.large {
+        max-width: 800px;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px;
+        border-bottom: 1px solid #f3f4f6;
+        position: sticky;
+        top: 0;
+        background: white;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 20px;
+        color: #1f2937;
+    }
+
+    .close-btn {
+        width: 36px;
+        height: 36px;
+        border: none;
+        background: #f3f4f6;
+        border-radius: 8px;
+        font-size: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 10px 14px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .input-prefix {
+        display: flex;
+        align-items: center;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .input-prefix span {
+        padding: 10px 12px;
+        background: #f9fafb;
+        border-right: 1px solid #e5e7eb;
+        color: #6b7280;
+    }
+
+    .input-prefix input {
+        border: none;
+        flex: 1;
+    }
+
+    /* Modules Section */
+    .modules-section {
+        margin-bottom: 24px;
+        padding: 20px;
+        background: #f9fafb;
+        border-radius: 12px;
+    }
+
+    .modules-section h4 {
+        margin: 0 0 16px 0;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .module-checkbox {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: white;
+        transition: all 0.2s ease;
+    }
+
+    .module-checkbox.selected {
+        border-color: #6366f1;
+        background: #eef2ff;
+    }
+
+    .module-checkbox input {
+        display: none;
+    }
+
+    .module-checkbox label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        cursor: pointer;
+    }
+
+    .module-checkbox .mod-icon {
+        font-size: 20px;
+    }
+
+    .module-checkbox .mod-name {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .module-checkbox .mod-price {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .form-row.checkboxes {
+        display: flex;
+        gap: 24px;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding-top: 16px;
+        border-top: 1px solid #f3f4f6;
+        margin-top: 16px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 16px;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        display: block;
+        margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+        margin: 0 0 8px 0;
+        color: #1f2937;
+    }
+
+    .empty-state p {
+        color: #6b7280;
+        margin-bottom: 24px;
+    }
+</style>
+
+@code {
+    private List<SubscriptionPlan> plans = new();
+    private List<SystemModule> allModules = new();
+    private SubscriptionPlan editPlan = new();
+    private HashSet<int> selectedModuleIds = new();
+    private bool showForm = false;
+    private bool isEditing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        plans = await PlanService.GetAllPlansAsync();
+        allModules = await ModuleService.GetAllModulesAsync();
+    }
+
+    private void ShowAddForm()
+    {
+        editPlan = new SubscriptionPlan
+        {
+            IsActive = true
+        };
+        selectedModuleIds.Clear();
+        
+        // Auto-select core modules
+        foreach (var module in allModules.Where(m => m.IsCore))
+        {
+            selectedModuleIds.Add(module.ModuleId);
+        }
+        
+        isEditing = false;
+        showForm = true;
+    }
+
+    private void HideForm()
+    {
+        showForm = false;
+    }
+
+    private void EditPlan(SubscriptionPlan plan)
+    {
+        editPlan = new SubscriptionPlan
+        {
+            PlanId = plan.PlanId,
+            PlanCode = plan.PlanCode,
+            PlanName = plan.PlanName,
+            Description = plan.Description,
+            MonthlyPrice = plan.MonthlyPrice,
+            YearlyPrice = plan.YearlyPrice,
+            MaxUsers = plan.MaxUsers,
+            MaxBranches = plan.MaxBranches,
+            Features = plan.Features,
+            IsActive = plan.IsActive,
+            IsPopular = plan.IsPopular
+        };
+        
+        selectedModuleIds = new HashSet<int>(
+            plan.PlanModules?.Select(pm => pm.ModuleId) ?? Enumerable.Empty<int>()
+        );
+        
+        isEditing = true;
+        showForm = true;
+    }
+
+    private void ToggleModule(int moduleId)
+    {
+        if (selectedModuleIds.Contains(moduleId))
+        {
+            selectedModuleIds.Remove(moduleId);
+        }
+        else
+        {
+            selectedModuleIds.Add(moduleId);
+        }
+    }
+
+    private async Task SavePlan()
+    {
+        try
+        {
+            if (isEditing)
+            {
+                await PlanService.UpdatePlanAsync(editPlan);
+                // Update modules
+                await PlanService.SetPlanModulesAsync(editPlan.PlanId, selectedModuleIds.ToList());
+            }
+            else
+            {
+                var newPlan = await PlanService.CreatePlanAsync(editPlan);
+                await PlanService.SetPlanModulesAsync(newPlan.PlanId, selectedModuleIds.ToList());
+            }
+            await LoadData();
+            HideForm();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving plan: {ex.Message}");
+        }
+    }
+
+    private async Task TogglePlanActive(SubscriptionPlan plan)
+    {
+        plan.IsActive = !plan.IsActive;
+        await PlanService.UpdatePlanAsync(plan);
+        await LoadData();
+    }
+}

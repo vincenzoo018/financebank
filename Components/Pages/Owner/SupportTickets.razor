@@ -1,0 +1,701 @@
+@page "/owner/tickets"
+@layout OwnerLayout
+
+<div class="tickets-page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <h2>Support Tickets</h2>
+            <span class="subtitle">View and respond to client support requests</span>
+        </div>
+        <div class="header-right">
+            <select class="filter-select" @bind="statusFilter">
+                <option value="">All Status</option>
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Closed">Closed</option>
+            </select>
+            <select class="filter-select" @bind="priorityFilter">
+                <option value="">All Priority</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-card orange">
+            <div class="stat-icon">🎫</div>
+            <div class="stat-info">
+                <span class="stat-value">@tickets.Count(t => t.Status == "Open")</span>
+                <span class="stat-label">Open Tickets</span>
+            </div>
+        </div>
+        <div class="stat-card blue">
+            <div class="stat-icon">🔧</div>
+            <div class="stat-info">
+                <span class="stat-value">@tickets.Count(t => t.Status == "In Progress")</span>
+                <span class="stat-label">In Progress</span>
+            </div>
+        </div>
+        <div class="stat-card red">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-info">
+                <span class="stat-value">@tickets.Count(t => t.Priority == "High" && t.Status != "Closed")</span>
+                <span class="stat-label">High Priority</span>
+            </div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+                <span class="stat-value">@tickets.Count(t => t.Status == "Resolved" || t.Status == "Closed")</span>
+                <span class="stat-label">Resolved</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tickets List -->
+    <div class="tickets-list">
+        @foreach (var ticket in FilteredTickets)
+        {
+            <div class="ticket-card @(ticket.Status == "Open" ? "unread" : "") @(ticket.Priority == "High" ? "high-priority" : "")">
+                <div class="ticket-left">
+                    <div class="ticket-avatar" style="background: @GetAvatarColor(ticket.ClientName);">
+                        @ticket.ClientName[0]
+                    </div>
+                </div>
+                <div class="ticket-main">
+                    <div class="ticket-header-row">
+                        <h4>#@ticket.TicketId - @ticket.Subject</h4>
+                        <div class="ticket-badges">
+                            <span class="badge priority-@ticket.Priority.ToLower()">@ticket.Priority</span>
+                            <span class="badge status-@ticket.Status.ToLower().Replace(" ", "-")">@ticket.Status</span>
+                        </div>
+                    </div>
+                    <p class="ticket-message">@ticket.LastMessage</p>
+                    <div class="ticket-meta">
+                        <span class="client-name">@ticket.ClientName</span>
+                        <span class="separator">•</span>
+                        <span class="category">@ticket.Category</span>
+                        <span class="separator">•</span>
+                        <span class="date">@ticket.LastUpdated.ToString("MMM dd, yyyy h:mm tt")</span>
+                        @if (ticket.Replies > 0)
+                        {
+                            <span class="separator">•</span>
+                            <span class="replies">💬 @ticket.Replies replies</span>
+                        }
+                    </div>
+                </div>
+                <div class="ticket-actions">
+                    <button class="btn btn-primary btn-sm" @onclick="() => ViewTicket(ticket)">View</button>
+                    @if (ticket.Status == "Open")
+                    {
+                        <button class="btn btn-secondary btn-sm" @onclick="() => AssignTicket(ticket)">Assign</button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- View Ticket Modal -->
+    @if (showViewModal)
+    {
+        <div class="modal-overlay" @onclick="CloseModal">
+            <div class="modal-content large" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <div>
+                        <h3>#@selectedTicket.TicketId - @selectedTicket.Subject</h3>
+                        <div class="modal-badges">
+                            <span class="badge priority-@selectedTicket.Priority.ToLower()">@selectedTicket.Priority</span>
+                            <span class="badge status-@selectedTicket.Status.ToLower().Replace(" ", "-")">@selectedTicket.Status</span>
+                        </div>
+                    </div>
+                    <button class="close-btn" @onclick="CloseModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="ticket-info">
+                        <div class="info-row">
+                            <span class="info-label">Client:</span>
+                            <span class="info-value">@selectedTicket.ClientName</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Category:</span>
+                            <span class="info-value">@selectedTicket.Category</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Created:</span>
+                            <span class="info-value">@selectedTicket.CreatedDate.ToString("MMM dd, yyyy h:mm tt")</span>
+                        </div>
+                    </div>
+
+                    <div class="conversation">
+                        @foreach (var message in ticketMessages)
+                        {
+                            <div class="message @(message.IsOwner ? "owner" : "client")">
+                                <div class="message-avatar" style="background: @(message.IsOwner ? "#6366f1" : GetAvatarColor(selectedTicket.ClientName));">
+                                    @(message.IsOwner ? "S" : selectedTicket.ClientName[0])
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-header">
+                                        <span class="sender">@(message.IsOwner ? "Support Team" : selectedTicket.ClientName)</span>
+                                        <span class="time">@message.Timestamp.ToString("MMM dd, h:mm tt")</span>
+                                    </div>
+                                    <p>@message.Text</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="reply-section">
+                        <textarea @bind="replyText" rows="3" placeholder="Type your reply..."></textarea>
+                        <div class="reply-actions">
+                            <select @bind="newStatus">
+                                <option value="">Keep Status</option>
+                                <option value="In Progress">Mark In Progress</option>
+                                <option value="Resolved">Mark Resolved</option>
+                                <option value="Closed">Close Ticket</option>
+                            </select>
+                            <button class="btn btn-primary" @onclick="SendReply">Send Reply</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .tickets-page { padding: 0; }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .header-left h2 { font-size: 24px; font-weight: 700; color: #1f2937; margin: 0; }
+    .header-left .subtitle { font-size: 14px; color: #6b7280; }
+
+    .header-right { display: flex; gap: 12px; }
+
+    .filter-select {
+        padding: 10px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+    }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-left: 4px solid transparent;
+    }
+
+    .stat-card.orange { border-color: #f59e0b; }
+    .stat-card.blue { border-color: #3b82f6; }
+    .stat-card.red { border-color: #ef4444; }
+    .stat-card.green { border-color: #10b981; }
+
+    .stat-icon { font-size: 28px; }
+    .stat-info { display: flex; flex-direction: column; }
+    .stat-value { font-size: 24px; font-weight: 700; color: #1f2937; }
+    .stat-label { font-size: 13px; color: #6b7280; }
+
+    .tickets-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .ticket-card {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.2s;
+    }
+
+    .ticket-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+
+    .ticket-card.unread {
+        border-left: 4px solid #6366f1;
+        background: #fafafa;
+    }
+
+    .ticket-card.high-priority {
+        border-left: 4px solid #ef4444;
+    }
+
+    .ticket-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: white;
+        font-size: 18px;
+    }
+
+    .ticket-main { flex: 1; }
+
+    .ticket-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .ticket-header-row h4 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .ticket-badges { display: flex; gap: 8px; }
+
+    .badge {
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    .badge.priority-high { background: #fee2e2; color: #dc2626; }
+    .badge.priority-medium { background: #fef3c7; color: #92400e; }
+    .badge.priority-low { background: #dbeafe; color: #1d4ed8; }
+
+    .badge.status-open { background: #dbeafe; color: #1d4ed8; }
+    .badge.status-in-progress { background: #fef3c7; color: #92400e; }
+    .badge.status-resolved { background: #d1fae5; color: #059669; }
+    .badge.status-closed { background: #e5e7eb; color: #4b5563; }
+
+    .ticket-message {
+        font-size: 14px;
+        color: #4b5563;
+        margin: 0 0 12px 0;
+        line-height: 1.5;
+    }
+
+    .ticket-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .separator { color: #d1d5db; }
+    .client-name { font-weight: 500; color: #374151; }
+    .replies { color: #6366f1; }
+
+    .ticket-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+    .btn-sm { padding: 8px 16px; font-size: 13px; }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 700px;
+        max-height: 90vh;
+        overflow: auto;
+    }
+
+    .modal-content.large { max-width: 800px; }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-header h3 { margin: 0 0 8px 0; font-size: 18px; }
+    .modal-badges { display: flex; gap: 8px; }
+    .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280; }
+    .modal-body { padding: 24px; }
+
+    .ticket-info {
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .info-row {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+    .info-value { font-size: 14px; font-weight: 500; color: #1f2937; }
+
+    .conversation {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+        padding: 12px;
+        background: #f9fafb;
+        border-radius: 12px;
+    }
+
+    .message {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .message:last-child { margin-bottom: 0; }
+
+    .message.owner { flex-direction: row-reverse; }
+
+    .message-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .message-content {
+        background: white;
+        border-radius: 12px;
+        padding: 12px 16px;
+        max-width: 70%;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .message.owner .message-content {
+        background: #6366f1;
+        color: white;
+    }
+
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+
+    .message-header .sender {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .message-header .time {
+        font-size: 11px;
+        opacity: 0.7;
+    }
+
+    .message-content p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .reply-section {
+        border-top: 1px solid #e5e7eb;
+        padding-top: 20px;
+    }
+
+    .reply-section textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        resize: vertical;
+    }
+
+    .reply-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 12px;
+    }
+
+    .reply-actions select {
+        padding: 10px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+</style>
+
+@code {
+    private List<TicketData> tickets = new();
+    private List<MessageData> ticketMessages = new();
+    private TicketData selectedTicket = new();
+    private bool showViewModal = false;
+    private string statusFilter = "";
+    private string priorityFilter = "";
+    private string replyText = "";
+    private string newStatus = "";
+
+    private IEnumerable<TicketData> FilteredTickets => tickets
+        .Where(t => string.IsNullOrEmpty(statusFilter) || t.Status == statusFilter)
+        .Where(t => string.IsNullOrEmpty(priorityFilter) || t.Priority == priorityFilter)
+        .OrderByDescending(t => t.Priority == "High")
+        .ThenByDescending(t => t.LastUpdated);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSampleData();
+    }
+
+    private async Task LoadSampleData()
+    {
+        await Task.Delay(100);
+        tickets = new List<TicketData>
+        {
+            new TicketData {
+                TicketId = 1001,
+                ClientName = "FineBank Corporation",
+                Subject = "Unable to generate trial balance report",
+                Category = "Reports",
+                Priority = "High",
+                Status = "Open",
+                LastMessage = "When I try to generate the trial balance report for March 2025, the system shows an error message. This is urgent as we need it for our audit.",
+                CreatedDate = DateTime.Now.AddDays(-1),
+                LastUpdated = DateTime.Now.AddHours(-2),
+                Replies = 0
+            },
+            new TicketData {
+                TicketId = 1002,
+                ClientName = "Metro Credit Union",
+                Subject = "Request for additional user accounts",
+                Category = "Account",
+                Priority = "Medium",
+                Status = "In Progress",
+                LastMessage = "We need to add 5 more user accounts for our new branch. Please advise on the pricing.",
+                CreatedDate = DateTime.Now.AddDays(-3),
+                LastUpdated = DateTime.Now.AddDays(-1),
+                Replies = 2
+            },
+            new TicketData {
+                TicketId = 1003,
+                ClientName = "Demo Company Ltd",
+                Subject = "How to set up automatic loan interest computation",
+                Category = "Loans",
+                Priority = "Low",
+                Status = "Resolved",
+                LastMessage = "Thank you for the detailed guide! Everything is working now.",
+                CreatedDate = DateTime.Now.AddDays(-5),
+                LastUpdated = DateTime.Now.AddDays(-3),
+                Replies = 4
+            },
+            new TicketData {
+                TicketId = 1004,
+                ClientName = "Valley Savings Cooperative",
+                Subject = "System running slow during peak hours",
+                Category = "Performance",
+                Priority = "High",
+                Status = "In Progress",
+                LastMessage = "The system becomes very slow between 9-11 AM when most transactions happen. Our tellers are complaining.",
+                CreatedDate = DateTime.Now.AddDays(-2),
+                LastUpdated = DateTime.Now.AddHours(-6),
+                Replies = 3
+            },
+            new TicketData {
+                TicketId = 1005,
+                ClientName = "FineBank Corporation",
+                Subject = "Feature request: Export data to Excel",
+                Category = "Feature Request",
+                Priority = "Low",
+                Status = "Open",
+                LastMessage = "It would be great if we could export all transaction data to Excel format for our accountants.",
+                CreatedDate = DateTime.Now.AddDays(-4),
+                LastUpdated = DateTime.Now.AddDays(-4),
+                Replies = 0
+            },
+            new TicketData {
+                TicketId = 1006,
+                ClientName = "Green Finance Coop",
+                Subject = "Billing inquiry for last month",
+                Category = "Billing",
+                Priority = "Medium",
+                Status = "Closed",
+                LastMessage = "Issue resolved. Thank you for your quick response!",
+                CreatedDate = DateTime.Now.AddDays(-10),
+                LastUpdated = DateTime.Now.AddDays(-7),
+                Replies = 5
+            }
+        };
+    }
+
+    private void ViewTicket(TicketData ticket)
+    {
+        selectedTicket = ticket;
+        LoadMessages();
+        showViewModal = true;
+    }
+
+    private void LoadMessages()
+    {
+        ticketMessages = new List<MessageData>
+        {
+            new MessageData {
+                Text = selectedTicket.LastMessage,
+                Timestamp = selectedTicket.CreatedDate,
+                IsOwner = false
+            }
+        };
+
+        if (selectedTicket.Replies > 0)
+        {
+            ticketMessages.Add(new MessageData {
+                Text = "Thank you for reaching out. We are looking into this issue and will get back to you shortly.",
+                Timestamp = selectedTicket.CreatedDate.AddHours(2),
+                IsOwner = true
+            });
+        }
+
+        if (selectedTicket.Replies > 1)
+        {
+            ticketMessages.Add(new MessageData {
+                Text = "Do you have any updates on this?",
+                Timestamp = selectedTicket.CreatedDate.AddDays(1),
+                IsOwner = false
+            });
+        }
+
+        if (selectedTicket.Replies > 2)
+        {
+            ticketMessages.Add(new MessageData {
+                Text = "We've identified the issue and are working on a fix. It should be resolved within 24 hours.",
+                Timestamp = selectedTicket.LastUpdated,
+                IsOwner = true
+            });
+        }
+    }
+
+    private void CloseModal()
+    {
+        showViewModal = false;
+        replyText = "";
+        newStatus = "";
+    }
+
+    private void SendReply()
+    {
+        if (!string.IsNullOrWhiteSpace(replyText))
+        {
+            ticketMessages.Add(new MessageData {
+                Text = replyText,
+                Timestamp = DateTime.Now,
+                IsOwner = true
+            });
+            selectedTicket.Replies++;
+            selectedTicket.LastUpdated = DateTime.Now;
+            
+            if (!string.IsNullOrEmpty(newStatus))
+            {
+                selectedTicket.Status = newStatus;
+            }
+            else if (selectedTicket.Status == "Open")
+            {
+                selectedTicket.Status = "In Progress";
+            }
+
+            replyText = "";
+            newStatus = "";
+        }
+    }
+
+    private void AssignTicket(TicketData ticket)
+    {
+        ticket.Status = "In Progress";
+    }
+
+    private string GetAvatarColor(string name)
+    {
+        var colors = new[] { "#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899" };
+        var index = Math.Abs(name.GetHashCode()) % colors.Length;
+        return colors[index];
+    }
+
+    private class TicketData
+    {
+        public int TicketId { get; set; }
+        public string ClientName { get; set; } = "";
+        public string Subject { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string Priority { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string LastMessage { get; set; } = "";
+        public DateTime CreatedDate { get; set; }
+        public DateTime LastUpdated { get; set; }
+        public int Replies { get; set; }
+    }
+
+    private class MessageData
+    {
+        public string Text { get; set; } = "";
+        public DateTime Timestamp { get; set; }
+        public bool IsOwner { get; set; }
+    }
+}

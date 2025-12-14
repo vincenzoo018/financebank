@@ -3,18 +3,18 @@
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, #059669, #047857); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div class="ds-card" style="padding: 24px; margin-bottom: 24px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border: 1px solid var(--color-accent);">
         <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 48px; height: 48px; background: var(--color-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                 <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                 </svg>
             </div>
             <div style="flex: 1;">
-                <h1 style="font-size: 24px; font-weight: 700; margin: 0;">My Tasks</h1>
-                <p style="margin: 4px 0 0; opacity: 0.9; font-size: 14px;">Track and manage your assigned tasks</p>
+                <h1 class="ds-text-heavy ds-text-primary" style="font-size: 24px; margin: 0;">My Tasks</h1>
+                <p class="ds-text-secondary" style="margin: 4px 0 0; font-size: 14px;">Track and manage your assigned tasks</p>
             </div>
-            <div style="background: rgba(255,255,255,0.2); padding: 10px 16px; border-radius: 8px;">
+            <div style="background: var(--color-accent); color: white; padding: 10px 16px; border-radius: 8px;">
                 <div style="font-size: 11px; opacity: 0.9;">Active</div>
                 <div style="font-size: 20px; font-weight: 700;">@GetActiveTasks()</div>
             </div>
@@ -23,66 +23,66 @@
 
     <!-- Stats Bar -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div style="background: white; border-radius: 12px; padding: 16px; border: 2px solid #d1fae5; text-align: center;">
-            <div style="font-size: 24px; font-weight: 700; color: var(--accent);">@tasks.Count(t => t.Status == "Pending")</div>
-            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Pending</div>
+        <div class="ds-card" style="padding: 16px; border: 2px solid var(--color-accent); text-align: center;">
+            <div class="ds-text-heavy ds-text-primary" style="font-size: 24px;">@tasks.Count(t => t.Status == "Pending")</div>
+            <div class="ds-text-muted" style="font-size: 12px; margin-top: 4px;">Pending</div>
         </div>
-        <div style="background: white; border-radius: 12px; padding: 16px; border: 2px solid #d1fae5; text-align: center;">
-            <div style="font-size: 24px; font-weight: 700; color: var(--accent);">@tasks.Count(t => t.Status == "In Progress")</div>
-            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">In Progress</div>
+        <div class="ds-card" style="padding: 16px; border: 2px solid var(--color-accent); text-align: center;">
+            <div class="ds-text-heavy ds-text-primary" style="font-size: 24px;">@tasks.Count(t => t.Status == "In Progress")</div>
+            <div class="ds-text-muted" style="font-size: 12px; margin-top: 4px;">In Progress</div>
         </div>
-        <div style="background: white; border-radius: 12px; padding: 16px; border: 2px solid #d1fae5; text-align: center;">
-            <div style="font-size: 24px; font-weight: 700; color: var(--accent);">@tasks.Count(t => t.Status == "Completed")</div>
-            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Completed</div>
+        <div class="ds-card" style="padding: 16px; border: 2px solid var(--color-accent); text-align: center;">
+            <div class="ds-text-heavy ds-text-primary" style="font-size: 24px;">@tasks.Count(t => t.Status == "Completed")</div>
+            <div class="ds-text-muted" style="font-size: 12px; margin-top: 4px;">Completed</div>
         </div>
-        <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 12px; padding: 16px; border: 1px solid #fbbf24; text-align: center;">
+        <div class="ds-card" style="padding: 16px; background: linear-gradient(135deg, #fef3c7, #fde68a); border: 1px solid #fbbf24; text-align: center;">
             <div style="font-size: 24px; font-weight: 700; color: #d97706;">@tasks.Count(t => t.IsOverdue)</div>
             <div style="font-size: 12px; color: #92400e; margin-top: 4px;">Overdue</div>
         </div>
     </div>
 
     <!-- Task Tabs -->
-    <div style="background: white; border-radius: 16px; padding: 0; border: 1px solid #e5e7eb; overflow: hidden;">
-        <div style="display: flex; border-bottom: 2px solid #e5e7eb;">
-            <button @onclick='() => selectedTab = "all"' style="flex: 1; padding: 16px; background: @(selectedTab == "all" ? "#059669" : "transparent"); color: @(selectedTab == "all" ? "white" : "#6b7280"); border: none; font-size: 14px; font-weight: 600; cursor: pointer;">All Tasks (@tasks.Count)</button>
-            <button @onclick='() => selectedTab = "pending"' style="flex: 1; padding: 16px; background: @(selectedTab == "pending" ? "#059669" : "transparent"); color: @(selectedTab == "pending" ? "white" : "#6b7280"); border: none; font-size: 14px; font-weight: 600; cursor: pointer;">Pending (@tasks.Count(t => t.Status == "Pending"))</button>
-            <button @onclick='() => selectedTab = "progress"' style="flex: 1; padding: 16px; background: @(selectedTab == "progress" ? "#059669" : "transparent"); color: @(selectedTab == "progress" ? "white" : "#6b7280"); border: none; font-size: 14px; font-weight: 600; cursor: pointer;">In Progress (@tasks.Count(t => t.Status == "In Progress"))</button>
-            <button @onclick='() => selectedTab = "completed"' style="flex: 1; padding: 16px; background: @(selectedTab == "completed" ? "#059669" : "transparent"); color: @(selectedTab == "completed" ? "white" : "#6b7280"); border: none; font-size: 14px; font-weight: 600; cursor: pointer;">Completed (@tasks.Count(t => t.Status == "Completed"))</button>
+    <div class="ds-card" style="padding: 0; overflow: hidden;">
+        <div style="display: flex; border-bottom: 2px solid var(--color-black);">
+            <button @onclick='() => selectedTab = "all"' class="@(selectedTab == "all" ? "ds-btn ds-btn-primary" : "ds-btn ds-btn-secondary")" style="flex: 1; padding: 16px; border-radius: 0; font-size: 14px;">All Tasks (@tasks.Count)</button>
+            <button @onclick='() => selectedTab = "pending"' class="@(selectedTab == "pending" ? "ds-btn ds-btn-primary" : "ds-btn ds-btn-secondary")" style="flex: 1; padding: 16px; border-radius: 0; font-size: 14px;">Pending (@tasks.Count(t => t.Status == "Pending"))</button>
+            <button @onclick='() => selectedTab = "progress"' class="@(selectedTab == "progress" ? "ds-btn ds-btn-primary" : "ds-btn ds-btn-secondary")" style="flex: 1; padding: 16px; border-radius: 0; font-size: 14px;">In Progress (@tasks.Count(t => t.Status == "In Progress"))</button>
+            <button @onclick='() => selectedTab = "completed"' class="@(selectedTab == "completed" ? "ds-btn ds-btn-primary" : "ds-btn ds-btn-secondary")" style="flex: 1; padding: 16px; border-radius: 0; font-size: 14px;">Completed (@tasks.Count(t => t.Status == "Completed"))</button>
         </div>
 
         <div style="padding: 24px;">
             <div style="display: grid; gap: 16px;">
                 @foreach (var task in GetFilteredTasks())
                 {
-                    <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; transition: all 0.2s;">
+                    <div class="ds-card" style="padding: 20px; transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div style="flex: 1;">
                                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                    <h4 style="font-size: 16px; font-weight: 700; margin: 0;">@task.Title</h4>
+                                    <h4 class="ds-text-heavy" style="font-size: 16px; margin: 0;">@task.Title</h4>
                                     @if (task.IsOverdue)
                                     {
-                                        <span style="padding: 4px 8px; background: #fee2e2; color: #dc2626; border-radius: 6px; font-size: 11px; font-weight: 600;">OVERDUE</span>
+                                        <span class="ds-badge ds-badge-error">OVERDUE</span>
                                     }
-                                    <span style="padding: 4px 8px; background: @GetPriorityColor(task.Priority); border-radius: 6px; font-size: 11px; font-weight: 600;">@task.Priority</span>
+                                    <span class="ds-badge ds-badge-neutral" style="background: @GetPriorityColor(task.Priority);">@task.Priority</span>
                                 </div>
-                                <p style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">@task.Description</p>
-                                <div style="display: flex; gap: 16px; font-size: 12px; color: #9ca3af;">
+                                <p class="ds-text-secondary" style="font-size: 14px; margin-bottom: 12px;">@task.Description</p>
+                                <div class="ds-text-muted" style="display: flex; gap: 16px; font-size: 12px;">
                                     <span>Due: @task.DueDate.ToString("MMM dd, yyyy")</span>
                                     <span>Assigned: @task.AssignedDate.ToString("MMM dd")</span>
                                 </div>
                             </div>
                             <div style="text-align: right;">
-                                <span style="padding: 6px 12px; background: @GetStatusColor(task.Status); border-radius: 8px; font-size: 12px; font-weight: 600; display: inline-block; margin-bottom: 8px;">@task.Status</span>
+                                <span class="ds-badge ds-badge-neutral" style="background: @GetStatusColor(task.Status); display: inline-block; margin-bottom: 8px;">@task.Status</span>
                                 @if (task.Status != "Completed")
                                 {
                                     <div style="display: flex; gap: 8px; margin-top: 8px;">
                                         @if (task.Status == "Pending")
                                         {
-                                            <button @onclick="() => UpdateTaskStatus(task, IN_PROGRESS)" style="padding: 6px 12px; background: #059669; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Start</button>
+                                            <button @onclick="() => UpdateTaskStatus(task, IN_PROGRESS)" class="ds-btn ds-btn-primary" style="padding: 6px 12px; font-size: 12px;">Start</button>
                                         }
                                         @if (task.Status == "In Progress")
                                         {
-                                            <button @onclick="() => UpdateTaskStatus(task, COMPLETED)" style="padding: 6px 12px; background: #059669; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Complete</button>
+                                            <button @onclick="() => UpdateTaskStatus(task, COMPLETED)" class="ds-btn ds-btn-primary" style="padding: 6px 12px; font-size: 12px;">Complete</button>
                                         }
                                     </div>
                                 }

@@ -1,0 +1,620 @@
+@page "/owner/module-management"
+@layout OwnerLayout
+@using FinanceBank.Services.SaaS
+@using FinanceBank.Models.SaaS
+@inject SaaSModuleService ModuleService
+
+<div class="modules-page">
+    <div class="page-header">
+        <div class="header-left">
+            <h2>System Modules</h2>
+            <span class="count">@modules.Count modules</span>
+        </div>
+        <div class="header-right">
+            <div class="search-box">
+                <input type="text" placeholder="Search modules..." @bind="searchTerm" @bind:event="oninput" />
+            </div>
+            <select class="filter-select" @bind="categoryFilter">
+                <option value="">All Categories</option>
+                @foreach (var cat in categories)
+                {
+                    <option value="@cat">@cat</option>
+                }
+            </select>
+            <button class="btn-primary" @onclick="ShowAddForm">+ Add Module</button>
+        </div>
+    </div>
+
+    @if (showForm)
+    {
+        <div class="modal-overlay" @onclick="HideForm">
+            <div class="modal-content" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <h3>@(isEditing ? "Edit Module" : "Add New Module")</h3>
+                    <button class="close-btn" @onclick="HideForm">×</button>
+                </div>
+                <div class="modal-body">
+                    <form @onsubmit="SaveModule">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Module Code *</label>
+                                <input type="text" @bind="editModule.ModuleCode" required placeholder="e.g., LOAN_MGT" />
+                            </div>
+                            <div class="form-group">
+                                <label>Module Name *</label>
+                                <input type="text" @bind="editModule.ModuleName" required placeholder="e.g., Loan Management" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea rows="2" @bind="editModule.Description" placeholder="Brief description of the module..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select @bind="editModule.Category">
+                                    <option value="">Select Category</option>
+                                    <option value="Core Banking">Core Banking</option>
+                                    <option value="Lending">Lending</option>
+                                    <option value="Savings">Savings</option>
+                                    <option value="Investments">Investments</option>
+                                    <option value="Payments">Payments</option>
+                                    <option value="Accounting">Accounting</option>
+                                    <option value="Reports">Reports</option>
+                                    <option value="Administration">Administration</option>
+                                    <option value="Add-on">Add-on</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Base Price (Monthly)</label>
+                                <div class="input-prefix">
+                                    <span>₱</span>
+                                    <input type="number" step="0.01" @bind="editModule.BasePrice" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Icon</label>
+                                <select @bind="editModule.Icon">
+                                    <option value="💰">💰 Money</option>
+                                    <option value="🏦">🏦 Bank</option>
+                                    <option value="📊">📊 Chart</option>
+                                    <option value="📋">📋 Clipboard</option>
+                                    <option value="💳">💳 Card</option>
+                                    <option value="👥">👥 Users</option>
+                                    <option value="🔒">🔒 Security</option>
+                                    <option value="⚙️">⚙️ Settings</option>
+                                    <option value="📑">📑 Documents</option>
+                                    <option value="📈">📈 Growth</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Display Order</label>
+                                <input type="number" @bind="editModule.DisplayOrder" />
+                            </div>
+                        </div>
+                        <div class="form-row checkboxes">
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="editModule.IsCore" />
+                                <span>Core Module (included in all plans)</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="editModule.IsActive" />
+                                <span>Active</span>
+                            </label>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" @onclick="HideForm">Cancel</button>
+                            <button type="submit" class="btn-primary">@(isEditing ? "Update" : "Create") Module</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="modules-grid">
+        @foreach (var module in FilteredModules)
+        {
+            <div class="module-card @(module.IsActive ? "" : "inactive")">
+                <div class="module-icon">@module.Icon</div>
+                <div class="module-info">
+                    <div class="module-header">
+                        <h3>@module.ModuleName</h3>
+                        @if (module.IsCore)
+                        {
+                            <span class="core-badge">Core</span>
+                        }
+                    </div>
+                    <p class="module-code">@module.ModuleCode</p>
+                    <p class="module-desc">@module.Description</p>
+                    <div class="module-meta">
+                        <span class="category">@module.Category</span>
+                        <span class="price">₱@module.BasePrice.ToString("N0")/mo</span>
+                    </div>
+                </div>
+                <div class="module-actions">
+                    <button class="action-btn edit" @onclick="() => EditModule(module)" title="Edit">✏️</button>
+                    <button class="action-btn toggle" @onclick="() => ToggleActive(module)" title="@(module.IsActive ? "Deactivate" : "Activate")">
+                        @(module.IsActive ? "🔒" : "🔓")
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!FilteredModules.Any())
+    {
+        <div class="empty-state">
+            <span class="empty-icon">📦</span>
+            <h3>No modules found</h3>
+            <p>@(string.IsNullOrEmpty(searchTerm) ? "Add modules to get started" : "Try adjusting your search")</p>
+        </div>
+    }
+</div>
+
+<style>
+    .modules-page {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-left h2 {
+        margin: 0;
+        font-size: 24px;
+        color: #1f2937;
+    }
+
+    .count {
+        background: #e5e7eb;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .header-right {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .search-box input {
+        padding: 10px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        width: 250px;
+        font-size: 14px;
+    }
+
+    .filter-select {
+        padding: 10px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+    }
+
+    .btn-primary {
+        background: #6366f1;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover {
+        background: #4f46e5;
+    }
+
+    .btn-secondary {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    /* Module Grid */
+    .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 16px;
+    }
+
+    .module-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        gap: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .module-card:hover {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+
+    .module-card.inactive {
+        opacity: 0.6;
+        background: #f9fafb;
+    }
+
+    .module-icon {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        flex-shrink: 0;
+    }
+
+    .module-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .module-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .module-header h3 {
+        margin: 0;
+        font-size: 16px;
+        color: #1f2937;
+    }
+
+    .core-badge {
+        background: #6366f1;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .module-code {
+        font-size: 11px;
+        color: #6b7280;
+        font-family: monospace;
+        margin-bottom: 8px;
+    }
+
+    .module-desc {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 12px;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .module-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .category {
+        background: #f3f4f6;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        color: #374151;
+    }
+
+    .price {
+        font-size: 14px;
+        font-weight: 700;
+        color: #6366f1;
+    }
+
+    .module-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .action-btn.edit {
+        background: #eef2ff;
+    }
+
+    .action-btn.toggle {
+        background: #f3f4f6;
+    }
+
+    .action-btn:hover {
+        opacity: 0.8;
+    }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 20px;
+        color: #1f2937;
+    }
+
+    .close-btn {
+        width: 36px;
+        height: 36px;
+        border: none;
+        background: #f3f4f6;
+        border-radius: 8px;
+        font-size: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 10px 14px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .input-prefix {
+        display: flex;
+        align-items: center;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .input-prefix span {
+        padding: 10px 12px;
+        background: #f9fafb;
+        border-right: 1px solid #e5e7eb;
+        color: #6b7280;
+    }
+
+    .input-prefix input {
+        border: none;
+        flex: 1;
+    }
+
+    .form-row.checkboxes {
+        display: flex;
+        gap: 24px;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding-top: 16px;
+        border-top: 1px solid #f3f4f6;
+        margin-top: 16px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 16px;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        display: block;
+        margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+        margin: 0 0 8px 0;
+        color: #1f2937;
+    }
+
+    .empty-state p {
+        color: #6b7280;
+    }
+</style>
+
+@code {
+    private List<SystemModule> modules = new();
+    private SystemModule editModule = new();
+    private bool showForm = false;
+    private bool isEditing = false;
+    private string searchTerm = "";
+    private string categoryFilter = "";
+
+    private IEnumerable<string> categories => modules.Select(m => m.Category).Where(c => c != null).Distinct().OrderBy(c => c)!;
+
+    private IEnumerable<SystemModule> FilteredModules => modules
+        .Where(m => string.IsNullOrEmpty(searchTerm) ||
+            m.ModuleName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+            m.ModuleCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+        .Where(m => string.IsNullOrEmpty(categoryFilter) || m.Category == categoryFilter)
+        .OrderBy(m => m.DisplayOrder);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadModules();
+    }
+
+    private async Task LoadModules()
+    {
+        modules = await ModuleService.GetAllModulesAsync();
+    }
+
+    private void ShowAddForm()
+    {
+        editModule = new SystemModule
+        {
+            IsActive = true,
+            DisplayOrder = modules.Count + 1,
+            Icon = "💰"
+        };
+        isEditing = false;
+        showForm = true;
+    }
+
+    private void HideForm()
+    {
+        showForm = false;
+    }
+
+    private void EditModule(SystemModule module)
+    {
+        editModule = new SystemModule
+        {
+            ModuleId = module.ModuleId,
+            ModuleCode = module.ModuleCode,
+            ModuleName = module.ModuleName,
+            Description = module.Description,
+            Category = module.Category,
+            BasePrice = module.BasePrice,
+            Icon = module.Icon,
+            DisplayOrder = module.DisplayOrder,
+            IsCore = module.IsCore,
+            IsActive = module.IsActive
+        };
+        isEditing = true;
+        showForm = true;
+    }
+
+    private async Task SaveModule()
+    {
+        try
+        {
+            if (isEditing)
+            {
+                await ModuleService.UpdateModuleAsync(editModule);
+            }
+            else
+            {
+                await ModuleService.CreateModuleAsync(editModule);
+            }
+            await LoadModules();
+            HideForm();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving module: {ex.Message}");
+        }
+    }
+
+    private async Task ToggleActive(SystemModule module)
+    {
+        module.IsActive = !module.IsActive;
+        await ModuleService.UpdateModuleAsync(module);
+        await LoadModules();
+    }
+}

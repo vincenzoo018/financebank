@@ -1,0 +1,707 @@
+@page "/owner/modules"
+@layout OwnerLayout
+
+<div class="modules-page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <h2>System Modules</h2>
+            <span class="subtitle">Manage available modules and pricing</span>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-primary" @onclick="ShowAddModule">
+                <span class="icon">➕</span> Add New Module
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-info">
+                <span class="stat-value">@modules.Count</span>
+                <span class="stat-label">Total Modules</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+                <span class="stat-value">@modules.Count(m => m.IsActive)</span>
+                <span class="stat-label">Active</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🔌</div>
+            <div class="stat-info">
+                <span class="stat-value">@modules.Count(m => m.IsAddon)</span>
+                <span class="stat-label">Add-ons</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-info">
+                <span class="stat-value">₱@modules.Where(m => m.IsAddon).Sum(m => m.MonthlyPrice).ToString("N0")</span>
+                <span class="stat-label">Add-on Revenue</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modules Grid -->
+    <div class="modules-grid">
+        @foreach (var module in modules)
+        {
+            <div class="module-card @(module.IsActive ? "" : "inactive")">
+                <div class="module-icon" style="background: @module.IconColor;">@module.Icon</div>
+                <div class="module-info">
+                    <h3>@module.ModuleName</h3>
+                    <p>@module.Description</p>
+                </div>
+                <div class="module-meta">
+                    <span class="module-code">@module.ModuleCode</span>
+                    @if (module.IsAddon)
+                    {
+                        <span class="badge addon">Add-on</span>
+                    }
+                    else
+                    {
+                        <span class="badge core">Core</span>
+                    }
+                    @if (module.IsActive)
+                    {
+                        <span class="badge active">Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge inactive-badge">Inactive</span>
+                    }
+                </div>
+                @if (module.IsAddon)
+                {
+                    <div class="module-pricing">
+                        <span class="price">₱@module.MonthlyPrice.ToString("N0")</span>
+                        <span class="period">/month</span>
+                    </div>
+                }
+                <div class="module-usage">
+                    <div class="usage-bar-bg">
+                        <div class="usage-bar" style="width: @(module.ClientsUsing * 10)%;"></div>
+                    </div>
+                    <span class="usage-text">@module.ClientsUsing clients using</span>
+                </div>
+                <div class="module-actions">
+                    <button class="btn btn-sm btn-secondary" @onclick="() => EditModule(module)">✏️ Edit</button>
+                    <button class="btn btn-sm @(module.IsActive ? "btn-danger" : "btn-success")" 
+                            @onclick="() => ToggleActive(module)">
+                        @(module.IsActive ? "🔴 Disable" : "🟢 Enable")
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Plans Assignment -->
+    <div class="plans-section">
+        <h3>Module Assignment by Plan</h3>
+        <div class="assignment-grid">
+            <div class="assignment-header">
+                <div class="col-module">Module</div>
+                <div class="col-plan">Basic</div>
+                <div class="col-plan">Professional</div>
+                <div class="col-plan">Enterprise</div>
+            </div>
+            @foreach (var module in modules)
+            {
+                <div class="assignment-row">
+                    <div class="col-module">
+                        <span class="mini-icon" style="background: @module.IconColor;">@module.Icon</span>
+                        @module.ModuleName
+                    </div>
+                    <div class="col-plan">
+                        <input type="checkbox" checked="@module.IncludedInBasic" 
+                               @onchange='() => TogglePlan(module, "Basic")' />
+                    </div>
+                    <div class="col-plan">
+                        <input type="checkbox" checked="@module.IncludedInPro" 
+                               @onchange='() => TogglePlan(module, "Pro")' />
+                    </div>
+                    <div class="col-plan">
+                        <input type="checkbox" checked="@module.IncludedInEnterprise" 
+                               @onchange='() => TogglePlan(module, "Enterprise")' />
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Edit Module Modal -->
+    @if (showModal)
+    {
+        <div class="modal-overlay" @onclick="CloseModal">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>@(isEditing ? "Edit Module" : "Add New Module")</h3>
+                    <button class="close-btn" @onclick="CloseModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Module Name *</label>
+                            <input type="text" @bind="editModule.ModuleName" placeholder="e.g., Loan Management" />
+                        </div>
+                        <div class="form-group">
+                            <label>Module Code *</label>
+                            <input type="text" @bind="editModule.ModuleCode" placeholder="e.g., LOANS" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea @bind="editModule.Description" rows="2"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Icon (emoji)</label>
+                            <input type="text" @bind="editModule.Icon" placeholder="💰" />
+                        </div>
+                        <div class="form-group">
+                            <label>Icon Background</label>
+                            <input type="color" @bind="editModule.IconColor" />
+                        </div>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" @bind="editModule.IsAddon" />
+                            This is an Add-on Module (requires separate pricing)
+                        </label>
+                    </div>
+                    @if (editModule.IsAddon)
+                    {
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Monthly Price (₱)</label>
+                                <input type="number" @bind="editModule.MonthlyPrice" step="0.01" />
+                            </div>
+                            <div class="form-group">
+                                <label>Setup Fee (₱)</label>
+                                <input type="number" @bind="editModule.SetupFee" step="0.01" />
+                            </div>
+                        </div>
+                    }
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" @bind="editModule.IsActive" />
+                            Active
+                        </label>
+                    </div>
+                    <div class="plan-checkboxes">
+                        <label>Include in Plans:</label>
+                        <div class="checkbox-row">
+                            <label><input type="checkbox" @bind="editModule.IncludedInBasic" /> Basic</label>
+                            <label><input type="checkbox" @bind="editModule.IncludedInPro" /> Professional</label>
+                            <label><input type="checkbox" @bind="editModule.IncludedInEnterprise" /> Enterprise</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveModule">@(isEditing ? "Update Module" : "Create Module")</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .modules-page { padding: 0; }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .header-left h2 { font-size: 24px; font-weight: 700; color: #1f2937; margin: 0; }
+    .header-left .subtitle { font-size: 14px; color: #6b7280; }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+    .btn-success { background: #10b981; color: white; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-sm { padding: 8px 14px; font-size: 13px; }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .stat-icon { font-size: 28px; }
+    .stat-info { display: flex; flex-direction: column; }
+    .stat-value { font-size: 24px; font-weight: 700; color: #1f2937; }
+    .stat-label { font-size: 13px; color: #6b7280; }
+
+    .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .module-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+    }
+
+    .module-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+
+    .module-card.inactive { opacity: 0.6; }
+
+    .module-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 12px;
+    }
+
+    .module-info h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 6px 0;
+    }
+
+    .module-info p {
+        font-size: 13px;
+        color: #6b7280;
+        margin: 0 0 12px 0;
+        line-height: 1.4;
+    }
+
+    .module-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+    }
+
+    .module-code {
+        font-size: 11px;
+        font-weight: 600;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+
+    .badge {
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 500;
+    }
+
+    .badge.core { background: #dbeafe; color: #1d4ed8; }
+    .badge.addon { background: #fef3c7; color: #92400e; }
+    .badge.active { background: #d1fae5; color: #059669; }
+    .badge.inactive-badge { background: #fee2e2; color: #dc2626; }
+
+    .module-pricing {
+        margin: 12px 0;
+        padding: 12px;
+        background: #f5f3ff;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .module-pricing .price {
+        font-size: 20px;
+        font-weight: 700;
+        color: #6366f1;
+    }
+
+    .module-pricing .period {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .module-usage {
+        margin-bottom: 12px;
+    }
+
+    .usage-bar-bg {
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        margin-bottom: 6px;
+    }
+
+    .usage-bar {
+        height: 100%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 3px;
+    }
+
+    .usage-text {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .module-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .module-actions .btn { flex: 1; justify-content: center; }
+
+    /* Plans Assignment */
+    .plans-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .plans-section h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 16px 0;
+    }
+
+    .assignment-grid {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .assignment-header {
+        display: grid;
+        grid-template-columns: 2fr repeat(3, 1fr);
+        background: #f9fafb;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .assignment-header > div {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .assignment-row {
+        display: grid;
+        grid-template-columns: 2fr repeat(3, 1fr);
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .assignment-row:last-child { border-bottom: none; }
+
+    .assignment-row > div {
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+    }
+
+    .col-module {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+    }
+
+    .col-plan {
+        justify-content: center;
+    }
+
+    .mini-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-header h3 { margin: 0; font-size: 18px; }
+    .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280; }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 16px 24px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .checkbox-group label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .checkbox-group input[type="checkbox"] { width: auto; }
+
+    .plan-checkboxes { margin-top: 16px; }
+    .checkbox-row { display: flex; gap: 24px; margin-top: 8px; }
+    .checkbox-row label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
+</style>
+
+@code {
+    private List<ModuleData> modules = new();
+    private ModuleData editModule = new();
+    private bool showModal = false;
+    private bool isEditing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSampleData();
+    }
+
+    private async Task LoadSampleData()
+    {
+        await Task.Delay(100);
+        modules = new List<ModuleData>
+        {
+            new ModuleData { 
+                ModuleId = 1, ModuleCode = "CORE", ModuleName = "Core System",
+                Description = "Essential system functions, user management, settings",
+                Icon = "⚙️", IconColor = "#6366f1",
+                IsActive = true, IsAddon = false,
+                IncludedInBasic = true, IncludedInPro = true, IncludedInEnterprise = true,
+                ClientsUsing = 10
+            },
+            new ModuleData { 
+                ModuleId = 2, ModuleCode = "TELLER", ModuleName = "Teller Operations",
+                Description = "Cash-in, cash-out, deposits, withdrawals",
+                Icon = "💳", IconColor = "#10b981",
+                IsActive = true, IsAddon = false,
+                IncludedInBasic = true, IncludedInPro = true, IncludedInEnterprise = true,
+                ClientsUsing = 10
+            },
+            new ModuleData { 
+                ModuleId = 3, ModuleCode = "SAVINGS", ModuleName = "Savings Accounts",
+                Description = "Savings account management, interest computation",
+                Icon = "🏦", IconColor = "#3b82f6",
+                IsActive = true, IsAddon = false,
+                IncludedInBasic = true, IncludedInPro = true, IncludedInEnterprise = true,
+                ClientsUsing = 10
+            },
+            new ModuleData { 
+                ModuleId = 4, ModuleCode = "LOANS", ModuleName = "Loan Management",
+                Description = "Loan applications, approvals, disbursements, collections",
+                Icon = "💰", IconColor = "#f59e0b",
+                IsActive = true, IsAddon = false,
+                IncludedInBasic = false, IncludedInPro = true, IncludedInEnterprise = true,
+                ClientsUsing = 7
+            },
+            new ModuleData { 
+                ModuleId = 5, ModuleCode = "GL", ModuleName = "General Ledger",
+                Description = "Chart of accounts, journal entries, trial balance",
+                Icon = "📊", IconColor = "#8b5cf6",
+                IsActive = true, IsAddon = false,
+                IncludedInBasic = false, IncludedInPro = true, IncludedInEnterprise = true,
+                ClientsUsing = 7
+            },
+            new ModuleData { 
+                ModuleId = 6, ModuleCode = "REPORTS", ModuleName = "Advanced Reports",
+                Description = "Custom reports, analytics, data exports",
+                Icon = "📈", IconColor = "#ec4899",
+                IsActive = true, IsAddon = false,
+                IncludedInBasic = false, IncludedInPro = true, IncludedInEnterprise = true,
+                ClientsUsing = 7
+            },
+            new ModuleData { 
+                ModuleId = 7, ModuleCode = "AUDIT", ModuleName = "Audit Trail",
+                Description = "Complete activity logging and audit reports",
+                Icon = "🔍", IconColor = "#14b8a6",
+                IsActive = true, IsAddon = false,
+                IncludedInBasic = false, IncludedInPro = true, IncludedInEnterprise = true,
+                ClientsUsing = 7
+            },
+            new ModuleData { 
+                ModuleId = 8, ModuleCode = "API", ModuleName = "API Access",
+                Description = "REST API for third-party integrations",
+                Icon = "🔌", IconColor = "#6366f1",
+                IsActive = true, IsAddon = true, MonthlyPrice = 999, SetupFee = 2500,
+                IncludedInBasic = false, IncludedInPro = false, IncludedInEnterprise = true,
+                ClientsUsing = 2
+            },
+            new ModuleData { 
+                ModuleId = 9, ModuleCode = "SMS", ModuleName = "SMS Notifications",
+                Description = "SMS alerts for transactions, payments, reminders",
+                Icon = "📱", IconColor = "#22c55e",
+                IsActive = true, IsAddon = true, MonthlyPrice = 499, SetupFee = 0,
+                IncludedInBasic = false, IncludedInPro = false, IncludedInEnterprise = false,
+                ClientsUsing = 4
+            },
+            new ModuleData { 
+                ModuleId = 10, ModuleCode = "MOBILE", ModuleName = "Mobile App",
+                Description = "Member mobile app for account access",
+                Icon = "📲", IconColor = "#0ea5e9",
+                IsActive = true, IsAddon = true, MonthlyPrice = 1499, SetupFee = 5000,
+                IncludedInBasic = false, IncludedInPro = false, IncludedInEnterprise = false,
+                ClientsUsing = 1
+            }
+        };
+    }
+
+    private void ShowAddModule()
+    {
+        editModule = new ModuleData { IsActive = true, Icon = "📦", IconColor = "#6366f1" };
+        isEditing = false;
+        showModal = true;
+    }
+
+    private void EditModule(ModuleData module)
+    {
+        editModule = new ModuleData
+        {
+            ModuleId = module.ModuleId,
+            ModuleCode = module.ModuleCode,
+            ModuleName = module.ModuleName,
+            Description = module.Description,
+            Icon = module.Icon,
+            IconColor = module.IconColor,
+            IsActive = module.IsActive,
+            IsAddon = module.IsAddon,
+            MonthlyPrice = module.MonthlyPrice,
+            SetupFee = module.SetupFee,
+            IncludedInBasic = module.IncludedInBasic,
+            IncludedInPro = module.IncludedInPro,
+            IncludedInEnterprise = module.IncludedInEnterprise
+        };
+        isEditing = true;
+        showModal = true;
+    }
+
+    private void CloseModal() { showModal = false; }
+
+    private void SaveModule()
+    {
+        if (isEditing)
+        {
+            var existing = modules.FirstOrDefault(m => m.ModuleId == editModule.ModuleId);
+            if (existing != null)
+            {
+                existing.ModuleName = editModule.ModuleName;
+                existing.ModuleCode = editModule.ModuleCode;
+                existing.Description = editModule.Description;
+                existing.Icon = editModule.Icon;
+                existing.IconColor = editModule.IconColor;
+                existing.IsActive = editModule.IsActive;
+                existing.IsAddon = editModule.IsAddon;
+                existing.MonthlyPrice = editModule.MonthlyPrice;
+                existing.SetupFee = editModule.SetupFee;
+                existing.IncludedInBasic = editModule.IncludedInBasic;
+                existing.IncludedInPro = editModule.IncludedInPro;
+                existing.IncludedInEnterprise = editModule.IncludedInEnterprise;
+            }
+        }
+        else
+        {
+            editModule.ModuleId = modules.Max(m => m.ModuleId) + 1;
+            modules.Add(editModule);
+        }
+        CloseModal();
+    }
+
+    private void ToggleActive(ModuleData module)
+    {
+        module.IsActive = !module.IsActive;
+    }
+
+    private void TogglePlan(ModuleData module, string plan)
+    {
+        switch (plan)
+        {
+            case "Basic": module.IncludedInBasic = !module.IncludedInBasic; break;
+            case "Pro": module.IncludedInPro = !module.IncludedInPro; break;
+            case "Enterprise": module.IncludedInEnterprise = !module.IncludedInEnterprise; break;
+        }
+    }
+
+    private class ModuleData
+    {
+        public int ModuleId { get; set; }
+        public string ModuleCode { get; set; } = "";
+        public string ModuleName { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string IconColor { get; set; } = "";
+        public bool IsActive { get; set; }
+        public bool IsAddon { get; set; }
+        public decimal MonthlyPrice { get; set; }
+        public decimal SetupFee { get; set; }
+        public bool IncludedInBasic { get; set; }
+        public bool IncludedInPro { get; set; }
+        public bool IncludedInEnterprise { get; set; }
+        public int ClientsUsing { get; set; }
+    }
+}

@@ -1,0 +1,345 @@
+@page "/owner/login"
+@layout FinanceBank.Components.Layout.EmptyLayout
+@inject NavigationManager Navigation
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M9 9h6v6H9z"/>
+                </svg>
+            </div>
+            <h1>SaaS Management Portal</h1>
+            <p>Owner/Admin Login</p>
+        </div>
+
+        <form @onsubmit="HandleLogin" @onsubmit:preventDefault>
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error-alert">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <span>@errorMessage</span>
+                </div>
+            }
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <input type="text" id="username" @bind="username" placeholder="Enter username" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <input type="password" id="password" @bind="password" placeholder="Enter password" required />
+                </div>
+            </div>
+
+            <div class="form-options">
+                <label class="remember-me">
+                    <input type="checkbox" @bind="rememberMe" />
+                    <span>Remember me</span>
+                </label>
+                <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="login-btn" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span class="spinner"></span>
+                    <span>Signing in...</span>
+                }
+                else
+                {
+                    <span>Sign In</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                }
+            </button>
+        </form>
+
+        <div class="login-footer">
+            <p>Default credentials for testing:</p>
+            <code>admin / admin123</code>
+        </div>
+    </div>
+</div>
+
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+    }
+
+    .login-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        padding: 40px;
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .logo {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+
+    .logo svg {
+        width: 32px;
+        height: 32px;
+        color: white;
+    }
+
+    .login-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0 0 8px;
+    }
+
+    .login-header p {
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .error-alert {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        color: #dc2626;
+        margin-bottom: 20px;
+    }
+
+    .error-alert svg {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-wrapper svg {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        color: #9ca3af;
+    }
+
+    .input-wrapper input {
+        width: 100%;
+        padding: 12px 14px 12px 44px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .input-wrapper input:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .remember-me {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #6b7280;
+        cursor: pointer;
+    }
+
+    .remember-me input {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .forgot-link {
+        font-size: 14px;
+        color: #6366f1;
+        text-decoration: none;
+    }
+
+    .forgot-link:hover {
+        text-decoration: underline;
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+    .login-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .login-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .login-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .login-footer p {
+        font-size: 13px;
+        color: #6b7280;
+        margin: 0 0 8px;
+    }
+
+    .login-footer code {
+        background: #f3f4f6;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        color: #374151;
+    }
+</style>
+
+@code {
+    private string username = "";
+    private string password = "";
+    private bool rememberMe = false;
+    private bool isLoading = false;
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        // Trim whitespace from inputs
+        var trimmedUsername = username?.Trim() ?? "";
+        var trimmedPassword = password?.Trim() ?? "";
+        
+        if (string.IsNullOrWhiteSpace(trimmedUsername) || string.IsNullOrWhiteSpace(trimmedPassword))
+        {
+            errorMessage = "Please enter both username and password";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            // Simulate async operation
+            await Task.Delay(300);
+            
+            // Accept admin/admin123 (case-insensitive username)
+            if (trimmedUsername.Equals("admin", StringComparison.OrdinalIgnoreCase) && trimmedPassword == "admin123")
+            {
+                // Redirect to dashboard
+                Navigation.NavigateTo("/owner/dashboard");
+            }
+            else
+            {
+                errorMessage = "Invalid username or password. Use: admin / admin123";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Login failed. Please try again.";
+            Console.WriteLine($"Login error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

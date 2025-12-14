@@ -1,0 +1,297 @@
+/* ================================
+   DESIGN SYSTEM — CORE TOKENS
+   ================================ */
+
+:root {
+    /* Brand */
+    --color-primary: #98FB98;
+
+    /* Neutrals */
+    --color-white: #ffffff;
+    --color-black: #000000;
+
+    --color-gray-900: #111827;
+    --color-gray-700: #374151;
+    --color-gray-500: #6B7280;
+    --color-gray-100: #F3F4F6;
+
+    /* Semantic */
+    --color-success-bg: #d1fae5;
+    --color-success-text: #065f46;
+
+    --color-warning-bg: #fef3c7;
+    --color-warning-text: #92400e;
+
+    --color-error-bg: #fee2e2;
+    --color-error-text: #991b1b;
+
+    /* Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+
+    /* Motion */
+    --transition-fast: 0.15s ease;
+}
+
+
+/* ================================
+   TYPOGRAPHY
+   ================================ */
+
+.ds-text-primary {
+    color: var(--color-gray-900);
+}
+
+.ds-text-secondary {
+    color: var(--color-gray-700);
+}
+
+.ds-text-muted {
+    color: var(--color-gray-500);
+}
+
+.ds-text-bold {
+    font-weight: 600;
+}
+
+.ds-text-heavy {
+    font-weight: 700;
+}
+
+
+/* ================================
+   CARD SYSTEM
+   ================================ */
+
+.ds-card {
+    background: var(--color-white);
+    border: 1px solid var(--color-black);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+}
+
+.ds-card-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.ds-card-sub {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 8px;
+}
+
+.ds-card-hover {
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.ds-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.ds-card-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-gray-700);
+    margin-bottom: 8px;
+}
+
+.ds-card-content {
+    font-size: 14px;
+    color: var(--color-gray-900);
+}
+
+
+/* ================================
+   BUTTON SYSTEM (SIZE-AGNOSTIC)
+   ================================ */
+
+.ds-btn {
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background var(--transition-fast),
+        color var(--transition-fast),
+        transform 0.1s ease;
+}
+
+.ds-btn:hover {
+    transform: translateY(-1px);
+}
+
+.ds-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Primary */
+.ds-btn-primary {
+    background: var(--color-primary);
+    color: var(--color-gray-900);
+}
+
+.ds-btn-primary:hover:not(:disabled) {
+    background: #7fe97f;
+}
+
+/* Secondary */
+.ds-btn-secondary {
+    background: var(--color-gray-100);
+    color: var(--color-gray-700);
+    border: 1px solid var(--color-black);
+}
+
+.ds-btn-secondary:hover:not(:disabled) {
+    background: #e5e7eb;
+}
+
+/* Neutral */
+.ds-btn-neutral {
+    background: var(--color-gray-500);
+    color: var(--color-white);
+}
+
+.ds-btn-neutral:hover:not(:disabled) {
+    background: #4b5563;
+}
+
+
+/* ================================
+   STATUS / BADGES
+   ================================ */
+
+.ds-badge {
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Success */
+.ds-badge-success {
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+}
+
+/* Warning */
+.ds-badge-warning {
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+}
+
+/* Error */
+.ds-badge-error {
+    background: var(--color-error-bg);
+    color: var(--color-error-text);
+}
+
+/* Neutral */
+.ds-badge-neutral {
+    background: var(--color-gray-100);
+    color: var(--color-gray-500);
+}
+
+
+/* ================================
+   INPUTS / FORM CONTROLS
+   ================================ */
+
+.ds-input {
+    background: var(--color-white);
+    border: 1px solid var(--color-black);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    color: var(--color-gray-900);
+}
+
+.ds-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+
+/* ================================
+   TABLES
+   ================================ */
+
+.ds-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ds-table th {
+    background: var(--color-gray-100);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-gray-500);
+    text-align: left;
+    padding: 12px 16px;
+    text-transform: uppercase;
+}
+
+.ds-table td {
+    padding: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    color: var(--color-gray-900);
+}
+
+
+/* ================================
+   MODALS
+   ================================ */
+
+.ds-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.ds-modal {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-black);
+    padding: 24px;
+    max-width: 600px;
+    width: 95%;
+}
+
+
+/* ================================
+   ALERTS / NOTICES
+   ================================ */
+
+.ds-alert {
+    border-radius: var(--radius-md);
+    padding: 16px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ds-alert-warning {
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    border: 1px solid #f59e0b;
+}
+
+.ds-alert-success {
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+    border: 1px solid #10b981;
+}
+
+.ds-alert-error {
+    background: var(--color-error-bg);
+    color: var(--color-error-text);
+    border: 1px solid #ef4444;
+}

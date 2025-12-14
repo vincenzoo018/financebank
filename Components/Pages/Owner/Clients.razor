@@ -1,0 +1,1925 @@
+@page "/owner/clients"
+@layout OwnerLayout
+@using FinanceBank.Models.SaaS
+@using FinanceBank.Services.SaaS
+@inject NavigationManager Navigation
+@inject SaaSClientService ClientService
+@inject SaaSInvoiceService InvoiceService
+@inject SaaSModuleService ModuleService
+@inject IJSRuntime JSRuntime
+
+<div class="clients-page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <h2>Client Management</h2>
+            <span class="subtitle">Manage your SaaS clients</span>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-primary" @onclick="ShowAddClient">
+                <span class="icon">➕</span> Add New Client
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <span class="stat-value">@clients.Count</span>
+            <span class="stat-label">Total Clients</span>
+        </div>
+        <div class="stat-card active">
+            <span class="stat-value">@clients.Count(c => c.Status == "Active")</span>
+            <span class="stat-label">Active</span>
+        </div>
+        <div class="stat-card trial">
+            <span class="stat-value">@clients.Count(c => c.Status == "Trial")</span>
+            <span class="stat-label">On Trial</span>
+        </div>
+        <div class="stat-card suspended">
+            <span class="stat-value">@clients.Count(c => c.Status == "Suspended")</span>
+            <span class="stat-label">Suspended</span>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="filters-bar">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="Search clients..." @bind="searchTerm" @bind:event="oninput" />
+        </div>
+        <div class="filter-group">
+            <select @bind="statusFilter">
+                <option value="">All Status</option>
+                <option value="Active">Active</option>
+                <option value="Trial">Trial</option>
+                <option value="Suspended">Suspended</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Clients Table -->
+    <div class="table-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Plan</th>
+                    <th>Status</th>
+                    <th>Outstanding</th>
+                    <th>Next Billing</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var client in FilteredClients)
+                {
+                    <tr @onclick="() => ViewClient(client.ClientId)" class="clickable-row">
+                        <td>
+                            <div class="client-cell">
+                                <div class="client-avatar">@client.CompanyName.Substring(0, 1)</div>
+                                <div class="client-info">
+                                    <span class="client-name">@client.CompanyName</span>
+                                    <span class="client-email">@client.PrimaryEmail</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="plan-badge @GetPlanClass(client.ClientCode)">@GetPlanName(client.ClientCode)</span>
+                        </td>
+                        <td>
+                            <span class="status-badge @client.Status.ToLower()">@client.Status</span>
+                        </td>
+                        <td class="@(client.OutstandingBalance > 0 ? "text-danger" : "")">
+                            ₱@client.OutstandingBalance.ToString("N2")
+                        </td>
+                        <td>@GetNextBilling(client)</td>
+                        <td>
+                            <div class="action-buttons" @onclick:stopPropagation="true">
+                                <button class="action-btn view" @onclick="() => ViewClient(client.ClientId)" title="View Details">👁️</button>
+                                <button class="action-btn edit" @onclick="() => EditClient(client)" title="Edit">✏️</button>
+                                @if (client.Status == "Active")
+                                {
+                                    <button class="action-btn suspend" @onclick="() => SuspendClient(client)" title="Suspend">⏸️</button>
+                                }
+                                else if (client.Status == "Suspended")
+                                {
+                                    <button class="action-btn activate" @onclick="() => ActivateClient(client)" title="Activate">▶️</button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add/Edit Client Modal -->
+    @if (showModal)
+    {
+        <div class="modal-overlay" @onclick="CloseModal">
+            <div class="modal-content large" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>@(isEditing ? "Edit Client" : "Add New Client - Setup Wizard")</h3>
+                    <button class="close-btn" @onclick="CloseModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    @if (!isEditing)
+                    {
+                        <!-- Setup Steps Indicator -->
+                        <div class="setup-steps">
+                            <div class="step @(setupStep >= 1 ? "active" : "") @(setupStep > 1 ? "completed" : "")">
+                                <span class="step-num">@(setupStep > 1 ? "✓" : "1")</span>
+                                <span class="step-label">Client Info</span>
+                            </div>
+                            <div class="step-line @(setupStep > 1 ? "active" : "")"></div>
+                            <div class="step @(setupStep >= 2 ? "active" : "") @(setupStep > 2 ? "completed" : "")">
+                                <span class="step-num">@(setupStep > 2 ? "✓" : "2")</span>
+                                <span class="step-label">Select Modules</span>
+                            </div>
+                            <div class="step-line @(setupStep > 2 ? "active" : "")"></div>
+                            <div class="step @(setupStep >= 3 ? "active" : "") @(setupStep > 3 ? "completed" : "")">
+                                <span class="step-num">@(setupStep > 3 ? "✓" : "3")</span>
+                                <span class="step-label">Pricing</span>
+                            </div>
+                            <div class="step-line @(setupStep > 3 ? "active" : "")"></div>
+                            <div class="step @(setupStep >= 4 ? "active" : "")">
+                                <span class="step-num">4</span>
+                                <span class="step-label">Contract & Invoice</span>
+                            </div>
+                        </div>
+                    }
+
+                    @if (isEditing || setupStep == 1)
+                    {
+                        <!-- Step 1: Client Information -->
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Company Name *</label>
+                                <input type="text" @bind="editClient.CompanyName" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Trade Name</label>
+                                <input type="text" @bind="editClient.TradeName" />
+                            </div>
+                            <div class="form-group">
+                                <label>Business Type</label>
+                                <select @bind="editClient.BusinessType">
+                                    <option value="">Select Type</option>
+                                    <option value="Bank">Bank</option>
+                                    <option value="Cooperative">Cooperative</option>
+                                    <option value="Lending">Lending Company</option>
+                                    <option value="Microfinance">Microfinance</option>
+                                    <option value="Credit Union">Credit Union</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Primary Email *</label>
+                                <input type="email" @bind="editClient.PrimaryEmail" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="tel" @bind="editClient.Phone" />
+                            </div>
+                            <div class="form-group">
+                                <label>Mobile</label>
+                                <input type="tel" @bind="editClient.Mobile" />
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Address</label>
+                                <input type="text" @bind="editClient.Address" />
+                            </div>
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" @bind="editClient.City" />
+                            </div>
+                            <div class="form-group">
+                                <label>Province</label>
+                                <input type="text" @bind="editClient.Province" />
+                            </div>
+                            <div class="form-group">
+                                <label>Contact Person</label>
+                                <input type="text" @bind="editClient.ContactPersonName" />
+                            </div>
+                            <div class="form-group">
+                                <label>Contact Title</label>
+                                <input type="text" @bind="editClient.ContactPersonTitle" />
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Notes</label>
+                                <textarea @bind="editClient.Notes" rows="3"></textarea>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!isEditing && setupStep == 2)
+                    {
+                        <!-- Step 2: Module Selection -->
+                        <div class="module-selection">
+                            <div class="selection-header">
+                                <h4>📦 Select Modules for Client</h4>
+                                <p>Choose the modules this client will avail. Monthly subscription will be auto-calculated.</p>
+                                <div class="quick-select-btns">
+                                    <button class="quick-btn" @onclick="SelectBasicPlan">Basic Plan</button>
+                                    <button class="quick-btn" @onclick="SelectProPlan">Pro Plan</button>
+                                    <button class="quick-btn" @onclick="SelectEnterprisePlan">Enterprise</button>
+                                    <button class="quick-btn outline" @onclick="ClearModules">Clear All</button>
+                                </div>
+                            </div>
+
+                            <div class="modules-grid">
+                                @foreach (var module in availableModules)
+                                {
+                                    <div class="module-card @(selectedModuleIds.Contains(module.ModuleId) ? "selected" : "") @(module.IsCore ? "core" : "")"
+                                         @onclick="() => ToggleModule(module)">
+                                        <div class="module-check">
+                                            @if (selectedModuleIds.Contains(module.ModuleId))
+                                            {
+                                                <span class="checked">✓</span>
+                                            }
+                                        </div>
+                                        <div class="module-info">
+                                            <span class="module-name">@module.ModuleName</span>
+                                            <span class="module-desc">@module.Description</span>
+                                            <span class="module-price">
+                                                @if (module.IsCore)
+                                                {
+                                                    <span class="included">Included</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>₱@module.MonthlyPrice.ToString("N0")/mo</span>
+                                                }
+                                            </span>
+                                        </div>
+                                        @if (module.IsCore)
+                                        {
+                                            <span class="core-badge">Core</span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="selection-summary">
+                                <div class="summary-item">
+                                    <span class="label">Selected Modules:</span>
+                                    <span class="value">@selectedModuleIds.Count</span>
+                                </div>
+                                <div class="summary-item highlight">
+                                    <span class="label">Monthly Subscription:</span>
+                                    <span class="value">₱@CalculateMonthlySubscription().ToString("N2")</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!isEditing && setupStep == 3)
+                    {
+                        <!-- Step 3: Pricing & Billing -->
+                        <div class="pricing-section">
+                            <h4>💰 Pricing & Billing Setup</h4>
+                            
+                            <div class="billing-options">
+                                <div class="billing-option @(billingCycle == "Monthly" ? "selected" : "")" @onclick='() => billingCycle = "Monthly"'>
+                                    <div class="option-radio">@(billingCycle == "Monthly" ? "●" : "○")</div>
+                                    <div class="option-content">
+                                        <span class="option-title">Monthly Billing</span>
+                                        <span class="option-price">₱@CalculateMonthlySubscription().ToString("N2")/month</span>
+                                    </div>
+                                </div>
+                                <div class="billing-option @(billingCycle == "Yearly" ? "selected" : "")" @onclick='() => billingCycle = "Yearly"'>
+                                    <div class="option-radio">@(billingCycle == "Yearly" ? "●" : "○")</div>
+                                    <div class="option-content">
+                                        <span class="option-title">Yearly Billing</span>
+                                        <span class="option-price">₱@(CalculateMonthlySubscription() * 10).ToString("N2")/year</span>
+                                        <span class="savings">Save 2 months!</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pricing-breakdown">
+                                <h5>Pricing Breakdown</h5>
+                                <table class="breakdown-table">
+                                    <thead>
+                                        <tr><th>Module</th><th>Price</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var module in availableModules.Where(m => selectedModuleIds.Contains(m.ModuleId)))
+                                        {
+                                            <tr>
+                                                <td>@module.ModuleName</td>
+                                                <td>@(module.IsCore ? "Included" : $"₱{module.MonthlyPrice:N2}")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="total">
+                                            <td><strong>Monthly Total</strong></td>
+                                            <td><strong>₱@CalculateMonthlySubscription().ToString("N2")</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Setup Fee</label>
+                                    <input type="number" @bind="setupFee" min="0" step="100" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Contract Duration</label>
+                                    <select @bind="contractDuration">
+                                        <option value="1">1 Month</option>
+                                        <option value="6">6 Months</option>
+                                        <option value="12">12 Months (1 Year)</option>
+                                        <option value="24">24 Months (2 Years)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Start Date</label>
+                                    <input type="date" @bind="contractStartDate" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Discount (%)</label>
+                                    <input type="number" @bind="discountPercent" min="0" max="50" />
+                                </div>
+                            </div>
+
+                            <div class="first-payment-summary">
+                                <h5>First Payment Due</h5>
+                                <div class="payment-items">
+                                    <div class="payment-row">
+                                        <span>Setup Fee</span>
+                                        <span>₱@setupFee.ToString("N2")</span>
+                                    </div>
+                                    <div class="payment-row">
+                                        <span>First @billingCycle Subscription</span>
+                                        <span>₱@GetFirstSubscriptionAmount().ToString("N2")</span>
+                                    </div>
+                                    @if (discountPercent > 0)
+                                    {
+                                        <div class="payment-row discount">
+                                            <span>Discount (@discountPercent%)</span>
+                                            <span>-₱@GetDiscountAmount().ToString("N2")</span>
+                                        </div>
+                                    }
+                                    <div class="payment-row total">
+                                        <span><strong>Total First Payment</strong></span>
+                                        <span><strong>₱@GetTotalFirstPayment().ToString("N2")</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!isEditing && setupStep == 4)
+                    {
+                        <!-- Step 4: Contract & Invoice Generation -->
+                        <div class="contract-section">
+                            <div class="review-summary">
+                                <h4>📋 Review & Finalize</h4>
+                                <div class="review-grid">
+                                    <div class="review-card">
+                                        <h5>Client Information</h5>
+                                        <p><strong>@editClient.CompanyName</strong></p>
+                                        <p>@editClient.Address, @editClient.City</p>
+                                        <p>@editClient.PrimaryEmail</p>
+                                        <p>Contact: @editClient.ContactPersonName</p>
+                                    </div>
+                                    <div class="review-card">
+                                        <h5>Subscription Details</h5>
+                                        <p>Modules: @selectedModuleIds.Count selected</p>
+                                        <p>Billing: @billingCycle</p>
+                                        <p>Duration: @contractDuration months</p>
+                                        <p>Start: @contractStartDate.ToString("MMM dd, yyyy")</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="contract-preview">
+                                <div class="contract-header">
+                                    <h5>📝 Service Contract</h5>
+                                    <button class="btn btn-sm btn-secondary" @onclick="DownloadContract">📥 Download PDF</button>
+                                </div>
+                                <div class="contract-content">
+                                    <div class="contract-title">SERVICE AGREEMENT</div>
+                                    <p>This Service Agreement is entered into as of <strong>@contractStartDate.ToString("MMMM dd, yyyy")</strong> 
+                                       by and between <strong>ERP Solutions Provider</strong> ("Provider") and <strong>@editClient.CompanyName</strong> ("Client").</p>
+                                    <p><strong>1. SERVICES:</strong> Provider agrees to provide Client access to the ERP System including:
+                                       @string.Join(", ", availableModules.Where(m => selectedModuleIds.Contains(m.ModuleId)).Select(m => m.ModuleName)).</p>
+                                    <p><strong>2. TERM:</strong> This Agreement shall commence on @contractStartDate.ToString("MMMM dd, yyyy") 
+                                       and continue for @contractDuration months until @contractStartDate.AddMonths(contractDuration).ToString("MMMM dd, yyyy").</p>
+                                    <p><strong>3. FEES:</strong> Client agrees to pay a setup fee of ₱@setupFee.ToString("N2") and a @billingCycle.ToLower() 
+                                       subscription fee of ₱@GetFirstSubscriptionAmount().ToString("N2").</p>
+                                </div>
+                            </div>
+
+                            <div class="invoice-preview">
+                                <div class="invoice-header">
+                                    <h5>📄 First Invoice</h5>
+                                    <button class="btn btn-sm btn-secondary" @onclick="DownloadInvoice">📥 Download PDF</button>
+                                </div>
+                                <div class="invoice-content">
+                                    <div class="invoice-top">
+                                        <div class="company-info">
+                                            <strong>ERP Solutions Provider</strong><br/>
+                                            123 Business Center, Makati City
+                                        </div>
+                                        <div class="invoice-number">
+                                            <span class="inv-label">INVOICE</span>
+                                            <span class="inv-num">INV-@DateTime.Now.ToString("yyyyMMdd")-001</span>
+                                        </div>
+                                    </div>
+                                    <div class="invoice-to">
+                                        <span class="label">BILL TO:</span>
+                                        <strong>@editClient.CompanyName</strong><br/>
+                                        @editClient.Address, @editClient.City<br/>
+                                        @editClient.PrimaryEmail
+                                    </div>
+                                    <table class="invoice-items">
+                                        <thead>
+                                            <tr><th>Description</th><th>Amount</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Setup Fee - Initial Configuration</td>
+                                                <td>₱@setupFee.ToString("N2")</td>
+                                            </tr>
+                                            <tr>
+                                                <td>@billingCycle Subscription (@selectedModuleIds.Count modules)</td>
+                                                <td>₱@GetFirstSubscriptionAmount().ToString("N2")</td>
+                                            </tr>
+                                            @if (discountPercent > 0)
+                                            {
+                                                <tr class="discount">
+                                                    <td>Discount (@discountPercent%)</td>
+                                                    <td>-₱@GetDiscountAmount().ToString("N2")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td>Subtotal</td>
+                                                <td>₱@(setupFee + GetFirstSubscriptionAmount()).ToString("N2")</td>
+                                            </tr>
+                                            <tr>
+                                                <td>VAT (12%)</td>
+                                                <td>₱@(GetTotalFirstPayment() * 0.12m).ToString("N2")</td>
+                                            </tr>
+                                            <tr class="total">
+                                                <td><strong>Total Due</strong></td>
+                                                <td><strong>₱@(GetTotalFirstPayment() * 1.12m).ToString("N2")</strong></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                    <div class="invoice-footer">
+                                        <p><strong>Payment Due:</strong> @contractStartDate.AddDays(15).ToString("MMM dd, yyyy")</p>
+                                        <p><strong>Payment Method:</strong> Bank Transfer / GCash / Cash</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="confirmation-check">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" @bind="contractAgreed" />
+                                    <span>I confirm all information is correct and contract has been reviewed</span>
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    @if (!isEditing && setupStep > 1)
+                    {
+                        <button class="btn btn-secondary" @onclick="PreviousStep">← Previous</button>
+                    }
+                    <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                    @if (isEditing)
+                    {
+                        <button class="btn btn-primary" @onclick="SaveClient">Update Client</button>
+                    }
+                    else if (setupStep < 4)
+                    {
+                        <button class="btn btn-primary" @onclick="NextStep" disabled="@(!CanProceed())">Next Step →</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-primary" @onclick="SaveClient" disabled="@(!contractAgreed)">
+                            ✓ Create Client & Generate Invoice
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .clients-page {
+        padding: 0;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .header-left h2 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .header-left .subtitle {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-secondary {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-left: 4px solid #6366f1;
+    }
+
+    .stat-card.active { border-left-color: #10b981; }
+    .stat-card.trial { border-left-color: #f59e0b; }
+    .stat-card.suspended { border-left-color: #ef4444; }
+
+    .stat-value {
+        display: block;
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .filters-bar {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .search-box {
+        flex: 1;
+        position: relative;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 12px 12px 12px 40px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .filter-group select {
+        padding: 12px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th {
+        background: #f9fafb;
+        padding: 14px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .data-table td {
+        padding: 16px;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .clickable-row {
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .clickable-row:hover {
+        background: #f9fafb;
+    }
+
+    .client-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .client-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .client-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .client-name {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .client-email {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .plan-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .plan-badge.basic { background: #dbeafe; color: #1d4ed8; }
+    .plan-badge.pro { background: #fef3c7; color: #d97706; }
+    .plan-badge.enterprise { background: #ede9fe; color: #7c3aed; }
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-badge.active { background: #d1fae5; color: #059669; }
+    .status-badge.trial { background: #fef3c7; color: #d97706; }
+    .status-badge.suspended { background: #fee2e2; color: #dc2626; }
+    .status-badge.cancelled { background: #f3f4f6; color: #6b7280; }
+
+    .text-danger { color: #dc2626; font-weight: 600; }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        background: #f3f4f6;
+    }
+
+    .action-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .action-btn.view:hover { background: #dbeafe; }
+    .action-btn.edit:hover { background: #fef3c7; }
+    .action-btn.suspend:hover { background: #fee2e2; }
+    .action-btn.activate:hover { background: #d1fae5; }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 700px;
+        max-height: 90vh;
+        overflow: auto;
+    }
+
+    .modal-content.large {
+        max-width: 800px;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-header h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #6b7280;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 16px 24px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-group.full-width {
+        grid-column: span 2;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    /* Setup Steps */
+    .setup-steps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 12px;
+    }
+
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .step-num {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .step.active .step-num {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+    }
+
+    .step.completed .step-num {
+        background: #10b981;
+        color: white;
+    }
+
+    .step-label {
+        font-size: 11px;
+        color: #6b7280;
+    }
+
+    .step.active .step-label {
+        color: #6366f1;
+        font-weight: 500;
+    }
+
+    .step-line {
+        width: 60px;
+        height: 2px;
+        background: #e5e7eb;
+        margin: 0 8px 20px;
+    }
+
+    .step-line.active {
+        background: linear-gradient(90deg, #10b981, #6366f1);
+    }
+
+    /* Module Selection */
+    .module-selection {
+        margin-bottom: 16px;
+    }
+
+    .selection-header {
+        margin-bottom: 16px;
+    }
+
+    .selection-header h4 {
+        margin: 0 0 8px 0;
+        font-size: 16px;
+    }
+
+    .selection-header p {
+        color: #6b7280;
+        font-size: 14px;
+        margin: 0 0 12px 0;
+    }
+
+    .quick-select-btns {
+        display: flex;
+        gap: 8px;
+    }
+
+    .quick-btn {
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: none;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .quick-btn.outline {
+        background: white;
+        border: 1px solid #e5e7eb;
+        color: #374151;
+    }
+
+    .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .module-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .module-card:hover {
+        border-color: #6366f1;
+        background: #f5f3ff;
+    }
+
+    .module-card.selected {
+        border-color: #6366f1;
+        background: #f5f3ff;
+    }
+
+    .module-card.core {
+        background: #f0fdf4;
+        border-color: #86efac;
+    }
+
+    .module-check {
+        width: 22px;
+        height: 22px;
+        border: 2px solid #d1d5db;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .module-card.selected .module-check {
+        background: #6366f1;
+        border-color: #6366f1;
+    }
+
+    .checked {
+        color: white;
+        font-weight: bold;
+        font-size: 12px;
+    }
+
+    .module-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+    }
+
+    .module-name {
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .module-desc {
+        font-size: 11px;
+        color: #6b7280;
+    }
+
+    .module-price {
+        font-size: 12px;
+        font-weight: 500;
+        color: #6366f1;
+    }
+
+    .module-price .included {
+        color: #10b981;
+    }
+
+    .core-badge {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        background: #10b981;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-size: 9px;
+        font-weight: 600;
+    }
+
+    .selection-summary {
+        display: flex;
+        justify-content: flex-end;
+        gap: 24px;
+        padding: 12px 16px;
+        background: #f9fafb;
+        border-radius: 8px;
+    }
+
+    .selection-summary .label {
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .selection-summary .value {
+        font-weight: 600;
+        margin-left: 8px;
+    }
+
+    .selection-summary .highlight .value {
+        color: #6366f1;
+        font-size: 18px;
+    }
+
+    /* Pricing Section */
+    .pricing-section h4 {
+        margin: 0 0 16px 0;
+    }
+
+    .billing-options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .billing-option {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .billing-option:hover {
+        border-color: #6366f1;
+    }
+
+    .billing-option.selected {
+        border-color: #6366f1;
+        background: #f5f3ff;
+    }
+
+    .option-radio {
+        font-size: 18px;
+        color: #6366f1;
+    }
+
+    .option-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .option-title {
+        font-weight: 600;
+    }
+
+    .option-price {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .savings {
+        font-size: 11px;
+        color: #10b981;
+        font-weight: 500;
+    }
+
+    .pricing-breakdown {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .pricing-breakdown h5 {
+        margin: 0 0 12px 0;
+        font-size: 14px;
+    }
+
+    .breakdown-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .breakdown-table th,
+    .breakdown-table td {
+        padding: 8px;
+        text-align: left;
+        font-size: 13px;
+    }
+
+    .breakdown-table th {
+        background: #e5e7eb;
+        font-weight: 600;
+    }
+
+    .breakdown-table td:last-child,
+    .breakdown-table th:last-child {
+        text-align: right;
+    }
+
+    .breakdown-table .total {
+        background: #ede9fe;
+        font-weight: 600;
+    }
+
+    .first-payment-summary {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 12px;
+        padding: 16px;
+        color: white;
+    }
+
+    .first-payment-summary h5 {
+        margin: 0 0 12px 0;
+        font-size: 14px;
+    }
+
+    .payment-items {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .payment-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+        font-size: 14px;
+    }
+
+    .payment-row:last-child {
+        border-bottom: none;
+    }
+
+    .payment-row.discount {
+        color: #86efac;
+    }
+
+    .payment-row.total {
+        padding-top: 12px;
+        font-size: 16px;
+    }
+
+    /* Contract & Invoice Preview */
+    .contract-section {
+        margin-bottom: 16px;
+    }
+
+    .review-summary h4 {
+        margin: 0 0 12px 0;
+    }
+
+    .review-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .review-card {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 14px;
+    }
+
+    .review-card h5 {
+        font-size: 12px;
+        color: #6b7280;
+        text-transform: uppercase;
+        margin: 0 0 8px 0;
+    }
+
+    .review-card p {
+        margin: 4px 0;
+        font-size: 13px;
+    }
+
+    .contract-preview,
+    .invoice-preview {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 16px;
+    }
+
+    .contract-header,
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .contract-header h5,
+    .invoice-header h5 {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .contract-content,
+    .invoice-content {
+        padding: 16px;
+        font-size: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .contract-title {
+        text-align: center;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    .contract-content p {
+        margin-bottom: 10px;
+        line-height: 1.5;
+    }
+
+    .invoice-top {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    .inv-label {
+        font-size: 20px;
+        font-weight: 800;
+        color: #1f2937;
+    }
+
+    .inv-num {
+        display: block;
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .invoice-to {
+        margin-bottom: 16px;
+    }
+
+    .invoice-to .label {
+        font-size: 10px;
+        color: #6b7280;
+    }
+
+    .invoice-items {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 12px;
+    }
+
+    .invoice-items th,
+    .invoice-items td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .invoice-items th {
+        background: #f9fafb;
+        font-size: 10px;
+        text-transform: uppercase;
+    }
+
+    .invoice-items td:last-child,
+    .invoice-items th:last-child {
+        text-align: right;
+    }
+
+    .invoice-items .discount {
+        color: #10b981;
+    }
+
+    .invoice-items tfoot .total {
+        background: #ede9fe;
+    }
+
+    .invoice-footer {
+        padding-top: 12px;
+        border-top: 1px dashed #e5e7eb;
+    }
+
+    .invoice-footer p {
+        margin: 4px 0;
+        font-size: 11px;
+    }
+
+    .confirmation-check {
+        padding: 12px;
+        background: #fef3c7;
+        border-radius: 8px;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .checkbox-label input {
+        width: 18px;
+        height: 18px;
+        accent-color: #6366f1;
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+</style>
+
+@code {
+    private List<SaaSClient> clients = new();
+    private SaaSClient editClient = new();
+    private bool showModal = false;
+    private bool isEditing = false;
+    private string searchTerm = "";
+    private string statusFilter = "";
+    private int selectedPlanId = 2;
+
+    // Module Selection
+    private List<ModuleItem> availableModules = new();
+    private HashSet<int> selectedModuleIds = new();
+    private int setupStep = 1;
+    private string billingCycle = "Monthly";
+    private decimal setupFee = 5000;
+    private int contractDuration = 12;
+    private DateTime contractStartDate = DateTime.Now;
+    private int discountPercent = 0;
+    private bool contractAgreed = false;
+
+    private IEnumerable<SaaSClient> FilteredClients => clients
+        .Where(c => string.IsNullOrEmpty(searchTerm) || 
+            c.CompanyName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+            c.PrimaryEmail.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+        .Where(c => string.IsNullOrEmpty(statusFilter) || c.Status == statusFilter);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadClientsFromDatabase();
+        await LoadModulesFromDatabase();
+    }
+
+    private async Task LoadClientsFromDatabase()
+    {
+        try
+        {
+            clients = await ClientService.GetAllClientsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading clients: {ex.Message}");
+            clients = new List<SaaSClient>();
+        }
+    }
+
+    private async Task LoadModulesFromDatabase()
+    {
+        try
+        {
+            var dbModules = await ModuleService.GetAllModulesAsync();
+            if (dbModules != null && dbModules.Any())
+            {
+                availableModules = dbModules.Select(m => new ModuleItem
+                {
+                    ModuleId = m.ModuleId,
+                    ModuleName = m.ModuleName,
+                    Description = m.Description ?? string.Empty,
+                    MonthlyPrice = m.MonthlyPrice,
+                    IsCore = m.IsCore
+                }).ToList();
+            }
+            else
+            {
+                // Fallback to default modules and save them to database
+                LoadDefaultModules();
+                await SaveDefaultModulesToDatabase();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading modules: {ex.Message}");
+            LoadDefaultModules();
+        }
+        
+        // Auto-select core modules
+        foreach (var module in availableModules.Where(m => m.IsCore))
+        {
+            selectedModuleIds.Add(module.ModuleId);
+        }
+    }
+
+    private void LoadDefaultModules()
+    {
+        availableModules = new List<ModuleItem>
+        {
+            new ModuleItem { ModuleId = 1, ModuleName = "Core System", Description = "Essential system foundation", MonthlyPrice = 0, IsCore = true },
+            new ModuleItem { ModuleId = 2, ModuleName = "Teller Operations", Description = "Cash transactions, deposits, withdrawals", MonthlyPrice = 500 },
+            new ModuleItem { ModuleId = 3, ModuleName = "Loan Management", Description = "Loan applications, approvals, payments", MonthlyPrice = 1000 },
+            new ModuleItem { ModuleId = 4, ModuleName = "Savings Accounts", Description = "Savings account management", MonthlyPrice = 500 },
+            new ModuleItem { ModuleId = 5, ModuleName = "General Ledger", Description = "Chart of accounts, journal entries", MonthlyPrice = 800 },
+            new ModuleItem { ModuleId = 6, ModuleName = "Financial Reports", Description = "Balance sheets, income statements", MonthlyPrice = 500 },
+            new ModuleItem { ModuleId = 7, ModuleName = "User Administration", Description = "User management, roles, permissions", MonthlyPrice = 300 },
+            new ModuleItem { ModuleId = 8, ModuleName = "Audit Trail", Description = "System audit logs and security", MonthlyPrice = 400 }
+        };
+    }
+
+    private async Task SaveDefaultModulesToDatabase()
+    {
+        try
+        {
+            foreach (var module in availableModules)
+            {
+                var systemModule = new SystemModule
+                {
+                    ModuleCode = module.ModuleName.Replace(" ", "").ToUpper(),
+                    ModuleName = module.ModuleName,
+                    Description = module.Description,
+                    MonthlyPrice = module.MonthlyPrice,
+                    BasePrice = module.MonthlyPrice,
+                    YearlyPrice = module.MonthlyPrice * 10,
+                    IsCore = module.IsCore,
+                    IsActive = true,
+                    SortOrder = module.ModuleId
+                };
+                await ModuleService.CreateModuleAsync(systemModule);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving default modules: {ex.Message}");
+        }
+    }
+
+    private void ShowAddClient()
+    {
+        editClient = new SaaSClient { Status = "Trial", BillingCycle = "Monthly" };
+        isEditing = false;
+        setupStep = 1;
+        selectedModuleIds.Clear();
+        foreach (var module in availableModules.Where(m => m.IsCore))
+        {
+            selectedModuleIds.Add(module.ModuleId);
+        }
+        billingCycle = "Monthly";
+        setupFee = 5000;
+        contractDuration = 12;
+        contractStartDate = DateTime.Now;
+        discountPercent = 0;
+        contractAgreed = false;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        setupStep = 1;
+    }
+
+    private void ViewClient(int clientId)
+    {
+        Navigation.NavigateTo($"/owner/client/{clientId}");
+    }
+
+    private void EditClient(SaaSClient client)
+    {
+        editClient = new SaaSClient
+        {
+            ClientId = client.ClientId,
+            CompanyName = client.CompanyName,
+            TradeName = client.TradeName,
+            BusinessType = client.BusinessType,
+            PrimaryEmail = client.PrimaryEmail,
+            Phone = client.Phone,
+            Mobile = client.Mobile,
+            Address = client.Address,
+            City = client.City,
+            Province = client.Province,
+            ContactPersonName = client.ContactPersonName,
+            ContactPersonTitle = client.ContactPersonTitle,
+            Notes = client.Notes,
+            Status = client.Status,
+            BillingCycle = client.BillingCycle
+        };
+        isEditing = true;
+        showModal = true;
+    }
+
+    private void ToggleModule(ModuleItem module)
+    {
+        if (module.IsCore) return;
+        
+        if (selectedModuleIds.Contains(module.ModuleId))
+            selectedModuleIds.Remove(module.ModuleId);
+        else
+            selectedModuleIds.Add(module.ModuleId);
+    }
+
+    private void SelectBasicPlan()
+    {
+        selectedModuleIds.Clear();
+        var basicModules = new[] { 1, 2, 4, 6 }; // Core, Teller, Savings, Reports
+        foreach (var id in basicModules)
+            selectedModuleIds.Add(id);
+    }
+
+    private void SelectProPlan()
+    {
+        selectedModuleIds.Clear();
+        var proModules = new[] { 1, 2, 3, 4, 5, 6, 7 }; // All except Audit
+        foreach (var id in proModules)
+            selectedModuleIds.Add(id);
+    }
+
+    private void SelectEnterprisePlan()
+    {
+        selectedModuleIds.Clear();
+        foreach (var module in availableModules)
+            selectedModuleIds.Add(module.ModuleId);
+    }
+
+    private void ClearModules()
+    {
+        selectedModuleIds.Clear();
+        foreach (var module in availableModules.Where(m => m.IsCore))
+            selectedModuleIds.Add(module.ModuleId);
+    }
+
+    private decimal CalculateMonthlySubscription()
+    {
+        return availableModules
+            .Where(m => selectedModuleIds.Contains(m.ModuleId))
+            .Sum(m => m.MonthlyPrice);
+    }
+
+    private decimal GetFirstSubscriptionAmount()
+    {
+        var monthly = CalculateMonthlySubscription();
+        return billingCycle == "Yearly" ? monthly * 10 : monthly;
+    }
+
+    private decimal GetDiscountAmount()
+    {
+        return (setupFee + GetFirstSubscriptionAmount()) * (discountPercent / 100m);
+    }
+
+    private decimal GetTotalFirstPayment()
+    {
+        return setupFee + GetFirstSubscriptionAmount() - GetDiscountAmount();
+    }
+
+    private bool CanProceed()
+    {
+        return setupStep switch
+        {
+            1 => !string.IsNullOrWhiteSpace(editClient.CompanyName) && !string.IsNullOrWhiteSpace(editClient.PrimaryEmail),
+            2 => selectedModuleIds.Count > 0,
+            3 => true,
+            4 => contractAgreed,
+            _ => true
+        };
+    }
+
+    private void NextStep()
+    {
+        if (CanProceed() && setupStep < 4)
+            setupStep++;
+    }
+
+    private void PreviousStep()
+    {
+        if (setupStep > 1)
+            setupStep--;
+    }
+
+    private async Task SaveClient()
+    {
+        try
+        {
+            if (isEditing)
+            {
+                // Update existing client
+                await ClientService.UpdateClientAsync(editClient);
+            }
+            else
+            {
+                // Create new client with subscription and invoice
+                editClient.Status = "Active";
+                editClient.BillingCycle = billingCycle;
+                editClient.SubscriptionStartDate = contractStartDate;
+                editClient.SubscriptionEndDate = contractStartDate.AddMonths(contractDuration);
+                editClient.OutstandingBalance = GetTotalFirstPayment() * 1.12m; // With VAT
+
+                // Save client to database
+                var savedClient = await ClientService.CreateClientAsync(editClient);
+
+                // Create subscription for selected modules
+                var subscription = new ClientSubscription
+                {
+                    ClientId = savedClient.ClientId,
+                    StartDate = contractStartDate,
+                    EndDate = contractStartDate.AddMonths(contractDuration),
+                    BillingCycle = billingCycle,
+                    BasePrice = setupFee,
+                    AdditionalModulesPrice = CalculateMonthlySubscription(),
+                    Discount = GetDiscountAmount(),
+                    DiscountType = discountPercent > 0 ? "Percentage" : null,
+                    TotalPrice = GetTotalFirstPayment(),
+                    Status = "Active",
+                    AutoRenew = true
+                };
+                await ClientService.CreateSubscriptionAsync(savedClient.ClientId, subscription);
+
+                // Create client modules
+                foreach (var moduleId in selectedModuleIds)
+                {
+                    var module = availableModules.FirstOrDefault(m => m.ModuleId == moduleId);
+                    if (module != null)
+                    {
+                        await ClientService.AddModuleToClientAsync(savedClient.ClientId, moduleId, module.MonthlyPrice);
+                    }
+                }
+
+                // Create initial invoice
+                var invoice = await InvoiceService.CreateInvoiceAsync(savedClient.ClientId, "Subscription", GetTotalFirstPayment() * 1.12m, contractStartDate.AddDays(15));
+                
+                // Update client's outstanding balance
+                savedClient.OutstandingBalance = GetTotalFirstPayment() * 1.12m;
+                await ClientService.UpdateClientAsync(savedClient);
+            }
+
+            // Reload clients list
+            clients = await ClientService.GetAllClientsAsync();
+            CloseModal();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving client: {ex.Message}");
+        }
+    }
+
+    private async Task DownloadContract()
+    {
+        var contractHtml = GenerateContractHtml();
+        await JSRuntime.InvokeVoidAsync("openContractWindow", contractHtml);
+    }
+
+    private async Task DownloadInvoice()
+    {
+        var invoiceHtml = GenerateInvoiceHtml();
+        await JSRuntime.InvokeVoidAsync("openContractWindow", invoiceHtml);
+    }
+
+    private string GenerateContractHtml()
+    {
+        var sb = new System.Text.StringBuilder();
+        var moduleRows = string.Join("", availableModules
+            .Where(m => selectedModuleIds.Contains(m.ModuleId))
+            .Select(m => "<tr><td>" + m.ModuleName + "</td><td>₱" + m.MonthlyPrice.ToString("N2") + "</td></tr>"));
+        var discountRow = discountPercent > 0 
+            ? "<tr><td>Discount (" + discountPercent + "%)</td><td>-₱" + GetDiscountAmount().ToString("N2") + "</td></tr>" 
+            : "";
+
+        sb.Append("<!DOCTYPE html><html><head>");
+        sb.Append("<title>Service Contract - " + editClient.CompanyName + "</title>");
+        sb.Append("<style>");
+        sb.Append("body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; }");
+        sb.Append(".header { text-align: center; border-bottom: 2px solid #059669; padding-bottom: 20px; margin-bottom: 30px; }");
+        sb.Append(".header h1 { color: #059669; margin: 0; }");
+        sb.Append(".section { margin-bottom: 25px; }");
+        sb.Append(".section h3 { color: #1f2937; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }");
+        sb.Append("table { width: 100%; border-collapse: collapse; margin: 15px 0; }");
+        sb.Append("th, td { padding: 10px; text-align: left; border: 1px solid #e5e7eb; }");
+        sb.Append("th { background: #f3f4f6; }");
+        sb.Append(".signatures { display: flex; justify-content: space-between; margin-top: 60px; }");
+        sb.Append(".sig-box { text-align: center; width: 45%; }");
+        sb.Append(".sig-line { border-top: 1px solid #000; margin-top: 60px; padding-top: 5px; }");
+        sb.Append("@media print { body { padding: 20px; } }");
+        sb.Append("</style></head><body>");
+        
+        sb.Append("<div class='header'>");
+        sb.Append("<h1>SERVICE AGREEMENT</h1>");
+        sb.Append("<p>Contract No: CNT-" + DateTime.Now.ToString("yyyyMMdd") + "-" + (editClient.ClientCode?.Length >= 3 ? editClient.ClientCode.Substring(editClient.ClientCode.Length - 3) : "001") + "</p>");
+        sb.Append("</div>");
+        
+        sb.Append("<div class='section'>");
+        sb.Append("<p>This Service Agreement is entered into as of <strong>" + contractStartDate.ToString("MMMM dd, yyyy") + "</strong></p>");
+        sb.Append("<p><strong>BETWEEN:</strong></p>");
+        sb.Append("<p>ERP Solutions Provider (\"Provider\")<br/>123 Business Center, Makati City, Philippines</p>");
+        sb.Append("<p><strong>AND:</strong></p>");
+        sb.Append("<p>" + editClient.CompanyName + " (\"Client\")<br/>" + editClient.Address + ", " + editClient.City + "<br/>");
+        sb.Append("Contact: " + editClient.ContactPersonName + " (" + editClient.PrimaryEmail + ")</p>");
+        sb.Append("</div>");
+        
+        sb.Append("<div class='section'>");
+        sb.Append("<h3>1. SERVICES</h3>");
+        sb.Append("<p>Provider agrees to provide Client access to the ERP Banking System including the following modules:</p>");
+        sb.Append("<table><tr><th>Module</th><th>Monthly Fee</th></tr>" + moduleRows + "</table>");
+        sb.Append("</div>");
+        
+        sb.Append("<div class='section'>");
+        sb.Append("<h3>2. TERM</h3>");
+        sb.Append("<p>This Agreement shall commence on " + contractStartDate.ToString("MMMM dd, yyyy") + " and continue for " + contractDuration + " months until " + contractStartDate.AddMonths(contractDuration).ToString("MMMM dd, yyyy") + ".</p>");
+        sb.Append("</div>");
+        
+        sb.Append("<div class='section'>");
+        sb.Append("<h3>3. FEES</h3>");
+        sb.Append("<table>");
+        sb.Append("<tr><td>Setup Fee</td><td>₱" + setupFee.ToString("N2") + "</td></tr>");
+        sb.Append("<tr><td>" + billingCycle + " Subscription</td><td>₱" + GetFirstSubscriptionAmount().ToString("N2") + "</td></tr>");
+        sb.Append(discountRow);
+        sb.Append("<tr><td>VAT (12%)</td><td>₱" + (GetTotalFirstPayment() * 0.12m).ToString("N2") + "</td></tr>");
+        sb.Append("<tr style='font-weight:bold;'><td>Total First Payment</td><td>₱" + (GetTotalFirstPayment() * 1.12m).ToString("N2") + "</td></tr>");
+        sb.Append("</table></div>");
+        
+        sb.Append("<div class='signatures'>");
+        sb.Append("<div class='sig-box'><div class='sig-line'>Provider Representative</div></div>");
+        sb.Append("<div class='sig-box'><div class='sig-line'>" + editClient.ContactPersonName + "<br/>Client Representative</div></div>");
+        sb.Append("</div>");
+        sb.Append("</body></html>");
+        
+        return sb.ToString();
+    }
+
+    private string GenerateInvoiceHtml()
+    {
+        var sb = new System.Text.StringBuilder();
+        var discountRow = discountPercent > 0 
+            ? "<tr><td>Discount (" + discountPercent + "%)</td><td></td><td></td><td>-₱" + GetDiscountAmount().ToString("N2") + "</td></tr>" 
+            : "";
+
+        sb.Append("<!DOCTYPE html><html><head>");
+        sb.Append("<title>Invoice - " + editClient.CompanyName + "</title>");
+        sb.Append("<style>");
+        sb.Append("body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; }");
+        sb.Append(".header { display: flex; justify-content: space-between; border-bottom: 2px solid #059669; padding-bottom: 20px; margin-bottom: 30px; }");
+        sb.Append(".company { font-size: 24px; font-weight: bold; color: #059669; }");
+        sb.Append(".invoice-no { text-align: right; }");
+        sb.Append(".invoice-no h2 { color: #1f2937; margin: 0; }");
+        sb.Append(".details { display: flex; justify-content: space-between; margin-bottom: 30px; }");
+        sb.Append(".bill-to h4 { color: #6b7280; margin-bottom: 5px; }");
+        sb.Append("table { width: 100%; border-collapse: collapse; margin: 20px 0; }");
+        sb.Append("th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }");
+        sb.Append("th { background: #f3f4f6; }");
+        sb.Append(".totals { text-align: right; margin-top: 20px; }");
+        sb.Append(".totals table { width: 300px; margin-left: auto; }");
+        sb.Append(".total-row td { font-weight: bold; font-size: 18px; color: #059669; }");
+        sb.Append("@media print { body { padding: 20px; } }");
+        sb.Append("</style></head><body>");
+        
+        sb.Append("<div class='header'>");
+        sb.Append("<div class='company'>ERP Solutions Provider</div>");
+        sb.Append("<div class='invoice-no'>");
+        sb.Append("<h2>INVOICE</h2>");
+        sb.Append("<p>INV-" + DateTime.Now.ToString("yyyyMMdd") + "-001</p>");
+        sb.Append("<p>Date: " + DateTime.Now.ToString("MMMM dd, yyyy") + "</p>");
+        sb.Append("</div></div>");
+        
+        sb.Append("<div class='details'>");
+        sb.Append("<div class='bill-to'>");
+        sb.Append("<h4>BILL TO:</h4>");
+        sb.Append("<p><strong>" + editClient.CompanyName + "</strong><br/>");
+        sb.Append(editClient.Address + ", " + editClient.City + "<br/>");
+        sb.Append(editClient.PrimaryEmail + "</p>");
+        sb.Append("</div>");
+        sb.Append("<div class='payment-info'>");
+        sb.Append("<h4>PAYMENT DUE:</h4>");
+        sb.Append("<p><strong>" + contractStartDate.AddDays(15).ToString("MMMM dd, yyyy") + "</strong></p>");
+        sb.Append("</div></div>");
+        
+        sb.Append("<table><thead>");
+        sb.Append("<tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr>");
+        sb.Append("</thead><tbody>");
+        sb.Append("<tr><td>Setup Fee - Initial Configuration</td><td>1</td><td>₱" + setupFee.ToString("N2") + "</td><td>₱" + setupFee.ToString("N2") + "</td></tr>");
+        sb.Append("<tr><td>" + billingCycle + " Subscription (" + selectedModuleIds.Count + " modules)</td><td>1</td><td>₱" + GetFirstSubscriptionAmount().ToString("N2") + "</td><td>₱" + GetFirstSubscriptionAmount().ToString("N2") + "</td></tr>");
+        sb.Append(discountRow);
+        sb.Append("</tbody></table>");
+        
+        sb.Append("<div class='totals'><table>");
+        sb.Append("<tr><td>Subtotal:</td><td>₱" + (setupFee + GetFirstSubscriptionAmount() - GetDiscountAmount()).ToString("N2") + "</td></tr>");
+        sb.Append("<tr><td>VAT (12%):</td><td>₱" + (GetTotalFirstPayment() * 0.12m).ToString("N2") + "</td></tr>");
+        sb.Append("<tr class='total-row'><td>Total Due:</td><td>₱" + (GetTotalFirstPayment() * 1.12m).ToString("N2") + "</td></tr>");
+        sb.Append("</table></div>");
+        
+        sb.Append("<div style='margin-top: 40px; padding: 20px; background: #f9fafb; border-radius: 8px;'>");
+        sb.Append("<h4>Payment Methods:</h4>");
+        sb.Append("<p><strong>GCash:</strong> 0917-XXX-XXXX (ERP Solutions)</p>");
+        sb.Append("<p><strong>BDO:</strong> 1234-5678-9012 (ERP Solutions Provider)</p>");
+        sb.Append("<p><strong>BPI:</strong> 1234-5678-9012 (ERP Solutions Provider)</p>");
+        sb.Append("</div>");
+        sb.Append("</body></html>");
+        
+        return sb.ToString();
+    }
+
+    private async Task SuspendClient(SaaSClient client)
+    {
+        client.Status = "Suspended";
+        await ClientService.UpdateClientAsync(client);
+        clients = await ClientService.GetAllClientsAsync();
+    }
+
+    private async Task ActivateClient(SaaSClient client)
+    {
+        client.Status = "Active";
+        await ClientService.UpdateClientAsync(client);
+        clients = await ClientService.GetAllClientsAsync();
+    }
+
+    private string GetPlanName(string clientCode)
+    {
+        return clientCode switch
+        {
+            "FINEBANK001" => "Professional",
+            "DEMO001" => "Basic",
+            "METRO001" => "Professional",
+            "RURAL001" => "Trial",
+            "ISLAND001" => "Basic",
+            _ => "Basic"
+        };
+    }
+
+    private string GetPlanClass(string clientCode)
+    {
+        return clientCode switch
+        {
+            "FINEBANK001" => "pro",
+            "METRO001" => "pro",
+            _ => "basic"
+        };
+    }
+
+    private string GetNextBilling(SaaSClient client)
+    {
+        if (client.Status == "Trial") return "Trial ends in 14 days";
+        if (client.Status == "Suspended") return "—";
+        return DateTime.Now.AddDays(15).ToString("MMM dd, yyyy");
+    }
+
+    private class ModuleItem
+    {
+        public int ModuleId { get; set; }
+        public string ModuleName { get; set; } = "";
+        public string Description { get; set; } = "";
+        public decimal MonthlyPrice { get; set; }
+        public bool IsCore { get; set; }
+    }
+}

@@ -1,0 +1,975 @@
+@page "/owner/invoice-management"
+@layout OwnerLayout
+@using FinanceBank.Services.SaaS
+@using FinanceBank.Models.SaaS
+@inject SaaSInvoiceService InvoiceService
+@inject SaaSClientService ClientService
+
+<div class="invoices-page">
+    <div class="page-header">
+        <div class="header-left">
+            <h2>Invoices</h2>
+            <span class="count">@invoices.Count invoices</span>
+        </div>
+        <div class="header-right">
+            <div class="search-box">
+                <input type="text" placeholder="Search invoices..." @bind="searchTerm" @bind:event="oninput" />
+            </div>
+            <select class="filter-select" @bind="statusFilter">
+                <option value="">All Status</option>
+                <option value="Draft">Draft</option>
+                <option value="Sent">Sent</option>
+                <option value="Paid">Paid</option>
+                <option value="Overdue">Overdue</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+            <button class="btn-primary" @onclick="ShowCreateForm">+ Create Invoice</button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon blue">📄</div>
+            <div class="stat-info">
+                <span class="stat-value">@invoices.Count(i => i.Status == "Sent")</span>
+                <span class="stat-label">Pending</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon red">⚠️</div>
+            <div class="stat-info">
+                <span class="stat-value">@invoices.Count(i => i.Status == "Overdue")</span>
+                <span class="stat-label">Overdue</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green">✓</div>
+            <div class="stat-info">
+                <span class="stat-value">@invoices.Count(i => i.Status == "Paid")</span>
+                <span class="stat-label">Paid This Month</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon purple">₱</div>
+            <div class="stat-info">
+                <span class="stat-value">₱@invoices.Where(i => i.Status == "Sent" || i.Status == "Overdue").Sum(i => i.AmountDue).ToString("N0")</span>
+                <span class="stat-label">Outstanding</span>
+            </div>
+        </div>
+    </div>
+
+    @if (showCreateForm)
+    {
+        <div class="modal-overlay" @onclick="HideCreateForm">
+            <div class="modal-content large" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <h3>Create Invoice</h3>
+                    <button class="close-btn" @onclick="HideCreateForm">×</button>
+                </div>
+                <div class="modal-body">
+                    <form @onsubmit="CreateInvoice">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Client *</label>
+                                <select @bind="newInvoice.ClientId" required>
+                                    <option value="0">Select Client</option>
+                                    @foreach (var client in clients)
+                                    {
+                                        <option value="@client.ClientId">@client.CompanyName</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Invoice Type</label>
+                                <select @bind="newInvoice.InvoiceType">
+                                    <option value="Subscription">Subscription</option>
+                                    <option value="One-Time">One-Time Purchase</option>
+                                    <option value="Add-On">Add-On Module</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Due Date *</label>
+                                <input type="date" @bind="newInvoice.DueDate" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Billing Period</label>
+                                <input type="text" @bind="newInvoice.BillingPeriod" placeholder="e.g., January 2024" />
+                            </div>
+                        </div>
+
+                        <div class="items-section">
+                            <h4>Invoice Items</h4>
+                            @foreach (var item in invoiceItems)
+                            {
+                                <div class="item-row">
+                                    <input type="text" @bind="item.Description" placeholder="Description" />
+                                    <input type="number" @bind="item.Quantity" placeholder="Qty" min="1" />
+                                    <input type="number" step="0.01" @bind="item.UnitPrice" placeholder="Unit Price" />
+                                    <span class="item-total">₱@((item.Quantity * item.UnitPrice).ToString("N2"))</span>
+                                    <button type="button" class="remove-btn" @onclick="() => RemoveItem(item)">×</button>
+                                </div>
+                            }
+                            <button type="button" class="add-item-btn" @onclick="AddItem">+ Add Item</button>
+                        </div>
+
+                        <div class="totals-section">
+                            <div class="total-row">
+                                <span>Subtotal</span>
+                                <span>₱@(invoiceItems.Sum(i => i.Quantity * i.UnitPrice).ToString("N2"))</span>
+                            </div>
+                            <div class="total-row">
+                                <span>Tax (@(newInvoice.TaxRate)%)</span>
+                                <span>₱@((invoiceItems.Sum(i => i.Quantity * i.UnitPrice) * (newInvoice.TaxRate / 100)).ToString("N2"))</span>
+                            </div>
+                            <div class="total-row grand">
+                                <span>Total</span>
+                                <span>₱@((invoiceItems.Sum(i => i.Quantity * i.UnitPrice) * (1 + newInvoice.TaxRate / 100)).ToString("N2"))</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <textarea rows="2" @bind="newInvoice.Notes" placeholder="Additional notes..."></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" @onclick="HideCreateForm">Cancel</button>
+                            <button type="submit" class="btn-primary">Create Invoice</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (viewInvoice != null)
+    {
+        <div class="modal-overlay" @onclick="CloseInvoiceView">
+            <div class="modal-content large" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <h3>Invoice @viewInvoice.InvoiceNumber</h3>
+                    <button class="close-btn" @onclick="CloseInvoiceView">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="invoice-preview">
+                        <div class="invoice-header-info">
+                            <div class="from-info">
+                                <h4>From</h4>
+                                <p><strong>FineBank ERP System</strong></p>
+                                <p>SaaS Management</p>
+                            </div>
+                            <div class="to-info">
+                                <h4>Bill To</h4>
+                                <p><strong>@viewInvoice.Client?.CompanyName</strong></p>
+                                <p>@viewInvoice.Client?.Address</p>
+                                <p>@viewInvoice.Client?.PrimaryEmail</p>
+                            </div>
+                            <div class="invoice-meta">
+                                <div class="meta-row">
+                                    <span>Invoice #</span>
+                                    <strong>@viewInvoice.InvoiceNumber</strong>
+                                </div>
+                                <div class="meta-row">
+                                    <span>Issue Date</span>
+                                    <strong>@viewInvoice.IssueDate.ToString("MMM dd, yyyy")</strong>
+                                </div>
+                                <div class="meta-row">
+                                    <span>Due Date</span>
+                                    <strong>@viewInvoice.DueDate.ToString("MMM dd, yyyy")</strong>
+                                </div>
+                                <div class="meta-row status">
+                                    <span>Status</span>
+                                    <span class="status-badge @viewInvoice.Status">@viewInvoice.Status</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <table class="invoice-table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (viewInvoice.Items != null)
+                                {
+                                    @foreach (var item in viewInvoice.Items)
+                                    {
+                                        <tr>
+                                            <td>@item.Description</td>
+                                            <td>@item.Quantity</td>
+                                            <td>₱@item.UnitPrice.ToString("N2")</td>
+                                            <td>₱@item.Amount.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+
+                        <div class="invoice-totals">
+                            <div class="total-row">
+                                <span>Subtotal</span>
+                                <span>₱@viewInvoice.SubTotal.ToString("N2")</span>
+                            </div>
+                            <div class="total-row">
+                                <span>Tax (@viewInvoice.TaxRate%)</span>
+                                <span>₱@viewInvoice.TaxAmount.ToString("N2")</span>
+                            </div>
+                            <div class="total-row grand">
+                                <span>Total</span>
+                                <span>₱@viewInvoice.TotalAmount.ToString("N2")</span>
+                            </div>
+                            @if (viewInvoice.AmountPaid > 0)
+                            {
+                                <div class="total-row paid">
+                                    <span>Paid</span>
+                                    <span>₱@viewInvoice.AmountPaid.ToString("N2")</span>
+                                </div>
+                                <div class="total-row due">
+                                    <span>Amount Due</span>
+                                    <span>₱@viewInvoice.AmountDue.ToString("N2")</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="invoice-actions">
+                        @if (viewInvoice.Status == "Draft")
+                        {
+                            <button class="btn-primary" @onclick="() => SendInvoice(viewInvoice.InvoiceId)">Send Invoice</button>
+                        }
+                        @if (viewInvoice.Status == "Sent" || viewInvoice.Status == "Overdue")
+                        {
+                            <button class="btn-success" @onclick="() => MarkAsPaid(viewInvoice.InvoiceId)">Mark as Paid</button>
+                        }
+                        @if (viewInvoice.Status != "Cancelled" && viewInvoice.Status != "Paid")
+                        {
+                            <button class="btn-danger" @onclick="() => CancelInvoice(viewInvoice.InvoiceId)">Cancel Invoice</button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="invoices-table-container">
+        <table class="invoices-table">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Client</th>
+                    <th>Type</th>
+                    <th>Issue Date</th>
+                    <th>Due Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var invoice in FilteredInvoices)
+                {
+                    <tr>
+                        <td class="invoice-num">@invoice.InvoiceNumber</td>
+                        <td>
+                            <div class="client-cell">
+                                <span class="client-name">@invoice.Client?.CompanyName</span>
+                            </div>
+                        </td>
+                        <td><span class="type-badge">@invoice.InvoiceType</span></td>
+                        <td>@invoice.IssueDate.ToString("MMM dd, yyyy")</td>
+                        <td class="@(invoice.DueDate < DateTime.Now && invoice.Status == "Sent" ? "overdue" : "")">
+                            @invoice.DueDate.ToString("MMM dd, yyyy")
+                        </td>
+                        <td class="amount">₱@invoice.TotalAmount.ToString("N2")</td>
+                        <td><span class="status-badge @invoice.Status">@invoice.Status</span></td>
+                        <td class="actions">
+                            <button class="action-btn view" @onclick="() => ViewInvoice(invoice)" title="View">👁️</button>
+                            @if (invoice.Status == "Draft")
+                            {
+                                <button class="action-btn send" @onclick="() => SendInvoice(invoice.InvoiceId)" title="Send">📤</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (!FilteredInvoices.Any())
+    {
+        <div class="empty-state">
+            <span class="empty-icon">📄</span>
+            <h3>No invoices found</h3>
+            <p>Create your first invoice to get started</p>
+            <button class="btn-primary" @onclick="ShowCreateForm">+ Create Invoice</button>
+        </div>
+    }
+</div>
+
+<style>
+    .invoices-page {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-left h2 {
+        margin: 0;
+        font-size: 24px;
+        color: #1f2937;
+    }
+
+    .count {
+        background: #e5e7eb;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .header-right {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .search-box input {
+        padding: 10px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        width: 250px;
+        font-size: 14px;
+    }
+
+    .filter-select {
+        padding: 10px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+    }
+
+    .btn-primary {
+        background: #6366f1;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .btn-secondary {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .btn-success {
+        background: #059669;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .btn-danger {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    /* Stats Row */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .stat-icon.blue { background: #dbeafe; }
+    .stat-icon.red { background: #fee2e2; }
+    .stat-icon.green { background: #dcfce7; }
+    .stat-icon.purple { background: #eef2ff; }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    /* Table */
+    .invoices-table-container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .invoices-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .invoices-table th {
+        text-align: left;
+        padding: 16px 20px;
+        background: #f9fafb;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .invoices-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .invoices-table tr:hover {
+        background: #f9fafb;
+    }
+
+    .invoice-num {
+        font-weight: 600;
+        color: #6366f1;
+    }
+
+    .client-name {
+        font-weight: 500;
+    }
+
+    .type-badge {
+        background: #f3f4f6;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        color: #374151;
+    }
+
+    td.overdue {
+        color: #dc2626;
+        font-weight: 600;
+    }
+
+    .amount {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-badge.Draft { background: #f3f4f6; color: #374151; }
+    .status-badge.Sent { background: #dbeafe; color: #1e40af; }
+    .status-badge.Paid { background: #dcfce7; color: #166534; }
+    .status-badge.Overdue { background: #fee2e2; color: #991b1b; }
+    .status-badge.Cancelled { background: #f3f4f6; color: #6b7280; }
+
+    .actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .action-btn.view { background: #eef2ff; }
+    .action-btn.send { background: #dbeafe; }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow: auto;
+    }
+
+    .modal-content.large {
+        max-width: 800px;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px;
+        border-bottom: 1px solid #f3f4f6;
+        position: sticky;
+        top: 0;
+        background: white;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 20px;
+        color: #1f2937;
+    }
+
+    .close-btn {
+        width: 36px;
+        height: 36px;
+        border: none;
+        background: #f3f4f6;
+        border-radius: 8px;
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 10px 14px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    /* Invoice Items */
+    .items-section {
+        margin-bottom: 24px;
+        padding: 20px;
+        background: #f9fafb;
+        border-radius: 12px;
+    }
+
+    .items-section h4 {
+        margin: 0 0 16px 0;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .item-row {
+        display: grid;
+        grid-template-columns: 2fr 80px 120px 100px 40px;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .item-row input {
+        padding: 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .item-total {
+        text-align: right;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .remove-btn {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: #fee2e2;
+        color: #dc2626;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+    .add-item-btn {
+        background: white;
+        border: 1px dashed #d1d5db;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        color: #6366f1;
+        font-weight: 500;
+        width: 100%;
+    }
+
+    /* Totals */
+    .totals-section {
+        margin-bottom: 20px;
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 12px;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 14px;
+    }
+
+    .total-row.grand {
+        border-top: 2px solid #e5e7eb;
+        margin-top: 8px;
+        padding-top: 12px;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding-top: 16px;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    /* Invoice Preview */
+    .invoice-preview {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .invoice-header-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .invoice-header-info h4 {
+        margin: 0 0 8px 0;
+        font-size: 12px;
+        color: #6b7280;
+        text-transform: uppercase;
+    }
+
+    .invoice-header-info p {
+        margin: 0 0 4px 0;
+        font-size: 13px;
+        color: #374151;
+    }
+
+    .meta-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        font-size: 13px;
+    }
+
+    .meta-row span:first-child {
+        color: #6b7280;
+    }
+
+    .meta-row strong {
+        color: #1f2937;
+    }
+
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 16px;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .invoice-table th {
+        text-align: left;
+        padding: 12px 16px;
+        background: white;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .invoice-table td {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #374151;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .invoice-totals {
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+    }
+
+    .total-row.paid {
+        color: #059669;
+    }
+
+    .total-row.due {
+        color: #dc2626;
+        font-weight: 600;
+    }
+
+    .invoice-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 16px;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        display: block;
+        margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+        margin: 0 0 8px 0;
+        color: #1f2937;
+    }
+
+    .empty-state p {
+        color: #6b7280;
+        margin-bottom: 24px;
+    }
+</style>
+
+@code {
+    private List<SaaSInvoice> invoices = new();
+    private List<SaaSClient> clients = new();
+    private SaaSInvoice newInvoice = new();
+    private SaaSInvoice? viewInvoice;
+    private List<SaaSInvoiceItem> invoiceItems = new();
+    private bool showCreateForm = false;
+    private string searchTerm = "";
+    private string statusFilter = "";
+
+    private IEnumerable<SaaSInvoice> FilteredInvoices => invoices
+        .Where(i => string.IsNullOrEmpty(searchTerm) ||
+            i.InvoiceNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+            i.Client?.CompanyName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true)
+        .Where(i => string.IsNullOrEmpty(statusFilter) || i.Status == statusFilter)
+        .OrderByDescending(i => i.IssueDate);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        invoices = await InvoiceService.GetAllInvoicesAsync();
+        clients = await ClientService.GetAllClientsAsync();
+        
+        // Check for overdue invoices
+        foreach (var invoice in invoices.Where(i => i.Status == "Sent" && i.DueDate < DateTime.Now))
+        {
+            await InvoiceService.MarkOverdueAsync(invoice.InvoiceId);
+        }
+        
+        invoices = await InvoiceService.GetAllInvoicesAsync();
+    }
+
+    private void ShowCreateForm()
+    {
+        newInvoice = new SaaSInvoice
+        {
+            InvoiceDate = DateTime.Now,
+            DueDate = DateTime.Now.AddDays(30),
+            Status = "Draft",
+            TaxRate = 0
+        };
+        invoiceItems = new List<SaaSInvoiceItem>
+        {
+            new SaaSInvoiceItem { Description = "", Quantity = 1, UnitPrice = 0 }
+        };
+        showCreateForm = true;
+    }
+
+    private void HideCreateForm()
+    {
+        showCreateForm = false;
+    }
+
+    private void AddItem()
+    {
+        invoiceItems.Add(new SaaSInvoiceItem { Description = "", Quantity = 1, UnitPrice = 0 });
+    }
+
+    private void RemoveItem(SaaSInvoiceItem item)
+    {
+        if (invoiceItems.Count > 1)
+        {
+            invoiceItems.Remove(item);
+        }
+    }
+
+    private async Task CreateInvoice()
+    {
+        try
+        {
+            var subtotal = invoiceItems.Sum(i => i.Quantity * i.UnitPrice);
+            newInvoice.Subtotal = subtotal;
+            newInvoice.Tax = subtotal * (newInvoice.TaxRate / 100);
+            newInvoice.TotalAmount = subtotal + newInvoice.Tax;
+            newInvoice.BalanceDue = newInvoice.TotalAmount;
+            
+            // Create line items list
+            var items = invoiceItems.Select(i => (i.Description, i.Quantity, i.UnitPrice)).ToList();
+            
+            await InvoiceService.CreateInvoiceAsync(newInvoice, items);
+            await LoadData();
+            HideCreateForm();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating invoice: {ex.Message}");
+        }
+    }
+
+    private async Task ViewInvoice(SaaSInvoice invoice)
+    {
+        viewInvoice = await InvoiceService.GetInvoiceByIdAsync(invoice.InvoiceId);
+    }
+
+    private void CloseInvoiceView()
+    {
+        viewInvoice = null;
+    }
+
+    private async Task SendInvoice(int invoiceId)
+    {
+        await InvoiceService.SendInvoiceAsync(invoiceId);
+        await LoadData();
+        if (viewInvoice?.InvoiceId == invoiceId)
+        {
+            viewInvoice = await InvoiceService.GetInvoiceByIdAsync(invoiceId);
+        }
+    }
+
+    private async Task MarkAsPaid(int invoiceId)
+    {
+        var invoice = await InvoiceService.GetInvoiceByIdAsync(invoiceId);
+        if (invoice != null)
+        {
+            await InvoiceService.RecordPaymentAsync(invoiceId, invoice.AmountDue);
+        }
+        await LoadData();
+        CloseInvoiceView();
+    }
+
+    private async Task CancelInvoice(int invoiceId)
+    {
+        await InvoiceService.CancelInvoiceAsync(invoiceId);
+        await LoadData();
+        CloseInvoiceView();
+    }
+}

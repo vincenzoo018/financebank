@@ -10,291 +10,365 @@
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Page Header -->
-    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
-                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+    <div
+        style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+                    <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 style="font-size: 28px; font-weight: 700; color: white; margin: 0;">Expense Management</h1>
+                    <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Track, manage, and
+                        approve business expenses</p>
+                </div>
+            </div>
+            <button @onclick="ExportExpenses"
+                style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
-            </div>
-            <div>
-                <h1 style="font-size: 28px; font-weight: 700; color: white; margin: 0;">Expense Management</h1>
-                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Track, manage, and approve business expenses</p>
-            </div>
+                Export CSV
+            </button>
         </div>
-        <button @onclick="ExportExpenses" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Export CSV
-        </button>
-    </div>
-</div>
-
-<!-- Summary Cards -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 24px;">
-    <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; padding: 20px; border: 1px solid #6ee7b7;">
-        <div style="font-size: 12px; font-weight: 600; color: #047857; margin-bottom: 8px; text-transform: uppercase;">💰 Total This Month</div>
-        <div style="font-size: 32px; font-weight: 700; color: #059669; margin-bottom: 4px;">₱@totalThisMonth.ToString("N2")</div>
-        <div style="font-size: 12px; color: #059669;">@expenseCount expenses recorded</div>
-    </div>
-    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 16px; padding: 20px; border: 1px solid #6ee7b7;">
-        <div style="font-size: 12px; font-weight: 600; color: #047857; margin-bottom: 8px; text-transform: uppercase;">⏳ Pending Approval</div>
-        <div style="font-size: 32px; font-weight: 700; color: #10b981; margin-bottom: 4px;">₱@pendingAmount.ToString("N2")</div>
-        <div style="font-size: 12px; color: #047857;">@pendingCount awaiting approval</div>
-    </div>
-    <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; padding: 20px; border: 1px solid #6ee7b7;">
-        <div style="font-size: 12px; font-weight: 600; color: #047857; margin-bottom: 8px; text-transform: uppercase;">✅ Approved</div>
-        <div style="font-size: 32px; font-weight: 700; color: #10b981; margin-bottom: 4px;">₱@approvedAmount.ToString("N2")</div>
-        <div style="font-size: 12px; color: #059669;">@approvedCount approved</div>
-    </div>
-    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 16px; padding: 20px; border: 1px solid #6ee7b7;">
-        <div style="font-size: 12px; font-weight: 600; color: #047857; margin-bottom: 8px; text-transform: uppercase;">❌ Rejected</div>
-        <div style="font-size: 32px; font-weight: 700; color: #047857; margin-bottom: 4px;">₱@rejectedAmount.ToString("N2")</div>
-        <div style="font-size: 12px; color: #059669;">@rejectedCount rejected</div>
-    </div>
-</div>
-
-<!-- Alerts -->
-@if (!string.IsNullOrEmpty(successMessage))
-{
-    <div style="background: #d1fae5; border: 2px solid #6ee7b7; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #047857; display: flex; justify-content: space-between; align-items: center;">
-        <span>✅ @successMessage</span>
-        <button @onclick="() => successMessage = string.Empty" style="background: none; border: none; color: #047857; cursor: pointer; font-size: 18px;">×</button>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(errorMessage))
-{
-    <div style="background: #ecfdf5; border: 2px solid #6ee7b7; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #047857; display: flex; justify-content: space-between; align-items: center;">
-        <span>❌ @errorMessage</span>
-        <button @onclick="() => errorMessage = string.Empty" style="background: none; border: none; color: #047857; cursor: pointer; font-size: 18px;">×</button>
-    </div>
-}
-
-<!-- Expenses Table -->
-<div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
-    <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="font-size: 18px; font-weight: 600; margin: 0;">📋 Expense Records</h2>
-        <button style="background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; border: 2px solid rgba(255,255,255,0.3); cursor: pointer;"
-            @onclick="ShowNewExpenseModal">+ New Expense</button>
     </div>
 
-    <div style="padding: 24px;">
-        <!-- Filters -->
-        <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-            <select @bind="filterCategory" style="padding: 10px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
-                <option value="">All Categories</option>
-                <option value="Office Supplies">Office Supplies</option>
-                <option value="Utilities">Utilities</option>
-                <option value="Payroll">Payroll</option>
-                <option value="Rent">Rent</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Travel">Travel</option>
-                <option value="Other">Other</option>
-            </select>
-            <select @bind="filterStatus" style="padding: 10px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
-                <option value="">All Status</option>
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-            </select>
-            <input type="text" @bind="searchQuery" @bind:event="oninput" placeholder="Search expenses..." 
-                style="padding: 10px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; width: 200px;" />
+    <!-- Summary Cards -->
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 24px;">
+        <div
+            style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #10b981; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            <div
+                style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 8px; text-transform: uppercase;">
+                💰 Total This Month</div>
+            <div style="font-size: 24px; font-weight: 700; color: #10b981; margin-top: 8px;">
+                ₱@totalThisMonth.ToString("N2")</div>
+            <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">@expenseCount expenses recorded</div>
+        </div>
+        <div
+            style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #047857; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            <div
+                style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 8px; text-transform: uppercase;">
+                ⏳ Pending Approval</div>
+            <div style="font-size: 24px; font-weight: 700; color: #047857; margin-top: 8px;">
+                ₱@pendingAmount.ToString("N2")</div>
+            <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">@pendingCount awaiting approval</div>
+        </div>
+        <div
+            style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #059669; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            <div
+                style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 8px; text-transform: uppercase;">
+                ✅ Approved</div>
+            <div style="font-size: 24px; font-weight: 700; color: #059669; margin-top: 8px;">
+                ₱@approvedAmount.ToString("N2")</div>
+            <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">@approvedCount approved</div>
+        </div>
+        <div
+            style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #10b981; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            <div
+                style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 8px; text-transform: uppercase;">
+                ❌ Rejected</div>
+            <div style="font-size: 24px; font-weight: 700; color: #10b981; margin-top: 8px;">
+                ₱@rejectedAmount.ToString("N2")</div>
+            <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">@rejectedCount rejected</div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div
+            style="background: #d1fae5; border: 2px solid #6ee7b7; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #047857; display: flex; justify-content: space-between; align-items: center;">
+            <span>✅ @successMessage</span>
+            <button @onclick="() => successMessage = string.Empty"
+                style="background: none; border: none; color: #047857; cursor: pointer; font-size: 18px;">×</button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div
+            style="background: #ecfdf5; border: 2px solid #6ee7b7; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #047857; display: flex; justify-content: space-between; align-items: center;">
+            <span>❌ @errorMessage</span>
+            <button @onclick="() => errorMessage = string.Empty"
+                style="background: none; border: none; color: #047857; cursor: pointer; font-size: 18px;">×</button>
+        </div>
+    }
+
+    <!-- Expenses Table -->
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+        <div
+            style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="font-size: 18px; font-weight: 600; margin: 0;">📋 Expense Records</h2>
+            <button
+                style="background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; border: 2px solid rgba(255,255,255,0.3); cursor: pointer;"
+                @onclick="ShowNewExpenseModal">+ New Expense</button>
         </div>
 
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
-                        <th style="padding: 14px; text-align: left; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">Date</th>
-                        <th style="padding: 14px; text-align: left; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">Category</th>
-                        <th style="padding: 14px; text-align: left; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">Description</th>
-                        <th style="padding: 14px; text-align: right; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">Amount</th>
-                        <th style="padding: 14px; text-align: center; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">Status</th>
-                        <th style="padding: 14px; text-align: center; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (FilteredExpenses.Any())
-                    {
-                        @foreach (var expense in FilteredExpenses)
+        <div style="padding: 24px;">
+            <!-- Filters -->
+            <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                <select @bind="filterCategory"
+                    style="padding: 10px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                    <option value="">All Categories</option>
+                    <option value="Office Supplies">Office Supplies</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Payroll">Payroll</option>
+                    <option value="Rent">Rent</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Other">Other</option>
+                </select>
+                <select @bind="filterStatus"
+                    style="padding: 10px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                    <option value="">All Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+                <input type="text" @bind="searchQuery" @bind:event="oninput" placeholder="Search expenses..."
+                    style="padding: 10px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; width: 200px;" />
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                            <th
+                                style="padding: 14px; text-align: left; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">
+                                Date</th>
+                            <th
+                                style="padding: 14px; text-align: left; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">
+                                Category</th>
+                            <th
+                                style="padding: 14px; text-align: left; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">
+                                Description</th>
+                            <th
+                                style="padding: 14px; text-align: right; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">
+                                Amount</th>
+                            <th
+                                style="padding: 14px; text-align: center; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">
+                                Status</th>
+                            <th
+                                style="padding: 14px; text-align: center; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (FilteredExpenses.Any())
                         {
-                            <tr style="border-bottom: 1px solid #e5e7eb;">
-                                <td style="padding: 14px; font-size: 13px; color: #111827;">@expense.Date.ToString("MMM dd, yyyy")</td>
-                                <td style="padding: 14px;">
-                                    <span style="background: #f0fdf4; color: #047857; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">@expense.Category</span>
-                                </td>
-                                <td style="padding: 14px; font-size: 13px; color: #4b5563;">@expense.Description</td>
-                                <td style="padding: 14px; text-align: right; font-size: 14px; color: #111827; font-weight: 700;">₱@expense.Amount.ToString("N2")</td>
-                                <td style="padding: 14px; text-align: center;">
-                                    <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; background: @GetStatusBg(expense.Status); color: @GetStatusColor(expense.Status);">
-                                        @expense.Status
-                                    </span>
-                                </td>
-                                <td style="padding: 14px; text-align: center;">
-                                    <div style="display: flex; gap: 8px; justify-content: center;">
-                                        @if (expense.Status == "Pending")
-                                        {
-                                            <button style="background: #059669; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; border: none; cursor: pointer;"
-                                                @onclick="() => ApproveExpense(expense)">Approve</button>
-                                            <button style="background: #047857; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; border: none; cursor: pointer;"
-                                                @onclick="() => RejectExpense(expense)">Reject</button>
-                                        }
-                                        <button style="background: #f3f4f6; color: #374151; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; border: none; cursor: pointer;"
-                                            @onclick="() => ViewExpense(expense)">View</button>
+                            @foreach (var expense in FilteredExpenses)
+                            {
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 14px; font-size: 13px; color: #111827;">@expense.Date.ToString("MMM dd, yyyy")</td>
+                                    <td style="padding: 14px;">
+                                        <span
+                                            style="background: #f0fdf4; color: #047857; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">@expense.Category</span>
+                                    </td>
+                                    <td style="padding: 14px; font-size: 13px; color: #4b5563;">@expense.Description</td>
+                                    <td
+                                        style="padding: 14px; text-align: right; font-size: 14px; color: #111827; font-weight: 700;">
+                                        ₱@expense.Amount.ToString("N2")</td>
+                                    <td style="padding: 14px; text-align: center;">
+                                        <span
+                                            style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; background: @GetStatusBg(expense.Status); color: @GetStatusColor(expense.Status);">
+                                            @expense.Status
+                                        </span>
+                                    </td>
+                                    <td style="padding: 14px; text-align: center;">
+                                        <div style="display: flex; gap: 8px; justify-content: center;">
+                                            @if (expense.Status == "Pending")
+                                            {
+                                                <button
+                                                    style="background: #059669; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; border: none; cursor: pointer;"
+                                                    @onclick="() => ApproveExpense(expense)">Approve</button>
+                                                <button
+                                                    style="background: #047857; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; border: none; cursor: pointer;"
+                                                    @onclick="() => RejectExpense(expense)">Reject</button>
+                                            }
+                                            <button
+                                                style="background: #f3f4f6; color: #374151; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; border: none; cursor: pointer;"
+                                                @onclick="() => ViewExpense(expense)">View</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" style="padding: 40px; text-align: center; color: #6b7280;">
+                                    <div style="font-size: 48px; margin-bottom: 12px;">📋</div>
+                                    <div style="font-size: 16px; font-weight: 600;">No expenses found</div>
+                                    <div style="font-size: 14px;">Click "New Expense" to add your first expense record.
                                     </div>
                                 </td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="6" style="padding: 40px; text-align: center; color: #6b7280;">
-                                <div style="font-size: 48px; margin-bottom: 12px;">📋</div>
-                                <div style="font-size: 16px; font-weight: 600;">No expenses found</div>
-                                <div style="font-size: 14px;">Click "New Expense" to add your first expense record.</div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- New/Edit Expense Modal -->
-@if (showExpenseModal)
-{
-    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
-        @onclick="CloseExpenseModal">
-        <div style="background: white; border-radius: 20px; width: 90%; max-width: 550px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.25);"
-            @onclick:stopPropagation>
-            <div style="background: linear-gradient(135deg, #059669, #047857); padding: 24px; color: white;">
-                <h2 style="margin: 0; font-size: 20px; font-weight: 700;">@(isEditing ? "Edit Expense" : "New Expense")</h2>
-                <p style="margin: 4px 0 0 0; opacity: 0.9; font-size: 14px;">@(isEditing ? "Update expense details" : "Record a new expense")</p>
-            </div>
+    <!-- New/Edit Expense Modal -->
+    @if (showExpenseModal)
+    {
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
+            @onclick="CloseExpenseModal">
+            <div style="background: white; border-radius: 20px; width: 90%; max-width: 550px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.25);"
+                @onclick:stopPropagation>
+                <div style="background: linear-gradient(135deg, #059669, #047857); padding: 24px; color: white;">
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 700;">@(isEditing ? "Edit Expense" : "New Expense")
+                    </h2>
+                    <p style="margin: 4px 0 0 0; opacity: 0.9; font-size: 14px;">@(isEditing ? "Update expense details" :
+                                            "Record a new expense")</p>
+                </div>
 
-            <div style="padding: 24px;">
-                <div style="display: grid; gap: 20px;">
-                    <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Date *</label>
-                        <input type="date" @bind="editExpense.Date" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
-                    </div>
+                <div style="padding: 24px;">
+                    <div style="display: grid; gap: 20px;">
+                        <div>
+                            <label
+                                style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Date
+                                *</label>
+                            <input type="date" @bind="editExpense.Date"
+                                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                        </div>
 
-                    <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Category *</label>
-                        <select @bind="editExpense.Category" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                            <option value="">Select Category</option>
-                            <option value="Office Supplies">Office Supplies</option>
-                            <option value="Utilities">Utilities</option>
-                            <option value="Payroll">Payroll</option>
-                            <option value="Rent">Rent</option>
-                            <option value="Maintenance">Maintenance</option>
-                            <option value="Marketing">Marketing</option>
-                            <option value="Travel">Travel</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Category
+                                *</label>
+                            <select @bind="editExpense.Category"
+                                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                <option value="">Select Category</option>
+                                <option value="Office Supplies">Office Supplies</option>
+                                <option value="Utilities">Utilities</option>
+                                <option value="Payroll">Payroll</option>
+                                <option value="Rent">Rent</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Travel">Travel</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
 
-                    <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Description *</label>
-                        <input type="text" @bind="editExpense.Description" placeholder="Enter expense description" 
-                            style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
-                    </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Description
+                                *</label>
+                            <input type="text" @bind="editExpense.Description" placeholder="Enter expense description"
+                                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                        </div>
 
-                    <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Amount (₱) *</label>
-                        <div style="position: relative;">
-                            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; font-weight: 600;">₱</span>
-                            <input type="number" @bind="editExpense.Amount" step="0.01" min="0" placeholder="0.00"
-                                style="width: 100%; padding: 12px 12px 12px 30px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                        <div>
+                            <label
+                                style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Amount
+                                (₱) *</label>
+                            <div style="position: relative;">
+                                <span
+                                    style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; font-weight: 600;">₱</span>
+                                <input type="number" @bind="editExpense.Amount" step="0.01" min="0" placeholder="0.00"
+                                    style="width: 100%; padding: 12px 12px 12px 30px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Notes</label>
+                            <textarea @bind="editExpense.Notes" rows="3" placeholder="Additional notes (optional)"
+                                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; resize: none;"></textarea>
                         </div>
                     </div>
 
-                    <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Notes</label>
-                        <textarea @bind="editExpense.Notes" rows="3" placeholder="Additional notes (optional)"
-                            style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; resize: none;"></textarea>
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button @onclick="SaveExpense"
+                            style="flex: 1; padding: 14px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                            @(isEditing ? "Update Expense" : "Create Expense")
+                        </button>
+                        <button @onclick="CloseExpenseModal"
+                            style="padding: 14px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                            Cancel
+                        </button>
                     </div>
-                </div>
-
-                <div style="display: flex; gap: 12px; margin-top: 24px;">
-                    <button @onclick="SaveExpense"
-                        style="flex: 1; padding: 14px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
-                        @(isEditing ? "Update Expense" : "Create Expense")
-                    </button>
-                    <button @onclick="CloseExpenseModal"
-                        style="padding: 14px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
-                        Cancel
-                    </button>
                 </div>
             </div>
         </div>
-    </div>
-}
+    }
 
-<!-- View Expense Modal -->
-@if (showViewModal && selectedExpense != null)
-{
-    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
-        @onclick="CloseViewModal">
-        <div style="background: white; border-radius: 20px; width: 90%; max-width: 500px; box-shadow: 0 25px 50px rgba(0,0,0,0.25);"
-            @onclick:stopPropagation>
-            <div style="background: linear-gradient(135deg, #059669, #047857); padding: 24px; color: white;">
-                <h2 style="margin: 0; font-size: 20px; font-weight: 700;">Expense Details</h2>
-            </div>
+    <!-- View Expense Modal -->
+    @if (showViewModal && selectedExpense != null)
+    {
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
+            @onclick="CloseViewModal">
+            <div style="background: white; border-radius: 20px; width: 90%; max-width: 500px; box-shadow: 0 25px 50px rgba(0,0,0,0.25);"
+                @onclick:stopPropagation>
+                <div style="background: linear-gradient(135deg, #059669, #047857); padding: 24px; color: white;">
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 700;">Expense Details</h2>
+                </div>
 
-            <div style="padding: 24px;">
-                <div style="display: grid; gap: 16px;">
-                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 10px;">
-                        <span style="color: #6b7280; font-weight: 600;">Date</span>
-                        <span style="color: #111827; font-weight: 600;">@selectedExpense.Date.ToString("MMMM dd, yyyy")</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 10px;">
-                        <span style="color: #6b7280; font-weight: 600;">Category</span>
-                        <span style="background: #f0fdf4; color: #047857; padding: 4px 12px; border-radius: 6px; font-weight: 600;">@selectedExpense.Category</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 10px;">
-                        <span style="color: #6b7280; font-weight: 600;">Description</span>
-                        <span style="color: #111827;">@selectedExpense.Description</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 10px;">
-                        <span style="color: #6b7280; font-weight: 600;">Amount</span>
-                        <span style="color: #059669; font-weight: 700; font-size: 18px;">₱@selectedExpense.Amount.ToString("N2")</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 10px;">
-                        <span style="color: #6b7280; font-weight: 600;">Status</span>
-                        <span style="padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; background: @GetStatusBg(selectedExpense.Status); color: @GetStatusColor(selectedExpense.Status);">
-                            @selectedExpense.Status
-                        </span>
-                    </div>
-                    @if (!string.IsNullOrEmpty(selectedExpense.Notes))
-                    {
-                        <div style="padding: 12px; background: #f9fafb; border-radius: 10px;">
-                            <div style="color: #6b7280; font-weight: 600; margin-bottom: 8px;">Notes</div>
-                            <div style="color: #374151;">@selectedExpense.Notes</div>
+                <div style="padding: 24px;">
+                    <div style="display: grid; gap: 16px;">
+                        <div
+                            style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 10px;">
+                            <span style="color: #6b7280; font-weight: 600;">Date</span>
+                            <span style="color: #111827; font-weight: 600;">@selectedExpense.Date.ToString("MMMM dd, yyyy")</span>
                         </div>
-                    }
-                </div>
+                        <div
+                            style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 10px;">
+                            <span style="color: #6b7280; font-weight: 600;">Category</span>
+                            <span
+                                style="background: #f0fdf4; color: #047857; padding: 4px 12px; border-radius: 6px; font-weight: 600;">@selectedExpense.Category</span>
+                        </div>
+                        <div
+                            style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 10px;">
+                            <span style="color: #6b7280; font-weight: 600;">Description</span>
+                            <span style="color: #111827;">@selectedExpense.Description</span>
+                        </div>
+                        <div
+                            style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 10px;">
+                            <span style="color: #6b7280; font-weight: 600;">Amount</span>
+                            <span
+                                style="color: #059669; font-weight: 700; font-size: 18px;">₱@selectedExpense.Amount.ToString("N2")</span>
+                        </div>
+                        <div
+                            style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 10px;">
+                            <span style="color: #6b7280; font-weight: 600;">Status</span>
+                            <span
+                                style="padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; background: @GetStatusBg(selectedExpense.Status); color: @GetStatusColor(selectedExpense.Status);">
+                                @selectedExpense.Status
+                            </span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(selectedExpense.Notes))
+                        {
+                            <div style="padding: 12px; background: #f9fafb; border-radius: 10px;">
+                                <div style="color: #6b7280; font-weight: 600; margin-bottom: 8px;">Notes</div>
+                                <div style="color: #374151;">@selectedExpense.Notes</div>
+                            </div>
+                        }
+                    </div>
 
-                <button @onclick="CloseViewModal"
-                    style="width: 100%; margin-top: 24px; padding: 14px; background: #f3f4f6; color: #374151; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
-                    Close
-                </button>
+                    <button @onclick="CloseViewModal"
+                        style="width: 100%; margin-top: 24px; padding: 14px; background: #f3f4f6; color: #374151; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                        Close
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-}
+    }
 
-<style>
-    @@keyframes spin { to { transform: rotate(360deg); } }
-</style>
+    <style>
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </div>
 
 @code {
@@ -321,12 +395,12 @@
     private Expense? selectedExpense = null;
 
     private IEnumerable<Expense> FilteredExpenses => expenses
-        .Where(e => string.IsNullOrEmpty(filterCategory) || e.Category == filterCategory)
-        .Where(e => string.IsNullOrEmpty(filterStatus) || e.Status == filterStatus)
-        .Where(e => string.IsNullOrEmpty(searchQuery) || 
-            e.Description.ToLower().Contains(searchQuery.ToLower()) ||
-            e.Category.ToLower().Contains(searchQuery.ToLower()))
-        .OrderByDescending(e => e.Date);
+    .Where(e => string.IsNullOrEmpty(filterCategory) || e.Category == filterCategory)
+    .Where(e => string.IsNullOrEmpty(filterStatus) || e.Status == filterStatus)
+    .Where(e => string.IsNullOrEmpty(searchQuery) ||
+    e.Description.ToLower().Contains(searchQuery.ToLower()) ||
+    e.Category.ToLower().Contains(searchQuery.ToLower()))
+    .OrderByDescending(e => e.Date);
 
     protected override async Task OnInitializedAsync()
     {
@@ -339,9 +413,9 @@
         {
             // Load expenses from AccountsPayable as business expenses
             var payables = await DbContext.AccountsPayables
-                .OrderByDescending(ap => ap.InvoiceDate)
-                .Take(100)
-                .ToListAsync();
+            .OrderByDescending(ap => ap.InvoiceDate)
+            .Take(100)
+            .ToListAsync();
 
             expenses = payables.Select(ap => new Expense
             {
@@ -368,7 +442,8 @@
     {
         var desc = description.ToLower();
         if (desc.Contains("office") || desc.Contains("supplies")) return "Office Supplies";
-        if (desc.Contains("utility") || desc.Contains("utilities") || desc.Contains("electric") || desc.Contains("water")) return "Utilities";
+        if (desc.Contains("utility") || desc.Contains("utilities") || desc.Contains("electric") || desc.Contains("water"))
+            return "Utilities";
         if (desc.Contains("salary") || desc.Contains("payroll") || desc.Contains("wage")) return "Payroll";
         if (desc.Contains("rent") || desc.Contains("lease")) return "Rent";
         if (desc.Contains("maintenance") || desc.Contains("repair")) return "Maintenance";
@@ -450,9 +525,9 @@
 
     private async Task SaveExpense()
     {
-        if (string.IsNullOrWhiteSpace(editExpense.Category) || 
-            string.IsNullOrWhiteSpace(editExpense.Description) || 
-            editExpense.Amount <= 0)
+        if (string.IsNullOrWhiteSpace(editExpense.Category) ||
+        string.IsNullOrWhiteSpace(editExpense.Description) ||
+        editExpense.Amount <= 0)
         {
             errorMessage = "Please fill in all required fields (Category, Description, Amount).";
             return;

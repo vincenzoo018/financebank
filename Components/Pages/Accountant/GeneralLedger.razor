@@ -30,7 +30,7 @@
     @foreach (var balance in accountBalances.Take(6))
     {
         <div
-            style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid @GetAccountColor(balance.AccountType);">
+            style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid @GetAccountColor(balance.AccountType); font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
             <div style="font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 4px; text-transform: uppercase;">
                 @balance.AccountCode</div>
             <div style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"

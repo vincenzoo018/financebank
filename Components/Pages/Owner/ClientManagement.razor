@@ -1,0 +1,1047 @@
+@page "/owner/client-management"
+@page "/owner/client-management/new"
+@page "/owner/client-management/{ClientId:int}"
+@layout OwnerLayout
+@using FinanceBank.Services.SaaS
+@using FinanceBank.Models.SaaS
+@inject SaaSClientService ClientService
+@inject SaaSPlanService PlanService
+@inject SaaSModuleService ModuleService
+@inject NavigationManager Navigation
+
+<div class="clients-page">
+    @if (showForm)
+    {
+        <!-- Client Form -->
+        <div class="form-container">
+            <div class="form-header">
+                <button class="back-btn" @onclick="HideForm">← Back to List</button>
+                <h2>@(isEditing ? "Edit Client" : "Add New Client")</h2>
+            </div>
+
+            <div class="form-card">
+                <form @onsubmit="SaveClient">
+                    <!-- Company Information -->
+                    <div class="form-section">
+                        <h3>Company Information</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Company Name *</label>
+                                <input type="text" @bind="editClient.CompanyName" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Trade Name</label>
+                                <input type="text" @bind="editClient.TradeName" />
+                            </div>
+                            <div class="form-group">
+                                <label>Business Type</label>
+                                <select @bind="editClient.BusinessType">
+                                    <option value="">Select Type</option>
+                                    <option value="Bank">Bank</option>
+                                    <option value="Cooperative">Cooperative</option>
+                                    <option value="Lending Company">Lending Company</option>
+                                    <option value="Microfinance">Microfinance Institution</option>
+                                    <option value="Credit Union">Credit Union</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Tax ID / TIN</label>
+                                <input type="text" @bind="editClient.TaxId" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="form-section">
+                        <h3>Contact Information</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Primary Email *</label>
+                                <input type="email" @bind="editClient.PrimaryEmail" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Secondary Email</label>
+                                <input type="email" @bind="editClient.SecondaryEmail" />
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="tel" @bind="editClient.Phone" />
+                            </div>
+                            <div class="form-group">
+                                <label>Mobile</label>
+                                <input type="tel" @bind="editClient.Mobile" />
+                            </div>
+                            <div class="form-group">
+                                <label>Website</label>
+                                <input type="url" @bind="editClient.Website" placeholder="https://" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="form-section">
+                        <h3>Address</h3>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>Street Address</label>
+                                <input type="text" @bind="editClient.Address" />
+                            </div>
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" @bind="editClient.City" />
+                            </div>
+                            <div class="form-group">
+                                <label>Province</label>
+                                <input type="text" @bind="editClient.Province" />
+                            </div>
+                            <div class="form-group">
+                                <label>Postal Code</label>
+                                <input type="text" @bind="editClient.PostalCode" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Person -->
+                    <div class="form-section">
+                        <h3>Primary Contact Person</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" @bind="editClient.ContactPersonName" />
+                            </div>
+                            <div class="form-group">
+                                <label>Title / Position</label>
+                                <input type="text" @bind="editClient.ContactPersonTitle" />
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" @bind="editClient.ContactPersonEmail" />
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="tel" @bind="editClient.ContactPersonPhone" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subscription -->
+                    @if (!isEditing)
+                    {
+                        <div class="form-section">
+                            <h3>Subscription Plan</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Plan</label>
+                                    <select @bind="selectedPlanId">
+                                        <option value="0">Select Plan</option>
+                                        @foreach (var plan in plans)
+                                        {
+                                            <option value="@plan.PlanId">@plan.PlanName - ₱@plan.MonthlyPrice.ToString("N0")/month</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Billing Cycle</label>
+                                    <select @bind="editClient.BillingCycle">
+                                        <option value="Monthly">Monthly</option>
+                                        <option value="Quarterly">Quarterly</option>
+                                        <option value="Yearly">Yearly (10% discount)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Initial Status</label>
+                                    <select @bind="editClient.Status">
+                                        <option value="Trial">Trial (14 days)</option>
+                                        <option value="Active">Active</option>
+                                        <option value="Pending">Pending Payment</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Notes -->
+                    <div class="form-section">
+                        <h3>Notes</h3>
+                        <div class="form-group full-width">
+                            <textarea rows="3" @bind="editClient.Notes" placeholder="Internal notes about this client..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" @onclick="HideForm">Cancel</button>
+                        <button type="submit" class="btn-primary">@(isEditing ? "Update Client" : "Create Client")</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+    else if (selectedClient != null)
+    {
+        <!-- Client Details View -->
+        <div class="client-details">
+            <div class="details-header">
+                <button class="back-btn" @onclick="ClearSelection">← Back to List</button>
+                <div class="header-actions">
+                    <button class="btn-edit" @onclick="() => EditClient(selectedClient)">Edit</button>
+                    @if (selectedClient.Status == "Active")
+                    {
+                        <button class="btn-suspend" @onclick="() => SuspendClient(selectedClient.ClientId)">Suspend</button>
+                    }
+                    else if (selectedClient.Status == "Suspended")
+                    {
+                        <button class="btn-activate" @onclick="() => ActivateClient(selectedClient.ClientId)">Activate</button>
+                    }
+                </div>
+            </div>
+
+            <div class="details-grid">
+                <!-- Client Info Card -->
+                <div class="info-card main-info">
+                    <div class="client-avatar large">
+                        @selectedClient.CompanyName.Substring(0, 1).ToUpper()
+                    </div>
+                    <div class="client-main-info">
+                        <h2>@selectedClient.CompanyName</h2>
+                        <span class="client-code">@selectedClient.ClientCode</span>
+                        <span class="status-badge @selectedClient.Status">@selectedClient.Status</span>
+                    </div>
+                    <div class="client-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Business Type</span>
+                            <span class="meta-value">@(selectedClient.BusinessType ?? "Not specified")</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Primary Email</span>
+                            <span class="meta-value">@selectedClient.PrimaryEmail</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Phone</span>
+                            <span class="meta-value">@(selectedClient.Phone ?? "Not provided")</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">License Key</span>
+                            <span class="meta-value code">@(selectedClient.LicenseKey ?? "Not generated")</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscription Card -->
+                <div class="info-card subscription-info">
+                    <h3>Subscription</h3>
+                    @if (selectedClient.Subscriptions?.Any(s => s.Status == "Active") == true)
+                    {
+                        var sub = selectedClient.Subscriptions.First(s => s.Status == "Active");
+                        <div class="subscription-details">
+                            <div class="plan-badge">@sub.Plan?.PlanName</div>
+                            <div class="sub-item">
+                                <span>Billing Cycle</span>
+                                <strong>@sub.BillingCycle</strong>
+                            </div>
+                            <div class="sub-item">
+                                <span>Monthly Rate</span>
+                                <strong>₱@sub.TotalPrice.ToString("N2")</strong>
+                            </div>
+                            <div class="sub-item">
+                                <span>Valid Until</span>
+                                <strong>@sub.EndDate.ToString("MMM dd, yyyy")</strong>
+                            </div>
+                            <div class="sub-item">
+                                <span>Auto Renew</span>
+                                <strong>@(sub.AutoRenew ? "Yes" : "No")</strong>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="no-subscription">
+                            <p>No active subscription</p>
+                            <button class="btn-primary small" @onclick="() => ShowSubscribeModal(selectedClient.ClientId)">Assign Plan</button>
+                        </div>
+                    }
+                </div>
+
+                <!-- Billing Card -->
+                <div class="info-card billing-info">
+                    <h3>Billing</h3>
+                    <div class="billing-stats">
+                        <div class="billing-stat">
+                            <span class="billing-value @(selectedClient.OutstandingBalance > 0 ? "negative" : "")">₱@selectedClient.OutstandingBalance.ToString("N2")</span>
+                            <span class="billing-label">Outstanding Balance</span>
+                        </div>
+                        <div class="billing-stat">
+                            <span class="billing-value positive">₱@selectedClient.CreditBalance.ToString("N2")</span>
+                            <span class="billing-label">Credit Balance</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enabled Modules Card -->
+                <div class="info-card modules-info">
+                    <h3>Enabled Modules (@(selectedClient.Modules?.Count(m => m.IsEnabled) ?? 0))</h3>
+                    <div class="modules-list">
+                        @if (selectedClient.Modules?.Any() == true)
+                        {
+                            @foreach (var cm in selectedClient.Modules.Where(m => m.IsEnabled))
+                            {
+                                <div class="module-tag">
+                                    <span class="module-name">@cm.Module?.ModuleName</span>
+                                    <span class="module-source">@cm.Source</span>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="empty">No modules enabled</p>
+                        }
+                    </div>
+                    <button class="btn-secondary small" @onclick="() => ShowModuleManager(selectedClient.ClientId)">Manage Modules</button>
+                </div>
+
+                <!-- Contact Person Card -->
+                <div class="info-card contact-info">
+                    <h3>Contact Person</h3>
+                    <div class="contact-details">
+                        <p class="contact-name">@(selectedClient.ContactPersonName ?? "Not specified")</p>
+                        <p class="contact-title">@(selectedClient.ContactPersonTitle ?? "")</p>
+                        <p class="contact-email">@(selectedClient.ContactPersonEmail ?? "")</p>
+                        <p class="contact-phone">@(selectedClient.ContactPersonPhone ?? "")</p>
+                    </div>
+                </div>
+
+                <!-- Address Card -->
+                <div class="info-card address-info">
+                    <h3>Address</h3>
+                    <p>@(selectedClient.Address ?? "Not provided")</p>
+                    <p>@selectedClient.City @selectedClient.Province @selectedClient.PostalCode</p>
+                    <p>@selectedClient.Country</p>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Client List -->
+        <div class="list-header">
+            <div class="header-left">
+                <h2>Clients</h2>
+                <span class="count">@clients.Count total</span>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <input type="text" placeholder="Search clients..." @bind="searchTerm" @bind:event="oninput" />
+                </div>
+                <select class="filter-select" @bind="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Suspended">Suspended</option>
+                    <option value="Trial">Trial</option>
+                    <option value="Pending">Pending</option>
+                </select>
+                <button class="btn-primary" @onclick="ShowAddForm">+ Add Client</button>
+            </div>
+        </div>
+
+        <div class="client-grid">
+            @foreach (var client in FilteredClients)
+            {
+                <div class="client-card" @onclick="() => SelectClient(client)">
+                    <div class="card-header">
+                        <div class="client-avatar">@client.CompanyName.Substring(0, 1).ToUpper()</div>
+                        <span class="status-badge @client.Status">@client.Status</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>@client.CompanyName</h3>
+                        <p class="client-code">@client.ClientCode</p>
+                        <p class="client-email">@client.PrimaryEmail</p>
+                    </div>
+                    <div class="card-footer">
+                        @{
+                            var activeSub = client.Subscriptions?.FirstOrDefault(s => s.Status == "Active");
+                        }
+                        @if (activeSub != null)
+                        {
+                            <span class="plan-name">@activeSub.Plan?.PlanName</span>
+                            <span class="plan-price">₱@activeSub.TotalPrice.ToString("N0")/mo</span>
+                        }
+                        else
+                        {
+                            <span class="no-plan">No active plan</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (!FilteredClients.Any())
+        {
+            <div class="empty-state">
+                <span class="empty-icon">🏢</span>
+                <h3>No clients found</h3>
+                <p>@(string.IsNullOrEmpty(searchTerm) ? "Get started by adding your first client" : "Try adjusting your search")</p>
+                <button class="btn-primary" @onclick="ShowAddForm">+ Add Client</button>
+            </div>
+        }
+    }
+</div>
+
+<style>
+    .clients-page {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* List Header */
+    .list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-left h2 {
+        margin: 0;
+        font-size: 24px;
+        color: #1f2937;
+    }
+
+    .count {
+        background: #e5e7eb;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .header-right {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .search-box input {
+        padding: 10px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        width: 250px;
+        font-size: 14px;
+    }
+
+    .filter-select {
+        padding: 10px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+    }
+
+    .btn-primary {
+        background: #6366f1;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .btn-primary:hover {
+        background: #4f46e5;
+    }
+
+    .btn-secondary {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    /* Client Grid */
+    .client-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .client-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        overflow: hidden;
+    }
+
+    .client-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+
+    .client-card .card-header {
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    }
+
+    .client-avatar {
+        width: 48px;
+        height: 48px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .client-avatar.large {
+        width: 80px;
+        height: 80px;
+        font-size: 32px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    }
+
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-badge.Active { background: #dcfce7; color: #166534; }
+    .status-badge.Suspended { background: #fee2e2; color: #991b1b; }
+    .status-badge.Trial { background: #dbeafe; color: #1e40af; }
+    .status-badge.Pending { background: #fef3c7; color: #92400e; }
+
+    .client-card .card-body {
+        padding: 20px;
+    }
+
+    .client-card h3 {
+        margin: 0 0 4px 0;
+        font-size: 16px;
+        color: #1f2937;
+    }
+
+    .client-code {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 8px;
+    }
+
+    .client-email {
+        font-size: 13px;
+        color: #6366f1;
+    }
+
+    .client-card .card-footer {
+        padding: 16px 20px;
+        background: #f9fafb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .plan-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .plan-price {
+        font-size: 14px;
+        font-weight: 700;
+        color: #6366f1;
+    }
+
+    .no-plan {
+        font-size: 13px;
+        color: #9ca3af;
+        font-style: italic;
+    }
+
+    /* Form Styles */
+    .form-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .form-header {
+        margin-bottom: 24px;
+    }
+
+    .back-btn {
+        background: none;
+        border: none;
+        color: #6366f1;
+        font-size: 14px;
+        cursor: pointer;
+        margin-bottom: 12px;
+    }
+
+    .form-header h2 {
+        margin: 0;
+        font-size: 24px;
+        color: #1f2937;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        padding: 32px;
+    }
+
+    .form-section {
+        margin-bottom: 32px;
+    }
+
+    .form-section h3 {
+        font-size: 16px;
+        color: #374151;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-group.full-width {
+        grid-column: span 2;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 10px 14px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding-top: 24px;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    /* Details View */
+    .details-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-edit {
+        background: #6366f1;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .btn-suspend {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .btn-activate {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .info-card.main-info {
+        grid-column: span 2;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .info-card h3 {
+        margin: 0 0 16px 0;
+        font-size: 14px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .client-main-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .client-main-info h2 {
+        margin: 0;
+        font-size: 24px;
+    }
+
+    .client-meta {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        width: 100%;
+    }
+
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .meta-label {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .meta-value {
+        font-size: 14px;
+        color: #1f2937;
+        font-weight: 500;
+    }
+
+    .meta-value.code {
+        font-family: monospace;
+        font-size: 12px;
+        background: #f3f4f6;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+
+    .plan-badge {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .sub-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 14px;
+    }
+
+    .sub-item span {
+        color: #6b7280;
+    }
+
+    .sub-item strong {
+        color: #1f2937;
+    }
+
+    .billing-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .billing-stat {
+        text-align: center;
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 12px;
+    }
+
+    .billing-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        display: block;
+    }
+
+    .billing-value.negative { color: #dc2626; }
+    .billing-value.positive { color: #059669; }
+
+    .billing-label {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .modules-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .module-tag {
+        display: flex;
+        flex-direction: column;
+        background: #f3f4f6;
+        padding: 8px 12px;
+        border-radius: 8px;
+    }
+
+    .module-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .module-source {
+        font-size: 10px;
+        color: #6b7280;
+    }
+
+    .small {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 16px;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        display: block;
+        margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+        margin: 0 0 8px 0;
+        color: #1f2937;
+    }
+
+    .empty-state p {
+        color: #6b7280;
+        margin-bottom: 24px;
+    }
+</style>
+
+@code {
+    [Parameter] public int ClientId { get; set; }
+
+    private List<SaaSClient> clients = new();
+    private List<SubscriptionPlan> plans = new();
+    private SaaSClient? selectedClient;
+    private SaaSClient editClient = new();
+    private bool showForm = false;
+    private bool isEditing = false;
+    private string searchTerm = "";
+    private string statusFilter = "";
+    private int selectedPlanId = 0;
+
+    private IEnumerable<SaaSClient> FilteredClients => clients
+        .Where(c => string.IsNullOrEmpty(searchTerm) || 
+            c.CompanyName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+            c.ClientCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+            c.PrimaryEmail.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+        .Where(c => string.IsNullOrEmpty(statusFilter) || c.Status == statusFilter);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var path = Navigation.Uri.ToLower();
+        if (path.EndsWith("/new"))
+        {
+            ShowAddForm();
+        }
+        else if (ClientId > 0)
+        {
+            await SelectClientById(ClientId);
+        }
+    }
+
+    private async Task LoadData()
+    {
+        clients = await ClientService.GetAllClientsAsync();
+        plans = await PlanService.GetAllPlansAsync();
+    }
+
+    private void ShowAddForm()
+    {
+        editClient = new SaaSClient { Status = "Trial", BillingCycle = "Monthly" };
+        isEditing = false;
+        showForm = true;
+        selectedClient = null;
+    }
+
+    private void HideForm()
+    {
+        showForm = false;
+        Navigation.NavigateTo("/owner/clients");
+    }
+
+    private async Task SelectClient(SaaSClient client)
+    {
+        selectedClient = await ClientService.GetClientByIdAsync(client.ClientId);
+    }
+
+    private async Task SelectClientById(int clientId)
+    {
+        selectedClient = await ClientService.GetClientByIdAsync(clientId);
+    }
+
+    private void ClearSelection()
+    {
+        selectedClient = null;
+        Navigation.NavigateTo("/owner/clients");
+    }
+
+    private void EditClient(SaaSClient client)
+    {
+        editClient = new SaaSClient
+        {
+            ClientId = client.ClientId,
+            CompanyName = client.CompanyName,
+            TradeName = client.TradeName,
+            BusinessType = client.BusinessType,
+            TaxId = client.TaxId,
+            Address = client.Address,
+            City = client.City,
+            Province = client.Province,
+            PostalCode = client.PostalCode,
+            PrimaryEmail = client.PrimaryEmail,
+            SecondaryEmail = client.SecondaryEmail,
+            Phone = client.Phone,
+            Mobile = client.Mobile,
+            Website = client.Website,
+            ContactPersonName = client.ContactPersonName,
+            ContactPersonTitle = client.ContactPersonTitle,
+            ContactPersonEmail = client.ContactPersonEmail,
+            ContactPersonPhone = client.ContactPersonPhone,
+            Notes = client.Notes,
+            Status = client.Status,
+            BillingCycle = client.BillingCycle
+        };
+        isEditing = true;
+        showForm = true;
+    }
+
+    private async Task SaveClient()
+    {
+        try
+        {
+            if (isEditing)
+            {
+                await ClientService.UpdateClientAsync(editClient);
+            }
+            else
+            {
+                var newClient = await ClientService.CreateClientAsync(editClient);
+                
+                // Subscribe to plan if selected
+                if (selectedPlanId > 0)
+                {
+                    await PlanService.SubscribeClientToPlanAsync(newClient.ClientId, selectedPlanId, editClient.BillingCycle);
+                }
+            }
+
+            await LoadData();
+            HideForm();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving client: {ex.Message}");
+        }
+    }
+
+    private async Task SuspendClient(int clientId)
+    {
+        await ClientService.SuspendClientAsync(clientId, "Suspended by owner");
+        await LoadData();
+        selectedClient = await ClientService.GetClientByIdAsync(clientId);
+    }
+
+    private async Task ActivateClient(int clientId)
+    {
+        await ClientService.ActivateClientAsync(clientId);
+        await LoadData();
+        selectedClient = await ClientService.GetClientByIdAsync(clientId);
+    }
+
+    private void ShowSubscribeModal(int clientId)
+    {
+        // TODO: Show modal to select plan
+    }
+
+    private void ShowModuleManager(int clientId)
+    {
+        Navigation.NavigateTo($"/owner/clients/{clientId}/modules");
+    }
+}
