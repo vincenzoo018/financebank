@@ -97,15 +97,18 @@
                         <td>@GetNextBilling(client)</td>
                         <td>
                             <div class="action-buttons" @onclick:stopPropagation="true">
-                                <button class="action-btn view" @onclick="() => ViewClient(client.ClientId)" title="View Details">👁️</button>
+                                <button class="action-btn view" @onclick="() => ViewClient(client.ClientId)"
+                                    title="View Details">👁️</button>
                                 <button class="action-btn edit" @onclick="() => EditClient(client)" title="Edit">✏️</button>
                                 @if (client.Status == "Active")
                                 {
-                                    <button class="action-btn suspend" @onclick="() => SuspendClient(client)" title="Suspend">⏸️</button>
+                                    <button class="action-btn suspend" @onclick="() => SuspendClient(client)"
+                                        title="Suspend">⏸️</button>
                                 }
                                 else if (client.Status == "Suspended")
                                 {
-                                    <button class="action-btn activate" @onclick="() => ActivateClient(client)" title="Activate">▶️</button>
+                                    <button class="action-btn activate" @onclick="() => ActivateClient(client)"
+                                        title="Activate">▶️</button>
                                 }
                             </div>
                         </td>
@@ -232,7 +235,7 @@
                                 @foreach (var module in availableModules)
                                 {
                                     <div class="module-card @(selectedModuleIds.Contains(module.ModuleId) ? "selected" : "") @(module.IsCore ? "core" : "")"
-                                         @onclick="() => ToggleModule(module)">
+                                        @onclick="() => ToggleModule(module)">
                                         <div class="module-check">
                                             @if (selectedModuleIds.Contains(module.ModuleId))
                                             {
@@ -279,20 +282,23 @@
                         <!-- Step 3: Pricing & Billing -->
                         <div class="pricing-section">
                             <h4>💰 Pricing & Billing Setup</h4>
-                            
+
                             <div class="billing-options">
-                                <div class="billing-option @(billingCycle == "Monthly" ? "selected" : "")" @onclick='() => billingCycle = "Monthly"'>
+                                <div class="billing-option @(billingCycle == "Monthly" ? "selected" : "")"
+                                    @onclick='() => billingCycle = "Monthly"'>
                                     <div class="option-radio">@(billingCycle == "Monthly" ? "●" : "○")</div>
                                     <div class="option-content">
                                         <span class="option-title">Monthly Billing</span>
                                         <span class="option-price">₱@CalculateMonthlySubscription().ToString("N2")/month</span>
                                     </div>
                                 </div>
-                                <div class="billing-option @(billingCycle == "Yearly" ? "selected" : "")" @onclick='() => billingCycle = "Yearly"'>
+                                <div class="billing-option @(billingCycle == "Yearly" ? "selected" : "")"
+                                    @onclick='() => billingCycle = "Yearly"'>
                                     <div class="option-radio">@(billingCycle == "Yearly" ? "●" : "○")</div>
                                     <div class="option-content">
                                         <span class="option-title">Yearly Billing</span>
-                                        <span class="option-price">₱@(CalculateMonthlySubscription() * 10).ToString("N2")/year</span>
+                                        <span class="option-price">₱@(CalculateMonthlySubscription() *
+                                                                                10).ToString("N2")/year</span>
                                         <span class="savings">Save 2 months!</span>
                                     </div>
                                 </div>
@@ -302,10 +308,14 @@
                                 <h5>Pricing Breakdown</h5>
                                 <table class="breakdown-table">
                                     <thead>
-                                        <tr><th>Module</th><th>Price</th></tr>
+                                        <tr>
+                                            <th>Module</th>
+                                            <th>Price</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var module in availableModules.Where(m => selectedModuleIds.Contains(m.ModuleId)))
+                                        @foreach (var module in availableModules.Where(m =>
+                                                                        selectedModuleIds.Contains(m.ModuleId)))
                                         {
                                             <tr>
                                                 <td>@module.ModuleName</td>
@@ -400,57 +410,67 @@
                             <div class="contract-preview">
                                 <div class="contract-header">
                                     <h5>📝 Service Contract</h5>
-                                    <button class="btn btn-sm btn-secondary" @onclick="DownloadContract">📥 Download PDF</button>
+                                    <button class="btn btn-sm btn-secondary" @onclick="DownloadContract">📥 Download
+                                        PDF</button>
                                 </div>
                                 <div class="contract-content">
                                     <div class="contract-title">SERVICE AGREEMENT</div>
-                                    <p>This Service Agreement is entered into as of <strong>@contractStartDate.ToString("MMMM dd, yyyy")</strong> 
-                                       by and between <strong>ERP Solutions Provider</strong> ("Provider") and <strong>@editClient.CompanyName</strong> ("Client").</p>
-                                    <p><strong>1. SERVICES:</strong> Provider agrees to provide Client access to the ERP System including:
-                                       @string.Join(", ", availableModules.Where(m => selectedModuleIds.Contains(m.ModuleId)).Select(m => m.ModuleName)).</p>
-                                    <p><strong>2. TERM:</strong> This Agreement shall commence on @contractStartDate.ToString("MMMM dd, yyyy") 
-                                       and continue for @contractDuration months until @contractStartDate.AddMonths(contractDuration).ToString("MMMM dd, yyyy").</p>
-                                    <p><strong>3. FEES:</strong> Client agrees to pay a setup fee of ₱@setupFee.ToString("N2") and a @billingCycle.ToLower() 
-                                       subscription fee of ₱@GetFirstSubscriptionAmount().ToString("N2").</p>
+                                    <p>This Service Agreement is entered into as of <strong>@contractStartDate.ToString("MMMM                      dd, yyyy")</strong>
+                                        by and between <strong>ERP Solutions Provider</strong> ("Provider") and
+                                        <strong>@editClient.CompanyName</strong> ("Client").</p>
+                                    <p><strong>1. SERVICES:</strong> Provider agrees to provide Client access to the ERP System
+                                        including:
+                                        @string.Join(", ", availableModules.Where(m =>
+                                        selectedModuleIds.Contains(m.ModuleId)).Select(m => m.ModuleName)).</p>
+                            <p><strong>2. TERM:</strong> This Agreement shall commence on
+                                @contractStartDate.ToString("MMMM dd, yyyy")
+                                and continue for @contractDuration months until
+                                @contractStartDate.AddMonths(contractDuration).ToString("MMMM dd, yyyy").</p>
+                            <p><strong>3. FEES:</strong> Client agrees to pay a setup fee of ₱@setupFee.ToString("N2")
+                                and a @billingCycle.ToLower()
+                                subscription fee of ₱@GetFirstSubscriptionAmount().ToString("N2").</p>
+                        </div>
+                    </div>
+
+                    <div class="invoice-preview">
+                        <div class="invoice-header">
+                            <h5>📄 First Invoice</h5>
+                            <button class="btn btn-sm btn-secondary" @onclick="DownloadInvoice">📥 Download PDF</button>
+                        </div>
+                        <div class="invoice-content">
+                            <div class="invoice-top">
+                                <div class="company-info">
+                                    <strong>ERP Solutions Provider</strong><br />
+                                    123 Business Center, Makati City
+                                </div>
+                                <div class="invoice-number">
+                                    <span class="inv-label">INVOICE</span>
+                                    <span class="inv-num">INV-@DateTime.Now.ToString("yyyyMMdd")-001</span>
                                 </div>
                             </div>
-
-                            <div class="invoice-preview">
-                                <div class="invoice-header">
-                                    <h5>📄 First Invoice</h5>
-                                    <button class="btn btn-sm btn-secondary" @onclick="DownloadInvoice">📥 Download PDF</button>
-                                </div>
-                                <div class="invoice-content">
-                                    <div class="invoice-top">
-                                        <div class="company-info">
-                                            <strong>ERP Solutions Provider</strong><br/>
-                                            123 Business Center, Makati City
-                                        </div>
-                                        <div class="invoice-number">
-                                            <span class="inv-label">INVOICE</span>
-                                            <span class="inv-num">INV-@DateTime.Now.ToString("yyyyMMdd")-001</span>
-                                        </div>
-                                    </div>
-                                    <div class="invoice-to">
-                                        <span class="label">BILL TO:</span>
-                                        <strong>@editClient.CompanyName</strong><br/>
-                                        @editClient.Address, @editClient.City<br/>
-                                        @editClient.PrimaryEmail
-                                    </div>
-                                    <table class="invoice-items">
-                                        <thead>
-                                            <tr><th>Description</th><th>Amount</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>Setup Fee - Initial Configuration</td>
-                                                <td>₱@setupFee.ToString("N2")</td>
-                                            </tr>
-                                            <tr>
-                                                <td>@billingCycle Subscription (@selectedModuleIds.Count modules)</td>
-                                                <td>₱@GetFirstSubscriptionAmount().ToString("N2")</td>
-                                            </tr>
-                                            @if (discountPercent > 0)
+                            <div class="invoice-to">
+                                <span class="label">BILL TO:</span>
+                                <strong>@editClient.CompanyName</strong><br />
+                                @editClient.Address, @editClient.City<br />
+                                @editClient.PrimaryEmail
+                            </div>
+                            <table class="invoice-items">
+                                <thead>
+                                    <tr>
+                                        <th>Description</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Setup Fee - Initial Configuration</td>
+                                        <td>₱@setupFee.ToString("N2")</td>
+                                    </tr>
+                                    <tr>
+                                        <td>@billingCycle Subscription (@selectedModuleIds.Count modules)</td>
+                                        <td>₱@GetFirstSubscriptionAmount().ToString("N2")</td>
+                                    </tr>
+                                    @if (discountPercent > 0)
                                             {
                                                 <tr class="discount">
                                                     <td>Discount (@discountPercent%)</td>
@@ -474,7 +494,8 @@
                                         </tfoot>
                                     </table>
                                     <div class="invoice-footer">
-                                        <p><strong>Payment Due:</strong> @contractStartDate.AddDays(15).ToString("MMM dd, yyyy")</p>
+                                        <p><strong>Payment Due:</strong> @contractStartDate.AddDays(15).ToString("MMM dd, yyyy")
+                                        </p>
                                         <p><strong>Payment Method:</strong> Bank Transfer / GCash / Cash</p>
                                     </div>
                                 </div>
@@ -578,13 +599,21 @@
         padding: 20px;
         border-radius: 12px;
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         border-left: 4px solid #6366f1;
     }
 
-    .stat-card.active { border-left-color: #10b981; }
-    .stat-card.trial { border-left-color: #f59e0b; }
-    .stat-card.suspended { border-left-color: #ef4444; }
+    .stat-card.active {
+        border-left-color: #10b981;
+    }
+
+    .stat-card.trial {
+        border-left-color: #f59e0b;
+    }
+
+    .stat-card.suspended {
+        border-left-color: #ef4444;
+    }
 
     .stat-value {
         display: block;
@@ -636,7 +665,7 @@
         background: white;
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .data-table {
@@ -710,9 +739,20 @@
         font-weight: 500;
     }
 
-    .plan-badge.basic { background: #dbeafe; color: #1d4ed8; }
-    .plan-badge.pro { background: #fef3c7; color: #d97706; }
-    .plan-badge.enterprise { background: #ede9fe; color: #7c3aed; }
+    .plan-badge.basic {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .plan-badge.pro {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .plan-badge.enterprise {
+        background: #ede9fe;
+        color: #7c3aed;
+    }
 
     .status-badge {
         padding: 4px 10px;
@@ -721,12 +761,30 @@
         font-weight: 500;
     }
 
-    .status-badge.active { background: #d1fae5; color: #059669; }
-    .status-badge.trial { background: #fef3c7; color: #d97706; }
-    .status-badge.suspended { background: #fee2e2; color: #dc2626; }
-    .status-badge.cancelled { background: #f3f4f6; color: #6b7280; }
+    .status-badge.active {
+        background: #d1fae5;
+        color: #059669;
+    }
 
-    .text-danger { color: #dc2626; font-weight: 600; }
+    .status-badge.trial {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .status-badge.suspended {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .status-badge.cancelled {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .text-danger {
+        color: #dc2626;
+        font-weight: 600;
+    }
 
     .action-buttons {
         display: flex;
@@ -750,10 +808,21 @@
         transform: scale(1.1);
     }
 
-    .action-btn.view:hover { background: #dbeafe; }
-    .action-btn.edit:hover { background: #fef3c7; }
-    .action-btn.suspend:hover { background: #fee2e2; }
-    .action-btn.activate:hover { background: #d1fae5; }
+    .action-btn.view:hover {
+        background: #dbeafe;
+    }
+
+    .action-btn.edit:hover {
+        background: #fef3c7;
+    }
+
+    .action-btn.suspend:hover {
+        background: #fee2e2;
+    }
+
+    .action-btn.activate:hover {
+        background: #d1fae5;
+    }
 
     /* Modal */
     .modal-overlay {
@@ -762,7 +831,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0, 0, 0, 0.5);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1196,7 +1265,7 @@
         display: flex;
         justify-content: space-between;
         padding: 6px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         font-size: 14px;
     }
 
@@ -1407,10 +1476,10 @@
     private bool contractAgreed = false;
 
     private IEnumerable<SaaSClient> FilteredClients => clients
-        .Where(c => string.IsNullOrEmpty(searchTerm) || 
-            c.CompanyName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-            c.PrimaryEmail.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-        .Where(c => string.IsNullOrEmpty(statusFilter) || c.Status == statusFilter);
+    .Where(c => string.IsNullOrEmpty(searchTerm) ||
+    c.CompanyName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+    c.PrimaryEmail.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+    .Where(c => string.IsNullOrEmpty(statusFilter) || c.Status == statusFilter);
 
     protected override async Task OnInitializedAsync()
     {
@@ -1459,7 +1528,7 @@
             Console.WriteLine($"Error loading modules: {ex.Message}");
             LoadDefaultModules();
         }
-        
+
         // Auto-select core modules
         foreach (var module in availableModules.Where(m => m.IsCore))
         {
@@ -1470,16 +1539,23 @@
     private void LoadDefaultModules()
     {
         availableModules = new List<ModuleItem>
-        {
-            new ModuleItem { ModuleId = 1, ModuleName = "Core System", Description = "Essential system foundation", MonthlyPrice = 0, IsCore = true },
-            new ModuleItem { ModuleId = 2, ModuleName = "Teller Operations", Description = "Cash transactions, deposits, withdrawals", MonthlyPrice = 500 },
-            new ModuleItem { ModuleId = 3, ModuleName = "Loan Management", Description = "Loan applications, approvals, payments", MonthlyPrice = 1000 },
-            new ModuleItem { ModuleId = 4, ModuleName = "Savings Accounts", Description = "Savings account management", MonthlyPrice = 500 },
-            new ModuleItem { ModuleId = 5, ModuleName = "General Ledger", Description = "Chart of accounts, journal entries", MonthlyPrice = 800 },
-            new ModuleItem { ModuleId = 6, ModuleName = "Financial Reports", Description = "Balance sheets, income statements", MonthlyPrice = 500 },
-            new ModuleItem { ModuleId = 7, ModuleName = "User Administration", Description = "User management, roles, permissions", MonthlyPrice = 300 },
-            new ModuleItem { ModuleId = 8, ModuleName = "Audit Trail", Description = "System audit logs and security", MonthlyPrice = 400 }
-        };
+{
+new ModuleItem { ModuleId = 1, ModuleName = "Core System", Description = "Essential system foundation", MonthlyPrice =
+0, IsCore = true },
+new ModuleItem { ModuleId = 2, ModuleName = "Teller Operations", Description = "Cash transactions, deposits, withdrawals", MonthlyPrice = 500 },
+new ModuleItem { ModuleId = 3, ModuleName = "Loan Management", Description = "Loan applications, approvals, payments",
+MonthlyPrice = 1000 },
+new ModuleItem { ModuleId = 4, ModuleName = "Savings Accounts", Description = "Savings account management", MonthlyPrice
+= 500 },
+new ModuleItem { ModuleId = 5, ModuleName = "General Ledger", Description = "Chart of accounts, journal entries",
+MonthlyPrice = 800 },
+new ModuleItem { ModuleId = 6, ModuleName = "Financial Reports", Description = "Balance sheets, income statements",
+MonthlyPrice = 500 },
+new ModuleItem { ModuleId = 7, ModuleName = "User Administration", Description = "User management, roles, permissions",
+MonthlyPrice = 300 },
+new ModuleItem { ModuleId = 8, ModuleName = "Audit Trail", Description = "System audit logs and security", MonthlyPrice
+= 400 }
+};
     }
 
     private async Task SaveDefaultModulesToDatabase()
@@ -1566,7 +1642,7 @@
     private void ToggleModule(ModuleItem module)
     {
         if (module.IsCore) return;
-        
+
         if (selectedModuleIds.Contains(module.ModuleId))
             selectedModuleIds.Remove(module.ModuleId);
         else
@@ -1606,8 +1682,8 @@
     private decimal CalculateMonthlySubscription()
     {
         return availableModules
-            .Where(m => selectedModuleIds.Contains(m.ModuleId))
-            .Sum(m => m.MonthlyPrice);
+        .Where(m => selectedModuleIds.Contains(m.ModuleId))
+        .Sum(m => m.MonthlyPrice);
     }
 
     private decimal GetFirstSubscriptionAmount()
@@ -1699,8 +1775,9 @@
                 }
 
                 // Create initial invoice
-                var invoice = await InvoiceService.CreateInvoiceAsync(savedClient.ClientId, "Subscription", GetTotalFirstPayment() * 1.12m, contractStartDate.AddDays(15));
-                
+                var invoice = await InvoiceService.CreateInvoiceAsync(savedClient.ClientId, "Subscription", GetTotalFirstPayment() *
+                1.12m, contractStartDate.AddDays(15));
+
                 // Update client's outstanding balance
                 savedClient.OutstandingBalance = GetTotalFirstPayment() * 1.12m;
                 await ClientService.UpdateClientAsync(savedClient);
@@ -1732,11 +1809,11 @@
     {
         var sb = new System.Text.StringBuilder();
         var moduleRows = string.Join("", availableModules
-            .Where(m => selectedModuleIds.Contains(m.ModuleId))
-            .Select(m => "<tr><td>" + m.ModuleName + "</td><td>₱" + m.MonthlyPrice.ToString("N2") + "</td></tr>"));
-        var discountRow = discountPercent > 0 
-            ? "<tr><td>Discount (" + discountPercent + "%)</td><td>-₱" + GetDiscountAmount().ToString("N2") + "</td></tr>" 
-            : "";
+        .Where(m => selectedModuleIds.Contains(m.ModuleId))
+        .Select(m => "<tr><td>" + m.ModuleName + "</td><td>₱" + m.MonthlyPrice.ToString("N2") + "</td></tr>"));
+        var discountRow = discountPercent > 0
+        ? "<tr><td>Discount (" + discountPercent + "%)</td><td>-₱" + GetDiscountAmount().ToString("N2") + "</td></tr>"
+        : "";
 
         sb.Append("<!DOCTYPE html><html><head>");
         sb.Append("<title>Service Contract - " + editClient.CompanyName + "</title>");
@@ -1754,57 +1831,65 @@
         sb.Append(".sig-line { border-top: 1px solid #000; margin-top: 60px; padding-top: 5px; }");
         sb.Append("@media print { body { padding: 20px; } }");
         sb.Append("</style></head><body>");
-        
+
         sb.Append("<div class='header'>");
         sb.Append("<h1>SERVICE AGREEMENT</h1>");
-        sb.Append("<p>Contract No: CNT-" + DateTime.Now.ToString("yyyyMMdd") + "-" + (editClient.ClientCode?.Length >= 3 ? editClient.ClientCode.Substring(editClient.ClientCode.Length - 3) : "001") + "</p>");
+        sb.Append("<p>Contract No: CNT-" + DateTime.Now.ToString("yyyyMMdd") + "-" + (editClient.ClientCode?.Length >= 3 ?
+        editClient.ClientCode.Substring(editClient.ClientCode.Length - 3) : "001") + "</p>");
         sb.Append("</div>");
-        
+
         sb.Append("<div class='section'>");
-        sb.Append("<p>This Service Agreement is entered into as of <strong>" + contractStartDate.ToString("MMMM dd, yyyy") + "</strong></p>");
+        sb.Append("<p>This Service Agreement is entered into as of <strong>" + contractStartDate.ToString("MMMM dd, yyyy") +
+        "</strong></p>");
         sb.Append("<p><strong>BETWEEN:</strong></p>");
         sb.Append("<p>ERP Solutions Provider (\"Provider\")<br/>123 Business Center, Makati City, Philippines</p>");
         sb.Append("<p><strong>AND:</strong></p>");
-        sb.Append("<p>" + editClient.CompanyName + " (\"Client\")<br/>" + editClient.Address + ", " + editClient.City + "<br/>");
+        sb.Append("<p>" + editClient.CompanyName + " (\"Client\")<br/>" + editClient.Address + ", " + editClient.City +
+        "<br/>");
         sb.Append("Contact: " + editClient.ContactPersonName + " (" + editClient.PrimaryEmail + ")</p>");
         sb.Append("</div>");
-        
+
         sb.Append("<div class='section'>");
         sb.Append("<h3>1. SERVICES</h3>");
         sb.Append("<p>Provider agrees to provide Client access to the ERP Banking System including the following modules:</p>");
         sb.Append("<table><tr><th>Module</th><th>Monthly Fee</th></tr>" + moduleRows + "</table>");
         sb.Append("</div>");
-        
+
         sb.Append("<div class='section'>");
         sb.Append("<h3>2. TERM</h3>");
-        sb.Append("<p>This Agreement shall commence on " + contractStartDate.ToString("MMMM dd, yyyy") + " and continue for " + contractDuration + " months until " + contractStartDate.AddMonths(contractDuration).ToString("MMMM dd, yyyy") + ".</p>");
+        sb.Append("<p>This Agreement shall commence on " + contractStartDate.ToString("MMMM dd, yyyy") + " and continue for " +
+        contractDuration + " months until " + contractStartDate.AddMonths(contractDuration).ToString("MMMM dd, yyyy") +
+        ".</p>");
         sb.Append("</div>");
-        
+
         sb.Append("<div class='section'>");
         sb.Append("<h3>3. FEES</h3>");
         sb.Append("<table>");
         sb.Append("<tr><td>Setup Fee</td><td>₱" + setupFee.ToString("N2") + "</td></tr>");
-        sb.Append("<tr><td>" + billingCycle + " Subscription</td><td>₱" + GetFirstSubscriptionAmount().ToString("N2") + "</td></tr>");
+        sb.Append("<tr><td>" + billingCycle + " Subscription</td><td>₱" + GetFirstSubscriptionAmount().ToString("N2") +
+        "</td></tr>");
         sb.Append(discountRow);
         sb.Append("<tr><td>VAT (12%)</td><td>₱" + (GetTotalFirstPayment() * 0.12m).ToString("N2") + "</td></tr>");
-        sb.Append("<tr style='font-weight:bold;'><td>Total First Payment</td><td>₱" + (GetTotalFirstPayment() * 1.12m).ToString("N2") + "</td></tr>");
+        sb.Append("<tr style='font-weight:bold;'><td>Total First Payment</td><td>₱" + (GetTotalFirstPayment() *
+        1.12m).ToString("N2") + "</td></tr>");
         sb.Append("</table></div>");
-        
+
         sb.Append("<div class='signatures'>");
         sb.Append("<div class='sig-box'><div class='sig-line'>Provider Representative</div></div>");
         sb.Append("<div class='sig-box'><div class='sig-line'>" + editClient.ContactPersonName + "<br/>Client Representative</div></div>");
         sb.Append("</div>");
         sb.Append("</body></html>");
-        
+
         return sb.ToString();
     }
 
     private string GenerateInvoiceHtml()
     {
         var sb = new System.Text.StringBuilder();
-        var discountRow = discountPercent > 0 
-            ? "<tr><td>Discount (" + discountPercent + "%)</td><td></td><td></td><td>-₱" + GetDiscountAmount().ToString("N2") + "</td></tr>" 
-            : "";
+        var discountRow = discountPercent > 0
+        ? "<tr><td>Discount (" + discountPercent + "%)</td><td></td><td></td><td>-₱" + GetDiscountAmount().ToString("N2") +
+        "</td></tr>"
+        : "";
 
         sb.Append("<!DOCTYPE html><html><head>");
         sb.Append("<title>Invoice - " + editClient.CompanyName + "</title>");
@@ -1824,7 +1909,7 @@
         sb.Append(".total-row td { font-weight: bold; font-size: 18px; color: #059669; }");
         sb.Append("@media print { body { padding: 20px; } }");
         sb.Append("</style></head><body>");
-        
+
         sb.Append("<div class='header'>");
         sb.Append("<div class='company'>ERP Solutions Provider</div>");
         sb.Append("<div class='invoice-no'>");
@@ -1832,7 +1917,7 @@
         sb.Append("<p>INV-" + DateTime.Now.ToString("yyyyMMdd") + "-001</p>");
         sb.Append("<p>Date: " + DateTime.Now.ToString("MMMM dd, yyyy") + "</p>");
         sb.Append("</div></div>");
-        
+
         sb.Append("<div class='details'>");
         sb.Append("<div class='bill-to'>");
         sb.Append("<h4>BILL TO:</h4>");
@@ -1844,21 +1929,26 @@
         sb.Append("<h4>PAYMENT DUE:</h4>");
         sb.Append("<p><strong>" + contractStartDate.AddDays(15).ToString("MMMM dd, yyyy") + "</strong></p>");
         sb.Append("</div></div>");
-        
+
         sb.Append("<table><thead>");
         sb.Append("<tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr>");
         sb.Append("</thead><tbody>");
-        sb.Append("<tr><td>Setup Fee - Initial Configuration</td><td>1</td><td>₱" + setupFee.ToString("N2") + "</td><td>₱" + setupFee.ToString("N2") + "</td></tr>");
-        sb.Append("<tr><td>" + billingCycle + " Subscription (" + selectedModuleIds.Count + " modules)</td><td>1</td><td>₱" + GetFirstSubscriptionAmount().ToString("N2") + "</td><td>₱" + GetFirstSubscriptionAmount().ToString("N2") + "</td></tr>");
+        sb.Append("<tr><td>Setup Fee - Initial Configuration</td><td>1</td><td>₱" + setupFee.ToString("N2") + "</td><td>₱" +
+        setupFee.ToString("N2") + "</td></tr>");
+        sb.Append("<tr><td>" + billingCycle + " Subscription (" + selectedModuleIds.Count + " modules)</td><td>1</td><td>₱" +
+        GetFirstSubscriptionAmount().ToString("N2") + "</td><td>₱" + GetFirstSubscriptionAmount().ToString("N2") +
+        "</td></tr>");
         sb.Append(discountRow);
         sb.Append("</tbody></table>");
-        
+
         sb.Append("<div class='totals'><table>");
-        sb.Append("<tr><td>Subtotal:</td><td>₱" + (setupFee + GetFirstSubscriptionAmount() - GetDiscountAmount()).ToString("N2") + "</td></tr>");
+        sb.Append("<tr><td>Subtotal:</td><td>₱" + (setupFee + GetFirstSubscriptionAmount() - GetDiscountAmount()).ToString("N2")
+        + "</td></tr>");
         sb.Append("<tr><td>VAT (12%):</td><td>₱" + (GetTotalFirstPayment() * 0.12m).ToString("N2") + "</td></tr>");
-        sb.Append("<tr class='total-row'><td>Total Due:</td><td>₱" + (GetTotalFirstPayment() * 1.12m).ToString("N2") + "</td></tr>");
+        sb.Append("<tr class='total-row'><td>Total Due:</td><td>₱" + (GetTotalFirstPayment() * 1.12m).ToString("N2") +
+        "</td></tr>");
         sb.Append("</table></div>");
-        
+
         sb.Append("<div style='margin-top: 40px; padding: 20px; background: #f9fafb; border-radius: 8px;'>");
         sb.Append("<h4>Payment Methods:</h4>");
         sb.Append("<p><strong>GCash:</strong> 0917-XXX-XXXX (ERP Solutions)</p>");
@@ -1866,7 +1956,7 @@
         sb.Append("<p><strong>BPI:</strong> 1234-5678-9012 (ERP Solutions Provider)</p>");
         sb.Append("</div>");
         sb.Append("</body></html>");
-        
+
         return sb.ToString();
     }
 

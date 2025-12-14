@@ -482,6 +482,7 @@ namespace FinanceBank.Data
         public DbSet<UserSession> UserSessions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Employee> Employees { get; set; }
+        public DbSet<AccountUnlockRequest> AccountUnlockRequests { get; set; }
 
         // Banking Module Tables
         public DbSet<BankAccount> BankAccounts { get; set; }

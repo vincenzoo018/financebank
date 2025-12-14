@@ -1,0 +1,1001 @@
+@page "/teller/account-unlock-requests"
+@layout TellerLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject AuthService AuthService
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
+
+<!-- Page Header -->
+<div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+            <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                <circle cx="12" cy="16" r="1"></circle>
+            </svg>
+        </div>
+        <div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Account Unlock Requests</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Create and manage unlock requests for locked customer accounts</p>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border-radius: 12px; padding: 16px; border: 2px solid #fca5a5;">
+        <div style="font-size: 11px; font-weight: 600; color: #991b1b; margin-bottom: 4px; text-transform: uppercase;">TOTAL REQUESTS</div>
+        <div style="font-size: 24px; font-weight: 800; color: #dc2626;">@unlockRequests.Count</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #fefce8, #fef9c3); border-radius: 12px; padding: 16px; border: 2px solid #fde047;">
+        <div style="font-size: 11px; font-weight: 600; color: #a16207; margin-bottom: 4px; text-transform: uppercase;">PENDING</div>
+        <div style="font-size: 24px; font-weight: 800; color: #ca8a04;">@unlockRequests.Count(r => r.Status == "Pending")</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 16px; border: 2px solid #6ee7b7;">
+        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">APPROVED</div>
+        <div style="font-size: 24px; font-weight: 800; color: #059669;">@unlockRequests.Count(r => r.Status == "Approved")</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border-radius: 12px; padding: 16px; border: 2px solid #fca5a5;">
+        <div style="font-size: 11px; font-weight: 600; color: #991b1b; margin-bottom: 4px; text-transform: uppercase;">REJECTED</div>
+        <div style="font-size: 24px; font-weight: 800; color: #dc2626;">@unlockRequests.Count(r => r.Status == "Rejected")</div>
+    </div>
+</div>
+
+<!-- Create New Request Button -->
+<div style="margin-bottom: 24px;">
+    <button @onclick="OpenNewRequestModal" class="btn"
+        style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; border: none; cursor: pointer;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Create New Unlock Request
+    </button>
+</div>
+
+<!-- Filters -->
+<div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+    <div style="flex: 1 1 200px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Search</label>
+        <input type="text" @bind="searchQuery" @bind:event="oninput" placeholder="Search by customer name, account number..."
+            style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; width: 100%;" />
+    </div>
+    <div style="flex: 1 1 150px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Status</label>
+        <select @bind="selectedStatus"
+            style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; width: 100%;">
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+        </select>
+    </div>
+    <div style="flex: 0 0 auto; display:flex; gap:8px;">
+        <button class="btn"
+            style="background: linear-gradient(135deg, #059669, #047857); color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
+            @onclick="ApplyFilters">🔍 Filter</button>
+        <button class="btn"
+            style="background:#e5e7eb; color:#374151; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
+            @onclick="ResetFilters">↻ Reset</button>
+    </div>
+</div>
+
+<!-- Requests Table -->
+<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">
+            My Submitted Requests
+            <span style="font-size: 14px; font-weight: 400; color: #6b7280;">(@GetFilteredRequests().Count() records)</span>
+        </h2>
+        <button @onclick="LoadData" class="btn"
+            style="background: #f3f4f6; color: #374151; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: none; cursor: pointer;">
+            ↻ Refresh
+        </button>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Request ID</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Account</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Customer</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Lock Reason</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Priority</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Status</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Requested</th>
+                    <th style="padding: 12px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (GetFilteredRequests().Any())
+                {
+                    @foreach (var request in GetFilteredRequests())
+                    {
+                        <tr style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s;"
+                            onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
+                            <td style="padding: 16px;">
+                                <span style="font-weight: 600; color: #111827;">REQ-@request.RequestId.ToString("D5")</span>
+                            </td>
+                            <td style="padding: 16px;">
+                                <span style="font-weight: 600; color: #3b82f6; font-family: monospace;">@(request.CustomerUsername ?? "N/A")</span>
+                            </td>
+                            <td style="padding: 16px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px;">
+                                        @GetInitials(request.CustomerName)
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: #111827;">@request.CustomerName</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 16px;">
+                                <span style="font-size: 13px; color: #374151;">@TruncateText(request.LockReason, 30)</span>
+                            </td>
+                            <td style="padding: 16px;">
+                                <span style="background: @GetPriorityBackground(request.Priority); color: @GetPriorityColor(request.Priority); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                    @request.Priority
+                                </span>
+                            </td>
+                            <td style="padding: 16px;">
+                                <span style="background: @GetStatusBackground(request.Status); color: @GetStatusColor(request.Status); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                    @request.Status
+                                </span>
+                            </td>
+                            <td style="padding: 16px;">
+                                <div style="font-size: 13px; color: #374151;">@request.RequestedAt.ToString("MMM dd, yyyy")</div>
+                                <div style="font-size: 11px; color: #9ca3af;">@request.RequestedAt.ToString("hh:mm tt")</div>
+                            </td>
+                            <td style="padding: 16px; text-align: center;">
+                                <button @onclick="() => OpenViewModal(request)" class="btn"
+                                    style="background: #dbeafe; color: #1e40af; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; border: none; cursor: pointer;">
+                                    👁 View
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" style="padding: 48px; text-align: center; color: #6b7280;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">🔓</div>
+                            <div style="font-size: 16px; font-weight: 500; margin-bottom: 4px;">No unlock requests found</div>
+                            <div style="font-size: 14px;">Create a new request when a customer needs their account unlocked</div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Confirmation Popup Modal -->
+@if (showConfirmationPopup)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 2000; animation: fadeIn 0.2s ease-out;" @onclick="CloseConfirmationPopup">
+        <div style="background: white; border-radius: 20px; padding: 32px; max-width: 450px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.4); animation: slideUp 0.3s ease-out;" @onclick:stopPropagation="true">
+            <!-- Icon -->
+            <div style="text-align: center; margin-bottom: 20px;">
+                @if (confirmationSuccess)
+                {
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);">
+                        <span style="font-size: 40px; color: white;">✓</span>
+                    </div>
+                }
+                else
+                {
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);">
+                        <span style="font-size: 40px; color: white;">!</span>
+                    </div>
+                }
+            </div>
+
+            <!-- Title -->
+            <h2 style="font-size: 22px; font-weight: 700; color: @(confirmationSuccess ? "#065f46" : "#991b1b"); text-align: center; margin: 0 0 16px 0;">
+                @confirmationTitle
+            </h2>
+
+            <!-- Message -->
+            <div style="font-size: 14px; color: #4b5563; text-align: center; line-height: 1.6; margin-bottom: 24px; white-space: pre-line; background: @(confirmationSuccess ? "#f0fdf4" : "#fef2f2"); padding: 16px; border-radius: 12px;">
+                @confirmationMessage
+            </div>
+
+            <!-- Button -->
+            <div style="text-align: center;">
+                <button @onclick="CloseConfirmationPopup" 
+                    style="padding: 14px 48px; background: linear-gradient(135deg, @(confirmationSuccess ? "#10b981, #059669" : "#3b82f6, #2563eb")); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 16px @(confirmationSuccess ? "rgba(16, 185, 129, 0.4)" : "rgba(59, 130, 246, 0.4)"); transition: all 0.2s ease;">
+                    @(confirmationSuccess ? "Done" : "OK, Got It")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- New Request Modal -->
+@if (showNewRequestModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseNewRequestModal">
+        <div style="background: white; border-radius: 16px; padding: 28px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-size: 20px; font-weight: 700; color: #1f2937; margin: 0;">🔐 New Account Unlock Request</h2>
+                <button @onclick="CloseNewRequestModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(formMessage))
+            {
+                <div style="padding: 12px; margin-bottom: 16px; border-radius: 8px; background: @(formSuccess ? "#d1fae5" : "#fee2e2"); color: @(formSuccess ? "#065f46" : "#991b1b"); font-size: 14px;">
+                    @formMessage
+                </div>
+            }
+
+            <!-- Step 1: Search by Account Number -->
+            <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin: 0 0 12px 0;">Step 1: Find Customer Account</h3>
+                <p style="font-size: 13px; color: #6b7280; margin: 0 0 12px 0;">Enter the customer account number (e.g., ACC-20251213-3043) to check if the account is locked</p>
+                <div style="display: flex; gap: 12px;">
+                    <input type="text" @bind="accountNumberSearch" placeholder="Enter account number (ACC-XXXXXXXX-XXXX)..."
+                        style="flex: 1; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-family: monospace;" />
+                    <button @onclick="SearchByAccountNumber" class="btn" disabled="@isSearching"
+                        style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; opacity: @(isSearching ? "0.6" : "1");">
+                        @(isSearching ? "Searching..." : "🔍 Search")
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search Result / Account Status -->
+            @if (searchedAccount != null)
+            {
+                <div style="background: @(isAccountLocked ? "#fef2f2" : "#f0fdf4"); border: 2px solid @(isAccountLocked ? "#fca5a5" : "#86efac"); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                        <h3 style="font-size: 14px; font-weight: 600; color: @(isAccountLocked ? "#991b1b" : "#065f46"); margin: 0;">
+                            Account Found
+                        </h3>
+                        @if (isAccountLocked)
+                        {
+                            <span style="background: #dc2626; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;">
+                                🔒 LOCKED
+                            </span>
+                        }
+                        else
+                        {
+                            <span style="background: #059669; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;">
+                                ✓ ACTIVE
+                            </span>
+                        }
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Account Number</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #3b82f6; font-family: monospace;">@searchedAccount.AccountNumber</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Security Status</div>
+                            <div style="font-size: 14px; font-weight: 600; color: @(isAccountLocked ? "#dc2626" : "#059669");">@(isAccountLocked ? "LOCKED" : "ACTIVE")</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Customer Name</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #111827;">@(searchedAccount.Customer?.FullName ?? searchedAccount.Customer?.Username ?? "N/A")</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Account Type</div>
+                            <div style="font-size: 14px; color: #111827;">@(searchedAccount.AccountType ?? "Savings")</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Email</div>
+                            <div style="font-size: 14px; color: #111827;">@(searchedAccount.Customer?.Email ?? "Not provided")</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Phone</div>
+                            <div style="font-size: 14px; color: #111827;">@(searchedAccount.Customer?.PhoneNumber ?? "Not provided")</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Balance</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #111827;">₱@searchedAccount.Balance.ToString("N2")</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Created Date</div>
+                            <div style="font-size: 14px; color: #111827;">@searchedAccount.CreatedAt.ToString("MMM dd, yyyy")</div>
+                        </div>
+                    </div>
+
+                    @if (isAccountLocked)
+                    {
+                        <div style="margin-top: 16px; padding: 12px; background: #fee2e2; border-radius: 8px;">
+                            <div style="font-size: 11px; color: #991b1b; text-transform: uppercase; margin-bottom: 4px;">Lock Information</div>
+                            <div style="font-size: 14px; color: #dc2626; font-weight: 600;">
+                                @accountLockReason
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="margin-top: 16px; padding: 12px; background: #d1fae5; border-radius: 8px;">
+                            <div style="font-size: 14px; color: #065f46;">
+                                ✓ This account is <strong>NOT locked</strong>. No unlock request is needed.
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Show form only if account is locked -->
+                @if (isAccountLocked)
+                {
+                    <!-- Step 2: Verification & Notes -->
+                    <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin: 0 0 16px 0;">Step 2: Verify Customer Identity</h3>
+                        
+                        <div style="display: grid; gap: 16px;">
+                            <!-- ID Verification -->
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                <input type="checkbox" @bind="identificationVerified" id="idVerified"
+                                    style="width: 20px; height: 20px; accent-color: #059669;" />
+                                <label for="idVerified" style="font-size: 14px; color: #374151; cursor: pointer;">
+                                    <strong>I have verified the customer's identity</strong>
+                                    <div style="font-size: 12px; color: #6b7280;">Customer presented a valid government-issued ID</div>
+                                </label>
+                            </div>
+
+                            @if (identificationVerified)
+                            {
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    <div>
+                                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">ID Type</label>
+                                        <select @bind="identificationType"
+                                            style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                                            <option value="">Select ID Type</option>
+                                            <option value="Driver's License">Driver's License</option>
+                                            <option value="Passport">Passport</option>
+                                            <option value="National ID">National ID (PhilID)</option>
+                                            <option value="SSS ID">SSS ID</option>
+                                            <option value="PhilHealth ID">PhilHealth ID</option>
+                                            <option value="UMID">UMID</option>
+                                            <option value="Postal ID">Postal ID</option>
+                                            <option value="Voter's ID">Voter's ID</option>
+                                            <option value="PRC ID">PRC ID</option>
+                                            <option value="Other">Other Government ID</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">ID Number (Last 4 digits)</label>
+                                        <input type="text" @bind="identificationNumber" maxlength="4" placeholder="XXXX"
+                                            style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Priority -->
+                            <div>
+                                <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">Priority Level</label>
+                                <select @bind="requestPriority"
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                                    <option value="Low">Low - Can wait for normal processing</option>
+                                    <option value="Normal">Normal - Standard processing time</option>
+                                    <option value="High">High - Needs attention today</option>
+                                    <option value="Urgent">Urgent - Immediate attention required</option>
+                                </select>
+                            </div>
+
+                            <!-- Lock Reason -->
+                            <div>
+                                <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">Lock Reason</label>
+                                <input type="text" @bind="lockReason" placeholder="Enter the reason the account was locked..."
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                            </div>
+
+                            <!-- Customer Statement -->
+                            <div>
+                                <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">Customer's Statement (Optional)</label>
+                                <textarea @bind="customerStatement" rows="3" placeholder="What did the customer say about why they need their account unlocked?"
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+                            </div>
+
+                            <!-- Teller Notes -->
+                            <div>
+                                <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">Teller Notes</label>
+                                <textarea @bind="tellerNotes" rows="3" placeholder="Add any additional notes or observations..."
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button @onclick="CloseNewRequestModal" 
+                            style="padding: 12px 24px; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            Cancel
+                        </button>
+                        <button @onclick="SubmitUnlockRequest" disabled="@(isSubmitting || !identificationVerified)"
+                            style="padding: 12px 24px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; opacity: @(isSubmitting || !identificationVerified ? "0.6" : "1");">
+                            @(isSubmitting ? "Submitting..." : "🚀 Forward to Admin for Unlock")
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <!-- Close button for active accounts -->
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button @onclick="CloseNewRequestModal" 
+                            style="padding: 12px 24px; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            Close
+                        </button>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+}
+
+<!-- View Request Modal -->
+@if (showViewModal && viewRequest != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseViewModal">
+        <div style="background: white; border-radius: 16px; padding: 28px; max-width: 600px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-size: 20px; font-weight: 700; color: #1f2937; margin: 0;">
+                    Request Details - REQ-@viewRequest.RequestId.ToString("D5")
+                </h2>
+                <button @onclick="CloseViewModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+            </div>
+
+            <!-- Status Badge -->
+            <div style="text-align: center; margin-bottom: 24px;">
+                <span style="background: @GetStatusBackground(viewRequest.Status); color: @GetStatusColor(viewRequest.Status); padding: 8px 24px; border-radius: 20px; font-size: 16px; font-weight: 700;">
+                    @viewRequest.Status.ToUpper()
+                </span>
+            </div>
+
+            <!-- Account Information -->
+            <div style="background: #dbeafe; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                <h3 style="font-size: 14px; font-weight: 600; color: #1e40af; margin: 0 0 12px 0;">Account Information</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <div>
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Account Number</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #3b82f6; font-family: monospace;">@(viewRequest.CustomerUsername ?? "N/A")</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Customer Name</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #111827;">@viewRequest.CustomerName</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Email</div>
+                        <div style="font-size: 14px; color: #111827;">@(viewRequest.CustomerEmail ?? "Not provided")</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Phone</div>
+                        <div style="font-size: 14px; color: #111827;">@(viewRequest.CustomerPhone ?? "Not provided")</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Request Details -->
+            <div style="background: #fef2f2; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                <h3 style="font-size: 14px; font-weight: 600; color: #991b1b; margin: 0 0 12px 0;">Lock Information</h3>
+                <div style="margin-bottom: 12px;">
+                    <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Lock Reason</div>
+                    <div style="font-size: 14px; font-weight: 600; color: #dc2626;">@viewRequest.LockReason</div>
+                </div>
+                @if (!string.IsNullOrEmpty(viewRequest.CustomerStatement))
+                {
+                    <div style="margin-bottom: 12px;">
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Customer's Statement</div>
+                        <div style="font-size: 14px; color: #374151;">@viewRequest.CustomerStatement</div>
+                    </div>
+                }
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <div>
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">ID Verified</div>
+                        <div style="font-size: 14px; font-weight: 600; color: @(viewRequest.IdentificationVerified ? "#059669" : "#dc2626");">
+                            @(viewRequest.IdentificationVerified ? "✓ Yes" : "✗ No")
+                        </div>
+                    </div>
+                    @if (viewRequest.IdentificationVerified)
+                    {
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">ID Type</div>
+                            <div style="font-size: 14px; color: #111827;">@viewRequest.IdentificationType</div>
+                        </div>
+                    }
+                    <div>
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Priority</div>
+                        <span style="background: @GetPriorityBackground(viewRequest.Priority); color: @GetPriorityColor(viewRequest.Priority); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                            @viewRequest.Priority
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teller Information -->
+            <div style="background: #f3f4f6; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin: 0 0 12px 0;">Request Submitted By</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <div>
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Teller Name</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #111827;">@viewRequest.RequestedByTellerName</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Submitted At</div>
+                        <div style="font-size: 14px; color: #111827;">@viewRequest.RequestedAt.ToString("MMM dd, yyyy hh:mm tt")</div>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(viewRequest.TellerNotes))
+                {
+                    <div style="margin-top: 12px;">
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Teller Notes</div>
+                        <div style="font-size: 14px; color: #374151;">@viewRequest.TellerNotes</div>
+                    </div>
+                }
+            </div>
+
+            <!-- Admin Processing (if processed) -->
+            @if (viewRequest.ProcessedAt.HasValue)
+            {
+                <div style="background: @(viewRequest.Status == "Approved" ? "#d1fae5" : "#fee2e2"); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                    <h3 style="font-size: 14px; font-weight: 600; color: @(viewRequest.Status == "Approved" ? "#065f46" : "#991b1b"); margin: 0 0 12px 0;">
+                        Admin Decision
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Processed By</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #111827;">@viewRequest.ProcessedByAdminName</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Processed At</div>
+                            <div style="font-size: 14px; color: #111827;">@viewRequest.ProcessedAt.Value.ToString("MMM dd, yyyy hh:mm tt")</div>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(viewRequest.AdminNotes))
+                    {
+                        <div style="margin-top: 12px;">
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Admin Notes</div>
+                            <div style="font-size: 14px; color: #374151;">@viewRequest.AdminNotes</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(viewRequest.RejectionReason))
+                    {
+                        <div style="margin-top: 12px;">
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Rejection Reason</div>
+                            <div style="font-size: 14px; color: #dc2626; font-weight: 600;">@viewRequest.RejectionReason</div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <div style="display: flex; justify-content: flex-end;">
+                <button @onclick="CloseViewModal" 
+                    style="padding: 12px 24px; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<AccountUnlockRequest> unlockRequests = new();
+    private string searchQuery = "";
+    private string selectedStatus = "";
+
+    // New Request Modal
+    private bool showNewRequestModal = false;
+    private string accountNumberSearch = "";
+    private CustomerAccount? searchedAccount = null;
+    private bool isAccountLocked = false;  // Track lock status from AuditLogs
+    private string accountLockReason = "";  // Lock reason from AuditLogs
+    private bool isSearching = false;
+    private bool isSubmitting = false;
+    private string formMessage = "";
+    private bool formSuccess = false;
+
+    // Request form fields
+    private bool identificationVerified = false;
+    private string identificationType = "";
+    private string identificationNumber = "";
+    private string requestPriority = "Normal";
+    private string lockReason = "";
+    private string customerStatement = "";
+    private string tellerNotes = "";
+
+    // View Modal
+    private bool showViewModal = false;
+    private AccountUnlockRequest? viewRequest;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            var tellerId = AuthService.CurrentUserId;
+            
+            unlockRequests = await context.AccountUnlockRequests
+                .Where(r => r.RequestedByTellerId == tellerId)
+                .OrderByDescending(r => r.RequestedAt)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading unlock requests: {ex.Message}");
+            unlockRequests = new List<AccountUnlockRequest>();
+        }
+    }
+
+    private List<AccountUnlockRequest> GetFilteredRequests()
+    {
+        var filtered = unlockRequests.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            var search = searchQuery.ToLower();
+            filtered = filtered.Where(r =>
+                r.CustomerName.ToLower().Contains(search) ||
+                r.CustomerUsername.ToLower().Contains(search) ||
+                r.RequestId.ToString().Contains(search));
+        }
+
+        if (!string.IsNullOrEmpty(selectedStatus))
+        {
+            filtered = filtered.Where(r => r.Status == selectedStatus);
+        }
+
+        return filtered.ToList();
+    }
+
+    private async Task ApplyFilters()
+    {
+        await Task.CompletedTask;
+        StateHasChanged();
+    }
+
+    private async Task ResetFilters()
+    {
+        searchQuery = "";
+        selectedStatus = "";
+        await Task.CompletedTask;
+        StateHasChanged();
+    }
+
+    // New Request Modal Methods
+    private void OpenNewRequestModal()
+    {
+        showNewRequestModal = true;
+        accountNumberSearch = "";
+        searchedAccount = null;
+        formMessage = "";
+        formSuccess = false;
+        ResetFormFields();
+    }
+
+    private void CloseNewRequestModal()
+    {
+        showNewRequestModal = false;
+        searchedAccount = null;
+        accountNumberSearch = "";
+        ResetFormFields();
+    }
+
+    private void ResetFormFields()
+    {
+        identificationVerified = false;
+        identificationType = "";
+        identificationNumber = "";
+        requestPriority = "Normal";
+        lockReason = "";
+        customerStatement = "";
+        tellerNotes = "";
+        isAccountLocked = false;
+        accountLockReason = "";
+        formMessage = "";
+        formSuccess = false;
+    }
+
+    private async Task SearchByAccountNumber()
+    {
+        if (string.IsNullOrWhiteSpace(accountNumberSearch))
+        {
+            formMessage = "Please enter an account number to search.";
+            formSuccess = false;
+            return;
+        }
+
+        isSearching = true;
+        formMessage = "";
+        searchedAccount = null;
+        isAccountLocked = false;
+        accountLockReason = "";
+        StateHasChanged();
+
+        try
+        {
+            using var context = await DbContextFactory.CreateDbContextAsync();
+            var searchTerm = accountNumberSearch.Trim().ToUpper();
+            
+            // Search for the customer account by account number
+            searchedAccount = await context.CustomerAccounts
+                .Include(ca => ca.Customer)
+                .FirstOrDefaultAsync(ca => ca.AccountNumber.ToUpper() == searchTerm);
+
+            if (searchedAccount == null)
+            {
+                formMessage = $"No customer account found with number: {accountNumberSearch}. Please verify the account number (e.g., ACC-20251213-3043).";
+                formSuccess = false;
+            }
+            else
+            {
+                // Check if account is locked by looking at AuditLogs
+                // Check for fully locked (2 failed PIN attempts in 24 hours)
+                var isFullyLocked = await context.AuditLogs
+                    .Where(a => a.CustomerAccountId == searchedAccount.CustomerId &&
+                               a.Action == "PIN_VERIFICATION_FAILED" &&
+                               a.PinAttemptCount >= 2 &&
+                               a.CreatedAt >= DateTime.Now.AddHours(-24))
+                    .AnyAsync();
+
+                // Check if locked due to 5 failed password attempts
+                var isPasswordLocked = await context.AuditLogs
+                    .Where(a => a.CustomerAccountId == searchedAccount.CustomerId &&
+                               a.IsAccountLocked == true &&
+                               a.Action == "MALICIOUS_ATTEMPT" &&
+                               a.CreatedAt >= DateTime.Now.AddHours(-24))
+                    .AnyAsync();
+
+                // Check for admin unlock (which would clear the lock)
+                var adminUnlock = await context.AuditLogs
+                    .Where(a => a.CustomerAccountId == searchedAccount.CustomerId &&
+                               a.Action == "ADMIN_ACCOUNT_UNLOCK" &&
+                               a.CreatedAt >= DateTime.Now.AddHours(-24))
+                    .OrderByDescending(a => a.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                // Get latest lock event
+                var lastLockEvent = await context.AuditLogs
+                    .Where(a => a.CustomerAccountId == searchedAccount.CustomerId &&
+                               (a.Action == "PIN_VERIFICATION_FAILED" || a.Action == "MALICIOUS_ATTEMPT") &&
+                               a.IsAccountLocked == true &&
+                               a.CreatedAt >= DateTime.Now.AddHours(-24))
+                    .OrderByDescending(a => a.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                // Account is locked if there's a lock event and no subsequent admin unlock
+                if (lastLockEvent != null)
+                {
+                    if (adminUnlock == null || adminUnlock.CreatedAt < lastLockEvent.CreatedAt)
+                    {
+                        isAccountLocked = true;
+                        accountLockReason = lastLockEvent.LockReason ?? 
+                            (lastLockEvent.Action == "PIN_VERIFICATION_FAILED" 
+                                ? "Account locked due to 2 failed PIN attempts - requires Admin unlock"
+                                : "Account locked due to 5 failed password attempts - requires PIN or Admin unlock");
+                    }
+                }
+
+                // Also check for explicit lock status
+                if (!isAccountLocked && (isFullyLocked || isPasswordLocked))
+                {
+                    isAccountLocked = true;
+                    accountLockReason = isFullyLocked 
+                        ? "Account fully locked due to failed PIN attempts - requires Admin unlock"
+                        : "Account locked due to failed password attempts";
+                }
+
+                // Pre-fill lock reason
+                lockReason = accountLockReason.Length > 0 ? accountLockReason : "Account locked for security purposes";
+                formMessage = "";
+            }
+        }
+        catch (Exception ex)
+        {
+            formMessage = $"Error searching: {ex.Message}";
+            formSuccess = false;
+        }
+        finally
+        {
+            isSearching = false;
+            StateHasChanged();
+        }
+    }
+
+    // Confirmation popup state
+    private bool showConfirmationPopup = false;
+    private string confirmationTitle = "";
+    private string confirmationMessage = "";
+    private bool confirmationSuccess = false;
+
+    private async Task SubmitUnlockRequest()
+    {
+        try
+        {
+            // Validation with proper error messages
+            if (searchedAccount == null)
+            {
+                ShowConfirmation("❌ Validation Error", "Please search for an account first.", false);
+                return;
+            }
+
+            if (!isAccountLocked)
+            {
+                ShowConfirmation("⚠️ Account Not Locked", "This account is not locked. No unlock request is needed.", false);
+                return;
+            }
+
+            if (!identificationVerified)
+            {
+                ShowConfirmation("❌ Verification Required", "Please verify the customer's identity by checking the verification checkbox before submitting.", false);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(identificationType))
+            {
+                ShowConfirmation("❌ ID Type Required", "Please select the type of ID presented by the customer.", false);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(identificationNumber))
+            {
+                ShowConfirmation("❌ ID Number Required", "Please enter the last 4 digits of the customer's ID.", false);
+                return;
+            }
+
+            isSubmitting = true;
+            formMessage = "";
+            StateHasChanged();
+
+            using var context = await DbContextFactory.CreateDbContextAsync();
+
+            // Check if there's already a pending request for this account
+            var existingRequest = await context.AccountUnlockRequests
+                .AnyAsync(r => r.CustomerUsername == searchedAccount.AccountNumber && r.Status == "Pending");
+
+            if (existingRequest)
+            {
+                isSubmitting = false;
+                ShowConfirmation("⚠️ Duplicate Request", "There is already a pending unlock request for this account. Please wait for admin to process the existing request.", false);
+                return;
+            }
+
+            // Create the new request
+            var request = new AccountUnlockRequest
+            {
+                CustomerId = searchedAccount.CustomerId,
+                CustomerName = searchedAccount.Customer?.FullName ?? searchedAccount.Customer?.Username ?? "Unknown",
+                CustomerUsername = searchedAccount.AccountNumber, // Store account number here
+                CustomerEmail = searchedAccount.Customer?.Email,
+                CustomerPhone = searchedAccount.Customer?.PhoneNumber,
+                LockReason = !string.IsNullOrEmpty(accountLockReason) ? accountLockReason : "Account locked for security purposes",
+                CustomerStatement = customerStatement,
+                IdentificationVerified = identificationVerified,
+                IdentificationType = identificationType,
+                IdentificationNumber = identificationNumber,
+                Status = "Pending",
+                Priority = requestPriority,
+                RequestedByTellerId = AuthService.CurrentUserId ?? 0,
+                RequestedByTellerName = AuthService.FullName ?? AuthService.CurrentUser ?? "Teller",
+                RequestedAt = DateTime.Now,
+                TellerNotes = tellerNotes,
+                CreatedAt = DateTime.Now
+            };
+
+            context.AccountUnlockRequests.Add(request);
+            await context.SaveChangesAsync();
+
+            // Reload data first
+            await LoadData();
+
+            // Close the new request modal
+            showNewRequestModal = false;
+            
+            // Show success confirmation
+            ShowConfirmation("✅ Request Submitted Successfully!", 
+                $"Unlock request for account {searchedAccount.AccountNumber} has been forwarded to the Admin.\n\n" +
+                $"Request ID: REQ-{request.RequestId:D5}\n" +
+                $"Customer: {request.CustomerName}\n" +
+                $"Priority: {request.Priority}\n\n" +
+                "The admin will review and process this request. You can track the status in your request history.", 
+                true);
+
+            // Reset form fields for next use
+            ResetFormFields();
+            searchedAccount = null;
+            accountNumberSearch = "";
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error submitting unlock request: {ex}");
+            ShowConfirmation("❌ Submission Failed", 
+                $"Failed to submit unlock request. Please try again.\n\nError Details: {ex.Message}", 
+                false);
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ShowConfirmation(string title, string message, bool success)
+    {
+        confirmationTitle = title;
+        confirmationMessage = message;
+        confirmationSuccess = success;
+        showConfirmationPopup = true;
+        StateHasChanged();
+    }
+
+    private void CloseConfirmationPopup()
+    {
+        showConfirmationPopup = false;
+        confirmationTitle = "";
+        confirmationMessage = "";
+        StateHasChanged();
+    }
+
+    // View Modal Methods
+    private void OpenViewModal(AccountUnlockRequest request)
+    {
+        viewRequest = request;
+        showViewModal = true;
+    }
+
+    private void CloseViewModal()
+    {
+        showViewModal = false;
+        viewRequest = null;
+    }
+
+    // Helper Methods
+    private string GetInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "?";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1) return parts[0].Substring(0, 1).ToUpper();
+        return (parts[0].Substring(0, 1) + parts[^1].Substring(0, 1)).ToUpper();
+    }
+
+    private string TruncateText(string? text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+        return text.Length <= maxLength ? text : text.Substring(0, maxLength) + "...";
+    }
+
+    private string GetStatusBackground(string status) => status switch
+    {
+        "Pending" => "#fef3c7",
+        "Approved" => "#d1fae5",
+        "Rejected" => "#fee2e2",
+        _ => "#f3f4f6"
+    };
+
+    private string GetStatusColor(string status) => status switch
+    {
+        "Pending" => "#92400e",
+        "Approved" => "#065f46",
+        "Rejected" => "#991b1b",
+        _ => "#4b5563"
+    };
+
+    private string GetPriorityBackground(string priority) => priority switch
+    {
+        "Low" => "#e0e7ff",
+        "Normal" => "#dbeafe",
+        "High" => "#fef3c7",
+        "Urgent" => "#fee2e2",
+        _ => "#f3f4f6"
+    };
+
+    private string GetPriorityColor(string priority) => priority switch
+    {
+        "Low" => "#3730a3",
+        "Normal" => "#1e40af",
+        "High" => "#92400e",
+        "Urgent" => "#991b1b",
+        _ => "#4b5563"
+    };
+}

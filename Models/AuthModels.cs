@@ -312,5 +312,98 @@ namespace FinanceBank.Models
         [ForeignKey("UserId")]
         public virtual AuthUser? User { get; set; }
     }
+
+    // Account Unlock Request - For handling locked accounts
+    [Table("AccountUnlockRequests")]
+    public class AccountUnlockRequest
+    {
+        [Key]
+        public int RequestId { get; set; }
+
+        // Customer Information
+        [Required]
+        public int CustomerId { get; set; }
+
+        [Required]
+        [MaxLength(200)]
+        public string CustomerName { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(100)]
+        public string CustomerUsername { get; set; } = string.Empty;
+
+        [MaxLength(200)]
+        public string? CustomerEmail { get; set; }
+
+        [MaxLength(50)]
+        public string? CustomerPhone { get; set; }
+
+        // Request Details
+        [Required]
+        [MaxLength(500)]
+        public string LockReason { get; set; } = string.Empty;
+
+        [MaxLength(1000)]
+        public string? CustomerStatement { get; set; }
+
+        public bool IdentificationVerified { get; set; } = false;
+
+        [MaxLength(100)]
+        public string? IdentificationType { get; set; }
+
+        [MaxLength(100)]
+        public string? IdentificationNumber { get; set; }
+
+        // Status Tracking
+        [Required]
+        [MaxLength(50)]
+        public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected
+
+        [Required]
+        [MaxLength(20)]
+        public string Priority { get; set; } = "Normal"; // Low, Normal, High, Urgent
+
+        // Teller Information (who created the request)
+        [Required]
+        public int RequestedByTellerId { get; set; }
+
+        [Required]
+        [MaxLength(200)]
+        public string RequestedByTellerName { get; set; } = string.Empty;
+
+        public DateTime RequestedAt { get; set; } = DateTime.Now;
+
+        [MaxLength(1000)]
+        public string? TellerNotes { get; set; }
+
+        // Admin Processing
+        public int? ProcessedByAdminId { get; set; }
+
+        [MaxLength(200)]
+        public string? ProcessedByAdminName { get; set; }
+
+        public DateTime? ProcessedAt { get; set; }
+
+        [MaxLength(1000)]
+        public string? AdminNotes { get; set; }
+
+        [MaxLength(500)]
+        public string? RejectionReason { get; set; }
+
+        // Audit Fields
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public DateTime? UpdatedAt { get; set; }
+
+        // Navigation Properties
+        [ForeignKey("CustomerId")]
+        public virtual AuthUser? Customer { get; set; }
+
+        [ForeignKey("RequestedByTellerId")]
+        public virtual AuthUser? RequestedByTeller { get; set; }
+
+        [ForeignKey("ProcessedByAdminId")]
+        public virtual AuthUser? ProcessedByAdmin { get; set; }
+    }
 }
 

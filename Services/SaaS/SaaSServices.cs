@@ -795,25 +795,25 @@ namespace FinanceBank.Services.SaaS
             var invoice = await _context.Invoices
                 .Include(i => i.Client)
                 .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
-            
+
             if (invoice != null)
             {
                 invoice.AmountPaid += amount;
                 invoice.BalanceDue = invoice.TotalAmount - invoice.AmountPaid;
-                
+
                 if (invoice.BalanceDue <= 0)
                 {
                     invoice.Status = "Paid";
                     invoice.PaidAt = DateTime.Now;
                 }
-                
+
                 // Update client outstanding balance
                 if (invoice.Client != null)
                 {
                     invoice.Client.OutstandingBalance -= amount;
                     invoice.Client.TotalPaid += amount;
                 }
-                
+
                 await _context.SaveChangesAsync();
             }
         }

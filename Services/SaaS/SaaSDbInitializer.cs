@@ -16,10 +16,10 @@ namespace FinanceBank.Services.SaaS
             {
                 using var scope = serviceProvider.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<SaaSDbContext>();
-                
+
                 // Ensure database is created with all tables
                 await context.Database.EnsureCreatedAsync();
-                
+
                 System.Diagnostics.Debug.WriteLine("SaaS Database initialized successfully.");
             }
             catch (Exception ex)

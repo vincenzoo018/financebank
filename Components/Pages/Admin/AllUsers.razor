@@ -25,7 +25,7 @@
 </div>
 
 <!-- Summary Cards -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
     <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 16px; border: 2px solid #6ee7b7;">
         <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">TOTAL USERS</div>
         <div style="font-size: 24px; font-weight: 800; color: #059669;">@allUsers.Count</div>
@@ -33,6 +33,10 @@
     <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 16px; border: 2px solid #6ee7b7;">
         <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">ACTIVE</div>
         <div style="font-size: 24px; font-weight: 800; color: #059669;">@allUsers.Count(u => u.IsActive)</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 12px; padding: 16px; border: 2px solid #f87171; cursor: pointer;" @onclick='() => { selectedStatus = "Inactive"; ApplyFilters(); }'>
+        <div style="font-size: 11px; font-weight: 600; color: #b91c1c; margin-bottom: 4px; text-transform: uppercase;">INACTIVE</div>
+        <div style="font-size: 24px; font-weight: 800; color: #dc2626;">@allUsers.Count(u => !u.IsActive)</div>
     </div>
     <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 16px; border: 2px solid #86efac;">
         <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">EMPLOYEES</div>
@@ -71,6 +75,7 @@
             <option value="">All Status</option>
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
+            <option value="Locked">🔒 Locked</option>
         </select>
     </div>
     <div style="flex: 0 0 auto; display:flex; gap:8px;">
@@ -154,7 +159,7 @@
                             </td>
                             <td style="padding: 12px; font-size: 13px; color: #6b7280;">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
                             <td style="padding: 12px; text-align: center;">
-                                <div style="display: flex; gap: 6px; justify-content: center;">
+                                <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
                                     <button @onclick="() => OpenEditModal(user)" 
                                         style="padding: 6px 12px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                         ✏️ Edit

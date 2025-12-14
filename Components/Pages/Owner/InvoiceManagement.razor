@@ -53,7 +53,8 @@
         <div class="stat-card">
             <div class="stat-icon purple">₱</div>
             <div class="stat-info">
-                <span class="stat-value">₱@invoices.Where(i => i.Status == "Sent" || i.Status == "Overdue").Sum(i => i.AmountDue).ToString("N0")</span>
+                <span class="stat-value">₱@invoices.Where(i => i.Status == "Sent" || i.Status == "Overdue").Sum(i =>
+                                        i.AmountDue).ToString("N0")</span>
                 <span class="stat-label">Outstanding</span>
             </div>
         </div>
@@ -122,11 +123,13 @@
                             </div>
                             <div class="total-row">
                                 <span>Tax (@(newInvoice.TaxRate)%)</span>
-                                <span>₱@((invoiceItems.Sum(i => i.Quantity * i.UnitPrice) * (newInvoice.TaxRate / 100)).ToString("N2"))</span>
+                                <span>₱@((invoiceItems.Sum(i => i.Quantity * i.UnitPrice) * (newInvoice.TaxRate /
+                                                                    100)).ToString("N2"))</span>
                             </div>
                             <div class="total-row grand">
                                 <span>Total</span>
-                                <span>₱@((invoiceItems.Sum(i => i.Quantity * i.UnitPrice) * (1 + newInvoice.TaxRate / 100)).ToString("N2"))</span>
+                                <span>₱@((invoiceItems.Sum(i => i.Quantity * i.UnitPrice) * (1 + newInvoice.TaxRate /
+                                                                    100)).ToString("N2"))</span>
                             </div>
                         </div>
 
@@ -242,7 +245,8 @@
                     <div class="invoice-actions">
                         @if (viewInvoice.Status == "Draft")
                         {
-                            <button class="btn-primary" @onclick="() => SendInvoice(viewInvoice.InvoiceId)">Send Invoice</button>
+                            <button class="btn-primary" @onclick="() => SendInvoice(viewInvoice.InvoiceId)">Send
+                                Invoice</button>
                         }
                         @if (viewInvoice.Status == "Sent" || viewInvoice.Status == "Overdue")
                         {
@@ -250,7 +254,8 @@
                         }
                         @if (viewInvoice.Status != "Cancelled" && viewInvoice.Status != "Paid")
                         {
-                            <button class="btn-danger" @onclick="() => CancelInvoice(viewInvoice.InvoiceId)">Cancel Invoice</button>
+                            <button class="btn-danger" @onclick="() => CancelInvoice(viewInvoice.InvoiceId)">Cancel
+                                Invoice</button>
                         }
                     </div>
                 </div>
@@ -293,7 +298,8 @@
                             <button class="action-btn view" @onclick="() => ViewInvoice(invoice)" title="View">👁️</button>
                             @if (invoice.Status == "Draft")
                             {
-                                <button class="action-btn send" @onclick="() => SendInvoice(invoice.InvoiceId)" title="Send">📤</button>
+                                <button class="action-btn send" @onclick="() => SendInvoice(invoice.InvoiceId)"
+                                    title="Send">📤</button>
                             }
                         </td>
                     </tr>
@@ -423,7 +429,7 @@
         display: flex;
         align-items: center;
         gap: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .stat-icon {
@@ -436,10 +442,21 @@
         font-size: 24px;
     }
 
-    .stat-icon.blue { background: #dbeafe; }
-    .stat-icon.red { background: #fee2e2; }
-    .stat-icon.green { background: #dcfce7; }
-    .stat-icon.purple { background: #eef2ff; }
+    .stat-icon.blue {
+        background: #dbeafe;
+    }
+
+    .stat-icon.red {
+        background: #fee2e2;
+    }
+
+    .stat-icon.green {
+        background: #dcfce7;
+    }
+
+    .stat-icon.purple {
+        background: #eef2ff;
+    }
 
     .stat-info {
         display: flex;
@@ -461,7 +478,7 @@
     .invoices-table-container {
         background: white;
         border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         overflow: hidden;
     }
 
@@ -527,11 +544,30 @@
         text-transform: uppercase;
     }
 
-    .status-badge.Draft { background: #f3f4f6; color: #374151; }
-    .status-badge.Sent { background: #dbeafe; color: #1e40af; }
-    .status-badge.Paid { background: #dcfce7; color: #166534; }
-    .status-badge.Overdue { background: #fee2e2; color: #991b1b; }
-    .status-badge.Cancelled { background: #f3f4f6; color: #6b7280; }
+    .status-badge.Draft {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .status-badge.Sent {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-badge.Paid {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-badge.Overdue {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-badge.Cancelled {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
 
     .actions {
         display: flex;
@@ -550,14 +586,19 @@
         justify-content: center;
     }
 
-    .action-btn.view { background: #eef2ff; }
-    .action-btn.send { background: #dbeafe; }
+    .action-btn.view {
+        background: #eef2ff;
+    }
+
+    .action-btn.send {
+        background: #dbeafe;
+    }
 
     /* Modal */
     .modal-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0, 0, 0, 0.5);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -853,11 +894,11 @@
     private string statusFilter = "";
 
     private IEnumerable<SaaSInvoice> FilteredInvoices => invoices
-        .Where(i => string.IsNullOrEmpty(searchTerm) ||
-            i.InvoiceNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-            i.Client?.CompanyName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true)
-        .Where(i => string.IsNullOrEmpty(statusFilter) || i.Status == statusFilter)
-        .OrderByDescending(i => i.IssueDate);
+    .Where(i => string.IsNullOrEmpty(searchTerm) ||
+    i.InvoiceNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+    i.Client?.CompanyName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true)
+    .Where(i => string.IsNullOrEmpty(statusFilter) || i.Status == statusFilter)
+    .OrderByDescending(i => i.IssueDate);
 
     protected override async Task OnInitializedAsync()
     {
@@ -868,13 +909,13 @@
     {
         invoices = await InvoiceService.GetAllInvoicesAsync();
         clients = await ClientService.GetAllClientsAsync();
-        
+
         // Check for overdue invoices
         foreach (var invoice in invoices.Where(i => i.Status == "Sent" && i.DueDate < DateTime.Now))
         {
             await InvoiceService.MarkOverdueAsync(invoice.InvoiceId);
         }
-        
+
         invoices = await InvoiceService.GetAllInvoicesAsync();
     }
 
@@ -888,9 +929,9 @@
             TaxRate = 0
         };
         invoiceItems = new List<SaaSInvoiceItem>
-        {
-            new SaaSInvoiceItem { Description = "", Quantity = 1, UnitPrice = 0 }
-        };
+{
+new SaaSInvoiceItem { Description = "", Quantity = 1, UnitPrice = 0 }
+};
         showCreateForm = true;
     }
 
@@ -921,10 +962,10 @@
             newInvoice.Tax = subtotal * (newInvoice.TaxRate / 100);
             newInvoice.TotalAmount = subtotal + newInvoice.Tax;
             newInvoice.BalanceDue = newInvoice.TotalAmount;
-            
+
             // Create line items list
             var items = invoiceItems.Select(i => (i.Description, i.Quantity, i.UnitPrice)).ToList();
-            
+
             await InvoiceService.CreateInvoiceAsync(newInvoice, items);
             await LoadData();
             HideCreateForm();

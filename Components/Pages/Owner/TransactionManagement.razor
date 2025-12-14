@@ -139,7 +139,8 @@
 
                         <div class="form-group">
                             <label>Payment Proof (Optional)</label>
-                            <div class="upload-zone @(uploadedProofBase64 != null ? "has-file" : "")" @onclick="TriggerFileInput">
+                            <div class="upload-zone @(uploadedProofBase64 != null ? "has-file" : "")"
+                                @onclick="TriggerFileInput">
                                 @if (string.IsNullOrEmpty(uploadedProofBase64))
                                 {
                                     <span class="upload-icon">📎</span>
@@ -148,10 +149,12 @@
                                 else
                                 {
                                     <img src="@uploadedProofBase64" alt="Payment proof" class="proof-preview" />
-                                    <button type="button" class="remove-proof" @onclick="RemoveProof" @onclick:stopPropagation>✕ Remove</button>
+                                    <button type="button" class="remove-proof" @onclick="RemoveProof" @onclick:stopPropagation>✕
+                                        Remove</button>
                                 }
                             </div>
-                            <InputFile OnChange="HandleProofUpload" @ref="proofInputFile" style="display:none" accept="image/*" />
+                            <InputFile OnChange="HandleProofUpload" @ref="proofInputFile" style="display:none"
+                                accept="image/*" />
                         </div>
 
                         <div class="form-group">
@@ -188,7 +191,8 @@
 
                         <div class="detail-amount">
                             <span class="@(viewTransaction.TransactionType == "Refund" ? "refund" : "")">
-                                @(viewTransaction.TransactionType == "Refund" ? "-" : "")₱@viewTransaction.Amount.ToString("N2")
+                                @(viewTransaction.TransactionType == "Refund" ? "-" :
+                                                            "")₱@viewTransaction.Amount.ToString("N2")
                             </span>
                         </div>
 
@@ -233,7 +237,8 @@
                                 <span class="label">Payment Proof</span>
                                 <div class="proof-container">
                                     <img src="@viewTransaction.ProofImageBase64" alt="Payment Proof" class="proof-image" />
-                                    <a href="@viewTransaction.ProofImageBase64" download="payment_proof.png" class="download-proof">📥 Download</a>
+                                    <a href="@viewTransaction.ProofImageBase64" download="payment_proof.png"
+                                        class="download-proof">📥 Download</a>
                                 </div>
                             </div>
                         }
@@ -276,8 +281,10 @@
                             <span class="date">@txn.TransactionDate.ToString("MMM dd")</span>
                         </div>
                         <div class="pending-actions">
-                            <button class="approve-btn" @onclick="() => ApproveTransaction(txn.TransactionId)" title="Approve">✓</button>
-                            <button class="reject-btn" @onclick="() => RejectTransaction(txn.TransactionId)" title="Reject">✗</button>
+                            <button class="approve-btn" @onclick="() => ApproveTransaction(txn.TransactionId)"
+                                title="Approve">✓</button>
+                            <button class="reject-btn" @onclick="() => RejectTransaction(txn.TransactionId)"
+                                title="Reject">✗</button>
                         </div>
                     </div>
                 }
@@ -452,7 +459,7 @@
         display: flex;
         align-items: center;
         gap: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         position: relative;
     }
 
@@ -466,10 +473,21 @@
         font-size: 24px;
     }
 
-    .stat-icon.yellow { background: #fef3c7; }
-    .stat-icon.green { background: #dcfce7; }
-    .stat-icon.red { background: #fee2e2; }
-    .stat-icon.blue { background: #dbeafe; }
+    .stat-icon.yellow {
+        background: #fef3c7;
+    }
+
+    .stat-icon.green {
+        background: #dcfce7;
+    }
+
+    .stat-icon.red {
+        background: #fee2e2;
+    }
+
+    .stat-icon.blue {
+        background: #dbeafe;
+    }
 
     .stat-info {
         display: flex;
@@ -495,8 +513,13 @@
         color: #6b7280;
     }
 
-    .stat-amount.positive { color: #059669; }
-    .stat-amount.negative { color: #dc2626; }
+    .stat-amount.positive {
+        color: #059669;
+    }
+
+    .stat-amount.negative {
+        color: #dc2626;
+    }
 
     /* Pending Section */
     .pending-section {
@@ -504,7 +527,7 @@
         border-radius: 16px;
         padding: 24px;
         margin-bottom: 24px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
     .pending-section h3 {
@@ -584,7 +607,8 @@
         gap: 8px;
     }
 
-    .approve-btn, .reject-btn {
+    .approve-btn,
+    .reject-btn {
         width: 40px;
         height: 40px;
         border: none;
@@ -612,7 +636,7 @@
         background: white;
         border-radius: 16px;
         padding: 24px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
     .transactions-table-container h3 {
@@ -688,11 +712,30 @@
         font-weight: 500;
     }
 
-    .type-badge.Subscription { background: #dbeafe; color: #1e40af; }
-    .type-badge.One-Time { background: #dcfce7; color: #166534; }
-    .type-badge.Add-On { background: #eef2ff; color: #4f46e5; }
-    .type-badge.Refund { background: #fee2e2; color: #991b1b; }
-    .type-badge.Penalty { background: #fef3c7; color: #92400e; }
+    .type-badge.Subscription {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .type-badge.One-Time {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .type-badge.Add-On {
+        background: #eef2ff;
+        color: #4f46e5;
+    }
+
+    .type-badge.Refund {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .type-badge.Penalty {
+        background: #fef3c7;
+        color: #92400e;
+    }
 
     .amount {
         font-weight: 600;
@@ -710,9 +753,20 @@
         text-transform: uppercase;
     }
 
-    .status-badge.Pending { background: #fef3c7; color: #92400e; }
-    .status-badge.Approved { background: #dcfce7; color: #166534; }
-    .status-badge.Rejected { background: #fee2e2; color: #991b1b; }
+    .status-badge.Pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-badge.Approved {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-badge.Rejected {
+        background: #fee2e2;
+        color: #991b1b;
+    }
 
     .view-btn {
         width: 32px;
@@ -728,7 +782,7 @@
     .modal-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0, 0, 0, 0.5);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1059,18 +1113,22 @@
 
     private int pendingCount => transactions.Count(t => t.Status == "Pending");
     private decimal pendingAmount => transactions.Where(t => t.Status == "Pending").Sum(t => t.Amount);
-    private int approvedCount => transactions.Count(t => t.Status == "Approved" && t.TransactionDate.Month == DateTime.Now.Month);
-    private decimal approvedAmount => transactions.Where(t => t.Status == "Approved" && t.TransactionType != "Refund" && t.TransactionDate.Month == DateTime.Now.Month).Sum(t => t.Amount);
-    private int refundCount => transactions.Count(t => t.TransactionType == "Refund" && t.TransactionDate.Month == DateTime.Now.Month);
-    private decimal refundAmount => transactions.Where(t => t.TransactionType == "Refund" && t.TransactionDate.Month == DateTime.Now.Month).Sum(t => t.Amount);
+    private int approvedCount => transactions.Count(t => t.Status == "Approved" && t.TransactionDate.Month ==
+    DateTime.Now.Month);
+    private decimal approvedAmount => transactions.Where(t => t.Status == "Approved" && t.TransactionType != "Refund" &&
+    t.TransactionDate.Month == DateTime.Now.Month).Sum(t => t.Amount);
+    private int refundCount => transactions.Count(t => t.TransactionType == "Refund" && t.TransactionDate.Month ==
+    DateTime.Now.Month);
+    private decimal refundAmount => transactions.Where(t => t.TransactionType == "Refund" && t.TransactionDate.Month ==
+    DateTime.Now.Month).Sum(t => t.Amount);
 
     private IEnumerable<SaaSTransaction> FilteredTransactions => transactions
-        .Where(t => string.IsNullOrEmpty(searchTerm) ||
-            (t.TransactionRef?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (t.Client?.CompanyName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
-        .Where(t => string.IsNullOrEmpty(typeFilter) || t.TransactionType == typeFilter)
-        .Where(t => string.IsNullOrEmpty(statusFilter) || t.Status == statusFilter)
-        .OrderByDescending(t => t.TransactionDate);
+    .Where(t => string.IsNullOrEmpty(searchTerm) ||
+    (t.TransactionRef?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+    (t.Client?.CompanyName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
+    .Where(t => string.IsNullOrEmpty(typeFilter) || t.TransactionType == typeFilter)
+    .Where(t => string.IsNullOrEmpty(statusFilter) || t.Status == statusFilter)
+    .OrderByDescending(t => t.TransactionDate);
 
     protected override async Task OnInitializedAsync()
     {
@@ -1144,18 +1202,18 @@
         {
             newTransaction.TransactionDate = paymentDate;
             newTransaction.ProofImageBase64 = uploadedProofBase64;
-            
+
             await PaymentService.RecordPaymentAsync(
-                newTransaction.ClientId,
-                newTransaction.InvoiceId,
-                newTransaction.Amount,
-                newTransaction.PaymentMethodId ?? 0,
-                newTransaction.ReferenceNumber ?? "",
-                uploadedProofBase64,
-                newTransaction.Description,
-                newTransaction.Notes
+            newTransaction.ClientId,
+            newTransaction.InvoiceId,
+            newTransaction.Amount,
+            newTransaction.PaymentMethodId ?? 0,
+            newTransaction.ReferenceNumber ?? "",
+            uploadedProofBase64,
+            newTransaction.Description,
+            newTransaction.Notes
             );
-            
+
             if (autoApprove)
             {
                 var allTxns = await PaymentService.GetAllTransactionsAsync();
@@ -1165,7 +1223,7 @@
                     await PaymentService.ApprovePaymentAsync(latestTxn.TransactionId, 1);
                 }
             }
-            
+
             await LoadData();
             HideRecordPayment();
         }
