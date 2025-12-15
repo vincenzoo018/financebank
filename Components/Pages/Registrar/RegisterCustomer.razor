@@ -109,16 +109,55 @@
                                 style="color: #dc2626; font-size: 12px; display: block;">@phoneNumberError</span>
                         }
                     </div>
-                    <div>
-                        <label
-                            style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Address
-                            *</label>
-                        <input type="text" @bind="address" placeholder="Enter complete address" required
-                            style="width: 100%; padding: 12px 16px; border: 1px solid @(showError && string.IsNullOrEmpty(address) ? "#dc2626" : "#e5e7eb"); border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
-                        @if (showError && string.IsNullOrEmpty(address))
+                    <div style="grid-column: span 2;">
+                        <label style="display: block; font-size: 14px; font-weight: 700; color: #1f2937; margin-bottom: 12px;">Complete Address *</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="font-size: 12px; font-weight: 500; display: block; margin-bottom: 4px; color: #6b7280;">House/Unit No. *</label>
+                                <input type="text" @bind="houseUnitNumber" placeholder="e.g., 123 or Unit 5B"
+                                    style="width: 100%; padding: 10px 14px; border: 1px solid @(showError && string.IsNullOrEmpty(houseUnitNumber) ? "#dc2626" : "#e5e7eb"); border-radius: 8px; font-size: 14px; box-sizing: border-box;" />
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; font-weight: 500; display: block; margin-bottom: 4px; color: #6b7280;">Street Name *</label>
+                                <input type="text" @bind="streetName" placeholder="e.g., Rizal Street"
+                                    style="width: 100%; padding: 10px 14px; border: 1px solid @(showError && string.IsNullOrEmpty(streetName) ? "#dc2626" : "#e5e7eb"); border-radius: 8px; font-size: 14px; box-sizing: border-box;" />
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; font-weight: 500; display: block; margin-bottom: 4px; color: #6b7280;">Barangay *</label>
+                                <input type="text" @bind="barangay" placeholder="e.g., Brgy. San Antonio"
+                                    style="width: 100%; padding: 10px 14px; border: 1px solid @(showError && string.IsNullOrEmpty(barangay) ? "#dc2626" : "#e5e7eb"); border-radius: 8px; font-size: 14px; box-sizing: border-box;" />
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; font-weight: 500; display: block; margin-bottom: 4px; color: #6b7280;">City/Municipality *</label>
+                                <input type="text" @bind="cityMunicipality" placeholder="e.g., Makati City"
+                                    style="width: 100%; padding: 10px 14px; border: 1px solid @(showError && string.IsNullOrEmpty(cityMunicipality) ? "#dc2626" : "#e5e7eb"); border-radius: 8px; font-size: 14px; box-sizing: border-box;" />
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; font-weight: 500; display: block; margin-bottom: 4px; color: #6b7280;">Province *</label>
+                                <input type="text" @bind="province" placeholder="e.g., Metro Manila"
+                                    style="width: 100%; padding: 10px 14px; border: 1px solid @(showError && string.IsNullOrEmpty(province) ? "#dc2626" : "#e5e7eb"); border-radius: 8px; font-size: 14px; box-sizing: border-box;" />
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; font-weight: 500; display: block; margin-bottom: 4px; color: #6b7280;">Postal/ZIP Code *</label>
+                                <input type="text" @bind="postalCode" placeholder="e.g., 1200" maxlength="10"
+                                    style="width: 100%; padding: 10px 14px; border: 1px solid @(showError && string.IsNullOrEmpty(postalCode) ? "#dc2626" : "#e5e7eb"); border-radius: 8px; font-size: 14px; box-sizing: border-box;" />
+                            </div>
+                            <div style="grid-column: span 3;">
+                                <label style="font-size: 12px; font-weight: 500; display: block; margin-bottom: 4px; color: #6b7280;">Country</label>
+                                <input type="text" @bind="country" readonly
+                                    style="width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; box-sizing: border-box; background: #f9fafb;" />
+                            </div>
+                        </div>
+                        @if (showError && string.IsNullOrEmpty(fullAddress))
                         {
-                            <span
-                                style="color: #dc2626; font-size: 12px;">Required</span>
+                            <span style="color: #dc2626; font-size: 12px; display: block; margin-top: 8px;">Please fill in all address fields</span>
+                        }
+                        @if (!string.IsNullOrEmpty(fullAddress))
+                        {
+                            <div style="margin-top: 12px; padding: 12px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
+                                <label style="font-size: 11px; font-weight: 600; color: #059669; display: block; margin-bottom: 4px;">COMPLETE ADDRESS PREVIEW</label>
+                                <span style="font-size: 13px; color: #065f46;">@fullAddress</span>
+                            </div>
                         }
                     </div>
                     <div>
@@ -610,7 +649,33 @@
     private string email = "";
     private string phoneNumber = "";
     private string phoneNumberError = "";
-    private string address = "";
+    
+    // Detailed address fields
+    private string houseUnitNumber = "";
+    private string streetName = "";
+    private string barangay = "";
+    private string cityMunicipality = "";
+    private string province = "";
+    private string postalCode = "";
+    private string country = "Philippines";
+    
+    // Combined address computed property
+    private string fullAddress => BuildFullAddress();
+    private string address => fullAddress; // For backward compatibility
+    
+    private string BuildFullAddress()
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(houseUnitNumber)) parts.Add(houseUnitNumber);
+        if (!string.IsNullOrWhiteSpace(streetName)) parts.Add(streetName);
+        if (!string.IsNullOrWhiteSpace(barangay)) parts.Add(barangay);
+        if (!string.IsNullOrWhiteSpace(cityMunicipality)) parts.Add(cityMunicipality);
+        if (!string.IsNullOrWhiteSpace(province)) parts.Add(province);
+        if (!string.IsNullOrWhiteSpace(postalCode)) parts.Add(postalCode);
+        if (!string.IsNullOrWhiteSpace(country)) parts.Add(country);
+        return string.Join(", ", parts);
+    }
+    
     private string dateOfBirthString = "";
     private string birthDateError = "";
     private string gender = "";
@@ -993,7 +1058,14 @@
         email = "";
         phoneNumber = "";
         phoneNumberError = "";
-        address = "";
+        // Reset address fields
+        houseUnitNumber = "";
+        streetName = "";
+        barangay = "";
+        cityMunicipality = "";
+        province = "";
+        postalCode = "";
+        country = "Philippines";
         dateOfBirthString = "";
         birthDateError = "";
         gender = "";
