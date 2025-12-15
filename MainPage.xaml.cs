@@ -14,24 +14,32 @@ namespace FinanceBank
         {
             // Maximize window on load (windowed fullscreen with title bar)
 #if WINDOWS
-            var window = this.GetParentWindow();
-            if (window != null)
+            try
             {
-                var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
-                if (nativeWindow != null)
+                var window = this.GetParentWindow();
+                if (window != null)
                 {
-                    var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
-                    var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
-                    var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
-                    
-                    if (appWindow != null)
+                    var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
+                    if (nativeWindow != null)
                     {
-                        // Use Overlapped presenter (normal window with title bar) and maximize it
-                        var presenter = Microsoft.UI.Windowing.OverlappedPresenter.Create();
-                        presenter.Maximize();
-                        appWindow.SetPresenter(presenter);
+                        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
+                        var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+                        var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+                        
+                        if (appWindow != null)
+                        {
+                            // Use Overlapped presenter (normal window with title bar) and maximize it
+                            var presenter = Microsoft.UI.Windowing.OverlappedPresenter.Create();
+                            presenter.Maximize();
+                            appWindow.SetPresenter(presenter);
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Window maximize error: {ex.Message}");
+                // Continue without maximizing - not critical
             }
 #endif
         }

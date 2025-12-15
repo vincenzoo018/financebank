@@ -285,4 +285,34 @@ public class LoanContractData
     
     // Bank Info
     public string BankRepresentative { get; set; } = "";
+
+    // Asset Purchase Info (for asset marketplace loans)
+    public bool IsAssetPurchase { get; set; } = false;
+    public string? AssetType { get; set; } // Property, Vehicle, Other
+    public string? AssetName { get; set; }
+    public string? AssetDescription { get; set; }
+    public decimal AssetTotalPrice { get; set; }
+    public decimal DownPaymentAmount { get; set; }
+    
+    // Property-specific
+    public string? PropertyType { get; set; }
+    public string? PropertyLocation { get; set; }
+    public decimal? LandAreaSqm { get; set; }
+    public decimal? FloorAreaSqm { get; set; }
+    public int? Bedrooms { get; set; }
+    public int? Bathrooms { get; set; }
+    public string? TitleStatus { get; set; }
+    public string? DeedOfSaleNumber { get; set; }
+    
+    // Vehicle-specific
+    public string? VehicleBrand { get; set; }
+    public string? VehicleModel { get; set; }
+    public int? VehicleYear { get; set; }
+    public string? VehicleCondition { get; set; }
+    public string? ORNumber { get; set; } // Official Receipt
+    public string? CRNumber { get; set; } // Certificate of Registration
+    
+    // Other asset
+    public string? OtherAssetCategory { get; set; }
+    public string? SalesAgreementNumber { get; set; }
 }

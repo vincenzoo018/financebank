@@ -1418,4 +1418,251 @@ public class AutomaticGLPostingService
     }
 
     #endregion
+
+    #region Asset Sales Transactions
+
+    // Additional Account Codes for Asset Sales
+    public const string ACCOUNT_ASSET_INVENTORY = "1300";          // Asset inventory (for property, vehicles, etc.)
+    public const string ACCOUNT_ASSET_SALES_REVENUE = "4100";      // Revenue from asset sales
+    public const string ACCOUNT_ASSET_COST_OF_GOODS_SOLD = "5200"; // Cost of asset sold
+    public const string ACCOUNT_ASSET_LOANS_RECEIVABLE = "1120";   // Loans receivable - asset purchases
+
+    /// <summary>
+    /// Post GL entries for a cash asset sale
+    /// Debit: Cash on Hand (Asset increases)
+    /// Credit: Asset Sales Revenue (Revenue increases)
+    /// </summary>
+    public async Task PostAssetCashSaleAsync(
+        string applicationNumber,
+        decimal saleAmount,
+        string customerName,
+        string assetDescription,
+        DateTime transactionDate)
+    {
+        if (saleAmount <= 0) return;
+
+        using var context = await _contextFactory.CreateDbContextAsync();
+
+        var journalNumber = await GenerateJournalNumberAsync(context, "ACS");
+
+        // Create Journal Entry
+        var journal = new JournalEntry
+        {
+            JournalNumber = journalNumber,
+            TransactionDate = transactionDate,
+            Description = $"Asset cash sale - {assetDescription} to {customerName}",
+            Reference = applicationNumber,
+            TotalDebit = saleAmount,
+            TotalCredit = saleAmount,
+            Status = "Posted",
+            CreatedAt = DateTime.Now,
+            CreatedBy = "System",
+            PostedAt = DateTime.Now,
+            PostedBy = "System"
+        };
+
+        context.JournalEntries.Add(journal);
+        await context.SaveChangesAsync();
+
+        // Create Journal Entry Lines
+        var journalLines = new List<JournalEntryLine>
+        {
+            // Debit Cash on Hand
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_CASH_ON_HAND,
+                DebitAmount = saleAmount,
+                CreditAmount = 0,
+                Description = $"Cash received - {assetDescription} sale"
+            },
+            // Credit Asset Sales Revenue
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_ASSET_SALES_REVENUE,
+                DebitAmount = 0,
+                CreditAmount = saleAmount,
+                Description = $"Asset sale revenue - {assetDescription}"
+            }
+        };
+
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
+
+        // Post to General Ledger
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, transactionDate, applicationNumber);
+    }
+
+    /// <summary>
+    /// Post GL entries for an asset loan disbursement (financed sale)
+    /// Debit: Cash on Hand (for down payment)
+    /// Debit: Asset Loans Receivable (for loan amount)
+    /// Credit: Asset Sales Revenue (for total sale price)
+    /// </summary>
+    public async Task PostAssetLoanSaleAsync(
+        string applicationNumber,
+        decimal downPaymentAmount,
+        decimal loanAmount,
+        string customerName,
+        string assetDescription,
+        DateTime transactionDate)
+    {
+        var totalSaleAmount = downPaymentAmount + loanAmount;
+        if (totalSaleAmount <= 0) return;
+
+        using var context = await _contextFactory.CreateDbContextAsync();
+
+        var journalNumber = await GenerateJournalNumberAsync(context, "ALS");
+
+        // Create Journal Entry
+        var journal = new JournalEntry
+        {
+            JournalNumber = journalNumber,
+            TransactionDate = transactionDate,
+            Description = $"Asset loan sale - {assetDescription} to {customerName}",
+            Reference = applicationNumber,
+            TotalDebit = totalSaleAmount,
+            TotalCredit = totalSaleAmount,
+            Status = "Posted",
+            CreatedAt = DateTime.Now,
+            CreatedBy = "System",
+            PostedAt = DateTime.Now,
+            PostedBy = "System"
+        };
+
+        context.JournalEntries.Add(journal);
+        await context.SaveChangesAsync();
+
+        var journalLines = new List<JournalEntryLine>();
+
+        // Debit Cash on Hand (for down payment)
+        if (downPaymentAmount > 0)
+        {
+            journalLines.Add(new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_CASH_ON_HAND,
+                DebitAmount = downPaymentAmount,
+                CreditAmount = 0,
+                Description = $"Down payment received - {assetDescription}"
+            });
+        }
+
+        // Debit Asset Loans Receivable (for loan amount)
+        if (loanAmount > 0)
+        {
+            journalLines.Add(new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_ASSET_LOANS_RECEIVABLE,
+                DebitAmount = loanAmount,
+                CreditAmount = 0,
+                Description = $"Asset loan receivable - {customerName}"
+            });
+        }
+
+        // Credit Asset Sales Revenue (for total sale price)
+        journalLines.Add(new JournalEntryLine
+        {
+            JournalId = journal.JournalId,
+            AccountCode = ACCOUNT_ASSET_SALES_REVENUE,
+            DebitAmount = 0,
+            CreditAmount = totalSaleAmount,
+            Description = $"Asset sale revenue - {assetDescription}"
+        });
+
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
+
+        // Post to General Ledger
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, transactionDate, applicationNumber);
+    }
+
+    /// <summary>
+    /// Post GL entries for an asset loan payment received
+    /// Debit: Cash on Hand (Asset increases)
+    /// Credit: Asset Loans Receivable (Asset decreases - principal)
+    /// Credit: Interest Income (Revenue increases - interest portion)
+    /// </summary>
+    public async Task PostAssetLoanPaymentAsync(
+        string loanNumber,
+        decimal principalAmount,
+        decimal interestAmount,
+        string customerName,
+        DateTime transactionDate)
+    {
+        var totalPayment = principalAmount + interestAmount;
+        if (totalPayment <= 0) return;
+
+        using var context = await _contextFactory.CreateDbContextAsync();
+
+        var journalNumber = await GenerateJournalNumberAsync(context, "ALP");
+
+        // Create Journal Entry
+        var journal = new JournalEntry
+        {
+            JournalNumber = journalNumber,
+            TransactionDate = transactionDate,
+            Description = $"Asset loan payment - {customerName}",
+            Reference = loanNumber,
+            TotalDebit = totalPayment,
+            TotalCredit = totalPayment,
+            Status = "Posted",
+            CreatedAt = DateTime.Now,
+            CreatedBy = "System",
+            PostedAt = DateTime.Now,
+            PostedBy = "System"
+        };
+
+        context.JournalEntries.Add(journal);
+        await context.SaveChangesAsync();
+
+        var journalLines = new List<JournalEntryLine>
+        {
+            // Debit Cash on Hand
+            new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_CASH_ON_HAND,
+                DebitAmount = totalPayment,
+                CreditAmount = 0,
+                Description = $"Asset loan payment received - {customerName}"
+            }
+        };
+
+        // Credit Asset Loans Receivable (principal)
+        if (principalAmount > 0)
+        {
+            journalLines.Add(new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_ASSET_LOANS_RECEIVABLE,
+                DebitAmount = 0,
+                CreditAmount = principalAmount,
+                Description = $"Principal payment - {customerName}"
+            });
+        }
+
+        // Credit Interest Income (interest)
+        if (interestAmount > 0)
+        {
+            journalLines.Add(new JournalEntryLine
+            {
+                JournalId = journal.JournalId,
+                AccountCode = ACCOUNT_INTEREST_INCOME,
+                DebitAmount = 0,
+                CreditAmount = interestAmount,
+                Description = $"Interest income - asset loan - {customerName}"
+            });
+        }
+
+        context.JournalEntryLines.AddRange(journalLines);
+        await context.SaveChangesAsync();
+
+        // Post to General Ledger
+        await CreateGLTransactionsFromJournalLinesAsync(context, journalLines, transactionDate, loanNumber);
+    }
+
+    #endregion
 }

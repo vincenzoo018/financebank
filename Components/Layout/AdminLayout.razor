@@ -525,6 +525,57 @@
                 </div>
             }
 
+            @* Asset Marketplace - SuperAdmin Only *@
+            @if (AuthService.HasRole(AuthService.Roles.SuperAdmin))
+            {
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">ASSET MARKETPLACE</div>
+
+                    <!-- Asset Marketplace Dropdown -->
+                    <div class="sidebar-dropdown @(assetMarketplaceOpen ? "open" : "")">
+                        <button class="sidebar-dropdown-toggle" @onclick="() => assetMarketplaceOpen = !assetMarketplaceOpen">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                                    <path d="M16 3h-8v4h8V3z"></path>
+                                </svg>
+                                <span>Asset Management</span>
+                            </div>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="sidebar-dropdown-menu">
+                            <a href="/admin/asset-management"
+                                class="sidebar-dropdown-item @(IsActive("/admin/asset-management"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                                    <path d="M16 3h-8v4h8V3z"></path>
+                                </svg>
+                                <span>Manage Assets</span>
+                            </a>
+                            <a href="/admin/asset-applications"
+                                class="sidebar-dropdown-item @(IsActive("/admin/asset-applications"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <span>Asset Applications</span>
+                            </a>
+                            <a href="/admin/asset-history"
+                                class="sidebar-dropdown-item @(IsActive("/admin/asset-history"))">
+                                <svg class="sidebar-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <span>Asset History</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
             @* System - All Roles *@
             <div class="sidebar-section">
                 <div class="sidebar-section-title">SYSTEM</div>
@@ -626,6 +677,9 @@
     private bool fmFinancialOpen = false;
     private bool fmRiskOpen = false;
 
+    // Asset Marketplace dropdown
+    private bool assetMarketplaceOpen = false;
+
     private string currentRole = "";
     private string displayName = "";
     private string roleDisplay = "";
@@ -691,6 +745,8 @@
         if (path.Contains("/teller")) return "Teller Operations";
         if (path.Contains("/accountant")) return "Accountant Operations";
         if (path.Contains("/finance-mgr")) return "Finance Manager Operations";
+        if (path.Contains("/asset-management")) return "Asset Management";
+        if (path.Contains("/asset-applications")) return "Asset Applications";
         if (path.Contains("/analytics")) return "Reports & Analytics";
         if (path.Contains("/settings")) return "Settings";
         return "Admin Panel";

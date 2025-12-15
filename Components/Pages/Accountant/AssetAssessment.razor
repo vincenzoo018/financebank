@@ -1,0 +1,485 @@
+@page "/accountant/asset-assessment"
+@layout AccountantLayout
+@using FinanceBank.Models
+@using FinanceBank.Services
+@using FinanceBank.Data
+@using Microsoft.EntityFrameworkCore
+@inject AuthService AuthService
+@inject IDbContextFactory<BFASDbContext> DbContextFactory
+
+<div class="sidebar-content">
+    <div class="card">
+        <div class="card-header" style="background: linear-gradient(135deg, #7c3aed, #a78bfa); color: white; padding: 20px;">
+            <h4 style="margin: 0; font-weight: 600;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px; vertical-align: middle;">
+                    <path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+                Asset Financial Assessment
+            </h4>
+            <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Review financials and forward to Finance Manager</p>
+        </div>
+
+        <div class="card-body" style="padding: 24px;">
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    ✅ @successMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    ❌ @errorMessage
+                </div>
+            }
+
+            @if (isLoading)
+            {
+                <div style="text-align: center; padding: 40px;">
+                    <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                    <p style="margin-top: 16px; color: #6b7280;">Loading applications...</p>
+                </div>
+            }
+            else if (pendingApplications == null || pendingApplications.Count == 0)
+            {
+                <div style="text-align: center; padding: 60px 20px; background: #f9fafb; border-radius: 12px;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin: 0 auto;">
+                        <path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                    <h5 style="color: #6b7280; margin-top: 16px;">No Pending Assessments</h5>
+                    <p style="color: #9ca3af; font-size: 14px;">All asset applications have been assessed.</p>
+                </div>
+            }
+            else
+            {
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Application #</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Customer</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Asset</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Loan Amount</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Monthly Income</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151;">Verified By</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var app in pendingApplications)
+                            {
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 16px 12px;">
+                                        <span style="background: #ede9fe; color: #6d28d9; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 13px;">
+                                            @app.ApplicationNumber
+                                        </span>
+                                    </td>
+                                    <td style="padding: 16px 12px;">
+                                        <div style="font-weight: 500; color: #1f2937;">@app.CustomerName</div>
+                                        <div style="font-size: 12px; color: #6b7280;">@app.EmploymentStatus</div>
+                                    </td>
+                                    <td style="padding: 16px 12px;">
+                                        <div style="font-weight: 500; color: #374151;">@(app.Asset?.AssetName ?? "N/A")</div>
+                                        <div style="font-size: 12px; color: #6b7280;">@(app.Asset?.AssetType ?? "")</div>
+                                    </td>
+                                    <td style="padding: 16px 12px; text-align: right; font-weight: 600; color: #059669;">
+                                        ₱@app.LoanAmount.ToString("N2")
+                                    </td>
+                                    <td style="padding: 16px 12px; text-align: right; color: #374151;">
+                                        ₱@(app.MonthlyIncome?.ToString("N2") ?? "N/A")
+                                    </td>
+                                    <td style="padding: 16px 12px; text-align: center; font-size: 13px; color: #6b7280;">
+                                        @app.TellerReviewedBy
+                                    </td>
+                                    <td style="padding: 16px 12px; text-align: center;">
+                                        <button style="background: #7c3aed; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;"
+                                                @onclick="() => OpenAssessmentModal(app)">
+                                            Assess
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Assessment Modal -->
+@if (showModal && selectedApplication != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;">
+        <div style="background: white; border-radius: 16px; width: 100%; max-width: 1000px; max-height: 90vh; overflow-y: auto;">
+            <div style="background: linear-gradient(135deg, #7c3aed, #a78bfa); color: white; padding: 20px; border-radius: 16px 16px 0 0;">
+                <h4 style="margin: 0;">📊 Financial Assessment</h4>
+                <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Application #: @selectedApplication.ApplicationNumber</p>
+            </div>
+
+            <div style="padding: 24px;">
+                <!-- Info Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                    <!-- Customer Financial Profile -->
+                    <div style="background: #f9fafb; border-radius: 12px; padding: 16px;">
+                        <h5 style="margin: 0 0 12px 0; color: #374151; font-weight: 700;">👤 Customer Profile</h5>
+                        <div style="font-size: 14px;">
+                            <p><strong>Name:</strong> @selectedApplication.CustomerName</p>
+                            <p><strong>Employment:</strong> @selectedApplication.EmploymentStatus</p>
+                            <p><strong>Monthly Income:</strong> <span style="color: #059669; font-weight: 700;">₱@(selectedApplication.MonthlyIncome?.ToString("N2") ?? "N/A")</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Asset Details -->
+                    <div style="background: #eff6ff; border-radius: 12px; padding: 16px;">
+                        <h5 style="margin: 0 0 12px 0; color: #3b82f6; font-weight: 700;">🏠 Asset Details</h5>
+                        <div style="font-size: 14px;">
+                            <p><strong>Asset:</strong> @(selectedApplication.Asset?.AssetName ?? "N/A")</p>
+                            <p><strong>Type:</strong> @(selectedApplication.Asset?.AssetType ?? "N/A")</p>
+                            <p><strong>Price:</strong> <span style="color: #059669; font-weight: 700;">₱@selectedApplication.AssetPrice.ToString("N2")</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Loan Terms -->
+                    <div style="background: #f0fdf4; border-radius: 12px; padding: 16px; border: 1px solid #bbf7d0;">
+                        <h5 style="margin: 0 0 12px 0; color: #059669; font-weight: 700;">💰 Loan Terms</h5>
+                        <div style="font-size: 14px;">
+                            <p><strong>Down Payment:</strong> ₱@selectedApplication.DownPaymentAmount.ToString("N2")</p>
+                            <p><strong>Loan Amount:</strong> ₱@selectedApplication.LoanAmount.ToString("N2")</p>
+                            <p><strong>Term:</strong> @selectedApplication.TermMonths months</p>
+                            <p><strong>Interest Rate:</strong> @selectedApplication.InterestRate%</p>
+                            <p><strong>Monthly Payment:</strong> <span style="font-weight: 700;">₱@selectedApplication.MonthlyPayment.ToString("N2")</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Verification Status -->
+                <div style="background: #fefce8; border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid #fde047;">
+                    <h5 style="margin: 0 0 12px 0; color: #ca8a04; font-weight: 700;">📄 Document Verification Status (from Teller)</h5>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; font-size: 13px;">
+                        <div style="padding: 8px; background: white; border-radius: 6px;">
+                            @(selectedApplication.ValidIdSubmitted ? "✅" : "❌") Valid ID
+                        </div>
+                        <div style="padding: 8px; background: white; border-radius: 6px;">
+                            @(selectedApplication.ProofOfIncomeSubmitted ? "✅" : "❌") Proof of Income
+                        </div>
+                        <div style="padding: 8px; background: white; border-radius: 6px;">
+                            @(selectedApplication.BankStatementSubmitted ? "✅" : "❌") Bank Statement
+                        </div>
+                        <div style="padding: 8px; background: white; border-radius: 6px;">
+                            @(selectedApplication.TellerVerifiedEmployment ? "✅" : "❌") Employment Verified
+                        </div>
+                        <div style="padding: 8px; background: white; border-radius: 6px;">
+                            @(selectedApplication.COESubmitted ? "✅" : "❌") COE
+                        </div>
+                        <div style="padding: 8px; background: white; border-radius: 6px;">
+                            @(selectedApplication.ProofOfBillingSubmitted ? "✅" : "❌") Proof of Billing
+                        </div>
+                        <div style="padding: 8px; background: white; border-radius: 6px;">
+                            @(selectedApplication.TitleDeedSubmitted ? "✅" : "❌") Title Deed
+                        </div>
+                        <div style="padding: 8px; background: white; border-radius: 6px;">
+                            @(selectedApplication.ORCRSubmitted ? "✅" : "❌") OR/CR
+                        </div>
+                    </div>
+                    
+                    <!-- Uploaded Documents Info -->
+                    @if (!string.IsNullOrEmpty(selectedApplication.UploadedDocuments))
+                    {
+                        <div style="margin-top: 12px; padding: 12px; background: #d1fae5; border-radius: 8px;">
+                            <strong style="color: #059669;">📁 Documents Uploaded by Teller:</strong>
+                            <span style="color: #065f46;"> Documents have been scanned and uploaded</span>
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(selectedApplication.TellerRemarks))
+                    {
+                        <div style="margin-top: 12px; padding: 12px; background: white; border-radius: 8px;">
+                            <strong>Teller Remarks:</strong> @selectedApplication.TellerRemarks
+                        </div>
+                    }
+                </div>
+
+                <!-- Asset Images Slideshow -->
+                @if (selectedApplication.Asset?.Images != null && selectedApplication.Asset.Images.Any())
+                {
+                    <div style="background: #f3f4f6; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                        <h5 style="margin: 0 0 12px 0; color: #374151; font-weight: 700;">🖼️ Asset Images</h5>
+                        <div style="position: relative;">
+                            <div style="display: flex; align-items: center; justify-content: center; min-height: 200px;">
+                                @{
+                                    var images = selectedApplication.Asset.Images.OrderBy(i => i.DisplayOrder).ToList();
+                                    var currentImage = images.ElementAtOrDefault(currentImageIndex);
+                                }
+                                @if (currentImage != null && currentImage.ImageData != null)
+                                {
+                                    <img src="data:@currentImage.ContentType;base64,@Convert.ToBase64String(currentImage.ImageData)" 
+                                         style="max-width: 100%; max-height: 200px; border-radius: 8px; object-fit: contain;" />
+                                }
+                            </div>
+                            @if (images.Count > 1)
+                            {
+                                <button @onclick="PrevImage" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer;">
+                                    ◀
+                                </button>
+                                <button @onclick="NextImage" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer;">
+                                    ▶
+                                </button>
+                                <div style="text-align: center; margin-top: 8px;">
+                                    <span style="font-size: 12px; color: #6b7280;">Image @(currentImageIndex + 1) of @images.Count</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Financial Assessment -->
+                <div style="background: #ede9fe; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #c4b5fd;">
+                    <h5 style="margin: 0 0 16px 0; color: #6d28d9; font-weight: 700;">📊 Financial Assessment</h5>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                        <!-- DTI Ratio -->
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Debt-to-Income Ratio (%)</label>
+                            <input @bind="assessedDTI" type="number" step="0.01" placeholder="Calculate DTI"
+                                style="width: 100%; padding: 12px; border: 2px solid #c4b5fd; border-radius: 8px;" />
+                            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+                                Calculated: @CalculatedDTI.ToString("N2")% (Monthly Payment / Income)
+                            </div>
+                        </div>
+
+                        <!-- Assessed Interest Rate -->
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Assessed Interest Rate (%)</label>
+                            <input @bind="assessedInterestRate" type="number" step="0.01" placeholder="Adjust if needed"
+                                style="width: 100%; padding: 12px; border: 2px solid #c4b5fd; border-radius: 8px;" />
+                        </div>
+
+                        <!-- Credit Risk Level -->
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Credit Risk Level</label>
+                            <select @bind="creditRiskLevel" style="width: 100%; padding: 12px; border: 2px solid #c4b5fd; border-radius: 8px;">
+                                <option value="">Select Risk Level</option>
+                                <option value="Low">🟢 Low Risk</option>
+                                <option value="Medium">🟡 Medium Risk</option>
+                                <option value="High">🔴 High Risk</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Recommendation -->
+                    <div style="margin-top: 16px;">
+                        <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Recommendation</label>
+                        <div style="display: flex; gap: 12px;">
+                            <button type="button" @onclick='() => recommendation = "APPROVE"'
+                                style="flex: 1; padding: 14px; border-radius: 8px; border: 2px solid @(recommendation == "APPROVE" ? "#059669" : "#e5e7eb"); background: @(recommendation == "APPROVE" ? "#f0fdf4" : "white"); cursor: pointer; font-weight: 600; color: @(recommendation == "APPROVE" ? "#059669" : "#6b7280");">
+                                ✅ Recommend Approve
+                            </button>
+                            <button type="button" @onclick='() => recommendation = "DECLINE"'
+                                style="flex: 1; padding: 14px; border-radius: 8px; border: 2px solid @(recommendation == "DECLINE" ? "#dc2626" : "#e5e7eb"); background: @(recommendation == "DECLINE" ? "#fee2e2" : "white"); cursor: pointer; font-weight: 600; color: @(recommendation == "DECLINE" ? "#dc2626" : "#6b7280");">
+                                ❌ Recommend Decline
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accountant Remarks -->
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 700;">📝 Assessment Remarks</label>
+                    <textarea @bind="accountantRemarks" rows="3" placeholder="Enter your assessment notes and findings..."
+                        style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;"></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button @onclick="CloseModal" style="background: white; border: 2px solid #e5e7eb; color: #374151; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        Cancel
+                    </button>
+                    <button @onclick="RejectApplication" style="background: #dc2626; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        ❌ Reject Application
+                    </button>
+                    <button @onclick="AssessAndForward" disabled="@(!CanSubmit || isProcessing)"
+                        style="background: @(CanSubmit ? "linear-gradient(135deg, #7c3aed, #a78bfa)" : "#9ca3af"); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: @(CanSubmit ? "pointer" : "not-allowed"); font-weight: 600;">
+                        @(isProcessing ? "Processing..." : "✅ Assess & Forward to Finance Manager")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    private List<AssetApplication>? pendingApplications;
+    private AssetApplication? selectedApplication;
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private bool showModal = false;
+    private string successMessage = "";
+    private string errorMessage = "";
+
+    // Image slideshow
+    private int currentImageIndex = 0;
+
+    // Assessment fields
+    private decimal assessedDTI = 0;
+    private decimal assessedInterestRate = 0;
+    private string creditRiskLevel = "";
+    private string recommendation = "";
+    private string accountantRemarks = "";
+
+    private decimal CalculatedDTI => selectedApplication?.MonthlyIncome > 0 
+        ? (selectedApplication.MonthlyPayment / selectedApplication.MonthlyIncome.Value) * 100 
+        : 0;
+
+    private bool CanSubmit => !string.IsNullOrEmpty(creditRiskLevel) && !string.IsNullOrEmpty(recommendation);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadApplications();
+    }
+
+    private async Task LoadApplications()
+    {
+        isLoading = true;
+        try
+        {
+            using var db = await DbContextFactory.CreateDbContextAsync();
+            pendingApplications = await db.AssetApplications
+                .Include(a => a.Asset)
+                    .ThenInclude(asset => asset!.Images)
+                .Where(a => a.Status == "VERIFIED")
+                .OrderByDescending(a => a.TellerReviewedAt)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading applications: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void OpenAssessmentModal(AssetApplication app)
+    {
+        selectedApplication = app;
+        // Pre-populate fields
+        assessedDTI = CalculatedDTI;
+        assessedInterestRate = app.InterestRate;
+        creditRiskLevel = "";
+        recommendation = "";
+        accountantRemarks = "";
+        currentImageIndex = 0;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        selectedApplication = null;
+    }
+
+    private async Task AssessAndForward()
+    {
+        if (selectedApplication == null || !CanSubmit) return;
+
+        isProcessing = true;
+        errorMessage = "";
+        try
+        {
+            using var db = await DbContextFactory.CreateDbContextAsync();
+            var app = await db.AssetApplications.FindAsync(selectedApplication.ApplicationId);
+            if (app == null) throw new Exception("Application not found");
+
+            var currentUser = AuthService.CurrentUser;
+            app.Status = "ASSESSED";
+            app.AccountantAssessedBy = currentUser ?? "Accountant";
+            app.AccountantAssessedAt = DateTime.Now;
+            app.AccountantRemarks = accountantRemarks;
+            app.DebtToIncomeRatio = assessedDTI;
+            app.AssessedInterestRate = assessedInterestRate;
+            app.CreditRiskLevel = creditRiskLevel;
+            app.AccountantRecommendation = recommendation;
+
+            await db.SaveChangesAsync();
+
+            successMessage = $"Application {app.ApplicationNumber} assessed and forwarded to Finance Manager!";
+            CloseModal();
+            await LoadApplications();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task RejectApplication()
+    {
+        if (selectedApplication == null) return;
+
+        isProcessing = true;
+        try
+        {
+            using var db = await DbContextFactory.CreateDbContextAsync();
+            var app = await db.AssetApplications.FindAsync(selectedApplication.ApplicationId);
+            if (app == null) throw new Exception("Application not found");
+
+            var currentUser = AuthService.CurrentUser;
+            app.Status = "REJECTED";
+            app.AccountantAssessedBy = currentUser ?? "Accountant";
+            app.AccountantAssessedAt = DateTime.Now;
+            app.AccountantRemarks = string.IsNullOrEmpty(accountantRemarks) ? "Rejected during financial assessment" : accountantRemarks;
+            app.AccountantRecommendation = "DECLINE";
+
+            await db.SaveChangesAsync();
+
+            successMessage = $"Application {app.ApplicationNumber} has been rejected.";
+            CloseModal();
+            await LoadApplications();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    // Image navigation methods
+    private void PrevImage()
+    {
+        if (selectedApplication?.Asset?.Images != null)
+        {
+            var imageCount = selectedApplication.Asset.Images.Count;
+            currentImageIndex = (currentImageIndex - 1 + imageCount) % imageCount;
+        }
+    }
+
+    private void NextImage()
+    {
+        if (selectedApplication?.Asset?.Images != null)
+        {
+            var imageCount = selectedApplication.Asset.Images.Count;
+            currentImageIndex = (currentImageIndex + 1) % imageCount;
+        }
+    }
+
+    private void SetImageIndex(int index)
+    {
+        currentImageIndex = index;
+    }
+}

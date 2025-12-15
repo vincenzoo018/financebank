@@ -1,0 +1,333 @@
+@page "/admin/asset-details/{AssetId:int}"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using FinanceBank.Data
+@using Microsoft.EntityFrameworkCore
+@inject AssetMarketplaceService AssetService
+@inject AuthService AuthService
+@inject IDbContextFactory<BFASDbContext> DbFactory
+@inject NavigationManager Navigation
+
+<div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
+    <!-- Back Button -->
+    <button @onclick="GoBack" style="background: white; border: 2px solid #e5e7eb; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Back to Asset Management
+    </button>
+
+    @if (isLoading)
+    {
+        <div style="text-align: center; padding: 80px;">
+            <div style="display: inline-block; width: 60px; height: 60px; border: 6px solid #f3f4f6; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <p style="margin-top: 20px; color: #6b7280;">Loading asset details...</p>
+        </div>
+    }
+    else if (asset == null)
+    {
+        <div style="background: white; border-radius: 16px; padding: 60px; text-align: center;">
+            <h3 style="color: #dc2626;">Asset not found</h3>
+            <button @onclick="GoBack" style="margin-top: 20px; background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                Back to Asset Management
+            </button>
+        </div>
+    }
+    else
+    {
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <!-- Left Column - Images -->
+            <div>
+                <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    @if (asset.Images != null && asset.Images.Any())
+                    {
+                        var images = asset.Images.OrderBy(i => i.DisplayOrder).ToList();
+                        var currentImage = images.ElementAtOrDefault(currentImageIndex);
+                        <div style="height: 400px; background: #f9fafb; position: relative;">
+                            @if (currentImage != null && currentImage.ImageData != null)
+                            {
+                                <img src="data:@currentImage.ContentType;base64,@Convert.ToBase64String(currentImage.ImageData)" 
+                                     style="width: 100%; height: 100%; object-fit: cover;" />
+                            }
+                            <div style="position: absolute; top: 16px; left: 16px; background: @GetTypeColor(asset.AssetType); color: white; padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 14px;">
+                                @GetTypeIcon(asset.AssetType) @asset.AssetType
+                            </div>
+                            <div style="position: absolute; top: 16px; right: 16px; background: @GetStatusColor(asset.Status); color: white; padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 14px;">
+                                @asset.Status
+                            </div>
+                            
+                            <!-- Navigation Arrows -->
+                            @if (images.Count > 1)
+                            {
+                                <button @onclick="PrevImage" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 48px; height: 48px; cursor: pointer; font-size: 20px;">
+                                    ◀
+                                </button>
+                                <button @onclick="NextImage" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 48px; height: 48px; cursor: pointer; font-size: 20px;">
+                                    ▶
+                                </button>
+                                
+                                <!-- Image Counter -->
+                                <div style="position: absolute; bottom: 16px; right: 16px; background: rgba(0,0,0,0.6); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">
+                                    @(currentImageIndex + 1) / @images.Count
+                                </div>
+                                
+                                <!-- Dot Indicators -->
+                                <div style="position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px;">
+                                    @for (int i = 0; i < images.Count; i++)
+                                    {
+                                        var idx = i;
+                                        <button @onclick="() => SetImageIndex(idx)" 
+                                            style="width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; background: @(idx == currentImageIndex ? "white" : "transparent"); cursor: pointer; padding: 0;">
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        
+                        <!-- Thumbnail Strip -->
+                        @if (images.Count > 1)
+                        {
+                            <div style="display: flex; gap: 8px; padding: 12px; background: #f3f4f6; overflow-x: auto;">
+                                @for (int i = 0; i < images.Count; i++)
+                                {
+                                    var idx = i;
+                                    var img = images[i];
+                                    <div @onclick="() => SetImageIndex(idx)" 
+                                         style="width: 80px; height: 60px; flex-shrink: 0; border-radius: 8px; overflow: hidden; cursor: pointer; border: 3px solid @(idx == currentImageIndex ? "#059669" : "transparent");">
+                                        <img src="data:@img.ContentType;base64,@Convert.ToBase64String(img.ImageData ?? Array.Empty<byte>())" 
+                                             style="width: 100%; height: 100%; object-fit: cover;" />
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div style="height: 300px; background: #f9fafb; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px;">
+                            <span style="color: #9ca3af; font-size: 64px;">@GetTypeIcon(asset.AssetType)</span>
+                            <span style="color: #9ca3af;">No images uploaded</span>
+                        </div>
+                    }
+                </div>
+                
+                <!-- Description -->
+                <div style="background: white; border-radius: 16px; padding: 24px; margin-top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 16px 0; color: #1f2937; font-weight: 700;">Description</h3>
+                    <p style="color: #4b5563; line-height: 1.7; margin: 0;">@(asset.Description ?? "No description provided.")</p>
+                </div>
+            </div>
+
+            <!-- Right Column - Details -->
+            <div>
+                <!-- Asset Header -->
+                <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                    <h2 style="margin: 0 0 8px 0; color: #1f2937; font-size: 28px; font-weight: 700;">@asset.AssetName</h2>
+                    
+                    @if (asset.AssetType == "Property" && !string.IsNullOrEmpty(asset.PropertyLocation))
+                    {
+                        <div style="color: #6b7280; font-size: 15px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            📍 @asset.PropertyLocation
+                        </div>
+                    }
+                    
+                    <div style="font-size: 36px; font-weight: 800; color: #059669;">
+                        ₱@asset.TotalPrice.ToString("N2")
+                    </div>
+                </div>
+
+                <!-- Pricing Details -->
+                <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 16px 0; color: #1f2937; font-weight: 700;">💰 Pricing & Terms</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div style="background: #f0fdf4; padding: 16px; border-radius: 12px;">
+                            <div style="color: #059669; font-size: 12px; font-weight: 600; text-transform: uppercase;">Down Payment</div>
+                            <div style="font-size: 20px; font-weight: 700; color: #065f46;">@asset.DownPaymentPercent%</div>
+                            <div style="font-size: 14px; color: #059669;">₱@asset.ComputedDownPayment.ToString("N2")</div>
+                        </div>
+                        <div style="background: #eff6ff; padding: 16px; border-radius: 12px;">
+                            <div style="color: #3b82f6; font-size: 12px; font-weight: 600; text-transform: uppercase;">Interest Rate</div>
+                            <div style="font-size: 20px; font-weight: 700; color: #1e40af;">@asset.InterestRate% p.a.</div>
+                        </div>
+                        <div style="background: #fef3c7; padding: 16px; border-radius: 12px;">
+                            <div style="color: #d97706; font-size: 12px; font-weight: 600; text-transform: uppercase;">Default Term</div>
+                            <div style="font-size: 20px; font-weight: 700; color: #92400e;">@asset.DefaultTermMonths months</div>
+                        </div>
+                        <div style="background: #f3e8ff; padding: 16px; border-radius: 12px;">
+                            <div style="color: #7c3aed; font-size: 12px; font-weight: 600; text-transform: uppercase;">Loanable Amount</div>
+                            <div style="font-size: 20px; font-weight: 700; color: #5b21b6;">₱@asset.LoanableAmount.ToString("N2")</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Type-Specific Details -->
+                @if (asset.AssetType == "Property")
+                {
+                    <div style="background: #f0fdf4; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; border: 2px solid #bbf7d0;">
+                        <h3 style="margin: 0 0 16px 0; color: #059669; font-weight: 700;">🏠 Property Details</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            @if (!string.IsNullOrEmpty(asset.PropertyType)) { <div><div style="color: #6b7280; font-size: 12px;">Property Type</div><div style="font-weight: 600;">@asset.PropertyType</div></div> }
+                            @if (asset.LandAreaSqm > 0) { <div><div style="color: #6b7280; font-size: 12px;">Land Area</div><div style="font-weight: 600;">@asset.LandAreaSqm sqm</div></div> }
+                            @if (asset.FloorAreaSqm > 0) { <div><div style="color: #6b7280; font-size: 12px;">Floor Area</div><div style="font-weight: 600;">@asset.FloorAreaSqm sqm</div></div> }
+                            @if (asset.Bedrooms > 0) { <div><div style="color: #6b7280; font-size: 12px;">Bedrooms</div><div style="font-weight: 600;">@asset.Bedrooms</div></div> }
+                            @if (asset.Bathrooms > 0) { <div><div style="color: #6b7280; font-size: 12px;">Bathrooms</div><div style="font-weight: 600;">@asset.Bathrooms</div></div> }
+                            @if (asset.ParkingSlots > 0) { <div><div style="color: #6b7280; font-size: 12px;">Parking</div><div style="font-weight: 600;">@asset.ParkingSlots slot(s)</div></div> }
+                            @if (!string.IsNullOrEmpty(asset.DeveloperName)) { <div><div style="color: #6b7280; font-size: 12px;">Developer</div><div style="font-weight: 600;">@asset.DeveloperName</div></div> }
+                            @if (!string.IsNullOrEmpty(asset.TitleStatus)) { <div><div style="color: #6b7280; font-size: 12px;">Title Status</div><div style="font-weight: 600;">@asset.TitleStatus</div></div> }
+                        </div>
+                    </div>
+                }
+                
+                @if (asset.AssetType == "Vehicle")
+                {
+                    <div style="background: #eff6ff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; border: 2px solid #bfdbfe;">
+                        <h3 style="margin: 0 0 16px 0; color: #3b82f6; font-weight: 700;">🚗 Vehicle Details</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            @if (!string.IsNullOrEmpty(asset.VehicleBrand)) { <div><div style="color: #6b7280; font-size: 12px;">Brand</div><div style="font-weight: 600;">@asset.VehicleBrand</div></div> }
+                            @if (!string.IsNullOrEmpty(asset.VehicleModel)) { <div><div style="color: #6b7280; font-size: 12px;">Model</div><div style="font-weight: 600;">@asset.VehicleModel</div></div> }
+                            @if (asset.VehicleYear > 0) { <div><div style="color: #6b7280; font-size: 12px;">Year</div><div style="font-weight: 600;">@asset.VehicleYear</div></div> }
+                            @if (!string.IsNullOrEmpty(asset.VehicleCondition)) { <div><div style="color: #6b7280; font-size: 12px;">Condition</div><div style="font-weight: 600;">@asset.VehicleCondition</div></div> }
+                            @if (!string.IsNullOrEmpty(asset.Transmission)) { <div><div style="color: #6b7280; font-size: 12px;">Transmission</div><div style="font-weight: 600;">@asset.Transmission</div></div> }
+                            @if (!string.IsNullOrEmpty(asset.FuelType)) { <div><div style="color: #6b7280; font-size: 12px;">Fuel Type</div><div style="font-weight: 600;">@asset.FuelType</div></div> }
+                            @if (!string.IsNullOrEmpty(asset.Color)) { <div><div style="color: #6b7280; font-size: 12px;">Color</div><div style="font-weight: 600;">@asset.Color</div></div> }
+                            @if (asset.Mileage > 0) { <div><div style="color: #6b7280; font-size: 12px;">Mileage</div><div style="font-weight: 600;">@asset.Mileage.Value.ToString("N0") km</div></div> }
+                            @if (!string.IsNullOrEmpty(asset.PlateNumber)) { <div><div style="color: #6b7280; font-size: 12px;">Plate Number</div><div style="font-weight: 600;">@asset.PlateNumber</div></div> }
+                        </div>
+                    </div>
+                }
+                
+                @if (asset.AssetType == "Other")
+                {
+                    <div style="background: #fef3c7; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; border: 2px solid #fde047;">
+                        <h3 style="margin: 0 0 16px 0; color: #d97706; font-weight: 700;">📦 Asset Details</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            @if (!string.IsNullOrEmpty(asset.OtherAssetCategory)) { <div><div style="color: #6b7280; font-size: 12px;">Category</div><div style="font-weight: 600;">@asset.OtherAssetCategory</div></div> }
+                            @if (!string.IsNullOrEmpty(asset.OtherAssetBrand)) { <div><div style="color: #6b7280; font-size: 12px;">Brand</div><div style="font-weight: 600;">@asset.OtherAssetBrand</div></div> }
+                            @if (!string.IsNullOrEmpty(asset.OtherAssetModel)) { <div><div style="color: #6b7280; font-size: 12px;">Model</div><div style="font-weight: 600;">@asset.OtherAssetModel</div></div> }
+                            @if (!string.IsNullOrEmpty(asset.OtherAssetCondition)) { <div><div style="color: #6b7280; font-size: 12px;">Condition</div><div style="font-weight: 600;">@asset.OtherAssetCondition</div></div> }
+                        </div>
+                        @if (!string.IsNullOrEmpty(asset.OtherAssetSpecifications))
+                        {
+                            <div style="margin-top: 16px;">
+                                <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Specifications</div>
+                                <div style="font-weight: 500;">@asset.OtherAssetSpecifications</div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Seller Info -->
+                @if (!string.IsNullOrEmpty(asset.SellerName))
+                {
+                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 16px 0; color: #1f2937; font-weight: 700;">👤 Seller Information</h3>
+                        <div style="display: grid; gap: 12px;">
+                            <div><div style="color: #6b7280; font-size: 12px;">Name</div><div style="font-weight: 600;">@asset.SellerName</div></div>
+                            @if (!string.IsNullOrEmpty(asset.SellerContact)) { <div><div style="color: #6b7280; font-size: 12px;">Contact</div><div style="font-weight: 600;">@asset.SellerContact</div></div> }
+                            @if (!string.IsNullOrEmpty(asset.SellerAddress)) { <div><div style="color: #6b7280; font-size: 12px;">Address</div><div style="font-weight: 600;">@asset.SellerAddress</div></div> }
+                        </div>
+                    </div>
+                }
+
+                <!-- Metadata -->
+                <div style="background: #f9fafb; border-radius: 16px; padding: 24px;">
+                    <h3 style="margin: 0 0 16px 0; color: #6b7280; font-weight: 600; font-size: 14px;">Record Information</h3>
+                    <div style="display: grid; gap: 8px; font-size: 13px; color: #6b7280;">
+                        <div><strong>Asset ID:</strong> @asset.AssetId</div>
+                        <div><strong>Created:</strong> @asset.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</div>
+                        @if (!string.IsNullOrEmpty(asset.CreatedBy)) { <div><strong>Created By:</strong> @asset.CreatedBy</div> }
+                        @if (asset.UpdatedAt.HasValue) { <div><strong>Last Updated:</strong> @asset.UpdatedAt.Value.ToString("MMM dd, yyyy h:mm tt")</div> }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    [Parameter]
+    public int AssetId { get; set; }
+
+    private Asset? asset;
+    private bool isLoading = true;
+    private int currentImageIndex = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsset();
+    }
+
+    private async Task LoadAsset()
+    {
+        isLoading = true;
+        try
+        {
+            asset = await AssetService.GetAssetByIdAsync(AssetId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading asset: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoBack() => Navigation.NavigateTo("/admin/asset-management");
+
+    private void PrevImage()
+    {
+        if (asset?.Images != null && asset.Images.Any())
+        {
+            var imageCount = asset.Images.Count;
+            currentImageIndex = (currentImageIndex - 1 + imageCount) % imageCount;
+        }
+    }
+
+    private void NextImage()
+    {
+        if (asset?.Images != null && asset.Images.Any())
+        {
+            var imageCount = asset.Images.Count;
+            currentImageIndex = (currentImageIndex + 1) % imageCount;
+        }
+    }
+
+    private void SetImageIndex(int index)
+    {
+        currentImageIndex = index;
+    }
+
+    private string GetTypeColor(string assetType) => assetType switch
+    {
+        "Property" => "#3b82f6",
+        "Vehicle" => "#8b5cf6",
+        "Other" => "#f59e0b",
+        _ => "#6b7280"
+    };
+
+    private string GetTypeIcon(string assetType) => assetType switch
+    {
+        "Property" => "🏠",
+        "Vehicle" => "🚗",
+        "Other" => "📦",
+        _ => "🏪"
+    };
+
+    private string GetStatusColor(string status) => status switch
+    {
+        "Available" => "#059669",
+        "Reserved" => "#f59e0b",
+        "Sold" => "#6b7280",
+        "Inactive" => "#dc2626",
+        _ => "#6b7280"
+    };
+}

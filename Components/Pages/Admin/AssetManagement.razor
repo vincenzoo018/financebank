@@ -1,0 +1,798 @@
+@page "/admin/asset-management"
+@layout AdminLayout
+@using FinanceBank.Services
+@using FinanceBank.Models
+@using Microsoft.EntityFrameworkCore
+@inject AssetMarketplaceService AssetService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div style="padding: 24px;">
+    <!-- Page Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+            <h2 style="margin: 0; color: #1f2937; font-weight: 700; font-size: 28px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" style="vertical-align: middle; margin-right: 10px;">
+                    <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                    <path d="M16 3h-8v4h8V3z"></path>
+                </svg>
+                Asset Marketplace Management
+            </h2>
+            <p style="color: #6b7280; margin: 8px 0 0 0;">Manage properties, vehicles, and other assets for sale or loan</p>
+        </div>
+        <button @onclick="ShowAddAssetModal" style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add New Asset
+        </button>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div style="background: #d1fae5; border-left: 4px solid #059669; padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span style="color: #065f46; font-size: 16px;">@successMessage</span>
+            <button @onclick="() => successMessage = string.Empty" style="margin-left: auto; background: none; border: none; color: #065f46; cursor: pointer; font-size: 20px;">×</button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+            <span style="color: #991b1b; font-size: 16px;">@errorMessage</span>
+            <button @onclick="() => errorMessage = string.Empty" style="margin-left: auto; background: none; border: none; color: #991b1b; cursor: pointer; font-size: 20px;">×</button>
+        </div>
+    }
+
+    <!-- Stats Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 20px; border: 1px solid #bbf7d0;">
+            <div style="font-size: 12px; color: #059669; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">Total Assets</div>
+            <div style="font-size: 32px; font-weight: 700; color: #065f46;">@stats.TotalAssets</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 12px; padding: 20px; border: 1px solid #bfdbfe;">
+            <div style="font-size: 12px; color: #3b82f6; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">Available</div>
+            <div style="font-size: 32px; font-weight: 700; color: #1e40af;">@stats.AvailableAssets</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #fefce8, #fef9c3); border-radius: 12px; padding: 20px; border: 1px solid #fde047;">
+            <div style="font-size: 12px; color: #ca8a04; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">Reserved</div>
+            <div style="font-size: 32px; font-weight: 700; color: #854d0e;">@stats.ReservedAssets</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #f0fdf4, #d1fae5); border-radius: 12px; padding: 20px; border: 1px solid #86efac;">
+            <div style="font-size: 12px; color: #16a34a; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">Sold</div>
+            <div style="font-size: 32px; font-weight: 700; color: #15803d;">@stats.SoldAssets</div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button @onclick="() => FilterAssets(null)" style="background: @(selectedAssetType == null ? "#059669" : "#f3f4f6"); color: @(selectedAssetType == null ? "white" : "#374151"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                All Assets
+            </button>
+            <button @onclick="FilterByProperty" style="background: @(selectedAssetType == "Property" ? "#059669" : "#f3f4f6"); color: @(selectedAssetType == "Property" ? "white" : "#374151"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                Properties
+            </button>
+            <button @onclick="FilterByVehicle" style="background: @(selectedAssetType == "Vehicle" ? "#059669" : "#f3f4f6"); color: @(selectedAssetType == "Vehicle" ? "white" : "#374151"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                Vehicles
+            </button>
+            <button @onclick="FilterByOther" style="background: @(selectedAssetType == "Other" ? "#059669" : "#f3f4f6"); color: @(selectedAssetType == "Other" ? "white" : "#374151"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                Other Assets
+            </button>
+        </div>
+    </div>
+
+    <!-- Assets List -->
+    @if (isLoading)
+    {
+        <div style="text-align: center; padding: 60px;">
+            <div style="display: inline-block; width: 50px; height: 50px; border: 5px solid #f3f4f6; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <p style="margin-top: 16px; color: #6b7280;">Loading assets...</p>
+        </div>
+    }
+    else if (assets == null || !assets.Any())
+    {
+        <div style="background: white; border-radius: 12px; padding: 60px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="2" style="margin: 0 auto 16px;">
+                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+            </svg>
+            <h3 style="color: #9ca3af; margin: 0;">No assets found</h3>
+            <p style="color: #d1d5db; margin: 8px 0 0 0;">Add your first asset to get started</p>
+        </div>
+    }
+    else
+    {
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
+            @foreach (var asset in assets)
+            {
+                <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: transform 0.3s;">
+                    <!-- Asset Image -->
+                    <div style="height: 200px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); position: relative; overflow: hidden;">
+                        @if (asset.Images != null && asset.Images.Any())
+                        {
+                            var primaryImage = asset.Images.FirstOrDefault(i => i.IsPrimary) ?? asset.Images.First();
+                            <img src="data:@primaryImage.ContentType;base64,@Convert.ToBase64String(primaryImage.ImageData ?? Array.Empty<byte>())" 
+                                 style="width: 100%; height: 100%; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#bbf7d0" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                            </div>
+                        }
+                        <div style="position: absolute; top: 12px; right: 12px; background: @GetStatusColor(asset.Status); color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                            @asset.Status
+                        </div>
+                        <div style="position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.7); color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                            @asset.AssetType
+                        </div>
+                    </div>
+
+                    <!-- Asset Details -->
+                    <div style="padding: 20px;">
+                        <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 18px; font-weight: 700;">@asset.AssetName</h3>
+                        <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 14px; line-height: 1.5;">@(asset.Description != null ? asset.Description.Substring(0, Math.Min(80, asset.Description.Length)) + (asset.Description.Length > 80 ? "..." : "") : "")</p>
+                        
+                        <div style="border-top: 1px solid #e5e7eb; padding-top: 12px; margin-top: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: #6b7280; font-size: 14px;">Total Price:</span>
+                                <span style="color: #059669; font-weight: 700; font-size: 16px;">₱@asset.TotalPrice.ToString("N2")</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: #6b7280; font-size: 14px;">Down Payment:</span>
+                                <span style="color: #374151; font-weight: 600; font-size: 14px;">@asset.DownPaymentPercent% (₱@asset.ComputedDownPayment.ToString("N2"))</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #6b7280; font-size: 14px;">Monthly:</span>
+                                <span style="color: #374151; font-weight: 600; font-size: 14px;">₱@asset.MonthlyInstallmentPreview.ToString("N2") / @asset.DefaultTermMonths mos</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div style="display: flex; gap: 8px; margin-top: 16px;">
+                            <button @onclick="() => ViewAssetDetails(asset)" style="flex: 1; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                View
+                            </button>
+                            <button @onclick="() => EditAsset(asset)" style="flex: 1; background: #f59e0b; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                Edit
+                            </button>
+                            <button @onclick="() => DeleteAsset(asset)" style="background: #dc2626; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Add/Edit Asset Modal -->
+@if (showAssetModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; overflow-y: auto; padding: 20px;">
+        <div style="background: white; border-radius: 16px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px; border-radius: 16px 16px 0 0;">
+                <h3 style="margin: 0; font-size: 24px; font-weight: 700;">@(isEditMode ? "Edit Asset" : "Add New Asset")</h3>
+                <p style="margin: 8px 0 0 0; opacity: 0.9;">Fill in the asset details below</p>
+            </div>
+
+            <div style="padding: 24px;">
+                <!-- Asset Type Selection -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Asset Type *</label>
+                    <select @bind="currentAsset.AssetType" @bind:after="OnAssetTypeChanged" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;">
+                        <option value="Property">Property (House, Condo, Land)</option>
+                        <option value="Vehicle">Vehicle (Car, Motorcycle)</option>
+                        <option value="Other">Other Assets (Appliances, Equipment, etc.)</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Asset Name *</label>
+                        <input @bind="currentAsset.AssetName" type="text" placeholder="E.g., 3BR House in Makati" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Total Price *</label>
+                        <input @bind="currentAsset.TotalPrice" type="number" step="0.01" placeholder="0.00" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Description</label>
+                    <textarea @bind="currentAsset.Description" rows="3" placeholder="Detailed description of the asset" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px; resize: vertical;"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Down Payment %</label>
+                        <input @bind="currentAsset.DownPaymentPercent" type="number" step="0.01" placeholder="20" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Interest Rate %</label>
+                        <input @bind="currentAsset.InterestRate" type="number" step="0.01" placeholder="12" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Term (Months)</label>
+                        <input @bind="currentAsset.DefaultTermMonths" type="number" placeholder="60" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                    </div>
+                </div>
+
+                <!-- Property-Specific Fields -->
+                @if (currentAsset.AssetType == "Property")
+                {
+                    <div style="background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 16px 0; color: #059669; font-weight: 700;">Property Details</h4>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Property Type</label>
+                                <select @bind="currentAsset.PropertyType" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;">
+                                    <option value="">Select Type</option>
+                                    <option value="House & Lot">House & Lot</option>
+                                    <option value="Condo">Condominium</option>
+                                    <option value="Townhouse">Townhouse</option>
+                                    <option value="Lot Only">Lot Only</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Location</label>
+                                <input @bind="currentAsset.PropertyLocation" type="text" placeholder="City, Province" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Land Area (sqm)</label>
+                                <input @bind="currentAsset.LandAreaSqm" type="number" step="0.01" placeholder="100" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Floor Area (sqm)</label>
+                                <input @bind="currentAsset.FloorAreaSqm" type="number" step="0.01" placeholder="80" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Bedrooms</label>
+                                <input @bind="currentAsset.Bedrooms" type="number" placeholder="3" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Bathrooms</label>
+                                <input @bind="currentAsset.Bathrooms" type="number" placeholder="2" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Parking Slots</label>
+                                <input @bind="currentAsset.ParkingSlots" type="number" placeholder="1" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Developer</label>
+                                <input @bind="currentAsset.DeveloperName" type="text" placeholder="Developer Name" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Title Status</label>
+                                <input @bind="currentAsset.TitleStatus" type="text" placeholder="Clean Title, TCT, CCT" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Vehicle-Specific Fields -->
+                @if (currentAsset.AssetType == "Vehicle")
+                {
+                    <div style="background: #eff6ff; border: 2px solid #bfdbfe; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 16px 0; color: #3b82f6; font-weight: 700;">Vehicle Details</h4>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Brand</label>
+                                <input @bind="currentAsset.VehicleBrand" type="text" placeholder="Toyota, Honda" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Model</label>
+                                <input @bind="currentAsset.VehicleModel" type="text" placeholder="Vios, Civic" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Year</label>
+                                <input @bind="currentAsset.VehicleYear" type="number" placeholder="2024" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Condition</label>
+                                <select @bind="currentAsset.VehicleCondition" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;">
+                                    <option value="">Select Condition</option>
+                                    <option value="New">Brand New</option>
+                                    <option value="Pre-owned">Pre-owned</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Mileage (km)</label>
+                                <input @bind="currentAsset.Mileage" type="number" placeholder="10000" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Color</label>
+                                <input @bind="currentAsset.Color" type="text" placeholder="White, Black" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Transmission</label>
+                                <select @bind="currentAsset.Transmission" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;">
+                                    <option value="">Select Transmission</option>
+                                    <option value="Manual">Manual</option>
+                                    <option value="Automatic">Automatic</option>
+                                    <option value="CVT">CVT</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Fuel Type</label>
+                                <select @bind="currentAsset.FuelType" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;">
+                                    <option value="">Select Fuel Type</option>
+                                    <option value="Gasoline">Gasoline</option>
+                                    <option value="Diesel">Diesel</option>
+                                    <option value="Electric">Electric</option>
+                                    <option value="Hybrid">Hybrid</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Other Asset Fields -->
+                @if (currentAsset.AssetType == "Other")
+                {
+                    <div style="background: #fefce8; border: 2px solid #fde047; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 16px 0; color: #ca8a04; font-weight: 700;">Other Asset Details</h4>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Category</label>
+                                <select @bind="currentAsset.OtherAssetCategory" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;">
+                                    <option value="">Select Category</option>
+                                    <option value="Appliances">Appliances</option>
+                                    <option value="Jewelry">Jewelry</option>
+                                    <option value="Equipment">Equipment</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Furniture">Furniture</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Condition</label>
+                                <select @bind="currentAsset.OtherAssetCondition" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;">
+                                    <option value="">Select Condition</option>
+                                    <option value="New">Brand New</option>
+                                    <option value="Like New">Like New</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Fair">Fair</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Brand</label>
+                                <input @bind="currentAsset.OtherAssetBrand" type="text" placeholder="Brand name" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Model</label>
+                                <input @bind="currentAsset.OtherAssetModel" type="text" placeholder="Model name" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Specifications</label>
+                            <textarea @bind="currentAsset.OtherAssetSpecifications" rows="2" placeholder="Detailed specifications" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px; resize: vertical;"></textarea>
+                        </div>
+                    </div>
+                }
+
+                <!-- Image Upload Section -->
+                <div style="background: #f9fafb; border: 2px dashed #d1d5db; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 16px 0; color: #374151; font-weight: 700;">Asset Images</h4>
+                    <InputFile OnChange="HandleImageSelection" multiple accept="image/*" style="display: none;" id="imageInput" />
+                    <label for="imageInput" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        📷 Select Images (Multiple)
+                    </label>
+                    <p style="margin: 8px 0 0 0; color: #6b7280; font-size: 14px;">You can upload multiple images. First image will be set as primary.</p>
+                    
+                    @if (selectedImages != null && selectedImages.Any())
+                    {
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; margin-top: 16px;">
+                            @for (int i = 0; i < selectedImages.Count; i++)
+                            {
+                                var index = i;
+                                var imgData = selectedImages[i];
+                                <div style="position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 2px solid #e5e7eb;">
+                                    <img src="@imgData" style="width: 100%; height: 100%; object-fit: cover;" />
+                                    @if (index == 0)
+                                    {
+                                        <div style="position: absolute; top: 4px; left: 4px; background: #059669; color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;">PRIMARY</div>
+                                    }
+                                    <button @onclick="() => RemoveImage(index)" style="position: absolute; top: 4px; right: 4px; background: #dc2626; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px;">×</button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- Seller Information -->
+                <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 16px 0; color: #374151; font-weight: 700;">Seller Information (Optional)</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Seller Name</label>
+                            <input @bind="currentAsset.SellerName" type="text" placeholder="Seller name" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Seller Contact</label>
+                            <input @bind="currentAsset.SellerContact" type="text" placeholder="Phone number" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Selection -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Status</label>
+                    <select @bind="currentAsset.Status" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;">
+                        <option value="Available">Available</option>
+                        <option value="Reserved">Reserved</option>
+                        <option value="Sold">Sold</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button @onclick="SaveAsset" disabled="@isSaving" style="flex: 1; background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 16px;">
+                        @(isSaving ? "Saving..." : (isEditMode ? "Update Asset" : "Add Asset"))
+                    </button>
+                    <button @onclick="CloseAssetModal" disabled="@isSaving" style="background: #6b7280; color: white; border: none; padding: 14px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    private List<Asset> assets = new();
+    private MarketplaceStats stats = new();
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string? selectedAssetType = null;
+    private string successMessage = string.Empty;
+    private string errorMessage = string.Empty;
+
+    private bool showAssetModal = false;
+    private bool isEditMode = false;
+    private Asset currentAsset = new();
+    private List<string> selectedImages = new();
+    private List<ImageFileData> imageFiles = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAssets();
+        await LoadStats();
+    }
+
+    private async Task LoadAssets()
+    {
+        isLoading = true;
+        try
+        {
+            assets = await AssetService.GetAssetsAsync(selectedAssetType, null);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading assets: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadStats()
+    {
+        try
+        {
+            stats = await AssetService.GetMarketplaceStatsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading statistics: {ex.Message}";
+        }
+    }
+
+    private async Task FilterAssets(string? assetType)
+    {
+        selectedAssetType = assetType;
+        await LoadAssets();
+    }
+
+    private async Task FilterByProperty() => await FilterAssets("Property");
+    private async Task FilterByVehicle() => await FilterAssets("Vehicle");
+    private async Task FilterByOther() => await FilterAssets("Other");
+
+    private void ShowAddAssetModal()
+    {
+        currentAsset = new Asset
+        {
+            AssetType = "Property",
+            DownPaymentPercent = 20,
+            InterestRate = 12,
+            DefaultTermMonths = 60,
+            Status = "Available"
+        };
+        selectedImages.Clear();
+        imageFiles.Clear();
+        isEditMode = false;
+        showAssetModal = true;
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+    }
+
+    private void EditAsset(Asset asset)
+    {
+        currentAsset = new Asset
+        {
+            AssetId = asset.AssetId,
+            AssetType = asset.AssetType,
+            AssetName = asset.AssetName,
+            Description = asset.Description,
+            TotalPrice = asset.TotalPrice,
+            DownPaymentPercent = asset.DownPaymentPercent,
+            InterestRate = asset.InterestRate,
+            DefaultTermMonths = asset.DefaultTermMonths,
+            Status = asset.Status,
+            PropertyType = asset.PropertyType,
+            PropertyLocation = asset.PropertyLocation,
+            LandAreaSqm = asset.LandAreaSqm,
+            FloorAreaSqm = asset.FloorAreaSqm,
+            Bedrooms = asset.Bedrooms,
+            Bathrooms = asset.Bathrooms,
+            ParkingSlots = asset.ParkingSlots,
+            DeveloperName = asset.DeveloperName,
+            TitleStatus = asset.TitleStatus,
+            VehicleBrand = asset.VehicleBrand,
+            VehicleModel = asset.VehicleModel,
+            VehicleYear = asset.VehicleYear,
+            VehicleCondition = asset.VehicleCondition,
+            Mileage = asset.Mileage,
+            Transmission = asset.Transmission,
+            FuelType = asset.FuelType,
+            Color = asset.Color,
+            OtherAssetCategory = asset.OtherAssetCategory,
+            OtherAssetBrand = asset.OtherAssetBrand,
+            OtherAssetModel = asset.OtherAssetModel,
+            OtherAssetCondition = asset.OtherAssetCondition,
+            OtherAssetSpecifications = asset.OtherAssetSpecifications,
+            SellerName = asset.SellerName,
+            SellerContact = asset.SellerContact
+        };
+        selectedImages.Clear();
+        imageFiles.Clear();
+        isEditMode = true;
+        showAssetModal = true;
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+    }
+
+    private void ViewAssetDetails(Asset asset)
+    {
+        // In a real app, navigate to detail page
+        Navigation.NavigateTo($"/admin/asset-details/{asset.AssetId}");
+    }
+
+    private async Task DeleteAsset(Asset asset)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete {asset.AssetName}?"))
+            return;
+
+        try
+        {
+            var success = await AssetService.DeleteAssetAsync(asset.AssetId);
+            if (success)
+            {
+                successMessage = $"Asset '{asset.AssetName}' has been deleted successfully.";
+                await LoadAssets();
+                await LoadStats();
+            }
+            else
+            {
+                errorMessage = "Failed to delete asset.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting asset: {ex.Message}";
+        }
+    }
+
+    private async Task HandleImageSelection(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            errorMessage = string.Empty;
+            var maxFileSize = 2 * 1024 * 1024; // Reduced to 2MB for better stability
+            
+            foreach (var file in e.GetMultipleFiles(5)) // Reduced max files to 5
+            {
+                try
+                {
+                    if (file.Size > maxFileSize)
+                    {
+                        errorMessage = $"File {file.Name} is too large. Maximum size is 2MB.";
+                        continue;
+                    }
+
+                    if (!file.ContentType.StartsWith("image/"))
+                    {
+                        errorMessage = $"File {file.Name} is not an image.";
+                        continue;
+                    }
+
+                    // Use MemoryStream for safer handling
+                    using var memoryStream = new MemoryStream();
+                    using var stream = file.OpenReadStream(maxFileSize);
+                    await stream.CopyToAsync(memoryStream);
+                    var buffer = memoryStream.ToArray();
+
+                    // Compress/resize if needed for preview
+                    var base64 = Convert.ToBase64String(buffer);
+                    selectedImages.Add($"data:{file.ContentType};base64,{base64}");
+                    
+                    imageFiles.Add(new ImageFileData
+                    {
+                        FileName = file.Name,
+                        ContentType = file.ContentType,
+                        Data = buffer
+                    });
+
+                    // Force UI update after each image to prevent memory buildup
+                    await InvokeAsync(StateHasChanged);
+                }
+                catch (Exception fileEx)
+                {
+                    errorMessage = $"Error processing {file.Name}: {fileEx.Message}";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error uploading images: {ex.Message}";
+        }
+    }
+
+    private void RemoveImage(int index)
+    {
+        if (index >= 0 && index < selectedImages.Count)
+        {
+            selectedImages.RemoveAt(index);
+            imageFiles.RemoveAt(index);
+        }
+    }
+
+    private void OnAssetTypeChanged()
+    {
+        // Reset type-specific fields when asset type changes
+    }
+
+    private async Task SaveAsset()
+    {
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+
+        // Validation
+        if (string.IsNullOrWhiteSpace(currentAsset.AssetName))
+        {
+            errorMessage = "Asset name is required.";
+            return;
+        }
+
+        if (currentAsset.TotalPrice <= 0)
+        {
+            errorMessage = "Total price must be greater than zero.";
+            return;
+        }
+
+        isSaving = true;
+        try
+        {
+            var currentUser = AuthService.CurrentUser ?? "Admin";
+
+            if (isEditMode)
+            {
+                await AssetService.UpdateAssetAsync(currentAsset, currentUser);
+                successMessage = $"Asset '{currentAsset.AssetName}' has been updated successfully.";
+            }
+            else
+            {
+                var newAsset = await AssetService.CreateAssetAsync(currentAsset, currentUser);
+                
+                // Upload images if any
+                if (imageFiles.Any())
+                {
+                    for (int i = 0; i < imageFiles.Count; i++)
+                    {
+                        var img = imageFiles[i];
+                        await AssetService.AddAssetImageAsync(
+                            newAsset.AssetId,
+                            img.Data,
+                            img.FileName,
+                            img.ContentType,
+                            i == 0 // First image is primary
+                        );
+                    }
+                }
+
+                successMessage = $"Asset '{currentAsset.AssetName}' has been added successfully.";
+            }
+
+            CloseAssetModal();
+            await LoadAssets();
+            await LoadStats();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error saving asset: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void CloseAssetModal()
+    {
+        showAssetModal = false;
+        currentAsset = new();
+        selectedImages.Clear();
+        imageFiles.Clear();
+    }
+
+    private string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Available" => "#059669",
+            "Reserved" => "#f59e0b",
+            "Sold" => "#6b7280",
+            "Inactive" => "#dc2626",
+            _ => "#6b7280"
+        };
+    }
+
+    private class ImageFileData
+    {
+        public string FileName { get; set; } = "";
+        public string ContentType { get; set; } = "";
+        public byte[] Data { get; set; } = Array.Empty<byte>();
+    }
+}

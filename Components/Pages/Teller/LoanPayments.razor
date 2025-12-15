@@ -495,7 +495,8 @@
             }
 
             activeLoans = await LoanService.GetAccountLoansAsync(selectedAccount.AccountId);
-            activeLoans = activeLoans.Where(l => l.Status == "ACTIVE" && l.OutstandingBalance > 0).ToList();
+            // Handle both "Active" and "ACTIVE" status (case-insensitive)
+            activeLoans = activeLoans.Where(l => l.Status.Equals("ACTIVE", StringComparison.OrdinalIgnoreCase) && l.OutstandingBalance > 0).ToList();
 
             // Preload all payment schedules for these loans to avoid sync DB calls during render
             paymentSchedulesByLoanId.Clear();

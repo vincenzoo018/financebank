@@ -11,8 +11,25 @@ namespace FinanceBank
             InitializeComponent();
             _serviceProvider = serviceProvider;
 
-            // Initialize SaaS database on startup
-            Task.Run(async () => await SaaSDbInitializer.InitializeAsync(_serviceProvider));
+            // Initialize SaaS database on startup (safe initialization)
+            try
+            {
+                Task.Run(async () => 
+                {
+                    try
+                    {
+                        await SaaSDbInitializer.InitializeAsync(_serviceProvider);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"SaaS initialization error: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"App startup error: {ex.Message}");
+            }
         }
 
         protected override Window CreateWindow(IActivationState? activationState)

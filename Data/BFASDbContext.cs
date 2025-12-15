@@ -548,6 +548,12 @@ namespace FinanceBank.Data
         public DbSet<SavingsInterestPosting> SavingsInterestPostings { get; set; }
         public DbSet<SavingsWithdrawalRequest> SavingsWithdrawalRequests { get; set; }
 
+        // Asset Marketplace Module Tables
+        public DbSet<Asset> Assets { get; set; }
+        public DbSet<AssetImage> AssetImages { get; set; }
+        public DbSet<AssetApplication> AssetApplications { get; set; }
+        public DbSet<AssetHistory> AssetHistories { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -865,6 +871,65 @@ namespace FinanceBank.Data
                 entity.Ignore(e => e.NetIncome);
 
                 entity.Property(e => e.GeneratedAt).HasDefaultValueSql("GETDATE()");
+            });
+
+            // Configure Asset Marketplace entities
+            modelBuilder.Entity<Asset>(entity =>
+            {
+                entity.HasKey(e => e.AssetId);
+                entity.HasIndex(e => e.AssetType);
+                entity.HasIndex(e => e.Status);
+                entity.Property(e => e.Status).HasDefaultValue("Available");
+                entity.Property(e => e.DownPaymentPercent).HasDefaultValue(20m);
+                entity.Property(e => e.InterestRate).HasDefaultValue(12m);
+                entity.Property(e => e.DefaultTermMonths).HasDefaultValue(60);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
+                
+                entity.HasMany(e => e.Images)
+                    .WithOne(i => i.Asset)
+                    .HasForeignKey(i => i.AssetId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<AssetImage>(entity =>
+            {
+                entity.HasKey(e => e.ImageId);
+                entity.HasIndex(e => e.AssetId);
+                entity.Property(e => e.DisplayOrder).HasDefaultValue(0);
+                entity.Property(e => e.IsPrimary).HasDefaultValue(false);
+                entity.Property(e => e.UploadedAt).HasDefaultValueSql("GETDATE()");
+            });
+
+            modelBuilder.Entity<AssetApplication>(entity =>
+            {
+                entity.HasKey(e => e.ApplicationId);
+                entity.HasIndex(e => e.ApplicationNumber).IsUnique();
+                entity.HasIndex(e => e.CustomerId);
+                entity.HasIndex(e => e.AssetId);
+                entity.HasIndex(e => e.Status);
+                entity.Property(e => e.Status).HasDefaultValue("SUBMITTED");
+                entity.Property(e => e.PurchaseType).HasDefaultValue("Loan");
+                entity.Property(e => e.SubmittedAt).HasDefaultValueSql("GETDATE()");
+                
+                entity.HasOne(e => e.Asset)
+                    .WithMany(a => a.Applications)
+                    .HasForeignKey(e => e.AssetId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            // Configure AssetHistory entity
+            modelBuilder.Entity<AssetHistory>(entity =>
+            {
+                entity.HasKey(e => e.HistoryId);
+                entity.HasIndex(e => e.ApplicationId);
+                entity.HasIndex(e => e.ActionType);
+                entity.HasIndex(e => e.ActionDate);
+                entity.Property(e => e.ActionDate).HasDefaultValueSql("GETDATE()");
+                
+                entity.HasOne(e => e.Application)
+                    .WithMany()
+                    .HasForeignKey(e => e.ApplicationId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

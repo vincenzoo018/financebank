@@ -132,6 +132,9 @@ namespace FinanceBank
             builder.Services.AddScoped<LoanContractService>();
             builder.Services.AddScoped<LoanEligibilityService>();
 
+            // Register Asset Marketplace Service
+            builder.Services.AddScoped<AssetMarketplaceService>();
+
             // Register Teller Report Service (analytics and report generation)
             builder.Services.AddScoped<TellerReportService>();
 
