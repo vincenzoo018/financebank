@@ -7,7 +7,8 @@
 @inject IDbContextFactory<BFASDbContext> DbContextFactory
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div
+    style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
@@ -19,40 +20,54 @@
         </div>
         <div>
             <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">All Users</h1>
-            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">View and manage all registered users with their profile details</p>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">View and manage all registered
+                users with their profile details</p>
         </div>
     </div>
 </div>
 
 <!-- Summary Cards -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
-    <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 16px; border: 2px solid #6ee7b7;">
-        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">TOTAL USERS</div>
+<div
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div
+        style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 16px; border: 2px solid #6ee7b7;">
+        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">
+            TOTAL USERS</div>
         <div style="font-size: 24px; font-weight: 800; color: #059669;">@allUsers.Count</div>
     </div>
-    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 16px; border: 2px solid #6ee7b7;">
-        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">ACTIVE</div>
+    <div
+        style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 16px; border: 2px solid #6ee7b7;">
+        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">
+            ACTIVE</div>
         <div style="font-size: 24px; font-weight: 800; color: #059669;">@allUsers.Count(u => u.IsActive)</div>
     </div>
-    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 12px; padding: 16px; border: 2px solid #f87171; cursor: pointer;" @onclick='() => { selectedStatus = "Inactive"; ApplyFilters(); }'>
-        <div style="font-size: 11px; font-weight: 600; color: #b91c1c; margin-bottom: 4px; text-transform: uppercase;">INACTIVE</div>
+    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 12px; padding: 16px; border: 2px solid #f87171; cursor: pointer;"
+        @onclick='() => { selectedStatus = "Inactive"; ApplyFilters(); }'>
+        <div style="font-size: 11px; font-weight: 600; color: #b91c1c; margin-bottom: 4px; text-transform: uppercase;">
+            INACTIVE</div>
         <div style="font-size: 24px; font-weight: 800; color: #dc2626;">@allUsers.Count(u => !u.IsActive)</div>
     </div>
-    <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 16px; border: 2px solid #86efac;">
-        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">EMPLOYEES</div>
+    <div
+        style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 16px; border: 2px solid #86efac;">
+        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">
+            EMPLOYEES</div>
         <div style="font-size: 24px; font-weight: 800; color: #059669;">@allUsers.Count(u => u.Role != "Customer")</div>
     </div>
-    <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 16px; border: 2px solid #6ee7b7;">
-        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">CUSTOMERS</div>
+    <div
+        style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 16px; border: 2px solid #6ee7b7;">
+        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">
+            CUSTOMERS</div>
         <div style="font-size: 24px; font-weight: 800; color: #059669;">@allUsers.Count(u => u.Role == "Customer")</div>
     </div>
 </div>
 
 <!-- Filters -->
-<div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+<div
+    style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
     <div style="flex: 1 1 200px;">
         <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Search</label>
-        <input type="text" class="form-control" @bind="searchQuery" @bind:event="oninput" placeholder="Search by name, username, email..."
+        <input type="text" class="form-control" @bind="searchQuery" @bind:event="oninput"
+            placeholder="Search by name, username, email..."
             style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; width: 100%;" />
     </div>
     <div style="flex: 1 1 150px;">
@@ -93,7 +108,8 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">
             Registered Users
-            <span style="font-size: 14px; font-weight: 400; color: #6b7280;">(@GetFilteredUsers().Count() of @allUsers.Count records)</span>
+            <span style="font-size: 14px; font-weight: 400; color: #6b7280;">(@GetFilteredUsers().Count() of
+                @allUsers.Count records)</span>
         </h2>
         <div style="display: flex; gap: 8px; align-items: center;">
             <label style="font-size: 12px; color: #6b7280;">Show:</label>
@@ -111,14 +127,22 @@
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
-                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">PROFILE</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">USERNAME</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">FULL NAME</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">EMAIL</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">ROLE</th>
-                    <th style="padding: 12px; text-align: center; font-size: 12px; color: #6b7280; font-weight: 600;">STATUS</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">CREATED</th>
-                    <th style="padding: 12px; text-align: center; font-size: 12px; color: #6b7280; font-weight: 600;">ACTIONS</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">
+                        PROFILE</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">
+                        USERNAME</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">FULL
+                        NAME</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">
+                        EMAIL</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">ROLE
+                    </th>
+                    <th style="padding: 12px; text-align: center; font-size: 12px; color: #6b7280; font-weight: 600;">
+                        STATUS</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 600;">
+                        CREATED</th>
+                    <th style="padding: 12px; text-align: center; font-size: 12px; color: #6b7280; font-weight: 600;">
+                        ACTIONS</th>
                 </tr>
             </thead>
             <tbody>
@@ -126,54 +150,60 @@
                 {
                     @foreach (var user in GetPaginatedUsers())
                     {
-                        <tr style="border-bottom: 1px solid #e5e7eb; transition: background 0.2s; background: @(hoveredUserId == user.UserId ? "#f9fafb" : "white");" 
-                            @onmouseenter="@(() => hoveredUserId = user.UserId)" 
-                            @onmouseleave="@(() => hoveredUserId = 0)">
+                        <tr style="border-bottom: 1px solid #e5e7eb; transition: background 0.2s; background: @(hoveredUserId == user.UserId ? "#f9fafb" : "white");"
+                            @onmouseenter="@(() => hoveredUserId = user.UserId)" @onmouseleave="@(() => hoveredUserId = 0)">
                             <td style="padding: 12px;">
                                 @if (user.ProfilePicture != null && user.ProfilePicture.Length > 0)
                                 {
-                                    var imageUrl = $"data:{user.ProfilePictureContentType};base64,{Convert.ToBase64String(user.ProfilePicture)}";
-                                    <img src="@imageUrl" alt="@user.FullName" 
+                                    var imageUrl =
+                                    $"data:{user.ProfilePictureContentType};base64,{Convert.ToBase64String(user.ProfilePicture)}";
+                                    <img src="@imageUrl" alt="@user.FullName"
                                         style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb;" />
                                 }
                                 else
                                 {
-                                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, @GetRoleColor(user.Role) 0%, @GetRoleColorDark(user.Role) 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">
+                                    <div
+                                        style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, @GetRoleColor(user.Role) 0%, @GetRoleColorDark(user.Role) 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">
                                         @GetInitials(user.FullName ?? user.Username)
                                     </div>
                                 }
                             </td>
                             <td style="padding: 12px; font-size: 13px; color: #3b82f6; font-weight: 500;">@user.Username</td>
-                            <td style="padding: 12px; font-size: 13px; color: #111827; font-weight: 600;">@(user.FullName ?? "-")</td>
+                            <td style="padding: 12px; font-size: 13px; color: #111827; font-weight: 600;">@(user.FullName ??
+                                                        "-")</td>
                             <td style="padding: 12px; font-size: 13px; color: #6b7280;">@(user.Email ?? "-")</td>
                             <td style="padding: 12px;">
-                                <span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; background: @GetRoleBadgeBackground(user.Role); color: @GetRoleBadgeColor(user.Role);">
+                                <span
+                                    style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; background: @GetRoleBadgeBackground(user.Role); color: @GetRoleBadgeColor(user.Role);">
                                     @user.Role
                                 </span>
                             </td>
                             <td style="padding: 12px; text-align: center;">
-                                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; background: @(user.IsActive ? "#d1fae5" : "#fee2e2"); color: @(user.IsActive ? "#065f46" : "#991b1b");">
-                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: @(user.IsActive ? "#10b981" : "#ef4444");"></span>
+                                <span
+                                    style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; background: @(user.IsActive ? "#d1fae5" : "#fee2e2"); color: @(user.IsActive ? "#065f46" : "#991b1b");">
+                                    <span
+                                        style="width: 6px; height: 6px; border-radius: 50%; background: @(user.IsActive ? "#10b981" : "#ef4444");"></span>
                                     @(user.IsActive ? "Active" : "Inactive")
                                 </span>
                             </td>
-                            <td style="padding: 12px; font-size: 13px; color: #6b7280;">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td style="padding: 12px; font-size: 13px; color: #6b7280;">@user.CreatedAt.ToString("MMM dd, yyyy")
+                            </td>
                             <td style="padding: 12px; text-align: center;">
                                 <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
-                                    <button @onclick="() => OpenEditModal(user)" 
+                                    <button @onclick="() => OpenEditModal(user)"
                                         style="padding: 6px 12px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                         ✏️ Edit
                                     </button>
                                     @if (user.IsActive)
                                     {
-                                        <button @onclick="() => OpenDeactivateModal(user)" 
+                                        <button @onclick="() => OpenDeactivateModal(user)"
                                             style="padding: 6px 12px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                             🚫 Deactivate
                                         </button>
                                     }
                                     else
                                     {
-                                        <button @onclick="() => ActivateUser(user)" 
+                                        <button @onclick="() => ActivateUser(user)"
                                             style="padding: 6px 12px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                             ✓ Activate
                                         </button>
@@ -200,7 +230,8 @@
     <!-- Pagination -->
     @if (GetFilteredUsers().Any())
     {
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
             <div style="font-size: 13px; color: #6b7280;">
                 Showing @GetStartRecord() to @GetEndRecord() of @GetFilteredUsers().Count() entries
             </div>
@@ -213,7 +244,7 @@
                     style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 12px; background: white; color: #374151; cursor: @(currentPage == 1 ? "not-allowed" : "pointer"); opacity: @(currentPage == 1 ? "0.5" : "1");">
                     ◀️ Previous
                 </button>
-                
+
                 @for (int i = GetStartPage(); i <= GetEndPage(); i++)
                 {
                     var pageNum = i;
@@ -222,7 +253,7 @@
                         @pageNum
                     </button>
                 }
-                
+
                 <button class="btn" @onclick="NextPage" disabled="@(currentPage == totalPages)"
                     style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 12px; background: white; color: #374151; cursor: @(currentPage == totalPages ? "not-allowed" : "pointer"); opacity: @(currentPage == totalPages ? "0.5" : "1");">
                     Next ▶️
@@ -239,33 +270,43 @@
 <!-- Edit User Modal -->
 @if (showEditModal && editUser != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseEditModal">
-        <div style="background: white; border-radius: 16px; padding: 28px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+        @onclick="CloseEditModal">
+        <div style="background: white; border-radius: 16px; padding: 28px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
+            @onclick:stopPropagation="true">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                 <h2 style="font-size: 20px; font-weight: 700; color: #1f2937; margin: 0;">✏️ Edit User</h2>
-                <button @onclick="CloseEditModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+                <button @onclick="CloseEditModal"
+                    style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
             </div>
 
             @if (!string.IsNullOrEmpty(editMessage))
             {
-                <div style="padding: 12px; margin-bottom: 16px; border-radius: 8px; background: @(editSuccess ? "#d1fae5" : "#fee2e2"); color: @(editSuccess ? "#065f46" : "#991b1b"); font-size: 14px;">
+                <div
+                    style="padding: 12px; margin-bottom: 16px; border-radius: 8px; background: @(editSuccess ? "#d1fae5" : "#fee2e2"); color: @(editSuccess ? "#065f46" : "#991b1b"); font-size: 14px;">
                     @editMessage
                 </div>
             }
 
             <div style="margin-bottom: 16px;">
-                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Full Name</label>
-                <input type="text" @bind="editUser.FullName" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Full
+                    Name</label>
+                <input type="text" @bind="editUser.FullName"
+                    style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
             </div>
 
             <div style="margin-bottom: 16px;">
-                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Email</label>
-                <input type="email" @bind="editUser.Email" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                <label
+                    style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Email</label>
+                <input type="email" @bind="editUser.Email"
+                    style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
             </div>
 
             <div style="margin-bottom: 16px;">
-                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Role</label>
-                <select @bind="editUser.Role" style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                <label
+                    style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Role</label>
+                <select @bind="editUser.Role"
+                    style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
                     <option value="SuperAdmin">SuperAdmin</option>
                     <option value="Accountant">Accountant</option>
                     <option value="FinanceManager">Finance Manager</option>
@@ -276,16 +317,20 @@
             </div>
 
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Username</label>
-                <input type="text" value="@editUser.Username" disabled style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #f3f4f6; color: #6b7280;" />
+                <label
+                    style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Username</label>
+                <input type="text" value="@editUser.Username" disabled
+                    style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #f3f4f6; color: #6b7280;" />
                 <span style="font-size: 11px; color: #9ca3af;">Username cannot be changed</span>
             </div>
 
             <div style="display: flex; gap: 12px;">
-                <button @onclick="CloseEditModal" style="flex: 1; padding: 12px; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                <button @onclick="CloseEditModal"
+                    style="flex: 1; padding: 12px; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
                     Cancel
                 </button>
-                <button @onclick="SaveUserChanges" disabled="@isSaving" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                <button @onclick="SaveUserChanges" disabled="@isSaving"
+                    style="flex: 1; padding: 12px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
                     @(isSaving ? "Saving..." : "💾 Save Changes")
                 </button>
             </div>
@@ -296,23 +341,29 @@
 <!-- Deactivate Confirmation Modal -->
 @if (showDeactivateModal && userToDeactivate != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseDeactivateModal">
-        <div style="background: white; border-radius: 16px; padding: 28px; max-width: 450px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+        @onclick="CloseDeactivateModal">
+        <div style="background: white; border-radius: 16px; padding: 28px; max-width: 450px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
+            @onclick:stopPropagation="true">
             <div style="text-align: center; margin-bottom: 24px;">
-                <div style="width: 64px; height: 64px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 32px;">
+                <div
+                    style="width: 64px; height: 64px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 32px;">
                     🚫
                 </div>
                 <h2 style="font-size: 20px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">Deactivate User?</h2>
                 <p style="font-size: 14px; color: #6b7280; margin: 0;">This will prevent the user from logging in.</p>
             </div>
 
-            <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+            <div
+                style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, @GetRoleColor(userToDeactivate.Role), @GetRoleColorDark(userToDeactivate.Role)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, @GetRoleColor(userToDeactivate.Role), @GetRoleColorDark(userToDeactivate.Role)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
                         @GetInitials(userToDeactivate.FullName ?? userToDeactivate.Username)
                     </div>
                     <div>
-                        <div style="font-weight: 600; color: #1f2937;">@(userToDeactivate.FullName ?? userToDeactivate.Username)</div>
+                        <div style="font-weight: 600; color: #1f2937;">@(userToDeactivate.FullName ??
+                                                    userToDeactivate.Username)</div>
                         <div style="font-size: 12px; color: #6b7280;">@userToDeactivate.Email • @userToDeactivate.Role</div>
                     </div>
                 </div>
@@ -320,16 +371,19 @@
 
             @if (!string.IsNullOrEmpty(deactivateMessage))
             {
-                <div style="padding: 12px; margin-bottom: 16px; border-radius: 8px; background: @(deactivateSuccess ? "#d1fae5" : "#fee2e2"); color: @(deactivateSuccess ? "#065f46" : "#991b1b"); font-size: 14px;">
+                <div
+                    style="padding: 12px; margin-bottom: 16px; border-radius: 8px; background: @(deactivateSuccess ? "#d1fae5" : "#fee2e2"); color: @(deactivateSuccess ? "#065f46" : "#991b1b"); font-size: 14px;">
                     @deactivateMessage
                 </div>
             }
 
             <div style="display: flex; gap: 12px;">
-                <button @onclick="CloseDeactivateModal" style="flex: 1; padding: 12px; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                <button @onclick="CloseDeactivateModal"
+                    style="flex: 1; padding: 12px; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
                     Cancel
                 </button>
-                <button @onclick="ConfirmDeactivate" disabled="@isDeactivating" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                <button @onclick="ConfirmDeactivate" disabled="@isDeactivating"
+                    style="flex: 1; padding: 12px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
                     @(isDeactivating ? "Deactivating..." : "🚫 Deactivate")
                 </button>
             </div>
@@ -372,8 +426,8 @@
         {
             using var context = await DbContextFactory.CreateDbContextAsync();
             allUsers = await context.Users
-                .OrderByDescending(u => u.CreatedAt)
-                .ToListAsync();
+            .OrderByDescending(u => u.CreatedAt)
+            .ToListAsync();
         }
         catch (Exception ex)
         {
@@ -391,9 +445,9 @@
         {
             var search = searchQuery.ToLower();
             filtered = filtered.Where(u =>
-                (u.Username?.ToLower().Contains(search) ?? false) ||
-                (u.FullName?.ToLower().Contains(search) ?? false) ||
-                (u.Email?.ToLower().Contains(search) ?? false)
+            (u.Username?.ToLower().Contains(search) ?? false) ||
+            (u.FullName?.ToLower().Contains(search) ?? false) ||
+            (u.Email?.ToLower().Contains(search) ?? false)
             );
         }
 
@@ -419,9 +473,9 @@
     {
         var filtered = GetFilteredUsers();
         return filtered
-            .Skip((currentPage - 1) * pageSize)
-            .Take(pageSize)
-            .ToList();
+        .Skip((currentPage - 1) * pageSize)
+        .Take(pageSize)
+        .ToList();
     }
 
     private async Task ApplyFilters()
@@ -553,15 +607,15 @@
         {
             using var context = await DbContextFactory.CreateDbContextAsync();
             var dbUser = await context.Users.FindAsync(editUser.UserId);
-            
+
             if (dbUser != null)
             {
                 dbUser.FullName = editUser.FullName;
                 dbUser.Email = editUser.Email;
                 dbUser.Role = editUser.Role;
-                
+
                 await context.SaveChangesAsync();
-                
+
                 // Update local list
                 var localUser = allUsers.FirstOrDefault(u => u.UserId == editUser.UserId);
                 if (localUser != null)
@@ -573,7 +627,7 @@
 
                 editSuccess = true;
                 editMessage = "✓ User updated successfully!";
-                
+
                 await Task.Delay(1500);
                 CloseEditModal();
             }
@@ -622,12 +676,12 @@
         {
             using var context = await DbContextFactory.CreateDbContextAsync();
             var dbUser = await context.Users.FindAsync(userToDeactivate.UserId);
-            
+
             if (dbUser != null)
             {
                 dbUser.IsActive = false;
                 await context.SaveChangesAsync();
-                
+
                 // Update local list
                 var localUser = allUsers.FirstOrDefault(u => u.UserId == userToDeactivate.UserId);
                 if (localUser != null)
@@ -637,7 +691,7 @@
 
                 deactivateSuccess = true;
                 deactivateMessage = "✓ User deactivated successfully!";
-                
+
                 await Task.Delay(1500);
                 CloseDeactivateModal();
             }
@@ -665,19 +719,19 @@
         {
             using var context = await DbContextFactory.CreateDbContextAsync();
             var dbUser = await context.Users.FindAsync(user.UserId);
-            
+
             if (dbUser != null)
             {
                 dbUser.IsActive = true;
                 await context.SaveChangesAsync();
-                
+
                 // Update local list
                 var localUser = allUsers.FirstOrDefault(u => u.UserId == user.UserId);
                 if (localUser != null)
                 {
                     localUser.IsActive = true;
                 }
-                
+
                 StateHasChanged();
             }
         }

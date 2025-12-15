@@ -435,6 +435,48 @@
     </div>
 }
 
+<!-- Confirmation Popup Modal -->
+@if (showConfirmationPopup)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 2000;" @onclick="CloseConfirmationPopup">
+        <div style="background: white; border-radius: 20px; padding: 32px; max-width: 450px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.4);" @onclick:stopPropagation="true">
+            <!-- Icon -->
+            <div style="text-align: center; margin-bottom: 20px;">
+                @if (confirmationSuccess)
+                {
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);">
+                        <span style="font-size: 40px; color: white;">✓</span>
+                    </div>
+                }
+                else
+                {
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);">
+                        <span style="font-size: 40px; color: white;">!</span>
+                    </div>
+                }
+            </div>
+
+            <!-- Title -->
+            <h2 style="font-size: 22px; font-weight: 700; color: @(confirmationSuccess ? "#065f46" : "#991b1b"); text-align: center; margin: 0 0 16px 0;">
+                @confirmationTitle
+            </h2>
+
+            <!-- Message -->
+            <div style="font-size: 14px; color: #4b5563; text-align: center; line-height: 1.6; margin-bottom: 24px; white-space: pre-line; background: @(confirmationSuccess ? "#f0fdf4" : "#fef2f2"); padding: 16px; border-radius: 12px;">
+                @confirmationMessage
+            </div>
+
+            <!-- Button -->
+            <div style="text-align: center;">
+                <button @onclick="CloseConfirmationPopup" 
+                    style="padding: 14px 48px; background: linear-gradient(135deg, @(confirmationSuccess ? "#10b981, #059669" : "#3b82f6, #2563eb")); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 16px @(confirmationSuccess ? "rgba(16, 185, 129, 0.4)" : "rgba(59, 130, 246, 0.4)");">
+                    @(confirmationSuccess ? "Done" : "OK, Got It")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 <style>
     @@keyframes spin {
         to { transform: rotate(360deg); }
@@ -465,11 +507,17 @@
     private bool verifyAccountGoodStanding = false;
     private string tellerRecommendation = "";
 
+    // Confirmation popup
+    private bool showConfirmationPopup = false;
+    private string confirmationTitle = "";
+    private string confirmationMessage = "";
+    private bool confirmationSuccess = false;
+
     // Document upload
     private List<LoanDocument> uploadedDocuments = new();
     private bool isUploading = false;
     private string uploadMessage = "";
-    private const long MaxFileSize = 10 * 1024 * 1024; // 10MB max
+    private const long MaxFileSize = 5 * 1024 * 1024; // 5MB max (reduced from 10MB to avoid memory issues)
 
     protected override async Task OnInitializedAsync()
     {
@@ -598,23 +646,53 @@
 
         if (file.Size > MaxFileSize)
         {
-            uploadMessage = $"Error: File size exceeds 10MB limit. Please compress or reduce the file size.";
+            uploadMessage = $"Error: File size exceeds 5MB limit. Please compress or reduce the file size.";
+            StateHasChanged();
+            return;
+        }
+
+        // Validate file extension
+        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+        var fileExtension = Path.GetExtension(file.Name)?.ToLowerInvariant();
+        if (string.IsNullOrEmpty(fileExtension) || !allowedExtensions.Contains(fileExtension))
+        {
+            uploadMessage = "Error: Only PDF, JPG, JPEG, and PNG files are allowed.";
+            StateHasChanged();
             return;
         }
 
         isUploading = true;
         uploadMessage = "";
-        await InvokeAsync(StateHasChanged);
+        StateHasChanged();
 
         try
         {
-            await using var context = await DbContextFactory.CreateDbContextAsync();
+            // Read file data on a background thread to avoid UI blocking
+            byte[] fileData;
+            try
+            {
+                using var stream = file.OpenReadStream(MaxFileSize);
+                using var memoryStream = new MemoryStream();
+                
+                // Read in chunks to avoid memory issues with large files
+                var buffer = new byte[81920]; // 80KB buffer
+                int bytesRead;
+                while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                {
+                    await memoryStream.WriteAsync(buffer, 0, bytesRead);
+                }
+                fileData = memoryStream.ToArray();
+            }
+            catch (Exception fileEx)
+            {
+                uploadMessage = $"Error reading file: {fileEx.Message}. Please try a smaller file.";
+                isUploading = false;
+                StateHasChanged();
+                return;
+            }
 
-            // Read file data
-            using var stream = file.OpenReadStream(MaxFileSize);
-            using var memoryStream = new MemoryStream();
-            await stream.CopyToAsync(memoryStream);
-            var fileData = memoryStream.ToArray();
+            // Save to database
+            await using var context = await DbContextFactory.CreateDbContextAsync();
 
             // Check if document already exists for this type
             var existingDoc = await context.LoanDocuments
@@ -624,7 +702,7 @@
             {
                 // Update existing document
                 existingDoc.FileName = file.Name;
-                existingDoc.ContentType = file.ContentType;
+                existingDoc.ContentType = file.ContentType ?? "application/octet-stream";
                 existingDoc.FileData = fileData;
                 existingDoc.FileSize = file.Size;
                 existingDoc.UploadedBy = AuthService.CurrentUser ?? "teller";
@@ -639,7 +717,7 @@
                     ApplicationId = selectedApplication.ApplicationId,
                     DocumentType = documentType,
                     FileName = file.Name,
-                    ContentType = file.ContentType,
+                    ContentType = file.ContentType ?? "application/octet-stream",
                     FileData = fileData,
                     FileSize = file.Size,
                     UploadedBy = AuthService.CurrentUser ?? "teller",
@@ -655,14 +733,23 @@
             // Reload documents
             await LoadUploadedDocuments(selectedApplication.ApplicationId);
         }
+        catch (System.Runtime.InteropServices.SEHException)
+        {
+            uploadMessage = "Error: File operation failed. Please try a smaller image or convert to PDF.";
+        }
+        catch (OutOfMemoryException)
+        {
+            uploadMessage = "Error: File is too large. Please compress the image or use a smaller file.";
+        }
         catch (Exception ex)
         {
             uploadMessage = $"Error uploading file: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"File upload error: {ex}");
         }
         finally
         {
             isUploading = false;
-            await InvokeAsync(StateHasChanged);
+            StateHasChanged();
         }
     }
 
@@ -715,41 +802,81 @@
 
         if (!CanApprove())
         {
-            errorMessage = "Please complete all verification steps and select a recommendation before approving.";
+            ShowConfirmation("❌ Validation Error", "Please complete all verification steps and select a recommendation before approving.", false);
             return;
         }
 
         isProcessing = true;
         errorMessage = "";
-        await InvokeAsync(StateHasChanged);
+        StateHasChanged();
 
         try
         {
-            // Build comprehensive remarks with verification and recommendation
-            var fullRemarks = $"[Teller Review - {DateTime.Now:MMM dd, yyyy}]\n" +
-                             $"Recommendation: {tellerRecommendation}\n" +
-                             $"Verification: Identity ✓, Documents ✓, Signature ✓, Account Standing ✓\n" +
-                             (string.IsNullOrEmpty(remarks) ? "" : $"Notes: {remarks}");
+            // Save values before closing modal (CloseModal sets selectedApplication to null)
+            var appNumber = selectedApplication.ApplicationNumber;
+            var customerName = selectedApplication.Account?.Customer?.FullName ?? "N/A";
+            var requestedAmount = selectedApplication.RequestedAmount;
+            var recommendation = tellerRecommendation;
 
-            await LoanService.TellerApproveAsync(
+            // Use the enhanced review method that saves TellerRecommendation
+            await LoanService.TellerEnhancedReviewAsync(
                 selectedApplication.ApplicationId,
                 AuthService.CurrentUser ?? "teller",
-                fullRemarks
+                tellerRecommendation,
+                remarks ?? "",
+                verifyIdentity,
+                verifyDocuments,
+                verifySignature,
+                verifyAccountGoodStanding
             );
 
-            successMessage = $"Application {selectedApplication.ApplicationNumber} has been approved and forwarded to the Accountant for assessment.";
+            // Close modal first
             CloseModal();
+            
+            // Show success popup (using saved values since selectedApplication is now null)
+            ShowConfirmation("✅ Application Approved!", 
+                $"Loan application {appNumber} has been successfully reviewed and forwarded to the Accountant.\n\n" +
+                $"Application Details:\n" +
+                $"• Customer: {customerName}\n" +
+                $"• Amount: ₱{requestedAmount:N2}\n" +
+                $"• Your Recommendation: {recommendation}\n\n" +
+                "The Accountant will now perform credit assessment and financial analysis.", 
+                true);
+
+            // Reload data
             await LoadPendingApplications();
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error approving application: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"Error approving application: {ex}");
+            var innerMsg = ex.InnerException?.Message ?? "";
+            var fullError = string.IsNullOrEmpty(innerMsg) ? ex.Message : $"{ex.Message}\n\nInner Error: {innerMsg}";
+            ShowConfirmation("❌ Approval Failed", 
+                $"Failed to approve the application. Please try again.\n\nError: {fullError}", 
+                false);
         }
         finally
         {
             isProcessing = false;
-            await InvokeAsync(StateHasChanged);
+            StateHasChanged();
         }
+    }
+
+    private void ShowConfirmation(string title, string message, bool success)
+    {
+        confirmationTitle = title;
+        confirmationMessage = message;
+        confirmationSuccess = success;
+        showConfirmationPopup = true;
+        StateHasChanged();
+    }
+
+    private void CloseConfirmationPopup()
+    {
+        showConfirmationPopup = false;
+        confirmationTitle = "";
+        confirmationMessage = "";
+        StateHasChanged();
     }
 
     private async Task RejectApplication()
@@ -758,13 +885,13 @@
 
         if (string.IsNullOrWhiteSpace(rejectionReason))
         {
-            errorMessage = "Please provide a rejection reason.";
+            ShowConfirmation("❌ Validation Error", "Please provide a rejection reason.", false);
             return;
         }
 
         isProcessing = true;
         errorMessage = "";
-        await InvokeAsync(StateHasChanged);
+        StateHasChanged();
 
         try
         {
@@ -774,19 +901,32 @@
                 AuthService.CurrentUser ?? "teller"
             );
 
-            successMessage = $"Application {selectedApplication.ApplicationNumber} has been rejected.";
+            var appNumber = selectedApplication.ApplicationNumber;
+            var customerName = selectedApplication.Account?.Customer?.FullName ?? "N/A";
+            
             CloseModal();
+            
+            ShowConfirmation("✅ Application Rejected", 
+                $"Loan application {appNumber} has been rejected.\n\n" +
+                $"Customer: {customerName}\n" +
+                $"Reason: {rejectionReason}\n\n" +
+                "The customer will be notified of this decision.", 
+                true);
+
             await LoadPendingApplications();
             await LoadCancelledApplications();
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error rejecting application: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"Error rejecting application: {ex}");
+            ShowConfirmation("❌ Rejection Failed", 
+                $"Failed to reject the application. Please try again.\n\nError: {ex.Message}", 
+                false);
         }
         finally
         {
             isProcessing = false;
-            await InvokeAsync(StateHasChanged);
+            StateHasChanged();
         }
     }
 }
