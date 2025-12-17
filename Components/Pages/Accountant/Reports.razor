@@ -10,7 +10,7 @@
 @inject AuthService AuthService
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
@@ -27,10 +27,10 @@
 <!-- Alert Messages -->
 @if (!string.IsNullOrEmpty(successMessage))
 {
-    <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+    <div style="background: #D4E6D4; border: 1px solid #A9B388; color: #2F3E2A; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
         <span style="font-size: 20px;">✅</span>
         <span style="font-weight: 500;">@successMessage</span>
-        <button @onclick="() => successMessage = string.Empty" style="margin-left: auto; background: none; border: none; color: #065f46; cursor: pointer; font-size: 18px;">×</button>
+        <button @onclick="() => successMessage = string.Empty" style="margin-left: auto; background: none; border: none; color: #2F3E2A; cursor: pointer; font-size: 18px;">×</button>
     </div>
 }
 
@@ -58,7 +58,7 @@
     <!-- Journal Entries Report -->
     <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #8B5A2B, #6B4423); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
                 <span style="font-size: 28px;">📝</span>
             </div>
             <div style="flex: 1;">
@@ -66,18 +66,18 @@
                 <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">All journal entries within date range</p>
             </div>
         </div>
-        <div style="background: #fef3c7; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+        <div style="background: #F5EFE0; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="font-size: 13px; color: #92400e;">Total Entries:</span>
-                <span style="font-weight: 700; color: #92400e;">@journalEntriesCount</span>
+                <span style="font-size: 13px; color: #6B4423;">Total Entries:</span>
+                <span style="font-weight: 700; color: #6B4423;">@journalEntriesCount</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
-                <span style="font-size: 13px; color: #92400e;">Total Amount:</span>
-                <span style="font-weight: 700; color: #92400e;">₱@journalTotalAmount.ToString("N2")</span>
+                <span style="font-size: 13px; color: #6B4423;">Total Amount:</span>
+                <span style="font-weight: 700; color: #6B4423;">₱@journalTotalAmount.ToString("N2")</span>
             </div>
         </div>
         <button @onclick="GenerateJournalReport" disabled="@isGenerating" 
-            style="width: 100%; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
+            style="width: 100%; background: linear-gradient(135deg, #8B5A2B, #6B4423); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
             @(isGenerating ? "Generating..." : "📄 Generate Report")
         </button>
     </div>
@@ -85,7 +85,7 @@
     <!-- Accounts Payable Report -->
     <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #9B3A3A, #7A2E2E); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
                 <span style="font-size: 28px;">💳</span>
             </div>
             <div style="flex: 1;">
@@ -93,18 +93,18 @@
                 <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">Outstanding payments and invoices</p>
             </div>
         </div>
-        <div style="background: #fee2e2; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+        <div style="background: #F5E6E6; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="font-size: 13px; color: #991b1b;">Pending Invoices:</span>
-                <span style="font-weight: 700; color: #991b1b;">@payablesCount</span>
+                <span style="font-size: 13px; color: #7A2E2E;">Pending Invoices:</span>
+                <span style="font-weight: 700; color: #7A2E2E;">@payablesCount</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
-                <span style="font-size: 13px; color: #991b1b;">Total Payable:</span>
-                <span style="font-weight: 700; color: #991b1b;">₱@payablesTotalAmount.ToString("N2")</span>
+                <span style="font-size: 13px; color: #7A2E2E;">Total Payable:</span>
+                <span style="font-weight: 700; color: #7A2E2E;">₱@payablesTotalAmount.ToString("N2")</span>
             </div>
         </div>
         <button @onclick="GeneratePayablesReport" disabled="@isGenerating"
-            style="width: 100%; background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
+            style="width: 100%; background: linear-gradient(135deg, #9B3A3A, #7A2E2E); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
             @(isGenerating ? "Generating..." : "📄 Generate Report")
         </button>
     </div>
@@ -112,7 +112,7 @@
     <!-- Accounts Receivable Report -->
     <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #059669, #047857); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #5F6F52, #2F3E2A); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
                 <span style="font-size: 28px;">💰</span>
             </div>
             <div style="flex: 1;">
@@ -120,18 +120,18 @@
                 <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">Outstanding collections</p>
             </div>
         </div>
-        <div style="background: #d1fae5; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+        <div style="background: #D4E6D4; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="font-size: 13px; color: #065f46;">Pending Collections:</span>
-                <span style="font-weight: 700; color: #065f46;">@receivablesCount</span>
+                <span style="font-size: 13px; color: #2F3E2A;">Pending Collections:</span>
+                <span style="font-weight: 700; color: #2F3E2A;">@receivablesCount</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
-                <span style="font-size: 13px; color: #065f46;">Total Receivable:</span>
-                <span style="font-weight: 700; color: #065f46;">₱@receivablesTotalAmount.ToString("N2")</span>
+                <span style="font-size: 13px; color: #2F3E2A;">Total Receivable:</span>
+                <span style="font-weight: 700; color: #2F3E2A;">₱@receivablesTotalAmount.ToString("N2")</span>
             </div>
         </div>
         <button @onclick="GenerateReceivablesReport" disabled="@isGenerating"
-            style="width: 100%; background: linear-gradient(135deg, #059669, #047857); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
+            style="width: 100%; background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
             @(isGenerating ? "Generating..." : "📄 Generate Report")
         </button>
     </div>
@@ -139,7 +139,7 @@
     <!-- General Ledger Report -->
     <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #6B7B5E, #5F6F52); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
                 <span style="font-size: 28px;">📒</span>
             </div>
             <div style="flex: 1;">
@@ -147,18 +147,18 @@
                 <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">Complete GL entries for period</p>
             </div>
         </div>
-        <div style="background: #dbeafe; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+        <div style="background: #E8F0E8; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="font-size: 13px; color: #1e40af;">Total Entries:</span>
-                <span style="font-weight: 700; color: #1e40af;">@glEntriesCount</span>
+                <span style="font-size: 13px; color: #2F3E2A;">Total Entries:</span>
+                <span style="font-weight: 700; color: #2F3E2A;">@glEntriesCount</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
-                <span style="font-size: 13px; color: #1e40af;">Total Debits:</span>
-                <span style="font-weight: 700; color: #1e40af;">₱@glTotalDebits.ToString("N2")</span>
+                <span style="font-size: 13px; color: #2F3E2A;">Total Debits:</span>
+                <span style="font-weight: 700; color: #2F3E2A;">₱@glTotalDebits.ToString("N2")</span>
             </div>
         </div>
         <button @onclick="GenerateGLReport" disabled="@isGenerating"
-            style="width: 100%; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
+            style="width: 100%; background: linear-gradient(135deg, #6B7B5E, #5F6F52); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
             @(isGenerating ? "Generating..." : "📄 Generate Report")
         </button>
     </div>
@@ -166,7 +166,7 @@
     <!-- Transaction Summary Report -->
     <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #7c3aed, #6d28d9); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #A9B388, #8B9B74); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
                 <span style="font-size: 28px;">📊</span>
             </div>
             <div style="flex: 1;">
@@ -174,18 +174,18 @@
                 <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">Deposits, withdrawals, transfers</p>
             </div>
         </div>
-        <div style="background: #ede9fe; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+        <div style="background: #F0F2EC; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="font-size: 13px; color: #5b21b6;">Total Transactions:</span>
-                <span style="font-weight: 700; color: #5b21b6;">@transactionsCount</span>
+                <span style="font-size: 13px; color: #5F6F52;">Total Transactions:</span>
+                <span style="font-weight: 700; color: #5F6F52;">@transactionsCount</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
-                <span style="font-size: 13px; color: #5b21b6;">Net Flow:</span>
-                <span style="font-weight: 700; color: @(netFlow >= 0 ? "#059669" : "#dc2626");">₱@netFlow.ToString("N2")</span>
+                <span style="font-size: 13px; color: #5F6F52;">Net Flow:</span>
+                <span style="font-weight: 700; color: @(netFlow >= 0 ? "#5F6F52" : "#9B3A3A");">₱@netFlow.ToString("N2")</span>
             </div>
         </div>
         <button @onclick="GenerateTransactionReport" disabled="@isGenerating"
-            style="width: 100%; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
+            style="width: 100%; background: linear-gradient(135deg, #A9B388, #8B9B74); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
             @(isGenerating ? "Generating..." : "📄 Generate Report")
         </button>
     </div>
@@ -193,7 +193,7 @@
     <!-- Financial Statements Summary -->
     <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #E5D9B6, #D4C8A0); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
                 <span style="font-size: 28px;">📑</span>
             </div>
             <div style="flex: 1;">
@@ -201,17 +201,17 @@
                 <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">Income, Balance, Cash Flow</p>
             </div>
         </div>
-        <div style="background: #fce7f3; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+        <div style="background: #F5F0E0; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="font-size: 13px; color: #9d174d;">Total Statements:</span>
-                <span style="font-weight: 700; color: #9d174d;">@statementsCount</span>
+                <span style="font-size: 13px; color: #6B4423;">Total Statements:</span>
+                <span style="font-weight: 700; color: #6B4423;">@statementsCount</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
-                <span style="font-size: 13px; color: #9d174d;">Types:</span>
-                <span style="font-weight: 700; color: #9d174d;">Income, Balance, Cash Flow</span>
+                <span style="font-size: 13px; color: #6B4423;">Types:</span>
+                <span style="font-weight: 700; color: #6B4423;">Income, Balance, Cash Flow</span>
             </div>
         </div>
-        <a href="/accountant/financial-statements" style="display: block; width: 100%; background: linear-gradient(135deg, #ec4899, #db2777); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; text-align: center; text-decoration: none;">
+        <a href="/accountant/financial-statements" style="display: block; width: 100%; background: linear-gradient(135deg, #E5D9B6, #D4C8A0); color: #6B4423; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; text-align: center; text-decoration: none;">
             📄 View Statements
         </a>
     </div>
@@ -223,7 +223,7 @@
     <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; overflow-y: auto; padding: 20px;">
         <div style="background: white; border-radius: 16px; max-width: 1000px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
             <!-- Modal Header -->
-            <div style="background: linear-gradient(135deg, #059669, #047857); padding: 24px; border-radius: 16px 16px 0 0; position: sticky; top: 0; z-index: 10;">
+            <div style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); padding: 24px; border-radius: 16px 16px 0 0; position: sticky; top: 0; z-index: 10;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <h2 style="font-size: 20px; font-weight: 700; color: white; margin: 0;">@reportTitle</h2>
@@ -258,7 +258,7 @@
                                     <td style="padding: 12px;">@entry.Description</td>
                                     <td style="padding: 12px; text-align: right; font-weight: 600;">₱@entry.TotalDebit.ToString("N2")</td>
                                     <td style="padding: 12px; text-align: center;">
-                                        <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(entry.Status == "Posted" ? "#d1fae5" : "#fef3c7"); color: @(entry.Status == "Posted" ? "#065f46" : "#92400e");">@entry.Status</span>
+                                        <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(entry.Status == "Posted" ? "#D4E6D4" : "#fef3c7"); color: @(entry.Status == "Posted" ? "#2F3E2A" : "#92400e");">@entry.Status</span>
                                     </td>
                                 </tr>
                             }
@@ -288,21 +288,21 @@
                             @foreach (var ap in reportPayables.Take(50))
                             {
                                 var isOverdue = ap.DueDate < DateTime.Today && ap.Status != "Paid";
-                                <tr style="border-bottom: 1px solid #f1f5f9; background: @(isOverdue ? "#fef2f2" : "transparent");">
+                                <tr style="border-bottom: 1px solid #f1f5f9; background: @(isOverdue ? "#FAF5F5" : "transparent");">
                                     <td style="padding: 12px;">@ap.VendorName</td>
                                     <td style="padding: 12px; font-family: monospace;">@ap.InvoiceNumber</td>
-                                    <td style="padding: 12px; color: @(isOverdue ? "#dc2626" : "#374151");">@ap.DueDate.ToString("MMM dd, yyyy") @(isOverdue ? "⚠️" : "")</td>
-                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: #dc2626;">₱@ap.OutstandingAmount.ToString("N2")</td>
+                                    <td style="padding: 12px; color: @(isOverdue ? "#9B3A3A" : "#374151");">@ap.DueDate.ToString("MMM dd, yyyy") @(isOverdue ? "⚠️" : "")</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: #9B3A3A;">₱@ap.OutstandingAmount.ToString("N2")</td>
                                     <td style="padding: 12px; text-align: center;">
-                                        <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(ap.Status == "Paid" ? "#d1fae5" : "#fee2e2"); color: @(ap.Status == "Paid" ? "#065f46" : "#991b1b");">@ap.Status</span>
+                                        <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(ap.Status == "Paid" ? "#D4E6D4" : "#F5E6E6"); color: @(ap.Status == "Paid" ? "#2F3E2A" : "#7A2E2E");">@ap.Status</span>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                         <tfoot>
-                            <tr style="background: #fee2e2; font-weight: 700;">
+                            <tr style="background: #F5E6E6; font-weight: 700;">
                                 <td colspan="3" style="padding: 12px;">Total Payable (@reportPayables.Count records)</td>
-                                <td style="padding: 12px; text-align: right; color: #dc2626;">₱@reportPayables.Sum(p => p.OutstandingAmount).ToString("N2")</td>
+                                <td style="padding: 12px; text-align: right; color: #9B3A3A;">₱@reportPayables.Sum(p => p.OutstandingAmount).ToString("N2")</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -327,17 +327,17 @@
                                     <td style="padding: 12px;">@ar.CustomerName</td>
                                     <td style="padding: 12px; font-family: monospace;">@ar.InvoiceNumber</td>
                                     <td style="padding: 12px;">@ar.DueDate.ToString("MMM dd, yyyy")</td>
-                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: #059669;">₱@ar.OutstandingAmount.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: #5F6F52;">₱@ar.OutstandingAmount.ToString("N2")</td>
                                     <td style="padding: 12px; text-align: center;">
-                                        <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(ar.Status == "Paid" ? "#d1fae5" : "#fef3c7"); color: @(ar.Status == "Paid" ? "#065f46" : "#92400e");">@ar.Status</span>
+                                        <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(ar.Status == "Paid" ? "#D4E6D4" : "#fef3c7"); color: @(ar.Status == "Paid" ? "#2F3E2A" : "#92400e");">@ar.Status</span>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                         <tfoot>
-                            <tr style="background: #d1fae5; font-weight: 700;">
+                            <tr style="background: #D4E6D4; font-weight: 700;">
                                 <td colspan="3" style="padding: 12px;">Total Receivable (@reportReceivables.Count records)</td>
-                                <td style="padding: 12px; text-align: right; color: #059669;">₱@reportReceivables.Sum(r => r.OutstandingAmount).ToString("N2")</td>
+                                <td style="padding: 12px; text-align: right; color: #5F6F52;">₱@reportReceivables.Sum(r => r.OutstandingAmount).ToString("N2")</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -362,16 +362,16 @@
                                     <td style="padding: 12px;">@gl.TransactionDate.ToString("MMM dd, yyyy")</td>
                                     <td style="padding: 12px;">@gl.AccountCode - @gl.AccountName</td>
                                     <td style="padding: 12px;">@gl.Description</td>
-                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: @(gl.DebitAmount > 0 ? "#2563eb" : "#9ca3af");">@(gl.DebitAmount > 0 ? $"₱{gl.DebitAmount:N2}" : "-")</td>
-                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: @(gl.CreditAmount > 0 ? "#059669" : "#9ca3af");">@(gl.CreditAmount > 0 ? $"₱{gl.CreditAmount:N2}" : "-")</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: @(gl.DebitAmount > 0 ? "#5F6F52" : "#9ca3af");">@(gl.DebitAmount > 0 ? $"₱{gl.DebitAmount:N2}" : "-")</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: @(gl.CreditAmount > 0 ? "#5F6F52" : "#9ca3af");">@(gl.CreditAmount > 0 ? $"₱{gl.CreditAmount:N2}" : "-")</td>
                                 </tr>
                             }
                         </tbody>
                         <tfoot>
-                            <tr style="background: #dbeafe; font-weight: 700;">
+                            <tr style="background: #E8F0E8; font-weight: 700;">
                                 <td colspan="3" style="padding: 12px;">Totals (@reportGLEntries.Count entries)</td>
-                                <td style="padding: 12px; text-align: right; color: #2563eb;">₱@reportGLEntries.Sum(g => g.DebitAmount).ToString("N2")</td>
-                                <td style="padding: 12px; text-align: right; color: #059669;">₱@reportGLEntries.Sum(g => g.CreditAmount).ToString("N2")</td>
+                                <td style="padding: 12px; text-align: right; color: #5F6F52;">₱@reportGLEntries.Sum(g => g.DebitAmount).ToString("N2")</td>
+                                <td style="padding: 12px; text-align: right; color: #5F6F52;">₱@reportGLEntries.Sum(g => g.CreditAmount).ToString("N2")</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -379,17 +379,17 @@
                 else if (reportType == "transactions")
                 {
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px;">
-                        <div style="background: #d1fae5; padding: 20px; border-radius: 12px; text-align: center;">
-                            <div style="font-size: 14px; color: #065f46;">Total Deposits</div>
-                            <div style="font-size: 28px; font-weight: 700; color: #059669;">₱@reportTransactions.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount).ToString("N2")</div>
+                        <div style="background: #D4E6D4; padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 14px; color: #2F3E2A;">Total Deposits</div>
+                            <div style="font-size: 28px; font-weight: 700; color: #5F6F52;">₱@reportTransactions.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount).ToString("N2")</div>
                         </div>
-                        <div style="background: #fee2e2; padding: 20px; border-radius: 12px; text-align: center;">
-                            <div style="font-size: 14px; color: #991b1b;">Total Withdrawals</div>
-                            <div style="font-size: 28px; font-weight: 700; color: #dc2626;">₱@reportTransactions.Where(t => t.TransactionType == "Withdrawal").Sum(t => t.Amount).ToString("N2")</div>
+                        <div style="background: #F5E6E6; padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 14px; color: #7A2E2E;">Total Withdrawals</div>
+                            <div style="font-size: 28px; font-weight: 700; color: #9B3A3A;">₱@reportTransactions.Where(t => t.TransactionType == "Withdrawal").Sum(t => t.Amount).ToString("N2")</div>
                         </div>
-                        <div style="background: #dbeafe; padding: 20px; border-radius: 12px; text-align: center;">
-                            <div style="font-size: 14px; color: #1e40af;">Net Flow</div>
-                            <div style="font-size: 28px; font-weight: 700; color: @(reportNetFlow >= 0 ? "#059669" : "#dc2626");">₱@reportNetFlow.ToString("N2")</div>
+                        <div style="background: #F5EFE0; padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 14px; color: #6B4423;">Net Flow</div>
+                            <div style="font-size: 28px; font-weight: 700; color: @(reportNetFlow >= 0 ? "#5F6F52" : "#9B3A3A");">₱@reportNetFlow.ToString("N2")</div>
                         </div>
                     </div>
                     <table style="width: 100%; border-collapse: collapse;">
@@ -408,10 +408,10 @@
                                 <tr style="border-bottom: 1px solid #f1f5f9;">
                                     <td style="padding: 12px;">@tx.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
                                     <td style="padding: 12px;">
-                                        <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(isDeposit ? "#d1fae5" : "#fee2e2"); color: @(isDeposit ? "#065f46" : "#991b1b");">@tx.TransactionType</span>
+                                        <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(isDeposit ? "#D4E6D4" : "#F5E6E6"); color: @(isDeposit ? "#2F3E2A" : "#7A2E2E");">@tx.TransactionType</span>
                                     </td>
                                     <td style="padding: 12px; font-family: monospace;">@(tx.Reference ?? "N/A")</td>
-                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: @(isDeposit ? "#059669" : "#dc2626");">@(isDeposit ? "+" : "-")₱@tx.Amount.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: @(isDeposit ? "#5F6F52" : "#9B3A3A");">@(isDeposit ? "+" : "-")₱@tx.Amount.ToString("N2")</td>
                                 </tr>
                             }
                         </tbody>

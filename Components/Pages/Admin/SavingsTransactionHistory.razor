@@ -10,7 +10,7 @@
 
 <div style="padding: 24px; max-width: 1600px; margin: 0 auto;">
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, #059669, #047857); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                 <svg width="28" height="28" fill="none" stroke="white" stroke-width="2">
@@ -72,25 +72,25 @@
 
     <!-- Summary Cards -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 20px; border-left: 4px solid #059669;">
-            <div style="font-size: 12px; color: #047857; margin-bottom: 4px;">TOTAL DEPOSITS</div>
-            <div style="font-size: 24px; font-weight: 700; color: #059669;">₱@totalDeposits.ToString("N2")</div>
-            <div style="font-size: 11px; color: #065f46;">@depositCount transactions</div>
+        <div style="background: linear-gradient(135deg, #E8F0E8, #D4E6D4); border-radius: 12px; padding: 20px; border-left: 4px solid #5F6F52;">
+            <div style="font-size: 12px; color: #2F3E2A; margin-bottom: 4px;">TOTAL DEPOSITS</div>
+            <div style="font-size: 24px; font-weight: 700; color: #5F6F52;">₱@totalDeposits.ToString("N2")</div>
+            <div style="font-size: 11px; color: #2F3E2A;">@depositCount transactions</div>
         </div>
-        <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 20px; border-left: 4px solid #10b981;">
-            <div style="font-size: 12px; color: #047857; margin-bottom: 4px;">TOTAL WITHDRAWALS</div>
-            <div style="font-size: 24px; font-weight: 700; color: #059669;">₱@totalWithdrawals.ToString("N2")</div>
-            <div style="font-size: 11px; color: #065f46;">@withdrawalCount transactions</div>
+        <div style="background: linear-gradient(135deg, #D4E6D4, #BCC9A6); border-radius: 12px; padding: 20px; border-left: 4px solid #5F6F52;">
+            <div style="font-size: 12px; color: #2F3E2A; margin-bottom: 4px;">TOTAL WITHDRAWALS</div>
+            <div style="font-size: 24px; font-weight: 700; color: #5F6F52;">₱@totalWithdrawals.ToString("N2")</div>
+            <div style="font-size: 11px; color: #2F3E2A;">@withdrawalCount transactions</div>
         </div>
-        <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 20px; border-left: 4px solid #34d399;">
-            <div style="font-size: 12px; color: #047857; margin-bottom: 4px;">INTEREST POSTED</div>
-            <div style="font-size: 24px; font-weight: 700; color: #059669;">₱@totalInterest.ToString("N2")</div>
-            <div style="font-size: 11px; color: #065f46;">@interestCount postings</div>
+        <div style="background: linear-gradient(135deg, #F0F2EC, #DDE6D5); border-radius: 12px; padding: 20px; border-left: 4px solid #6B7B5E;">
+            <div style="font-size: 12px; color: #2F3E2A; margin-bottom: 4px;">INTEREST POSTED</div>
+            <div style="font-size: 24px; font-weight: 700; color: #5F6F52;">₱@totalInterest.ToString("N2")</div>
+            <div style="font-size: 11px; color: #2F3E2A;">@interestCount postings</div>
         </div>
-        <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 20px; border-left: 4px solid #6ee7b7;">
-            <div style="font-size: 12px; color: #047857; margin-bottom: 4px;">NET CHANGE</div>
-            <div style="font-size: 24px; font-weight: 700; color: #059669;">₱@netChange.ToString("N2")</div>
-            <div style="font-size: 11px; color: #065f46;">@filteredTransactions.Count total txns</div>
+        <div style="background: linear-gradient(135deg, #E8F0E8, #D4E6D4); border-radius: 12px; padding: 20px; border-left: 4px solid #A9B388;">
+            <div style="font-size: 12px; color: #2F3E2A; margin-bottom: 4px;">NET CHANGE</div>
+            <div style="font-size: 24px; font-weight: 700; color: #5F6F52;">₱@netChange.ToString("N2")</div>
+            <div style="font-size: 11px; color: #2F3E2A;">@filteredTransactions.Count total txns</div>
         </div>
     </div>
 
@@ -101,11 +101,11 @@
                 <h3 style="margin: 0; font-weight: 700; color: #1f2937;">Transaction Records (@filteredTransactions.Count)</h3>
                 <div style="display: flex; gap: 8px;">
                     <button @onclick='() => { sortBy = "date_desc"; ApplyFilters(); }' 
-                            style="padding: 6px 12px; background: @(sortBy == "date_desc" ? "#059669" : "#f3f4f6"); color: @(sortBy == "date_desc" ? "white" : "#6b7280"); border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                            style="padding: 6px 12px; background: @(sortBy == "date_desc" ? "#5F6F52" : "#f3f4f6"); color: @(sortBy == "date_desc" ? "white" : "#6b7280"); border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">
                         Date ↓
                     </button>
                     <button @onclick='() => { sortBy = "amount_desc"; ApplyFilters(); }' 
-                            style="padding: 6px 12px; background: @(sortBy == "amount_desc" ? "#059669" : "#f3f4f6"); color: @(sortBy == "amount_desc" ? "white" : "#6b7280"); border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                            style="padding: 6px 12px; background: @(sortBy == "amount_desc" ? "#5F6F52" : "#f3f4f6"); color: @(sortBy == "amount_desc" ? "white" : "#6b7280"); border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">
                         Amount ↓
                     </button>
                 </div>
@@ -115,7 +115,7 @@
         @if (isLoading)
         {
             <div style="text-align: center; padding: 60px;">
-                <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
                 <p style="margin-top: 16px; color: #6b7280;">Loading transactions...</p>
             </div>
         }
@@ -342,7 +342,7 @@
     {
         return type switch
         {
-            "Deposit" => ("#d1fae5", "#065f46", "💰", "+"),
+            "Deposit" => ("#D4E6D4", "#2F3E2A", "💰", "+"),
             "Withdrawal" => ("#fee2e2", "#991b1b", "💸", "-"),
             "InterestPosting" => ("#dbeafe", "#1e40af", "📈", "+"),
             "PenaltyCharge" => ("#fed7aa", "#92400e", "⚠️", "-"),
@@ -354,7 +354,7 @@
     {
         return status switch
         {
-            "Completed" => ("#d1fae5", "#065f46"),
+            "Completed" => ("#D4E6D4", "#2F3E2A"),
             "Pending" => ("#fef3c7", "#92400e"),
             "Approved" => ("#dbeafe", "#1e40af"),
             "Rejected" => ("#fee2e2", "#991b1b"),

@@ -7,19 +7,22 @@
 @inject NavigationManager Navigation
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
-    <div style="background: linear-gradient(135deg, #3b82f6, #60a5fa); border-radius: 16px; padding: 28px; margin-bottom: 24px; color: white;">
+    <div style="background: #2F3E2A; border-radius: 14px; padding: 28px; margin-bottom: 24px; color: #FFFFFF;">
         <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <div
+                style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
                 </svg>
             </div>
             <div style="flex: 1;">
-                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">My Asset Applications</h1>
-                <p style="margin: 8px 0 0; opacity: 0.9; font-size: 16px;">Track your asset purchase and loan applications</p>
+                <h1 style="font-size: 28px; font-weight: 600; margin: 0;">My Asset Applications</h1>
+                <p style="margin: 8px 0 0; opacity: 0.9; font-size: 16px;">Track your asset purchase and loan
+                    applications</p>
             </div>
-            <button @onclick="GoToMarketplace" style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <button @onclick="GoToMarketplace"
+                style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -32,19 +35,24 @@
     @if (isLoading)
     {
         <div style="text-align: center; padding: 60px;">
-            <div style="display: inline-block; width: 50px; height: 50px; border: 5px solid #f3f4f6; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <p style="margin-top: 16px; color: #6b7280;">Loading your applications...</p>
+            <div
+                style="display: inline-block; width: 50px; height: 50px; border: 5px solid #F7F7F4; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite;">
+            </div>
+            <p style="margin-top: 16px; color: #6B6B6B;">Loading your applications...</p>
         </div>
     }
     else if (applications == null || !applications.Any())
     {
-        <div style="background: white; border-radius: 16px; padding: 60px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="2" style="margin: 0 auto 20px;">
+        <div
+            style="background: #FFFFFF; border-radius: 14px; padding: 60px; text-align: center; box-shadow: 0 2px 8px rgba(47, 62, 42, 0.6);">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#E2E2DC" stroke-width="2"
+                style="margin: 0 auto 20px;">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
             </svg>
-            <h3 style="color: #9ca3af; margin: 0; font-size: 24px;">No Applications Yet</h3>
-            <p style="color: #d1d5db; margin: 12px 0 24px 0; font-size: 16px;">You haven't applied for any assets yet</p>
-            <button @onclick="GoToMarketplace" style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 12px 28px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 16px;">
+            <h3 style="color: #6B6B6B; margin: 0; font-size: 24px;">No Applications Yet</h3>
+            <p style="color: #E2E2DC; margin: 12px 0 24px 0; font-size: 16px;">You haven't applied for any assets yet</p>
+            <button @onclick="GoToMarketplace"
+                style="background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; border: none; padding: 12px 28px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 16px;">
                 Browse Available Assets
             </button>
         </div>
@@ -54,20 +62,23 @@
         <div style="display: grid; gap: 20px;">
             @foreach (var app in applications)
             {
-                <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 6px solid @GetStatusColor(app.Status);">
+                <div
+                    style="background: #FFFFFF; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 12px rgba(47, 62, 42, 0.6); border-left: 6px solid @GetStatusColor(app.Status);">
                     <div style="display: grid; grid-template-columns: 200px 1fr; gap: 0;">
                         <!-- Asset Image -->
-                        <div style="height: 100%; min-height: 250px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); position: relative;">
+                        <div
+                            style="height: 100%; min-height: 250px; background: linear-gradient(135deg, #F0F2EC, #DDE6D5); position: relative;">
                             @if (app.Asset?.Images != null && app.Asset.Images.Any())
                             {
                                 var primaryImage = app.Asset.Images.FirstOrDefault(i => i.IsPrimary) ?? app.Asset.Images.First();
-                                <img src="data:@primaryImage.ContentType;base64,@Convert.ToBase64String(primaryImage.ImageData ?? Array.Empty<byte>())" 
-                                     style="width: 100%; height: 100%; object-fit: cover;" />
+                                <img src="data:@primaryImage.ContentType;base64,@Convert.ToBase64String(primaryImage.ImageData ?? Array.Empty<byte>())"
+                                    style="width: 100%; height: 100%; object-fit: cover;" />
                             }
                             else
                             {
-                                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-                                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#bbf7d0" stroke-width="2">
+                                <div
+                                    style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#BCC9A6" stroke-width="2">
                                         <rect x="3" y="3" width="18" height="18" rx="2"></rect>
                                     </svg>
                                 </div>
@@ -76,47 +87,57 @@
 
                         <!-- Application Details -->
                         <div style="padding: 24px;">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
                                 <div>
                                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                                        <h3 style="margin: 0; color: #1f2937; font-size: 22px; font-weight: 700;">@app.Asset?.AssetName</h3>
-                                        <span style="background: @GetTypeBackground(app.Asset?.AssetType ?? ""); color: @GetTypeColor2(app.Asset?.AssetType ?? ""); padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                                        <h3 style="margin: 0; color: #2B2B2B; font-size: 22px; font-weight: 600;">
+                                            @app.Asset?.AssetName</h3>
+                                        <span
+                                            style="background: @GetTypeBackground(app.Asset?.AssetType ?? ""); color: @GetTypeColor2(app.Asset?.AssetType ?? ""); padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
                                             @app.Asset?.AssetType
                                         </span>
                                     </div>
-                                    <div style="color: #6b7280; font-size: 14px; margin-bottom: 4px;">Application #: <span style="font-weight: 600; color: #374151;">@app.ApplicationNumber</span></div>
-                                    <div style="color: #6b7280; font-size: 14px;">Submitted: @app.SubmittedAt.ToString("MMMM dd, yyyy")</div>
+                                    <div style="color: #6B6B6B; font-size: 14px; margin-bottom: 4px;">Application #: <span
+                                            style="font-weight: 600; color: #2B2B2B;">@app.ApplicationNumber</span></div>
+                                    <div style="color: #6B6B6B; font-size: 14px;">Submitted: @app.SubmittedAt.ToString("MMMM dd, yyyy")</div>
                                 </div>
                                 <div style="text-align: right;">
-                                    <div style="background: @GetStatusColor(app.Status); color: white; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 8px;">
+                                    <div
+                                        style="background: @GetStatusColor(app.Status); color: #FFFFFF; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-bottom: 8px;">
                                         @FormatStatus(app.Status)
                                     </div>
                                 </div>
                             </div>
 
-                            <div style="background: #f9fafb; border-radius: 10px; padding: 16px; margin-bottom: 16px;">
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
+                            <div style="background: #FAFAF8; border-radius: 10px; padding: 16px; margin-bottom: 16px;">
+                                <div
+                                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
                                     <div>
-                                        <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Asset Price</div>
-                                        <div style="color: #1f2937; font-weight: 700; font-size: 18px;">₱@app.AssetPrice.ToString("N2")</div>
+                                        <div style="color: #6B6B6B; font-size: 12px; margin-bottom: 4px;">Asset Price</div>
+                                        <div style="color: #2B2B2B; font-weight: 600; font-size: 18px;">
+                                            ₱@app.AssetPrice.ToString("N2")</div>
                                     </div>
                                     <div>
-                                        <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Down Payment</div>
-                                        <div style="color: #059669; font-weight: 700; font-size: 18px;">₱@app.DownPaymentAmount.ToString("N2")</div>
+                                        <div style="color: #6B6B6B; font-size: 12px; margin-bottom: 4px;">Down Payment</div>
+                                        <div style="color: #5F6F52; font-weight: 600; font-size: 18px;">
+                                            ₱@app.DownPaymentAmount.ToString("N2")</div>
                                     </div>
                                     <div>
-                                        <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Purchase Type</div>
-                                        <div style="color: #1f2937; font-weight: 600; font-size: 16px;">@app.PurchaseType</div>
+                                        <div style="color: #6B6B6B; font-size: 12px; margin-bottom: 4px;">Purchase Type</div>
+                                        <div style="color: #2B2B2B; font-weight: 600; font-size: 16px;">@app.PurchaseType</div>
                                     </div>
                                     @if (app.PurchaseType == "Loan")
                                     {
                                         <div>
-                                            <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Monthly Payment</div>
-                                            <div style="color: #3b82f6; font-weight: 700; font-size: 18px;">₱@app.MonthlyPayment.ToString("N2")</div>
+                                            <div style="color: #6B6B6B; font-size: 12px; margin-bottom: 4px;">Monthly Payment</div>
+                                            <div style="color: #5F6F52; font-weight: 600; font-size: 18px;">
+                                                ₱@app.MonthlyPayment.ToString("N2")</div>
                                         </div>
                                         <div>
-                                            <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Loan Term</div>
-                                            <div style="color: #1f2937; font-weight: 600; font-size: 16px;">@app.TermMonths months</div>
+                                            <div style="color: #6B6B6B; font-size: 12px; margin-bottom: 4px;">Loan Term</div>
+                                            <div style="color: #2B2B2B; font-weight: 600; font-size: 16px;">@app.TermMonths months
+                                            </div>
                                         </div>
                                     }
                                 </div>
@@ -124,33 +145,51 @@
 
                             <!-- Status Timeline -->
                             <div style="margin-bottom: 16px;">
-                                <div style="color: #374151; font-weight: 600; font-size: 14px; margin-bottom: 12px;">Application Progress</div>
+                                <div style="color: #2B2B2B; font-weight: 600; font-size: 14px; margin-bottom: 12px;">Application
+                                    Progress</div>
                                 <div style="display: flex; gap: 8px;">
-                                    <div style="flex: 1; background: @(IsStepComplete(app.Status, 1) ? "#d1fae5" : "#f3f4f6"); border-radius: 6px; padding: 8px; text-align: center;">
-                                        <div style="font-size: 11px; color: @(IsStepComplete(app.Status, 1) ? "#065f46" : "#9ca3af"); font-weight: 600;">SUBMITTED</div>
+                                    <div
+                                        style="flex: 1; background: @(IsStepComplete(app.Status, 1) ? "rgba(95, 111, 82, 0.2)" : "#F7F7F4"); border-radius: 6px; padding: 8px; text-align: center;">
+                                        <div
+                                            style="font-size: 11px; color: @(IsStepComplete(app.Status, 1) ? "#2F3E2A" : "#6B6B6B"); font-weight: 600;">
+                                            SUBMITTED</div>
                                     </div>
-                                    <div style="flex: 1; background: @(IsStepComplete(app.Status, 2) ? "#dbeafe" : "#f3f4f6"); border-radius: 6px; padding: 8px; text-align: center;">
-                                        <div style="font-size: 11px; color: @(IsStepComplete(app.Status, 2) ? "#1e40af" : "#9ca3af"); font-weight: 600;">VERIFIED</div>
+                                    <div
+                                        style="flex: 1; background: @(IsStepComplete(app.Status, 2) ? "rgba(95, 111, 82, 0.2)" : "#F7F7F4"); border-radius: 6px; padding: 8px; text-align: center;">
+                                        <div
+                                            style="font-size: 11px; color: @(IsStepComplete(app.Status, 2) ? "#4F6F52" : "#6B6B6B"); font-weight: 600;">
+                                            VERIFIED</div>
                                     </div>
-                                    <div style="flex: 1; background: @(IsStepComplete(app.Status, 3) ? "#e0e7ff" : "#f3f4f6"); border-radius: 6px; padding: 8px; text-align: center;">
-                                        <div style="font-size: 11px; color: @(IsStepComplete(app.Status, 3) ? "#4338ca" : "#9ca3af"); font-weight: 600;">ASSESSED</div>
+                                    <div
+                                        style="flex: 1; background: @(IsStepComplete(app.Status, 3) ? "rgba(95, 111, 82, 0.2)" : "#F7F7F4"); border-radius: 6px; padding: 8px; text-align: center;">
+                                        <div
+                                            style="font-size: 11px; color: @(IsStepComplete(app.Status, 3) ? "#4F6F52" : "#6B6B6B"); font-weight: 600;">
+                                            ASSESSED</div>
                                     </div>
-                                    <div style="flex: 1; background: @(IsStepComplete(app.Status, 4) ? "#d1fae5" : "#f3f4f6"); border-radius: 6px; padding: 8px; text-align: center;">
-                                        <div style="font-size: 11px; color: @(IsStepComplete(app.Status, 4) ? "#065f46" : "#9ca3af"); font-weight: 600;">APPROVED</div>
+                                    <div
+                                        style="flex: 1; background: @(IsStepComplete(app.Status, 4) ? "rgba(95, 111, 82, 0.2)" : "#F7F7F4"); border-radius: 6px; padding: 8px; text-align: center;">
+                                        <div
+                                            style="font-size: 11px; color: @(IsStepComplete(app.Status, 4) ? "#2F3E2A" : "#6B6B6B"); font-weight: 600;">
+                                            APPROVED</div>
                                     </div>
-                                    <div style="flex: 1; background: @(IsStepComplete(app.Status, 5) ? "#d1fae5" : "#f3f4f6"); border-radius: 6px; padding: 8px; text-align: center;">
-                                        <div style="font-size: 11px; color: @(IsStepComplete(app.Status, 5) ? "#065f46" : "#9ca3af"); font-weight: 600;">RELEASED</div>
+                                    <div
+                                        style="flex: 1; background: @(IsStepComplete(app.Status, 5) ? "rgba(95, 111, 82, 0.2)" : "#F7F7F4"); border-radius: 6px; padding: 8px; text-align: center;">
+                                        <div
+                                            style="font-size: 11px; color: @(IsStepComplete(app.Status, 5) ? "#2F3E2A" : "#6B6B6B"); font-weight: 600;">
+                                            RELEASED</div>
                                     </div>
                                 </div>
                             </div>
 
                             <div style="display: flex; gap: 12px;">
-                                <button @onclick="() => ViewDetails(app)" style="flex: 1; background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                <button @onclick="() => ViewDetails(app)"
+                                    style="flex: 1; background: #5F6F52; color: #FFFFFF; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600;">
                                     View Full Details
                                 </button>
                                 @if (app.Status == "SUBMITTED" || app.Status.Contains("PENDING"))
                                 {
-                                    <button @onclick="() => CancelApplication(app)" style="background: #dc2626; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                    <button @onclick="() => CancelApplication(app)"
+                                        style="background: #9B3A3A; color: #FFFFFF; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600;">
                                         Cancel
                                     </button>
                                 }
@@ -165,7 +204,9 @@
 
 <style>
     @@keyframes spin {
-        to { transform: rotate(360deg); }
+        to {
+            transform: rotate(360deg);
+        }
     }
 </style>
 
@@ -227,17 +268,17 @@
     {
         return status switch
         {
-            "SUBMITTED" => "#f59e0b",
-            "PENDING_TELLER_REVIEW" => "#f59e0b",
-            "VERIFIED" => "#3b82f6",
-            "PENDING_ACCOUNTANT_REVIEW" => "#3b82f6",
-            "ASSESSED" => "#8b5cf6",
-            "PENDING_FINANCEMANAGER_APPROVAL" => "#8b5cf6",
-            "APPROVED" => "#059669",
-            "APPROVED_READY_FOR_RELEASE" => "#059669",
-            "RELEASED" => "#10b981",
-            "CANCELLED" => "#6b7280",
-            _ => "#6b7280"
+            "SUBMITTED" => "#8B5A2B",
+            "PENDING_TELLER_REVIEW" => "#8B5A2B",
+            "VERIFIED" => "#5F6F52",
+            "PENDING_ACCOUNTANT_REVIEW" => "#5F6F52",
+            "ASSESSED" => "#6B7B5E",
+            "PENDING_FINANCEMANAGER_APPROVAL" => "#6B7B5E",
+            "APPROVED" => "#5F6F52",
+            "APPROVED_READY_FOR_RELEASE" => "#5F6F52",
+            "RELEASED" => "#5F6F52",
+            "CANCELLED" => "#6B6B6B",
+            _ => "#6B6B6B"
         };
     }
 
@@ -245,10 +286,10 @@
     {
         return assetType switch
         {
-            "Property" => "#dbeafe",
-            "Vehicle" => "#e0e7ff",
-            "Other" => "#fef3c7",
-            _ => "#f3f4f6"
+            "Property" => "#E8F0E8",
+            "Vehicle" => "#F0F2EC",
+            "Other" => "#F5F0E6",
+            _ => "#F7F7F4"
         };
     }
 
@@ -256,10 +297,10 @@
     {
         return assetType switch
         {
-            "Property" => "#1e40af",
-            "Vehicle" => "#4338ca",
-            "Other" => "#92400e",
-            _ => "#6b7280"
+            "Property" => "#2F3E2A",
+            "Vehicle" => "#5F6F52",
+            "Other" => "#6B4423",
+            _ => "#6B6B6B"
         };
     }
 
@@ -271,17 +312,17 @@
     private bool IsStepComplete(string status, int step)
     {
         var statusOrder = new Dictionary<string, int>
-        {
-            { "SUBMITTED", 1 },
-            { "PENDING_TELLER_REVIEW", 1 },
-            { "VERIFIED", 2 },
-            { "PENDING_ACCOUNTANT_REVIEW", 2 },
-            { "ASSESSED", 3 },
-            { "PENDING_FINANCEMANAGER_APPROVAL", 3 },
-            { "APPROVED", 4 },
-            { "APPROVED_READY_FOR_RELEASE", 4 },
-            { "RELEASED", 5 },
-        };
+{
+{ "SUBMITTED", 1 },
+{ "PENDING_TELLER_REVIEW", 1 },
+{ "VERIFIED", 2 },
+{ "PENDING_ACCOUNTANT_REVIEW", 2 },
+{ "ASSESSED", 3 },
+{ "PENDING_FINANCEMANAGER_APPROVAL", 3 },
+{ "APPROVED", 4 },
+{ "APPROVED_READY_FOR_RELEASE", 4 },
+{ "RELEASED", 5 },
+};
 
         return statusOrder.TryGetValue(status, out var currentStep) && currentStep >= step;
     }

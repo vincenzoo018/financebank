@@ -91,8 +91,8 @@
                 </div>
                 <div class="module-actions">
                     <button class="btn btn-sm btn-secondary" @onclick="() => EditModule(module)">✏️ Edit</button>
-                    <button class="btn btn-sm @(module.IsActive ? "btn-danger" : "btn-success")" 
-                            @onclick="() => ToggleActive(module)">
+                    <button class="btn btn-sm @(module.IsActive ? "btn-danger" : "btn-success")"
+                        @onclick="() => ToggleActive(module)">
                         @(module.IsActive ? "🔴 Disable" : "🟢 Enable")
                     </button>
                 </div>
@@ -118,16 +118,16 @@
                         @module.ModuleName
                     </div>
                     <div class="col-plan">
-                        <input type="checkbox" checked="@module.IncludedInBasic" 
-                               @onchange='() => TogglePlan(module, "Basic")' />
+                        <input type="checkbox" checked="@module.IncludedInBasic"
+                            @onchange='() => TogglePlan(module, "Basic")' />
                     </div>
                     <div class="col-plan">
-                        <input type="checkbox" checked="@module.IncludedInPro" 
-                               @onchange='() => TogglePlan(module, "Pro")' />
+                        <input type="checkbox" checked="@module.IncludedInPro"
+                            @onchange='() => TogglePlan(module, "Pro")' />
                     </div>
                     <div class="col-plan">
-                        <input type="checkbox" checked="@module.IncludedInEnterprise" 
-                               @onchange='() => TogglePlan(module, "Enterprise")' />
+                        <input type="checkbox" checked="@module.IncludedInEnterprise"
+                            @onchange='() => TogglePlan(module, "Enterprise")' />
                     </div>
                 </div>
             }
@@ -212,7 +212,9 @@
 </div>
 
 <style>
-    .modules-page { padding: 0; }
+    .modules-page {
+        padding: 0;
+    }
 
     .page-header {
         display: flex;
@@ -221,26 +223,54 @@
         margin-bottom: 24px;
     }
 
-    .header-left h2 { font-size: 24px; font-weight: 700; color: #1f2937; margin: 0; }
-    .header-left .subtitle { font-size: 14px; color: #6b7280; }
+    .header-left h2 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #2B2B2B;
+        margin: 0;
+    }
+
+    .header-left .subtitle {
+        font-size: 14px;
+        color: #6B6B6B;
+    }
 
     .btn {
         display: inline-flex;
         align-items: center;
         gap: 8px;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
         border: none;
         transition: all 0.2s;
     }
 
-    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
-    .btn-secondary { background: #f3f4f6; color: #374151; }
-    .btn-success { background: #10b981; color: white; }
-    .btn-danger { background: #ef4444; color: white; }
-    .btn-sm { padding: 8px 14px; font-size: 13px; }
+    .btn-primary {
+        background: #2F3E2A;
+        color: #FFFFFF;
+    }
+
+    .btn-secondary {
+        background: #F7F7F4;
+        color: #2B2B2B;
+    }
+
+    .btn-success {
+        background: #4F6F52;
+        color: #FFFFFF;
+    }
+
+    .btn-danger {
+        background: #9B3A3A;
+        color: #FFFFFF;
+    }
+
+    .btn-sm {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
 
     .stats-row {
         display: grid;
@@ -250,19 +280,34 @@
     }
 
     .stat-card {
-        background: white;
-        border-radius: 12px;
+        background: #FFFFFF;
+        border-radius: 14px;
         padding: 20px;
         display: flex;
         align-items: center;
         gap: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
-    .stat-icon { font-size: 28px; }
-    .stat-info { display: flex; flex-direction: column; }
-    .stat-value { font-size: 24px; font-weight: 700; color: #1f2937; }
-    .stat-label { font-size: 13px; color: #6b7280; }
+    .stat-icon {
+        font-size: 28px;
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: #2B2B2B;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #6B6B6B;
+    }
 
     .modules-grid {
         display: grid;
@@ -272,24 +317,26 @@
     }
 
     .module-card {
-        background: white;
-        border-radius: 12px;
+        background: #FFFFFF;
+        border-radius: 14px;
         padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         transition: all 0.3s;
     }
 
     .module-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     }
 
-    .module-card.inactive { opacity: 0.6; }
+    .module-card.inactive {
+        opacity: 0.6;
+    }
 
     .module-icon {
         width: 48px;
         height: 48px;
-        border-radius: 12px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -300,13 +347,13 @@
     .module-info h3 {
         font-size: 16px;
         font-weight: 600;
-        color: #1f2937;
+        color: #2B2B2B;
         margin: 0 0 6px 0;
     }
 
     .module-info p {
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
         margin: 0 0 12px 0;
         line-height: 1.4;
     }
@@ -321,8 +368,8 @@
     .module-code {
         font-size: 11px;
         font-weight: 600;
-        color: #6b7280;
-        background: #f3f4f6;
+        color: #6B6B6B;
+        background: #F7F7F4;
         padding: 4px 8px;
         border-radius: 4px;
     }
@@ -330,32 +377,47 @@
     .badge {
         font-size: 11px;
         padding: 4px 8px;
-        border-radius: 4px;
+        border-radius: 10px;
         font-weight: 500;
     }
 
-    .badge.core { background: #dbeafe; color: #1d4ed8; }
-    .badge.addon { background: #fef3c7; color: #92400e; }
-    .badge.active { background: #d1fae5; color: #059669; }
-    .badge.inactive-badge { background: #fee2e2; color: #dc2626; }
+    .badge.core {
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+    }
+
+    .badge.addon {
+        background: rgba(196, 154, 58, 0.15);
+        color: #C49A3A;
+    }
+
+    .badge.active {
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+    }
+
+    .badge.inactive-badge {
+        background: rgba(155, 58, 58, 0.1);
+        color: #9B3A3A;
+    }
 
     .module-pricing {
         margin: 12px 0;
         padding: 12px;
-        background: #f5f3ff;
-        border-radius: 8px;
+        background: rgba(79, 111, 82, 0.15);
+        border-radius: 10px;
         text-align: center;
     }
 
     .module-pricing .price {
         font-size: 20px;
-        font-weight: 700;
-        color: #6366f1;
+        font-weight: 600;
+        color: #5F6F52;
     }
 
     .module-pricing .period {
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .module-usage {
@@ -364,20 +426,20 @@
 
     .usage-bar-bg {
         height: 6px;
-        background: #e5e7eb;
+        background: #E2E2DC;
         border-radius: 3px;
         margin-bottom: 6px;
     }
 
     .usage-bar {
         height: 100%;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        background: #5F6F52;
         border-radius: 3px;
     }
 
     .usage-text {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .module-actions {
@@ -385,14 +447,17 @@
         gap: 8px;
     }
 
-    .module-actions .btn { flex: 1; justify-content: center; }
+    .module-actions .btn {
+        flex: 1;
+        justify-content: center;
+    }
 
     /* Plans Assignment */
     .plans-section {
-        background: white;
-        border-radius: 12px;
+        background: #FFFFFF;
+        border-radius: 14px;
         padding: 24px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
     .plans-section h3 {
@@ -402,33 +467,35 @@
     }
 
     .assignment-grid {
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         overflow: hidden;
     }
 
     .assignment-header {
         display: grid;
         grid-template-columns: 2fr repeat(3, 1fr);
-        background: #f9fafb;
+        background: #F7F7F4;
         font-weight: 600;
         font-size: 13px;
     }
 
-    .assignment-header > div {
+    .assignment-header>div {
         padding: 12px 16px;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #E2E2DC;
     }
 
     .assignment-row {
         display: grid;
         grid-template-columns: 2fr repeat(3, 1fr);
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid #F7F7F4;
     }
 
-    .assignment-row:last-child { border-bottom: none; }
+    .assignment-row:last-child {
+        border-bottom: none;
+    }
 
-    .assignment-row > div {
+    .assignment-row>div {
         padding: 12px 16px;
         display: flex;
         align-items: center;
@@ -458,8 +525,11 @@
     /* Modal */
     .modal-overlay {
         position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.5);
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(47, 62, 42, 0.6);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -467,8 +537,8 @@
     }
 
     .modal-content {
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
         width: 90%;
         max-width: 600px;
         max-height: 90vh;
@@ -480,37 +550,90 @@
         justify-content: space-between;
         align-items: center;
         padding: 20px 24px;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #E2E2DC;
     }
 
-    .modal-header h3 { margin: 0; font-size: 18px; }
-    .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280; }
-    .modal-body { padding: 24px; }
+    .modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #6B6B6B;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
     .modal-footer {
         display: flex;
         justify-content: flex-end;
         gap: 12px;
         padding: 16px 24px;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid #E2E2DC;
     }
 
-    .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
-    .form-group input, .form-group select, .form-group textarea {
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #2B2B2B;
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
         width: 100%;
         padding: 10px 12px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
     }
 
-    .checkbox-group label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-    .checkbox-group input[type="checkbox"] { width: auto; }
+    .checkbox-group label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+    }
 
-    .plan-checkboxes { margin-top: 16px; }
-    .checkbox-row { display: flex; gap: 24px; margin-top: 8px; }
-    .checkbox-row label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
+    .checkbox-group input[type="checkbox"] {
+        width: auto;
+    }
+
+    .plan-checkboxes {
+        margin-top: 16px;
+    }
+
+    .checkbox-row {
+        display: flex;
+        gap: 24px;
+        margin-top: 8px;
+    }
+
+    .checkbox-row label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        cursor: pointer;
+    }
 </style>
 
 @code {
@@ -528,88 +651,88 @@
     {
         await Task.Delay(100);
         modules = new List<ModuleData>
-        {
-            new ModuleData { 
-                ModuleId = 1, ModuleCode = "CORE", ModuleName = "Core System",
-                Description = "Essential system functions, user management, settings",
-                Icon = "⚙️", IconColor = "#6366f1",
-                IsActive = true, IsAddon = false,
-                IncludedInBasic = true, IncludedInPro = true, IncludedInEnterprise = true,
-                ClientsUsing = 10
+{
+new ModuleData {
+ModuleId = 1, ModuleCode = "CORE", ModuleName = "Core System",
+Description = "Essential system functions, user management, settings",
+Icon = "⚙️", IconColor = "#6366f1",
+IsActive = true, IsAddon = false,
+IncludedInBasic = true, IncludedInPro = true, IncludedInEnterprise = true,
+ClientsUsing = 10
             },
-            new ModuleData { 
-                ModuleId = 2, ModuleCode = "TELLER", ModuleName = "Teller Operations",
-                Description = "Cash-in, cash-out, deposits, withdrawals",
-                Icon = "💳", IconColor = "#10b981",
-                IsActive = true, IsAddon = false,
-                IncludedInBasic = true, IncludedInPro = true, IncludedInEnterprise = true,
-                ClientsUsing = 10
+new ModuleData {
+ModuleId = 2, ModuleCode = "TELLER", ModuleName = "Teller Operations",
+Description = "Cash-in, cash-out, deposits, withdrawals",
+Icon = "💳", IconColor = "#5F6F52",
+IsActive = true, IsAddon = false,
+IncludedInBasic = true, IncludedInPro = true, IncludedInEnterprise = true,
+ClientsUsing = 10
             },
-            new ModuleData { 
-                ModuleId = 3, ModuleCode = "SAVINGS", ModuleName = "Savings Accounts",
-                Description = "Savings account management, interest computation",
-                Icon = "🏦", IconColor = "#3b82f6",
-                IsActive = true, IsAddon = false,
-                IncludedInBasic = true, IncludedInPro = true, IncludedInEnterprise = true,
-                ClientsUsing = 10
+new ModuleData {
+ModuleId = 3, ModuleCode = "SAVINGS", ModuleName = "Savings Accounts",
+Description = "Savings account management, interest computation",
+Icon = "🏦", IconColor = "#3b82f6",
+IsActive = true, IsAddon = false,
+IncludedInBasic = true, IncludedInPro = true, IncludedInEnterprise = true,
+ClientsUsing = 10
             },
-            new ModuleData { 
-                ModuleId = 4, ModuleCode = "LOANS", ModuleName = "Loan Management",
-                Description = "Loan applications, approvals, disbursements, collections",
-                Icon = "💰", IconColor = "#f59e0b",
-                IsActive = true, IsAddon = false,
-                IncludedInBasic = false, IncludedInPro = true, IncludedInEnterprise = true,
-                ClientsUsing = 7
+new ModuleData {
+ModuleId = 4, ModuleCode = "LOANS", ModuleName = "Loan Management",
+Description = "Loan applications, approvals, disbursements, collections",
+Icon = "💰", IconColor = "#f59e0b",
+IsActive = true, IsAddon = false,
+IncludedInBasic = false, IncludedInPro = true, IncludedInEnterprise = true,
+ClientsUsing = 7
             },
-            new ModuleData { 
-                ModuleId = 5, ModuleCode = "GL", ModuleName = "General Ledger",
-                Description = "Chart of accounts, journal entries, trial balance",
-                Icon = "📊", IconColor = "#8b5cf6",
-                IsActive = true, IsAddon = false,
-                IncludedInBasic = false, IncludedInPro = true, IncludedInEnterprise = true,
-                ClientsUsing = 7
+new ModuleData {
+ModuleId = 5, ModuleCode = "GL", ModuleName = "General Ledger",
+Description = "Chart of accounts, journal entries, trial balance",
+Icon = "📊", IconColor = "#8b5cf6",
+IsActive = true, IsAddon = false,
+IncludedInBasic = false, IncludedInPro = true, IncludedInEnterprise = true,
+ClientsUsing = 7
             },
-            new ModuleData { 
-                ModuleId = 6, ModuleCode = "REPORTS", ModuleName = "Advanced Reports",
-                Description = "Custom reports, analytics, data exports",
-                Icon = "📈", IconColor = "#ec4899",
-                IsActive = true, IsAddon = false,
-                IncludedInBasic = false, IncludedInPro = true, IncludedInEnterprise = true,
-                ClientsUsing = 7
+new ModuleData {
+ModuleId = 6, ModuleCode = "REPORTS", ModuleName = "Advanced Reports",
+Description = "Custom reports, analytics, data exports",
+Icon = "📈", IconColor = "#ec4899",
+IsActive = true, IsAddon = false,
+IncludedInBasic = false, IncludedInPro = true, IncludedInEnterprise = true,
+ClientsUsing = 7
             },
-            new ModuleData { 
-                ModuleId = 7, ModuleCode = "AUDIT", ModuleName = "Audit Trail",
-                Description = "Complete activity logging and audit reports",
-                Icon = "🔍", IconColor = "#14b8a6",
-                IsActive = true, IsAddon = false,
-                IncludedInBasic = false, IncludedInPro = true, IncludedInEnterprise = true,
-                ClientsUsing = 7
+new ModuleData {
+ModuleId = 7, ModuleCode = "AUDIT", ModuleName = "Audit Trail",
+Description = "Complete activity logging and audit reports",
+Icon = "🔍", IconColor = "#14b8a6",
+IsActive = true, IsAddon = false,
+IncludedInBasic = false, IncludedInPro = true, IncludedInEnterprise = true,
+ClientsUsing = 7
             },
-            new ModuleData { 
-                ModuleId = 8, ModuleCode = "API", ModuleName = "API Access",
-                Description = "REST API for third-party integrations",
-                Icon = "🔌", IconColor = "#6366f1",
-                IsActive = true, IsAddon = true, MonthlyPrice = 999, SetupFee = 2500,
-                IncludedInBasic = false, IncludedInPro = false, IncludedInEnterprise = true,
-                ClientsUsing = 2
+new ModuleData {
+ModuleId = 8, ModuleCode = "API", ModuleName = "API Access",
+Description = "REST API for third-party integrations",
+Icon = "🔌", IconColor = "#6366f1",
+IsActive = true, IsAddon = true, MonthlyPrice = 999, SetupFee = 2500,
+IncludedInBasic = false, IncludedInPro = false, IncludedInEnterprise = true,
+ClientsUsing = 2
             },
-            new ModuleData { 
-                ModuleId = 9, ModuleCode = "SMS", ModuleName = "SMS Notifications",
-                Description = "SMS alerts for transactions, payments, reminders",
-                Icon = "📱", IconColor = "#22c55e",
-                IsActive = true, IsAddon = true, MonthlyPrice = 499, SetupFee = 0,
-                IncludedInBasic = false, IncludedInPro = false, IncludedInEnterprise = false,
-                ClientsUsing = 4
+new ModuleData {
+ModuleId = 9, ModuleCode = "SMS", ModuleName = "SMS Notifications",
+Description = "SMS alerts for transactions, payments, reminders",
+Icon = "📱", IconColor = "#22c55e",
+IsActive = true, IsAddon = true, MonthlyPrice = 499, SetupFee = 0,
+IncludedInBasic = false, IncludedInPro = false, IncludedInEnterprise = false,
+ClientsUsing = 4
             },
-            new ModuleData { 
-                ModuleId = 10, ModuleCode = "MOBILE", ModuleName = "Mobile App",
-                Description = "Member mobile app for account access",
-                Icon = "📲", IconColor = "#0ea5e9",
-                IsActive = true, IsAddon = true, MonthlyPrice = 1499, SetupFee = 5000,
-                IncludedInBasic = false, IncludedInPro = false, IncludedInEnterprise = false,
-                ClientsUsing = 1
+new ModuleData {
+ModuleId = 10, ModuleCode = "MOBILE", ModuleName = "Mobile App",
+Description = "Member mobile app for account access",
+Icon = "📲", IconColor = "#0ea5e9",
+IsActive = true, IsAddon = true, MonthlyPrice = 1499, SetupFee = 5000,
+IncludedInBasic = false, IncludedInPro = false, IncludedInEnterprise = false,
+ClientsUsing = 1
             }
-        };
+};
     }
 
     private void ShowAddModule()

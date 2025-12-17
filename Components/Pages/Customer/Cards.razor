@@ -11,26 +11,31 @@
     <!-- Success/Error Message -->
     @if (showSuccessMessage)
     {
-        <div style="background: @(successMessage.StartsWith("✓") ? "#d1fae5" : "#fee2e2"); border-left: 4px solid @(successMessage.StartsWith("✓") ? "#10b981" : "#ef4444"); border-radius: 8px; padding: 16px; margin-bottom: 24px; color: @(successMessage.StartsWith("✓") ? "#065f46" : "#7f1d1d");">
+        <div
+            style="background: @(successMessage.StartsWith("✓") ? "rgba(95, 111, 82, 0.2)" : "rgba(155, 58, 58, 0.1)"); border-left: 4px solid @(successMessage.StartsWith("✓") ? "#5F6F52" : "#9B3A3A"); border-radius: 10px; padding: 16px; margin-bottom: 24px; color: @(successMessage.StartsWith("✓") ? "#2F3E2A" : "#9B3A3A");">
             @successMessage
         </div>
     }
 
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="background: #2F3E2A; border-radius: 14px; padding: 24px; margin-bottom: 24px; color: #FFFFFF;">
         <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div
+                style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <rect x="1" y="4" width="22" height="16" rx="2"></rect>
                     <line x1="1" y1="10" x2="23" y2="10"></line>
                 </svg>
             </div>
             <div style="flex: 1;">
-                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">My Cards</h1>
+                <h1 style="font-size: 28px; font-weight: 600; margin: 0;">My Cards</h1>
                 <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Manage your credit and debit cards</p>
             </div>
-            <button @onclick="ShowCardApplication" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button @onclick="ShowCardApplication"
+                style="background: rgba(255,255,255,0.2); border: none; color: #FFFFFF; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
@@ -42,11 +47,15 @@
     <!-- Active Cards Display -->
     @if (activeCards.Any())
     {
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px; margin-bottom: 32px;">
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px; margin-bottom: 32px;">
             @foreach (var card in activeCards)
             {
-                <div style="background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 20px; padding: 32px; color: white; box-shadow: 0 12px 32px rgba(0,0,0,0.15); position: relative; overflow: hidden;">
-                    <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+                <div
+                    style="background: #2F3E2A; border-radius: 14px; padding: 32px; color: #FFFFFF; box-shadow: 0 12px 32px rgba(47, 62, 42, 0.3); position: relative; overflow: hidden;">
+                    <div
+                        style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;">
+                    </div>
                     <div style="position: relative; z-index: 1;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 40px;">
                             <div>
@@ -55,7 +64,9 @@
                             </div>
                             <div style="font-size: 32px;">&#x1F4B3;</div>
                         </div>
-                        <div style="font-size: 22px; font-weight: 600; letter-spacing: 3px; font-family: 'Courier New', monospace; margin-bottom: 24px; cursor: pointer;" @onclick="() => ShowCardDetails(card)" title="Click to view full card number">@DecryptCardNumber(card.CardNumber)</div>
+                        <div style="font-size: 22px; font-weight: 600; letter-spacing: 3px; font-family: 'Courier New', monospace; margin-bottom: 24px; cursor: pointer;"
+                            @onclick="() => ShowCardDetails(card)" title="Click to view full card number">
+                            @DecryptCardNumber(card.CardNumber)</div>
                         <div style="display: flex; justify-content: space-between; align-items: end;">
                             <div>
                                 <div style="font-size: 10px; opacity: 0.8; margin-bottom: 4px;">CARDHOLDER</div>
@@ -63,7 +74,8 @@
                             </div>
                             <div>
                                 <div style="font-size: 10px; opacity: 0.8; margin-bottom: 4px;">EXPIRES</div>
-                                <div style="font-size: 14px; font-weight: 600;">@(card.ExpiryDate?.ToString("MM/yy") ?? "N/A")</div>
+                                <div style="font-size: 14px; font-weight: 600;">@(card.ExpiryDate?.ToString("MM/yy") ?? "N/A")
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -75,18 +87,22 @@
     <!-- Pending Card Applications -->
     @if (pendingCards.Any())
     {
-        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 32px;">
-            <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 16px;">Pending Applications</h2>
+        <div
+            style="background: #FFFFFF; border-radius: 14px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 32px;">
+            <h2 style="font-size: 20px; font-weight: 600; color: #2B2B2B; margin-bottom: 16px;">Pending Applications</h2>
             <div style="display: grid; gap: 12px;">
                 @foreach (var card in pendingCards)
                 {
-                    <div style="border: 2px solid #fcd34d; border-radius: 12px; padding: 16px; background: #fef3c7;">
+                    <div style="border: 2px solid #fcd34d; border-radius: 10px; padding: 16px; background: #fef3c7;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <div style="font-weight: 600; color: #1f2937;">@card.CardType</div>
-                                <div style="font-size: 13px; color: #92400e; margin-top: 4px;">Applied on @card.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                <div style="font-weight: 600; color: #2B2B2B;">@card.CardType</div>
+                                <div style="font-size: 13px; color: #92400e; margin-top: 4px;">Applied on
+                                    @card.CreatedAt.ToString("MMM dd, yyyy")</div>
                             </div>
-                            <span style="padding: 6px 12px; background: #fbbf24; color: #78350f; border-radius: 6px; font-weight: 500; font-size: 12px;">&#x23F3; Pending Approval</span>
+                            <span
+                                style="padding: 6px 12px; background: #fbbf24; color: #78350f; border-radius: 6px; font-weight: 500; font-size: 12px;">&#x23F3;
+                                Pending Approval</span>
                         </div>
                     </div>
                 }
@@ -97,11 +113,13 @@
     <!-- No Cards Message -->
     @if (!activeCards.Any() && !pendingCards.Any())
     {
-        <div style="background: white; border-radius: 16px; padding: 48px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 32px;">
+        <div
+            style="background: #FFFFFF; border-radius: 14px; padding: 48px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 32px;">
             <div style="font-size: 48px; margin-bottom: 16px;">&#x1F4B3;</div>
-            <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 8px;">No Cards Yet</h3>
-            <p style="color: #6b7280; margin-bottom: 24px;">Apply for your first card to get started</p>
-            <button @onclick="ShowCardApplication" style="padding: 12px 24px; background: linear-gradient(135deg, #7c3aed, #5b21b6); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+            <h3 style="font-size: 20px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">No Cards Yet</h3>
+            <p style="color: #6B6B6B; margin-bottom: 24px;">Apply for your first card to get started</p>
+            <button @onclick="ShowCardApplication"
+                style="padding: 12px 24px; background: #2F3E2A; border: none; border-radius: 10px; color: #FFFFFF; font-weight: 600; cursor: pointer;">
                 Apply for Card
             </button>
         </div>
@@ -111,37 +129,47 @@
 <!-- Card Application Modal -->
 @if (showApplicationModal)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseCardApplication">
-        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
-            <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 24px;">Apply for New Card</h2>
-            
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+        @onclick="CloseCardApplication">
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
+            @onclick:stopPropagation="true">
+            <h2 style="font-size: 24px; font-weight: 600; color: #2B2B2B; margin-bottom: 24px;">Apply for New Card</h2>
+
             <div style="margin-bottom: 24px;">
-                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Select Card Type</h3>
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #2B2B2B;">Select Card Type</h3>
                 <div style="display: grid; gap: 12px;">
-                    <div @onclick="SelectDebitCard" style="padding: 16px; border: 2px solid @(selectedCardType == "Debit" ? "#7c3aed" : "#e5e7eb"); border-radius: 12px; cursor: pointer; transition: all 0.3s; background: @(selectedCardType == "Debit" ? "#f5f3ff" : "white");">
-                        <div style="font-weight: 600; color: #1f2937;">Debit Card</div>
-                        <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">Direct access to your account - No credit limit</div>
+                    <div @onclick="SelectDebitCard"
+                        style="padding: 16px; border: 2px solid @(selectedCardType == "Debit" ? "#5F6F52" : "#E2E2DC"); border-radius: 10px; cursor: pointer; transition: all 0.3s; background: @(selectedCardType == "Debit" ? "rgba(95, 111, 82, 0.1)" : "#FFFFFF");">
+                        <div style="font-weight: 600; color: #2B2B2B;">Debit Card</div>
+                        <div style="font-size: 13px; color: #6B6B6B; margin-top: 4px;">Direct access to your account - No
+                            credit limit</div>
                     </div>
-                    <div @onclick="SelectCreditCard" style="padding: 16px; border: 2px solid @(selectedCardType == "Credit" ? "#7c3aed" : "#e5e7eb"); border-radius: 12px; cursor: pointer; transition: all 0.3s; background: @(selectedCardType == "Credit" ? "#f5f3ff" : "white");">
-                        <div style="font-weight: 600; color: #1f2937;">Credit Card</div>
-                        <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">Build credit history - ₱50,000 limit</div>
+                    <div @onclick="SelectCreditCard"
+                        style="padding: 16px; border: 2px solid @(selectedCardType == "Credit" ? "#5F6F52" : "#E2E2DC"); border-radius: 10px; cursor: pointer; transition: all 0.3s; background: @(selectedCardType == "Credit" ? "rgba(95, 111, 82, 0.1)" : "#FFFFFF");">
+                        <div style="font-weight: 600; color: #2B2B2B;">Credit Card</div>
+                        <div style="font-size: 13px; color: #6B6B6B; margin-top: 4px;">Build credit history - ₱50,000 limit
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 8px;">Card Delivery Method</label>
-                <select @bind="deliveryMethod" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Card
+                    Delivery Method</label>
+                <select @bind="deliveryMethod"
+                    style="width: 100%; padding: 10px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px;">
                     <option value="Physical">Physical Card (Mailed to your address)</option>
                     <option value="Digital">Digital Card (Instant - Virtual)</option>
                 </select>
             </div>
 
             <div style="display: flex; gap: 12px;">
-                <button @onclick="CloseCardApplication" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 16px; font-weight: 600; cursor: pointer;">
+                <button @onclick="CloseCardApplication"
+                    style="flex: 1; padding: 14px; background: #F7F7F4; border: none; border-radius: 10px; color: #2B2B2B; font-size: 16px; font-weight: 600; cursor: pointer;">
                     Cancel
                 </button>
-                <button @onclick="SubmitCardApplication" disabled="@(string.IsNullOrEmpty(selectedCardType))" style="flex: 1; padding: 14px; background: @(string.IsNullOrEmpty(selectedCardType) ? "#d1d5db" : "linear-gradient(135deg, #7c3aed, #5b21b6)"); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: @(string.IsNullOrEmpty(selectedCardType) ? "not-allowed" : "pointer");">
+                <button @onclick="SubmitCardApplication" disabled="@(string.IsNullOrEmpty(selectedCardType))"
+                    style="flex: 1; padding: 14px; background: @(string.IsNullOrEmpty(selectedCardType) ? "#E2E2DC" : "#2F3E2A"); border: none; border-radius: 10px; color: #FFFFFF; font-size: 16px; font-weight: 600; cursor: @(string.IsNullOrEmpty(selectedCardType) ? "not-allowed" : "pointer");">
                     Apply Now
                 </button>
             </div>
@@ -186,35 +214,35 @@
 
             var userId = AuthService.CurrentUserId.Value;
             System.Diagnostics.Debug.WriteLine($"[LoadCustomerCards] Loading cards for UserId: {userId}");
-            
+
             // Get customer's primary account
             var accounts = await CustomerAccountService.GetByCustomerIdAsync(userId);
             if (accounts.Any())
             {
                 var accountId = accounts.First().AccountId;
-                
+
                 // Fetch real cards from database
                 var realCards = await CardService.GetByAccountIdAsync(accountId);
                 activeCards = realCards
-                    .Where(c => c.IsActive)
-                    .Select(c => new CustomerCardDto
-                    {
-                        CardId = c.CardId,
-                        CardNumber = c.CardNumber,
-                        CardType = c.CardType,
-                        CardName = c.CardName,
-                        CreditLimit = c.CreditLimit,
-                        AvailableCredit = c.AvailableCredit,
-                        OutstandingBalance = c.OutstandingBalance,
-                        ExpiryDate = c.ExpiryDate,
-                        DueDate = c.DueDate,
-                        InterestRate = c.InterestRate,
-                        IsLocked = c.IsLocked,
-                        CreatedAt = c.CreatedAt
-                    })
-                    .ToList();
+                .Where(c => c.IsActive)
+                .Select(c => new CustomerCardDto
+                {
+                    CardId = c.CardId,
+                    CardNumber = c.CardNumber,
+                    CardType = c.CardType,
+                    CardName = c.CardName,
+                    CreditLimit = c.CreditLimit,
+                    AvailableCredit = c.AvailableCredit,
+                    OutstandingBalance = c.OutstandingBalance,
+                    ExpiryDate = c.ExpiryDate,
+                    DueDate = c.DueDate,
+                    InterestRate = c.InterestRate,
+                    IsLocked = c.IsLocked,
+                    CreatedAt = c.CreatedAt
+                })
+                .ToList();
             }
-            
+
             // Fetch pending applications from CardApplicationService
             pendingCards = await CardApplicationService.GetPendingCardsForCustomerAsync(userId);
             System.Diagnostics.Debug.WriteLine($"[LoadCustomerCards] Loaded {activeCards.Count} active cards and {pendingCards.Count} pending cards");
@@ -258,12 +286,12 @@
         try
         {
             var userId = AuthService.CurrentUserId.Value;
-            
+
             // Submit card application to database
             var (success, message, cardId) = await CardApplicationService.SubmitCardApplicationAsync(
-                userId,
-                selectedCardType,
-                deliveryMethod
+            userId,
+            selectedCardType,
+            deliveryMethod
             );
 
             if (success)
@@ -271,12 +299,12 @@
                 // Show success message
                 successMessage = $"✓ {selectedCardType} Card application submitted successfully! Waiting for admin approval.";
                 showSuccessMessage = true;
-                
+
                 // Reload cards to show the new pending application
                 await LoadCustomerCards();
                 CloseCardApplication();
                 StateHasChanged();
-                
+
                 // Hide success message after 5 seconds
                 await Task.Delay(5000);
                 showSuccessMessage = false;
@@ -329,4 +357,3 @@
         }
     }
 }
-

@@ -13,7 +13,7 @@
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, #10b981, #059669); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="background: linear-gradient(135deg, #5F6F52, #5F6F52); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                 <svg width="28" height="28" fill="none" stroke="white" stroke-width="2">
@@ -29,28 +29,28 @@
     </div>
 
     <!-- Admin Access Notice -->
-    <div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-        <p style="margin: 0; color: #1e40af; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+    <div style="background: #E8F0E8; border: 2px solid #5F6F52; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <p style="margin: 0; color: #2F3E2A; font-weight: 600; display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 20px;">ℹ️</span>
             <strong>SuperAdmin Teller Operations Access</strong> - Direct savings account opening authority
         </p>
     </div>
 
     <!-- Admin Reason Field -->
-    <div style="background: white; border-radius: 16px; padding: 20px; border: 2px solid #059669; margin-bottom: 20px;">
-        <label style="display: block; font-weight: 700; margin-bottom: 8px; color: #059669;">Admin Action Reason *</label>
+    <div style="background: white; border-radius: 16px; padding: 20px; border: 2px solid #5F6F52; margin-bottom: 20px;">
+        <label style="display: block; font-weight: 700; margin-bottom: 8px; color: #5F6F52;">Admin Action Reason *</label>
         <textarea @bind="adminActionReason" rows="2" 
                   placeholder="Document reason for admin savings account opening (required)"
-                  style="width: 100%; padding: 12px; border: 2px solid #059669; border-radius: 8px; resize: vertical;"></textarea>
-        <small style="color: #059669;">Required: This will be logged in the audit trail</small>
+                  style="width: 100%; padding: 12px; border: 2px solid #5F6F52; border-radius: 8px; resize: vertical;"></textarea>
+        <small style="color: #5F6F52;">Required: This will be logged in the audit trail</small>
     </div>
 
     @if (!string.IsNullOrEmpty(successMessage))
     {
-        <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 20px; border-radius: 12px; margin-bottom: 20px; white-space: pre-line;">
+        <div style="background: #D4E6D4; border: 1px solid #A9B388; color: #2F3E2A; padding: 20px; border-radius: 12px; margin-bottom: 20px; white-space: pre-line;">
             @successMessage
             <div style="margin-top: 16px;">
-                <button @onclick="ResetForm" style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">Open Another Account</button>
+                <button @onclick="ResetForm" style="background: #5F6F52; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">Open Another Account</button>
             </div>
         </div>
     }
@@ -88,7 +88,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between;">
                             <span style="color: #6b7280;">Initial Deposit:</span>
-                            <strong style="color: #10b981;">₱@initialDeposit.ToString("N2")</strong>
+                            <strong style="color: #5F6F52;">₱@initialDeposit.ToString("N2")</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
                             <span style="color: #6b7280;">Interest Rate:</span>
@@ -116,7 +116,7 @@
                         Cancel
                     </button>
                     <button @onclick="SubmitOpenAccount" disabled="@isSubmitting"
-                            style="flex: 1; padding: 12px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; cursor: @(isSubmitting ? "not-allowed" : "pointer"); font-weight: 600; opacity: @(isSubmitting ? "0.6" : "1");">
+                            style="flex: 1; padding: 12px; background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; border: none; border-radius: 8px; cursor: @(isSubmitting ? "not-allowed" : "pointer"); font-weight: 600; opacity: @(isSubmitting ? "0.6" : "1");">
                         @(isSubmitting ? "Processing..." : "✓ Confirm & Open")
                     </button>
                 </div>
@@ -129,7 +129,7 @@
             <!-- Step 1: Customer Selection -->
             <div style="margin-bottom: 32px;">
                 <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1f2937;">
-                    <span style="display: inline-block; width: 28px; height: 28px; background: #10b981; color: white; border-radius: 50%; text-align: center; line-height: 28px; margin-right: 8px;">1</span>
+                    <span style="display: inline-block; width: 28px; height: 28px; background: #5F6F52; color: white; border-radius: 50%; text-align: center; line-height: 28px; margin-right: 8px;">1</span>
                     Customer Information
                 </h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
@@ -151,7 +151,7 @@
             <!-- Step 2: Account Type Selection -->
             <div style="margin-bottom: 32px;">
                 <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1f2937;">
-                    <span style="display: inline-block; width: 28px; height: 28px; background: #10b981; color: white; border-radius: 50%; text-align: center; line-height: 28px; margin-right: 8px;">2</span>
+                    <span style="display: inline-block; width: 28px; height: 28px; background: #5F6F52; color: white; border-radius: 50%; text-align: center; line-height: 28px; margin-right: 8px;">2</span>
                     Account Type
                 </h3>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
@@ -165,7 +165,7 @@
                             </div>
                             <div style="font-weight: 700; margin-bottom: 4px;">@type.TypeName</div>
                             <div style="font-size: 12px; opacity: 0.7; margin-bottom: 12px;">@type.Description</div>
-                            <div style="font-size: 14px; font-weight: 600; color: #10b981;">
+                            <div style="font-size: 14px; font-weight: 600; color: #5F6F52;">
                                 @type.InterestRateMin% - @type.InterestRateMax% APY
                             </div>
                             @if (type.DefaultLockInDays > 0)
@@ -180,7 +180,7 @@
 
                 @if (selectedAccountType != null)
                 {
-                    <div style="margin-top: 16px; padding: 16px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px;">
+                    <div style="margin-top: 16px; padding: 16px; background: #F0F2EC; border: 1px solid #A9B388; border-radius: 8px;">
                         <div style="font-weight: 600; margin-bottom: 8px;">Selected: @selectedAccountType.TypeName</div>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; font-size: 13px;">
                             <div>Min. Initial: <strong>₱@selectedAccountType.MinimumInitialDeposit.ToString("N2")</strong></div>
@@ -193,7 +193,7 @@
             <!-- Step 3: Initial Deposit & Lock-In Period -->
             <div style="margin-bottom: 32px;">
                 <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1f2937;">
-                    <span style="display: inline-block; width: 28px; height: 28px; background: #10b981; color: white; border-radius: 50%; text-align: center; line-height: 28px; margin-right: 8px;">3</span>
+                    <span style="display: inline-block; width: 28px; height: 28px; background: #5F6F52; color: white; border-radius: 50%; text-align: center; line-height: 28px; margin-right: 8px;">3</span>
                     Deposit Details
                 </h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
@@ -249,7 +249,7 @@
                     Reset
                 </button>
                 <button type="submit" disabled="@(!CanSubmit())"
-                        style="padding: 12px 32px; background: @(CanSubmit() ? "linear-gradient(135deg, #10b981, #059669)" : "#d1d5db"); color: white; border: none; border-radius: 8px; cursor: @(CanSubmit() ? "pointer" : "not-allowed"); font-weight: 600; box-shadow: @(CanSubmit() ? "0 4px 12px rgba(16, 185, 129, 0.3)" : "none");">
+                        style="padding: 12px 32px; background: @(CanSubmit() ? "linear-gradient(135deg, #5F6F52, #5F6F52)" : "#d1d5db"); color: white; border: none; border-radius: 8px; cursor: @(CanSubmit() ? "pointer" : "not-allowed"); font-weight: 600; box-shadow: @(CanSubmit() ? "0 4px 12px rgba(16, 185, 129, 0.3)" : "none");">
                     @(isSubmitting ? "⏳ Processing..." : "Open Savings Account")
                 </button>
             </div>
@@ -320,7 +320,7 @@
     private string GetAccountTypeCardStyle(SavingsAccountType type)
     {
         var isSelected = selectedAccountType?.TypeId == type.TypeId;
-        return $"padding: 20px; border: 2px solid {(isSelected ? "#10b981" : "#e5e7eb")}; border-radius: 12px; cursor: pointer; transition: all 0.3s; background: {(isSelected ? "#f0fdf4" : "white")};";
+        return $"padding: 20px; border: 2px solid {(isSelected ? "#5F6F52" : "#e5e7eb")}; border-radius: 12px; cursor: pointer; transition: all 0.3s; background: {(isSelected ? "#F0F2EC" : "white")};";
     }
 
     private bool CanSubmit()

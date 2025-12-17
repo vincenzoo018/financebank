@@ -8,74 +8,77 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<div style="padding: 24px; background: #f9fafb; min-height: 100vh;">
+<div style="padding: 24px; background: #F7F7F4; min-height: 100vh;">
     <!-- Page Header -->
     <div style="margin-bottom: 32px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <h1 style="font-size: 32px; font-weight: 700; color: #111827; margin: 0;">
+            <h1 style="font-size: 32px; font-weight: 600; color: #2B2B2B; margin: 0;">
                 💰 Savings Account History
             </h1>
-            <button @onclick="ExportToCsv" 
-                    style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            <button @onclick="ExportToCsv"
+                style="padding: 10px 20px; background: #2F3E2A; color: white; border: none; border-radius: 10px; font-weight: 500; cursor: pointer;">
                 📊 Export to CSV
             </button>
         </div>
-        <p style="color: #6b7280; font-size: 14px;">View and track all savings accounts opened at your branch</p>
+        <p style="color: #6B6B6B; font-size: 14px;">View and track all savings accounts opened at your branch</p>
     </div>
 
     <!-- Summary Statistics -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <!-- Total Accounts -->
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; color: white;">
-            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px; font-weight: 600;">TOTAL ACCOUNTS</div>
-            <div style="font-size: 32px; font-weight: 700; margin-bottom: 4px;">@filteredAccounts.Count</div>
-            <div style="font-size: 11px; opacity: 0.8;">accounts opened</div>
+        <div style="background: rgba(95, 122, 106, 0.15); border-radius: 14px; padding: 20px;">
+            <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 8px; font-weight: 500;">TOTAL ACCOUNTS</div>
+            <div style="font-size: 32px; font-weight: 600; margin-bottom: 4px; color: #5F7A6A;">@filteredAccounts.Count
+            </div>
+            <div style="font-size: 11px; color: #6B6B6B;">accounts opened</div>
         </div>
 
         <!-- Total Initial Deposits -->
-        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; padding: 20px; color: white;">
-            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px; font-weight: 600;">TOTAL DEPOSITS</div>
-            <div style="font-size: 32px; font-weight: 700; margin-bottom: 4px;">₱@(totalDeposits.ToString("N2"))</div>
-            <div style="font-size: 11px; opacity: 0.8;">initial deposits</div>
+        <div style="background: rgba(79, 111, 82, 0.15); border-radius: 14px; padding: 20px;">
+            <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 8px; font-weight: 500;">TOTAL DEPOSITS</div>
+            <div style="font-size: 32px; font-weight: 600; margin-bottom: 4px; color: #4F6F52;">
+                ₱@(totalDeposits.ToString("N2"))</div>
+            <div style="font-size: 11px; color: #6B6B6B;">initial deposits</div>
         </div>
 
         <!-- Active Accounts -->
-        <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 12px; padding: 20px; color: white;">
-            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px; font-weight: 600;">ACTIVE</div>
-            <div style="font-size: 32px; font-weight: 700; margin-bottom: 4px;">@activeCount</div>
-            <div style="font-size: 11px; opacity: 0.8;">active accounts</div>
+        <div style="background: rgba(79, 111, 82, 0.15); border-radius: 14px; padding: 20px;">
+            <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 8px; font-weight: 500;">ACTIVE</div>
+            <div style="font-size: 32px; font-weight: 600; margin-bottom: 4px; color: #4F6F52;">@activeCount</div>
+            <div style="font-size: 11px; color: #6B6B6B;">active accounts</div>
         </div>
 
         <!-- Average Balance -->
-        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; padding: 20px; color: white;">
-            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px; font-weight: 600;">AVG BALANCE</div>
-            <div style="font-size: 32px; font-weight: 700; margin-bottom: 4px;">₱@(averageBalance.ToString("N2"))</div>
-            <div style="font-size: 11px; opacity: 0.8;">per account</div>
+        <div style="background: rgba(196, 154, 58, 0.15); border-radius: 14px; padding: 20px;">
+            <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 8px; font-weight: 500;">AVG BALANCE</div>
+            <div style="font-size: 32px; font-weight: 600; margin-bottom: 4px; color: #C49A3A;">
+                ₱@(averageBalance.ToString("N2"))</div>
+            <div style="font-size: 11px; color: #6B6B6B;">per account</div>
         </div>
     </div>
 
     <!-- Filters Section -->
-    <div style="background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <div
+        style="background: #FFFFFF; border-radius: 14px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
             <!-- Search -->
             <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                <label style="display: block; font-size: 12px; font-weight: 500; color: #2B2B2B; margin-bottom: 6px;">
                     🔍 SEARCH
                 </label>
-                <input type="text" 
-                       @bind="searchTerm" 
-                       @bind:event="oninput"
-                       placeholder="Account number or customer name..."
-                       style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+                <input type="text" @bind="searchTerm" @bind:event="oninput"
+                    placeholder="Account number or customer name..."
+                    style="width: 100%; padding: 10px 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
             </div>
 
             <!-- Account Type -->
             <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                <label style="display: block; font-size: 12px; font-weight: 500; color: #2B2B2B; margin-bottom: 6px;">
                     📋 ACCOUNT TYPE
                 </label>
-                <select @bind="filterAccountType" 
-                        style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                <select @bind="filterAccountType"
+                    style="width: 100%; padding: 10px 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;">
                     <option value="">All Types</option>
                     @foreach (var type in accountTypes)
                     {
@@ -86,11 +89,11 @@
 
             <!-- Status -->
             <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                <label style="display: block; font-size: 12px; font-weight: 500; color: #2B2B2B; margin-bottom: 6px;">
                     🚦 STATUS
                 </label>
-                <select @bind="filterStatus" 
-                        style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                <select @bind="filterStatus"
+                    style="width: 100%; padding: 10px 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;">
                     <option value="">All Statuses</option>
                     <option value="ACTIVE">Active</option>
                     <option value="CLOSED">Closed</option>
@@ -100,31 +103,29 @@
 
             <!-- Date From -->
             <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                <label style="display: block; font-size: 12px; font-weight: 500; color: #2B2B2B; margin-bottom: 6px;">
                     📅 FROM DATE
                 </label>
-                <input type="date" 
-                       @bind="filterDateFrom" 
-                       style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+                <input type="date" @bind="filterDateFrom"
+                    style="width: 100%; padding: 10px 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
             </div>
 
             <!-- Date To -->
             <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                <label style="display: block; font-size: 12px; font-weight: 500; color: #2B2B2B; margin-bottom: 6px;">
                     📅 TO DATE
                 </label>
-                <input type="date" 
-                       @bind="filterDateTo" 
-                       style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+                <input type="date" @bind="filterDateTo"
+                    style="width: 100%; padding: 10px 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
             </div>
 
             <!-- Sort By -->
             <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                <label style="display: block; font-size: 12px; font-weight: 500; color: #2B2B2B; margin-bottom: 6px;">
                     ⚡ SORT BY
                 </label>
-                <select @bind="sortBy" 
-                        style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                <select @bind="sortBy"
+                    style="width: 100%; padding: 10px 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;">
                     <option value="date_desc">Newest First</option>
                     <option value="date_asc">Oldest First</option>
                     <option value="balance_desc">Highest Balance</option>
@@ -136,32 +137,32 @@
 
         <!-- Filter Actions -->
         <div style="margin-top: 16px; display: flex; gap: 12px;">
-            <button @onclick="ApplyFilters" 
-                    style="padding: 10px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            <button @onclick="ApplyFilters"
+                style="padding: 10px 24px; background: #2F3E2A; color: white; border: none; border-radius: 10px; font-weight: 500; cursor: pointer;">
                 🔍 Apply Filters
             </button>
-            <button @onclick="ResetFilters" 
-                    style="padding: 10px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            <button @onclick="ResetFilters"
+                style="padding: 10px 24px; background: #FFFFFF; color: #2B2B2B; border: 2px solid #E2E2DC; border-radius: 10px; font-weight: 500; cursor: pointer;">
                 🔄 Reset
             </button>
         </div>
     </div>
 
     <!-- Accounts Table -->
-    <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-        <h2 style="font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 20px;">
+    <div style="background: #FFFFFF; border-radius: 14px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+        <h2 style="font-size: 18px; font-weight: 600; color: #2B2B2B; margin-bottom: 20px;">
             Savings Accounts (@filteredAccounts.Count)
         </h2>
 
         @if (loading)
         {
-            <div style="text-align: center; padding: 40px; color: #6b7280;">
+            <div style="text-align: center; padding: 40px; color: #6B6B6B;">
                 <div style="font-size: 18px;">⏳ Loading accounts...</div>
             </div>
         }
         else if (!filteredAccounts.Any())
         {
-            <div style="text-align: center; padding: 40px; color: #6b7280;">
+            <div style="text-align: center; padding: 40px; color: #6B6B6B;">
                 <div style="font-size: 48px; margin-bottom: 16px;">📭</div>
                 <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No accounts found</div>
                 <div style="font-size: 14px;">Try adjusting your filters</div>
@@ -172,65 +173,85 @@
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
-                        <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
-                            <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Account #</th>
-                            <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Customer</th>
-                            <th style="padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Account Type</th>
-                            <th style="padding: 12px; text-align: right; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Current Balance</th>
-                            <th style="padding: 12px; text-align: right; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Initial Deposit</th>
-                            <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Interest Rate</th>
-                            <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Opened Date</th>
-                            <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Maturity Date</th>
-                            <th style="padding: 12px; text-align: center; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Status</th>
+                        <tr style="background: #F7F7F4; border-bottom: 2px solid #E2E2DC;">
+                            <th
+                                style="padding: 12px; text-align: left; font-size: 11px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
+                                Account #</th>
+                            <th
+                                style="padding: 12px; text-align: left; font-size: 11px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
+                                Customer</th>
+                            <th
+                                style="padding: 12px; text-align: left; font-size: 11px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
+                                Account Type</th>
+                            <th
+                                style="padding: 12px; text-align: right; font-size: 11px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
+                                Current Balance</th>
+                            <th
+                                style="padding: 12px; text-align: right; font-size: 11px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
+                                Initial Deposit</th>
+                            <th
+                                style="padding: 12px; text-align: center; font-size: 11px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
+                                Interest Rate</th>
+                            <th
+                                style="padding: 12px; text-align: center; font-size: 11px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
+                                Opened Date</th>
+                            <th
+                                style="padding: 12px; text-align: center; font-size: 11px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
+                                Maturity Date</th>
+                            <th
+                                style="padding: 12px; text-align: center; font-size: 11px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
+                                Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var account in filteredAccounts.Take(100))
                         {
-                            <tr style="border-bottom: 1px solid #e5e7eb;">
-                                <td style="padding: 12px; font-size: 13px; color: #111827; font-weight: 600;">
+                            <tr style="border-bottom: 1px solid #E2E2DC;">
+                                <td style="padding: 12px; font-size: 13px; color: #2B2B2B; font-weight: 600;">
                                     @account.AccountNumber
                                 </td>
-                                <td style="padding: 12px; font-size: 13px; color: #111827;">
+                                <td style="padding: 12px; font-size: 13px; color: #2B2B2B;">
                                     <div style="font-weight: 600;">@account.CustomerName</div>
-                                    <div style="font-size: 11px; color: #6b7280;">Customer ID: @account.CustomerId</div>
+                                    <div style="font-size: 11px; color: #6B6B6B;">Customer ID: @account.CustomerId</div>
                                 </td>
-                                <td style="padding: 12px; font-size: 13px; color: #374151;">
+                                <td style="padding: 12px; font-size: 13px; color: #2B2B2B;">
                                     @account.AccountTypeName
                                 </td>
-                                <td style="padding: 12px; text-align: right; font-size: 14px; font-weight: 700; color: #10b981;">
+                                <td
+                                    style="padding: 12px; text-align: right; font-size: 14px; font-weight: 600; color: #4F6F52;">
                                     ₱@account.Balance.ToString("N2")
                                 </td>
-                                <td style="padding: 12px; text-align: right; font-size: 13px; color: #6b7280;">
+                                <td style="padding: 12px; text-align: right; font-size: 13px; color: #6B6B6B;">
                                     ₱@account.InitialDeposit.ToString("N2")
                                 </td>
-                                <td style="padding: 12px; text-align: center; font-size: 13px; color: #374151;">
+                                <td style="padding: 12px; text-align: center; font-size: 13px; color: #2B2B2B;">
                                     @account.InterestRate%
                                 </td>
-                                <td style="padding: 12px; text-align: center; font-size: 13px; color: #374151;">
+                                <td style="padding: 12px; text-align: center; font-size: 13px; color: #2B2B2B;">
                                     @account.OpenedDate.ToString("MMM dd, yyyy")
                                 </td>
-                                <td style="padding: 12px; text-align: center; font-size: 13px; color: #374151;">
+                                <td style="padding: 12px; text-align: center; font-size: 13px; color: #2B2B2B;">
                                     @(account.MaturityDate?.ToString("MMM dd, yyyy") ?? "N/A")
                                 </td>
                                 <td style="padding: 12px; text-align: center;">
                                     @{
                                         var statusColor = account.Status switch
                                         {
-                                            "ACTIVE" => "#10b981",
-                                            "CLOSED" => "#ef4444",
-                                            "DORMANT" => "#f59e0b",
-                                            _ => "#6b7280"
-                                        };
+                                            "ACTIVE" => "#4F6F52",
+                                            "CLOSED" => "#9B3A3A",
+                                            "DORMANT" => "#C49A3A",
+                                            _ => "#6B6B6B"
+                                                    };
                                         var statusBg = account.Status switch
                                         {
-                                            "ACTIVE" => "#d1fae5",
-                                            "CLOSED" => "#fee2e2",
-                                            "DORMANT" => "#fef3c7",
-                                            _ => "#f3f4f6"
-                                        };
+                                            "ACTIVE" => "rgba(79, 111, 82, 0.15)",
+                                            "CLOSED" => "rgba(155, 58, 58, 0.15)",
+                                            "DORMANT" => "rgba(196, 154, 58, 0.15)",
+                                            _ => "rgba(107, 107, 107, 0.15)"
+                                                    };
                                     }
-                                    <span style="display: inline-block; padding: 4px 12px; background: @statusBg; color: @statusColor; border-radius: 12px; font-size: 11px; font-weight: 700;">
+                                    <span
+                                        style="display: inline-block; padding: 4px 12px; background: @statusBg; color: @statusColor; border-radius: 10px; font-size: 11px; font-weight: 600;">
                                         @account.Status
                                     </span>
                                 </td>
@@ -242,7 +263,8 @@
 
             @if (filteredAccounts.Count > 100)
             {
-                <div style="margin-top: 16px; padding: 12px; background: #fef3c7; border-radius: 8px; text-align: center; font-size: 13px; color: #92400e;">
+                <div
+                    style="margin-top: 16px; padding: 12px; background: rgba(196, 154, 58, 0.15); border-radius: 10px; text-align: center; font-size: 13px; color: #C49A3A;">
                     ⚠️ Showing first 100 of @filteredAccounts.Count accounts. Use filters to narrow down results.
                 </div>
             }
@@ -281,24 +303,24 @@
         using var context = await DbContextFactory.CreateDbContextAsync();
 
         allAccounts = await context.SavingsAccounts
-            .Include(sa => sa.Customer)
-            .Include(sa => sa.AccountType)
-            .OrderByDescending(sa => sa.OpenedDate)
-            .Select(sa => new SavingsAccountRecord
-            {
-                AccountId = sa.SavingsAccountId,
-                AccountNumber = sa.AccountNumber,
-                CustomerId = sa.CustomerId,
-                CustomerName = (sa.Customer!.FullName ?? sa.Customer.Username),
-                AccountTypeName = sa.AccountType!.TypeName,
-                Balance = sa.Balance,
-                InitialDeposit = sa.TotalDeposits,
-                InterestRate = sa.CurrentInterestRate,
-                OpenedDate = sa.OpenedDate,
-                MaturityDate = sa.MaturityDate,
-                Status = sa.Status
-            })
-            .ToListAsync();
+        .Include(sa => sa.Customer)
+        .Include(sa => sa.AccountType)
+        .OrderByDescending(sa => sa.OpenedDate)
+        .Select(sa => new SavingsAccountRecord
+        {
+            AccountId = sa.SavingsAccountId,
+            AccountNumber = sa.AccountNumber,
+            CustomerId = sa.CustomerId,
+            CustomerName = (sa.Customer!.FullName ?? sa.Customer.Username),
+            AccountTypeName = sa.AccountType!.TypeName,
+            Balance = sa.Balance,
+            InitialDeposit = sa.TotalDeposits,
+            InterestRate = sa.CurrentInterestRate,
+            OpenedDate = sa.OpenedDate,
+            MaturityDate = sa.MaturityDate,
+            Status = sa.Status
+        })
+        .ToListAsync();
 
         // Get unique account types for filter
         accountTypes = allAccounts.Select(a => a.AccountTypeName).Distinct().OrderBy(t => t).ToList();
@@ -316,8 +338,8 @@
         {
             var search = searchTerm.ToLower();
             filteredAccounts = filteredAccounts.Where(a =>
-                a.AccountNumber.ToLower().Contains(search) ||
-                a.CustomerName.ToLower().Contains(search)
+            a.AccountNumber.ToLower().Contains(search) ||
+            a.CustomerName.ToLower().Contains(search)
             ).ToList();
         }
 
@@ -376,18 +398,18 @@
     private async Task ExportToCsv()
     {
         var csv = "Account Number,Customer Name,Account Type,Current Balance,Initial Deposit,Interest Rate,Opened Date,Maturity Date,Status\n";
-        
+
         foreach (var account in filteredAccounts)
         {
             csv += $"{account.AccountNumber}," +
-                   $"\"{account.CustomerName}\"," +
-                   $"\"{account.AccountTypeName}\"," +
-                   $"{account.Balance:F2}," +
-                   $"{account.InitialDeposit:F2}," +
-                   $"{account.InterestRate}," +
-                   $"{account.OpenedDate:yyyy-MM-dd}," +
-                   $"{(account.MaturityDate?.ToString("yyyy-MM-dd") ?? "N/A")}," +
-                   $"{account.Status}\n";
+            $"\"{account.CustomerName}\"," +
+            $"\"{account.AccountTypeName}\"," +
+            $"{account.Balance:F2}," +
+            $"{account.InitialDeposit:F2}," +
+            $"{account.InterestRate}," +
+            $"{account.OpenedDate:yyyy-MM-dd}," +
+            $"{(account.MaturityDate?.ToString("yyyy-MM-dd") ?? "N/A")}," +
+            $"{account.Status}\n";
         }
 
         // In a real application, trigger download via JS interop

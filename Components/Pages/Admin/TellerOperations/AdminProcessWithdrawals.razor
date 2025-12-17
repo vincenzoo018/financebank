@@ -10,18 +10,18 @@
 @inject IDbContextFactory<BFASDbContext> DbContextFactory
 
 <!-- Admin Notice -->
-<div style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+<div style="background: #E8F0E8; border: 1px solid #5F6F52; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
     <div style="display: flex; align-items: flex-start; gap: 12px;">
         <span style="font-size: 20px;">ℹ️</span>
         <div>
-            <h4 style="margin: 0 0 4px; font-size: 14px; font-weight: 700; color: #1e40af;">SuperAdmin Withdrawal Operations Access</h4>
-            <p style="margin: 0; font-size: 13px; color: #1e40af; opacity: 0.9;">You have direct authority to process withdrawals without customer password or PIN verification. All admin transactions are logged with full audit trail.</p>
+            <h4 style="margin: 0 0 4px; font-size: 14px; font-weight: 700; color: #2F3E2A;">SuperAdmin Withdrawal Operations Access</h4>
+            <p style="margin: 0; font-size: 13px; color: #2F3E2A; opacity: 0.9;">You have direct authority to process withdrawals without customer password or PIN verification. All admin transactions are logged with full audit trail.</p>
         </div>
     </div>
 </div>
 
 <!-- Header Title Card -->
-<div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.15)); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; padding: 32px; margin-bottom: 32px; color: #991b1b;">
+<div style="background: linear-gradient(135deg, rgba(155, 58, 58, 0.1), rgba(122, 46, 46, 0.15)); border: 1px solid rgba(155, 58, 58, 0.3); border-radius: 16px; padding: 32px; margin-bottom: 32px; color: #9B3A3A;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -35,12 +35,12 @@
 </div>
 
 <!-- Admin Reason Field -->
-<div style="background: #f0fdf4; border: 2px solid #059669; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-    <label style="font-size: 14px; font-weight: 700; display: block; margin-bottom: 8px; color: #065f46;">
+<div style="background: #F0F2EC; border: 2px solid #5F6F52; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <label style="font-size: 14px; font-weight: 700; display: block; margin-bottom: 8px; color: #2F3E2A;">
         📋 Admin Action Reason (Required)
     </label>
     <textarea @bind="adminActionReason" 
-              style="width: 100%; padding: 12px; border: 1px solid #86efac; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 60px;" 
+              style="width: 100%; padding: 12px; border: 1px solid #A9B388; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 60px;" 
               placeholder="Document why you are processing this withdrawal as admin (e.g., 'Customer forgot password - verified identity via ID', 'Emergency withdrawal - manager approval obtained')..."></textarea>
     @if (showError && string.IsNullOrWhiteSpace(adminActionReason))
     {
@@ -147,7 +147,7 @@
 
         @if (!string.IsNullOrEmpty(successMessage))
         {
-            <div style="padding: 16px; background: #d1fae5; border-radius: 8px; color: #065f46; margin-bottom: 20px; font-size: 14px;">
+            <div style="padding: 16px; background: #D4E6D4; border-radius: 8px; color: #2F3E2A; margin-bottom: 20px; font-size: 14px;">
                 <strong>Success:</strong> @successMessage
                 @if (!string.IsNullOrEmpty(lastReceiptNumber))
                 {
@@ -202,7 +202,7 @@
                             <td style="padding: 16px; font-weight: 600; color: #dc2626;">₱@transaction.Amount.ToString("N2")</td>
                             <td style="padding: 16px; font-size: 12px;">@transaction.Method</td>
                             <td style="padding: 16px; font-size: 12px; color: #6b7280;">@transaction.Time.ToString("hh:mm tt")</td>
-                            <td style="padding: 16px;"><span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">Completed</span></td>
+                            <td style="padding: 16px;"><span style="padding: 4px 12px; background: #D4E6D4; color: #2F3E2A; border-radius: 8px; font-size: 12px; font-weight: 600;">Completed</span></td>
                             <td style="padding: 16px; text-align: center;">
                                 <button type="button" 
                                         @onclick="@(() => ViewInvoice(transaction))"
@@ -276,7 +276,7 @@
                         </div>
                         <div>
                             <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">Status</p>
-                            <p style="margin: 0; font-weight: 600; color: #065f46;">✓ Completed</p>
+                            <p style="margin: 0; font-weight: 600; color: #2F3E2A;">✓ Completed</p>
                         </div>
                     </div>
                 </div>

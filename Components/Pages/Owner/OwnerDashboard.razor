@@ -360,20 +360,20 @@
     }
 
     .stat-card {
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
         padding: 24px;
         display: flex;
         align-items: flex-start;
         gap: 16px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         border-left: 4px solid;
     }
 
-    .stat-card.revenue { border-left-color: #10b981; }
-    .stat-card.clients { border-left-color: #6366f1; }
-    .stat-card.mrr { border-left-color: #8b5cf6; }
-    .stat-card.pending { border-left-color: #f59e0b; }
+    .stat-card.revenue { border-left-color: #4F6F52; }
+    .stat-card.clients { border-left-color: #5F6F52; }
+    .stat-card.mrr { border-left-color: #8B5A2B; }
+    .stat-card.pending { border-left-color: #C49A3A; }
 
     .stat-icon {
         font-size: 32px;
@@ -382,7 +382,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #f5f3ff;
+        background: rgba(95, 111, 82, 0.1);
         border-radius: 12px;
     }
 
@@ -394,14 +394,14 @@
 
     .stat-label {
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
         font-weight: 500;
     }
 
     .stat-value {
         font-size: 28px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
     }
 
     .stat-change {
@@ -409,12 +409,12 @@
         font-weight: 500;
     }
 
-    .stat-change.positive { color: #10b981; }
-    .stat-change.negative { color: #ef4444; }
+    .stat-change.positive { color: #4F6F52; }
+    .stat-change.negative { color: #9B3A3A; }
 
     .stat-subtext {
         font-size: 12px;
-        color: #9ca3af;
+        color: #6B6B6B;
     }
 
     /* Secondary Stats */
@@ -426,13 +426,13 @@
 
     .mini-stat {
         flex: 1;
-        background: white;
+        background: #FFFFFF;
         border-radius: 12px;
         padding: 16px 20px;
         display: flex;
         align-items: center;
         gap: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     }
 
     .mini-icon {
@@ -446,13 +446,13 @@
 
     .mini-value {
         font-size: 18px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
     }
 
     .mini-label {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     /* Content Grid */
@@ -464,15 +464,15 @@
     }
 
     .card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        background: #FFFFFF;
+        border-radius: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         overflow: hidden;
     }
 
     .card-header {
         padding: 20px 24px;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid #E2E2DC;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -481,13 +481,13 @@
     .card-header h3 {
         font-size: 16px;
         font-weight: 600;
-        color: #1f2937;
+        color: #2B2B2B;
         margin: 0;
     }
 
     .view-all {
         font-size: 13px;
-        color: #6366f1;
+        color: #5F6F52;
         text-decoration: none;
         font-weight: 500;
     }
@@ -510,48 +510,49 @@
         text-align: left;
         font-size: 11px;
         font-weight: 600;
-        color: #6b7280;
+        color: #6B6B6B;
         text-transform: uppercase;
         padding: 8px 0;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 2px solid #E2E2DC;
+        background: #F7F7F4;
     }
 
     .data-table td {
         padding: 12px 0;
         font-size: 13px;
-        color: #374151;
-        border-bottom: 1px solid #f9fafb;
+        color: #2B2B2B;
+        border-bottom: 1px solid #E2E2DC;
     }
 
     .data-table .amount {
         font-weight: 600;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     /* Badges */
     .badge {
         display: inline-block;
         padding: 4px 10px;
-        border-radius: 12px;
+        border-radius: 10px;
         font-size: 11px;
         font-weight: 500;
     }
 
-    .badge.payment { background: #dcfce7; color: #166534; }
-    .badge.refund { background: #fee2e2; color: #991b1b; }
-    .badge.credit { background: #dbeafe; color: #1e40af; }
+    .badge.payment { background: rgba(79, 111, 82, 0.15); color: #4F6F52; }
+    .badge.refund { background: rgba(155, 58, 58, 0.15); color: #9B3A3A; }
+    .badge.credit { background: rgba(95, 122, 106, 0.15); color: #5F7A6A; }
 
     .status-badge {
         display: inline-block;
         padding: 4px 10px;
-        border-radius: 12px;
+        border-radius: 10px;
         font-size: 11px;
         font-weight: 500;
     }
 
-    .status-badge.Active, .status-badge.Completed, .status-badge.Paid { background: #dcfce7; color: #166534; }
-    .status-badge.Pending { background: #fef3c7; color: #92400e; }
-    .status-badge.Suspended, .status-badge.Failed { background: #fee2e2; color: #991b1b; }
+    .status-badge.Active, .status-badge.Completed, .status-badge.Paid { background: rgba(79, 111, 82, 0.15); color: #4F6F52; }
+    .status-badge.Pending { background: rgba(196, 154, 58, 0.15); color: #C49A3A; }
+    .status-badge.Suspended, .status-badge.Failed { background: rgba(155, 58, 58, 0.15); color: #9B3A3A; }
 
     /* Client List */
     .client-list, .invoice-list, .ticket-list {
@@ -565,14 +566,14 @@
         align-items: center;
         gap: 12px;
         padding: 12px;
-        background: #f9fafb;
+        background: #F7F7F4;
         border-radius: 10px;
     }
 
     .client-avatar {
         width: 40px;
         height: 40px;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        background: #5F6F52;
         border-radius: 10px;
         display: flex;
         align-items: center;
@@ -591,17 +592,17 @@
     .client-name {
         font-size: 14px;
         font-weight: 600;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .client-email {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .client-status {
         padding: 4px 12px;
-        border-radius: 12px;
+        border-radius: 10px;
         font-size: 11px;
         font-weight: 500;
     }
@@ -612,9 +613,9 @@
         justify-content: space-between;
         align-items: center;
         padding: 12px;
-        background: #fef2f2;
+        background: rgba(155, 58, 58, 0.08);
         border-radius: 10px;
-        border-left: 3px solid #ef4444;
+        border-left: 3px solid #9B3A3A;
     }
 
     .invoice-main {
@@ -625,12 +626,12 @@
     .invoice-number {
         font-size: 14px;
         font-weight: 600;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .invoice-client {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .invoice-details {
@@ -641,13 +642,13 @@
 
     .invoice-amount {
         font-size: 14px;
-        font-weight: 700;
-        color: #ef4444;
+        font-weight: 600;
+        color: #9B3A3A;
     }
 
     .invoice-due.overdue {
         font-size: 11px;
-        color: #dc2626;
+        color: #9B3A3A;
     }
 
     /* Ticket Item */
@@ -656,7 +657,7 @@
         align-items: center;
         gap: 12px;
         padding: 12px;
-        background: #f9fafb;
+        background: #F7F7F4;
         border-radius: 10px;
     }
 
@@ -666,10 +667,10 @@
         border-radius: 4px;
     }
 
-    .ticket-priority.low { background: #10b981; }
-    .ticket-priority.normal { background: #3b82f6; }
-    .ticket-priority.high { background: #f59e0b; }
-    .ticket-priority.urgent { background: #ef4444; }
+    .ticket-priority.low { background: #4F6F52; }
+    .ticket-priority.normal { background: #5F7A6A; }
+    .ticket-priority.high { background: #C49A3A; }
+    .ticket-priority.urgent { background: #9B3A3A; }
 
     .ticket-main {
         flex: 1;
@@ -679,13 +680,13 @@
 
     .ticket-number {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .ticket-subject {
         font-size: 14px;
         font-weight: 500;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .ticket-meta {
@@ -696,23 +697,23 @@
 
     .ticket-client {
         font-size: 12px;
-        color: #374151;
+        color: #2B2B2B;
     }
 
     .ticket-time {
         font-size: 11px;
-        color: #9ca3af;
+        color: #6B6B6B;
     }
 
     /* Empty State */
     .empty-state {
         text-align: center;
         padding: 32px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .empty-state.success {
-        color: #10b981;
+        color: #4F6F52;
     }
 
     .empty-icon {
@@ -725,7 +726,7 @@
     .quick-actions h3 {
         font-size: 16px;
         font-weight: 600;
-        color: #1f2937;
+        color: #2B2B2B;
         margin-bottom: 16px;
     }
 
@@ -741,19 +742,19 @@
         justify-content: center;
         gap: 10px;
         padding: 16px 24px;
-        background: white;
-        border: 2px dashed #e5e7eb;
+        background: #FFFFFF;
+        border: 2px dashed #E2E2DC;
         border-radius: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
         text-decoration: none;
         font-weight: 500;
         transition: all 0.2s ease;
     }
 
     .action-btn:hover {
-        border-color: #6366f1;
-        color: #6366f1;
-        background: #f5f3ff;
+        border-color: #5F6F52;
+        color: #5F6F52;
+        background: rgba(95, 111, 82, 0.08);
     }
 
     .action-icon {
@@ -762,11 +763,11 @@
 
     /* Revenue Reports Section */
     .revenue-reports-section {
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
         padding: 24px;
         margin-top: 24px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     }
 
     .reports-header {
@@ -775,13 +776,13 @@
         align-items: center;
         margin-bottom: 24px;
         padding-bottom: 16px;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid #E2E2DC;
     }
 
     .reports-header h3 {
         font-size: 18px;
         font-weight: 600;
-        color: #1f2937;
+        color: #2B2B2B;
         margin: 0;
     }
 
@@ -793,20 +794,20 @@
 
     .report-actions select {
         padding: 8px 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
-        color: #374151;
-        background: white;
+        color: #2B2B2B;
+        background: #FFFFFF;
         cursor: pointer;
     }
 
     .report-actions .btn-primary {
         padding: 8px 16px;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        background: #2F3E2A;
         color: white;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         font-size: 14px;
         font-weight: 500;
         cursor: pointer;
@@ -814,8 +815,9 @@
     }
 
     .report-actions .btn-primary:hover {
+        background: #5F6F52;
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 4px 12px rgba(47, 62, 42, 0.3);
     }
 
     .reports-grid {
@@ -826,7 +828,7 @@
     }
 
     .report-card {
-        background: #f9fafb;
+        background: #F7F7F4;
         border-radius: 12px;
         padding: 20px;
         text-align: center;
@@ -834,7 +836,7 @@
 
     .report-card h4 {
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
         margin: 0 0 8px 0;
         font-weight: 500;
     }
@@ -842,22 +844,22 @@
     .report-value {
         display: block;
         font-size: 24px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
         margin-bottom: 4px;
     }
 
     .report-value.warning {
-        color: #f59e0b;
+        color: #C49A3A;
     }
 
     .report-desc {
         font-size: 11px;
-        color: #9ca3af;
+        color: #6B6B6B;
     }
 
     .revenue-breakdown {
-        background: #f9fafb;
+        background: #F7F7F4;
         border-radius: 12px;
         padding: 20px;
     }
@@ -865,7 +867,7 @@
     .revenue-breakdown h4 {
         font-size: 14px;
         font-weight: 600;
-        color: #1f2937;
+        color: #2B2B2B;
         margin: 0 0 16px 0;
     }
 
@@ -884,27 +886,27 @@
 
     .breakdown-item .module-name {
         font-size: 13px;
-        color: #374151;
+        color: #2B2B2B;
         font-weight: 500;
     }
 
     .breakdown-item .progress-bar {
         height: 8px;
-        background: #e5e7eb;
+        background: #E2E2DC;
         border-radius: 4px;
         overflow: hidden;
     }
 
     .breakdown-item .progress {
         height: 100%;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        background: #5F6F52;
         border-radius: 4px;
     }
 
     .breakdown-item .module-revenue {
         font-size: 13px;
         font-weight: 600;
-        color: #1f2937;
+        color: #2B2B2B;
         text-align: right;
     }
 

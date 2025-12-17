@@ -18,20 +18,20 @@
 
 <!-- Security Alert Stats -->
 <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 24px;">
-    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 16px; padding: 20px; border: 2px solid #dc2626;">
-        <div style="font-size: 13px; color: #991b1b; margin-bottom: 4px;">⚠️ Malicious Attempts</div>
-        <div style="font-size: 32px; font-weight: 800; color: #dc2626;">@maliciousCount</div>
-        <div style="font-size: 11px; color: #7f1d1d; margin-top: 4px;">Last 24 hours</div>
+    <div style="background: linear-gradient(135deg, #F0E8E8, #E8D8D8); border-radius: 16px; padding: 20px; border: 2px solid #9B3A3A;">
+        <div style="font-size: 13px; color: #6B3A3A; margin-bottom: 4px;">⚠️ Malicious Attempts</div>
+        <div style="font-size: 32px; font-weight: 800; color: #9B3A3A;">@maliciousCount</div>
+        <div style="font-size: 11px; color: #6B3A3A; margin-top: 4px;">Last 24 hours</div>
     </div>
-    <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 16px; padding: 20px; border: 2px solid #f59e0b;">
-        <div style="font-size: 13px; color: #92400e; margin-bottom: 4px;">🔐 Locked Accounts</div>
-        <div style="font-size: 32px; font-weight: 800; color: #f59e0b;">@lockedAccountsCount</div>
-        <div style="font-size: 11px; color: #78350f; margin-top: 4px;">Customers</div>
+    <div style="background: linear-gradient(135deg, #F5EFE6, #E8DFD0); border-radius: 16px; padding: 20px; border: 2px solid #8B5A2B;">
+        <div style="font-size: 13px; color: #6B4423; margin-bottom: 4px;">🔐 Locked Accounts</div>
+        <div style="font-size: 32px; font-weight: 800; color: #8B5A2B;">@lockedAccountsCount</div>
+        <div style="font-size: 11px; color: #6B4423; margin-top: 4px;">Customers</div>
     </div>
-    <div style="background: linear-gradient(135deg, #7f1d1d, #991b1b); border-radius: 16px; padding: 20px; border: 2px solid #450a0a;">
-        <div style="font-size: 13px; color: #fecaca; margin-bottom: 4px;">🚨 Fully Locked</div>
-        <div style="font-size: 32px; font-weight: 800; color: #fef2f2;">@fullyLockedCount</div>
-        <div style="font-size: 11px; color: #fca5a5; margin-top: 4px;">Requires Admin</div>
+    <div style="background: linear-gradient(135deg, #5B2B2B, #7B3A3A); border-radius: 16px; padding: 20px; border: 2px solid #3B1A1A;">
+        <div style="font-size: 13px; color: #E8D8D8; margin-bottom: 4px;">🚨 Fully Locked</div>
+        <div style="font-size: 32px; font-weight: 800; color: #F0E8E8;">@fullyLockedCount</div>
+        <div style="font-size: 11px; color: #D8C8C8; margin-top: 4px;">Requires Admin</div>
     </div>
     <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
         <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Total Activities</div>
@@ -39,43 +39,43 @@
     </div>
     <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
         <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Today's Activities</div>
-        <div style="font-size: 28px; font-weight: 700; color: #3b82f6;">@todayCount</div>
+        <div style="font-size: 28px; font-weight: 700; color: #6B7B5E;">@todayCount</div>
     </div>
     <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid var(--border);">
         <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Unique Users</div>
-        <div style="font-size: 28px; font-weight: 700; color: #10b981;">@uniqueUsers</div>
+        <div style="font-size: 28px; font-weight: 700; color: #5F6F52;">@uniqueUsers</div>
     </div>
 </div>
 
 <!-- Tabs -->
 <div style="display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;">
     <button class="@(activeTab == "banking" ? "btn btn-primary" : "btn btn-outline")"
-            style="@(activeTab == "banking" ? "background: #059669; color: white;" : "")"
+            style="@(activeTab == "banking" ? "background: #5F6F52; color: white;" : "")"
             @onclick='() => SetActiveTab("banking")'>
         💰 Banking Transactions (@bankingTransactions.Count)
     </button>
     <button class="@(activeTab == "fullylocked" ? "btn btn-danger" : "btn btn-outline")" 
-            style="@(activeTab == "fullylocked" ? "background: #7f1d1d; color: white;" : "")"
+            style="@(activeTab == "fullylocked" ? "background: #5B2B2B; color: white;" : "")"
             @onclick='() => SetActiveTab("fullylocked")'>
         🚨 Fully Locked (@fullyLockedCount)
     </button>
     <button class="@(activeTab == "malicious" ? "btn btn-danger" : "btn btn-outline")" 
-            style="@(activeTab == "malicious" ? "background: #dc2626; color: white;" : "")"
+            style="@(activeTab == "malicious" ? "background: #9B3A3A; color: white;" : "")"
             @onclick='() => SetActiveTab("malicious")'>
         ⚠️ Malicious Attempts (@maliciousAttempts.Count)
     </button>
     <button class="@(activeTab == "locked" ? "btn btn-warning" : "btn btn-outline")"
-            style="@(activeTab == "locked" ? "background: #f59e0b; color: white;" : "")"
+            style="@(activeTab == "locked" ? "background: #8B5A2B; color: white;" : "")"
             @onclick='() => SetActiveTab("locked")'>
         🔐 Locked Accounts (@lockedAccounts.Count)
     </button>
     <button class="@(activeTab == "security" ? "btn btn-primary" : "btn btn-outline")"
-            style="@(activeTab == "security" ? "background: #3b82f6; color: white;" : "")"
+            style="@(activeTab == "security" ? "background: #6B7B5E; color: white;" : "")"
             @onclick='() => SetActiveTab("security")'>
         🛡️ Security Logs
     </button>
     <button class="@(activeTab == "all" ? "btn btn-primary" : "btn btn-outline")"
-            style="@(activeTab == "all" ? "background: #047857; color: white;" : "")"
+            style="@(activeTab == "all" ? "background: #2F3E2A; color: white;" : "")"
             @onclick='() => SetActiveTab("all")'>
         📋 All Audit Logs
     </button>
@@ -134,10 +134,10 @@
 
     <!-- Banking Transaction Stats -->
     <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px;">
-        <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 16px; padding: 20px; border: 2px solid #059669;">
-            <div style="font-size: 13px; color: #065f46; margin-bottom: 4px;">💵 Total Deposits</div>
-            <div style="font-size: 24px; font-weight: 800; color: #059669;">@bankingStats.TotalDeposits</div>
-            <div style="font-size: 12px; color: #047857;">₱@bankingStats.DepositAmount.ToString("N2")</div>
+        <div style="background: linear-gradient(135deg, #D4E6D4, #BCC9A6); border-radius: 16px; padding: 20px; border: 2px solid #5F6F52;">
+            <div style="font-size: 13px; color: #2F3E2A; margin-bottom: 4px;">💵 Total Deposits</div>
+            <div style="font-size: 24px; font-weight: 800; color: #5F6F52;">@bankingStats.TotalDeposits</div>
+            <div style="font-size: 12px; color: #2F3E2A;">₱@bankingStats.DepositAmount.ToString("N2")</div>
         </div>
         <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 16px; padding: 20px; border: 2px solid #dc2626;">
             <div style="font-size: 13px; color: #991b1b; margin-bottom: 4px;">💸 Total Withdrawals</div>
@@ -165,23 +165,23 @@
     <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="font-size: 18px; font-weight: 700; margin: 0;">💰 Banking Transaction Audit Trail</h3>
-            <button class="btn" style="background: #059669; color: white; padding: 8px 16px;">
+            <button class="btn" style="background: #5F6F52; color: white; padding: 8px 16px;">
                 📥 Export Report
             </button>
         </div>
 
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
-                <tr style="border-bottom: 2px solid var(--border); background: #f0fdf4;">
-                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">TIMESTAMP</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">TYPE</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">EMPLOYEE</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">CUSTOMER</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">ACCOUNT</th>
-                    <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 700; color: #065f46;">AMOUNT</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">STATUS</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">RISK</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #065f46;">REFERENCE</th>
+                <tr style="border-bottom: 2px solid var(--border); background: #F0F2EC;">
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #2F3E2A;">TIMESTAMP</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #2F3E2A;">TYPE</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #2F3E2A;">EMPLOYEE</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #2F3E2A;">CUSTOMER</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #2F3E2A;">ACCOUNT</th>
+                    <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 700; color: #2F3E2A;">AMOUNT</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #2F3E2A;">STATUS</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #2F3E2A;">RISK</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #2F3E2A;">REFERENCE</th>
                 </tr>
             </thead>
             <tbody>
@@ -214,11 +214,11 @@
                                     <div style="font-size: 11px; color: #3b82f6;">→ @txn.TargetAccountNumber</div>
                                 }
                             </td>
-                            <td style="padding: 16px; text-align: right; font-weight: 700; color: @(txn.TransactionType == "Withdrawal" || txn.TransactionType == "SavingsWithdrawal" ? "#dc2626" : "#059669");">
+                            <td style="padding: 16px; text-align: right; font-weight: 700; color: @(txn.TransactionType == "Withdrawal" || txn.TransactionType == "SavingsWithdrawal" ? "#dc2626" : "#5F6F52");">
                                 @(txn.TransactionType == "Withdrawal" || txn.TransactionType == "SavingsWithdrawal" ? "-" : "+")₱@(txn.Amount?.ToString("N2") ?? "0.00")
                             </td>
                             <td style="padding: 16px;">
-                                <span style="padding: 4px 12px; background: @(txn.TransactionStatus == "Completed" ? "#d1fae5" : "#fef3c7"); color: @(txn.TransactionStatus == "Completed" ? "#065f46" : "#92400e"); border-radius: 20px; font-size: 11px; font-weight: 600;">
+                                <span style="padding: 4px 12px; background: @(txn.TransactionStatus == "Completed" ? "#D4E6D4" : "#fef3c7"); color: @(txn.TransactionStatus == "Completed" ? "#2F3E2A" : "#92400e"); border-radius: 20px; font-size: 11px; font-weight: 600;">
                                     @(txn.TransactionStatus ?? "N/A")
                                 </span>
                             </td>
@@ -284,7 +284,7 @@
                             <td style="padding: 16px; text-align: center;">
                                 <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
                                     <button class="btn btn-sm" 
-                                            style="background: #059669; color: white; padding: 6px 12px; font-size: 11px;"
+                                            style="background: #5F6F52; color: white; padding: 6px 12px; font-size: 11px;"
                                             @onclick="() => ShowUnlockModal(item)">
                                         🔓 Unlock
                                     </button>
@@ -306,7 +306,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="6" style="padding: 32px; text-align: center; color: #059669; font-size: 14px;">
+                        <td colspan="6" style="padding: 32px; text-align: center; color: #5F6F52; font-size: 14px;">
                             ✅ No fully locked accounts. All customer accounts are accessible.
                         </td>
                     </tr>
@@ -356,7 +356,7 @@
                             </td>
                             <td style="padding: 16px; font-family: monospace; font-size: 12px;">@(log.IpAddress ?? "N/A")</td>
                             <td style="padding: 16px;">
-                                <span style="padding: 4px 12px; background: @(isLocked ? "#fef2f2" : "#d1fae5"); color: @(isLocked ? "#dc2626" : "#065f46"); border-radius: 20px; font-size: 11px; font-weight: 600;">
+                                <span style="padding: 4px 12px; background: @(isLocked ? "#fef2f2" : "#D4E6D4"); color: @(isLocked ? "#dc2626" : "#2F3E2A"); border-radius: 20px; font-size: 11px; font-weight: 600;">
                                     @(isLocked ? "Locked" : "Active")
                                 </span>
                             </td>
@@ -364,7 +364,7 @@
                                 @if (extractedUserId.HasValue)
                                 {
                                     <button class="btn btn-sm" 
-                                            style="background: #059669; color: white; padding: 6px 12px; font-size: 11px;"
+                                            style="background: #5F6F52; color: white; padding: 6px 12px; font-size: 11px;"
                                             @onclick="() => UnlockAccount(extractedUserId.Value)">
                                         🔓 Unlock
                                     </button>
@@ -376,7 +376,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="6" style="padding: 32px; text-align: center; color: #059669; font-size: 14px;">
+                        <td colspan="6" style="padding: 32px; text-align: center; color: #5F6F52; font-size: 14px;">
                             ✅ No malicious attempts detected. All accounts are secure.
                         </td>
                     </tr>
@@ -428,7 +428,7 @@
                             <td style="padding: 16px; text-align: center;">
                                 <div style="display: flex; gap: 8px; justify-content: center;">
                                     <button class="btn btn-sm" 
-                                            style="background: #059669; color: white; padding: 6px 12px; font-size: 11px;"
+                                            style="background: #5F6F52; color: white; padding: 6px 12px; font-size: 11px;"
                                             @onclick="() => UnlockAccount(item.UserId)">
                                         🔓 Unlock
                                     </button>
@@ -445,7 +445,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="7" style="padding: 32px; text-align: center; color: #059669; font-size: 14px;">
+                        <td colspan="7" style="padding: 32px; text-align: center; color: #5F6F52; font-size: 14px;">
                             ✅ No locked accounts. All customer accounts are accessible.
                         </td>
                     </tr>
@@ -461,7 +461,7 @@
     <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="font-size: 18px; font-weight: 700; margin: 0;">🛡️ Security Event Logs</h3>
-            <button class="btn" style="background: #10b981; color: white; padding: 8px 16px;">
+            <button class="btn" style="background: #5F6F52; color: white; padding: 8px 16px;">
                 📥 Export Report
             </button>
         </div>
@@ -501,7 +501,7 @@
                             }
                             else
                             {
-                                <span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 20px; font-size: 11px; font-weight: 600;">✓ Normal</span>
+                                <span style="padding: 4px 12px; background: #D4E6D4; color: #2F3E2A; border-radius: 20px; font-size: 11px; font-weight: 600;">✓ Normal</span>
                             }
                         </td>
                     </tr>
@@ -560,7 +560,7 @@
     <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="font-size: 18px; font-weight: 700; margin: 0;">📊 All Activity Records</h3>
-            <button class="btn" style="background: #10b981; color: white; padding: 8px 16px;">
+            <button class="btn" style="background: #5F6F52; color: white; padding: 8px 16px;">
                 📥 Export Report
             </button>
         </div>
@@ -626,7 +626,7 @@
 <!-- Success/Error Messages -->
 @if (!string.IsNullOrEmpty(successMessage))
 {
-    <div style="position: fixed; bottom: 24px; right: 24px; padding: 16px 24px; background: #d1fae5; border: 1px solid #10b981; border-radius: 12px; color: #065f46; font-weight: 600; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+    <div style="position: fixed; bottom: 24px; right: 24px; padding: 16px 24px; background: #D4E6D4; border: 1px solid #5F6F52; border-radius: 12px; color: #2F3E2A; font-weight: 600; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
         ✅ @successMessage
     </div>
 }
@@ -644,7 +644,7 @@
     <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001;">
         <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 450px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-                <div style="width: 48px; height: 48px; background: #d1fae5; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🔓</div>
+                <div style="width: 48px; height: 48px; background: #D4E6D4; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🔓</div>
                 <div>
                     <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #1f2937;">Unlock Account</h3>
                     <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;">@selectedAccountForAction?.Username</p>
@@ -660,7 +660,7 @@
                         @onclick="CloseModals">
                     Cancel
                 </button>
-                <button style="padding: 10px 20px; background: #059669; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;"
+                <button style="padding: 10px 20px; background: #5F6F52; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;"
                         @onclick="ConfirmUnlockAccount">
                     🔓 Unlock Account
                 </button>
@@ -902,25 +902,25 @@
     // Helper methods for banking transaction UI
     private string GetTransactionTypeBackground(string? type) => type switch
     {
-        "Deposit" => "#d1fae5",
-        "SavingsDeposit" => "#d1fae5",
+        "Deposit" => "#D4E6D4",
+        "SavingsDeposit" => "#D4E6D4",
         "Withdrawal" => "#fee2e2",
         "SavingsWithdrawal" => "#fee2e2",
         "Transfer" => "#dbeafe",
         "LoanDisbursement" => "#fef3c7",
-        "LoanPayment" => "#ecfdf5",
+        "LoanPayment" => "#E8F0E8",
         _ => "#f3f4f6"
     };
 
     private string GetTransactionTypeColor(string? type) => type switch
     {
-        "Deposit" => "#065f46",
-        "SavingsDeposit" => "#065f46",
+        "Deposit" => "#2F3E2A",
+        "SavingsDeposit" => "#2F3E2A",
         "Withdrawal" => "#991b1b",
         "SavingsWithdrawal" => "#991b1b",
         "Transfer" => "#1e40af",
         "LoanDisbursement" => "#92400e",
-        "LoanPayment" => "#047857",
+        "LoanPayment" => "#2F3E2A",
         _ => "#374151"
     };
 
@@ -938,7 +938,7 @@
 
     private string GetRiskBackground(string? risk) => risk switch
     {
-        "Low" => "#d1fae5",
+        "Low" => "#D4E6D4",
         "Medium" => "#fef3c7",
         "High" => "#fed7aa",
         "Critical" => "#fee2e2",
@@ -947,7 +947,7 @@
 
     private string GetRiskColor(string? risk) => risk switch
     {
-        "Low" => "#065f46",
+        "Low" => "#2F3E2A",
         "Medium" => "#92400e",
         "High" => "#c2410c",
         "Critical" => "#991b1b",
@@ -1243,12 +1243,12 @@
     {
         return action switch
         {
-            "LOGIN_SUCCESS" => "#d1fae5",
+            "LOGIN_SUCCESS" => "#D4E6D4",
             "LOGIN_FAILED" => "#fef2f2",
             "LOGOUT" => "#dbeafe",
             "MALICIOUS_ATTEMPT" => "#fef2f2",
             "ACCOUNT_LOCKED" => "#fef3c7",
-            "ACCOUNT_UNLOCKED" => "#d1fae5",
+            "ACCOUNT_UNLOCKED" => "#D4E6D4",
             "PASSWORD_RESET" => "#dbeafe",
             "ACCOUNT_FULLY_LOCKED" => "#fee2e2",
             _ => "#f3f4f6"
@@ -1259,12 +1259,12 @@
     {
         return action switch
         {
-            "LOGIN_SUCCESS" => "#065f46",
+            "LOGIN_SUCCESS" => "#2F3E2A",
             "LOGIN_FAILED" => "#991b1b",
             "LOGOUT" => "#1e40af",
             "MALICIOUS_ATTEMPT" => "#991b1b",
             "ACCOUNT_LOCKED" => "#92400e",
-            "ACCOUNT_UNLOCKED" => "#065f46",
+            "ACCOUNT_UNLOCKED" => "#2F3E2A",
             "PASSWORD_RESET" => "#1e40af",
             "ACCOUNT_FULLY_LOCKED" => "#7f1d1d",
             _ => "#374151"

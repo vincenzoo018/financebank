@@ -8,7 +8,7 @@
 @inject NavigationManager Navigation
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
@@ -33,8 +33,8 @@
 </div>
 
 <!-- Admin Access Notice -->
-<div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-    <p style="margin: 0; color: #1e40af; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+<div style="background: #E8F0E8; border: 2px solid #5F6F52; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+    <p style="margin: 0; color: #2F3E2A; font-weight: 600; display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 20px;">ℹ️</span>
         <strong>SuperAdmin Teller Operations Access</strong> - Full transaction history visibility with audit capabilities
     </p>
@@ -42,33 +42,33 @@
 
 <!-- Summary Stats -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
-    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 16px; border: 1px solid #6ee7b7;">
-        <div style="font-size: 12px; color: #065f46; font-weight: 600;">DEPOSITS</div>
-        <div style="font-size: 24px; font-weight: 700; color: #047857;">@transactions.Count(t => t.TransactionType == "Deposit")</div>
-        <div style="font-size: 12px; color: #059669;">₱@transactions.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount).ToString("N0")</div>
+    <div style="background: linear-gradient(135deg, #D4E6D4, #BCC9A6); border-radius: 12px; padding: 16px; border: 1px solid #A9B388;">
+        <div style="font-size: 12px; color: #2F3E2A; font-weight: 600;">DEPOSITS</div>
+        <div style="font-size: 24px; font-weight: 700; color: #2F3E2A;">@transactions.Count(t => t.TransactionType == "Deposit")</div>
+        <div style="font-size: 12px; color: #5F6F52;">₱@transactions.Where(t => t.TransactionType == "Deposit").Sum(t => t.Amount).ToString("N0")</div>
     </div>
-    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 12px; padding: 16px; border: 1px solid #fca5a5;">
-        <div style="font-size: 12px; color: #991b1b; font-weight: 600;">WITHDRAWALS</div>
-        <div style="font-size: 24px; font-weight: 700; color: #dc2626;">@transactions.Count(t => t.TransactionType == "Withdrawal")</div>
-        <div style="font-size: 12px; color: #ef4444;">₱@transactions.Where(t => t.TransactionType == "Withdrawal").Sum(t => t.Amount).ToString("N0")</div>
+    <div style="background: linear-gradient(135deg, #F0E8E8, #E8D8D8); border-radius: 12px; padding: 16px; border: 1px solid #C9A9A9;">
+        <div style="font-size: 12px; color: #6B3A3A; font-weight: 600;">WITHDRAWALS</div>
+        <div style="font-size: 24px; font-weight: 700; color: #9B3A3A;">@transactions.Count(t => t.TransactionType == "Withdrawal")</div>
+        <div style="font-size: 12px; color: #9B3A3A;">₱@transactions.Where(t => t.TransactionType == "Withdrawal").Sum(t => t.Amount).ToString("N0")</div>
     </div>
-    <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 12px; padding: 16px; border: 1px solid #93c5fd;">
-        <div style="font-size: 12px; color: #1e40af; font-weight: 600;">LOAN PAYMENTS</div>
-        <div style="font-size: 24px; font-weight: 700; color: #2563eb;">@transactions.Count(t => t.TransactionType == "Loan Payment")</div>
-        <div style="font-size: 12px; color: #3b82f6;">₱@transactions.Where(t => t.TransactionType == "Loan Payment").Sum(t => t.Amount).ToString("N0")</div>
+    <div style="background: linear-gradient(135deg, #E8EDE8, #D8E0D8); border-radius: 12px; padding: 16px; border: 1px solid #A9B388;">
+        <div style="font-size: 12px; color: #2F3E2A; font-weight: 600;">LOAN PAYMENTS</div>
+        <div style="font-size: 24px; font-weight: 700; color: #6B7B5E;">@transactions.Count(t => t.TransactionType == "Loan Payment")</div>
+        <div style="font-size: 12px; color: #5F6F52;">₱@transactions.Where(t => t.TransactionType == "Loan Payment").Sum(t => t.Amount).ToString("N0")</div>
     </div>
-    <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 12px; padding: 16px; border: 1px solid #fcd34d;">
-        <div style="font-size: 12px; color: #92400e; font-weight: 600;">LOAN RELEASES</div>
-        <div style="font-size: 24px; font-weight: 700; color: #d97706;">@transactions.Count(t => t.TransactionType == "Loan Release")</div>
-        <div style="font-size: 12px; color: #f59e0b;">₱@transactions.Where(t => t.TransactionType == "Loan Release").Sum(t => t.Amount).ToString("N0")</div>
+    <div style="background: linear-gradient(135deg, #F5EFE6, #E8DFD0); border-radius: 12px; padding: 16px; border: 1px solid #C4A574;">
+        <div style="font-size: 12px; color: #6B4423; font-weight: 600;">LOAN RELEASES</div>
+        <div style="font-size: 24px; font-weight: 700; color: #8B5A2B;">@transactions.Count(t => t.TransactionType == "Loan Release")</div>
+        <div style="font-size: 12px; color: #8B5A2B;">₱@transactions.Where(t => t.TransactionType == "Loan Release").Sum(t => t.Amount).ToString("N0")</div>
     </div>
 </div>
 
 <!-- Admin Transactions Count -->
-<div style="background: linear-gradient(135deg, #f3e8ff, #e9d5ff); border-radius: 12px; padding: 16px; border: 1px solid #c4b5fd; margin-bottom: 24px;">
-    <div style="font-size: 12px; color: #6b21a8; font-weight: 600;">ADMIN PROCESSED</div>
-    <div style="font-size: 24px; font-weight: 700; color: #7c3aed;">@transactions.Count(t => t.ProcessedBy?.Contains("[ADMIN") ?? false)</div>
-    <div style="font-size: 12px; color: #8b5cf6;">Transactions processed by administrators</div>
+<div style="background: linear-gradient(135deg, #E5D9B6, #D8CCA6); border-radius: 12px; padding: 16px; border: 1px solid #C4B896; margin-bottom: 24px;">
+    <div style="font-size: 12px; color: #6B4423; font-weight: 600;">ADMIN PROCESSED</div>
+    <div style="font-size: 24px; font-weight: 700; color: #5F6F52;">@transactions.Count(t => t.ProcessedBy?.Contains("[ADMIN") ?? false)</div>
+    <div style="font-size: 12px; color: #6B7B5E;">Transactions processed by administrators</div>
 </div>
 
 <!-- Filters -->
@@ -111,7 +111,7 @@
         </select>
     </div>
     <div style="flex: 0 0 auto; display:flex; gap:8px;">
-        <button class="btn" style="background:#059669; color:white; padding:10px 20px; border-radius:8px; font-size:14px; font-weight: 600;" @onclick="ReloadTransactions">
+        <button class="btn" style="background:#5F6F52; color:white; padding:10px 20px; border-radius:8px; font-size:14px; font-weight: 600;" @onclick="ReloadTransactions">
             🔄 Refresh
         </button>
     </div>
@@ -122,7 +122,7 @@
     @if (isLoading)
     {
         <div style="padding: 60px; text-align: center;">
-            <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
             <p style="margin-top: 16px; color: #6b7280;">Loading transactions...</p>
         </div>
     }
@@ -210,7 +210,7 @@
 {
     <div @onclick="CloseDetailsModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;">
         <div @onclick:stopPropagation style="background:white; border-radius:16px; max-width:600px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <div style="background: linear-gradient(135deg, #059669, #10b981); padding:20px 24px; border-radius: 16px 16px 0 0; display:flex; justify-content:space-between; align-items:center;">
+            <div style="background: linear-gradient(135deg, #5F6F52, #5F6F52); padding:20px 24px; border-radius: 16px 16px 0 0; display:flex; justify-content:space-between; align-items:center;">
                 <h2 style="font-size:20px; font-weight:700; color:white; margin:0;">📋 Transaction Details</h2>
                 <button @onclick="CloseDetailsModal" style="background:rgba(255,255,255,0.2); border:none; font-size:18px; color:white; cursor:pointer; width: 32px; height: 32px; border-radius: 8px;">×</button>
             </div>
@@ -231,9 +231,9 @@
                     <div style="font-size:11px; font-weight:600; color:#6b7280; margin-bottom:4px; text-transform: uppercase;">Account</div>
                     <div style="font-size:14px; color:#111827; font-weight: 600;">@selectedTransaction.AccountNumber</div>
                 </div>
-                <div style="background: #d1fae5; padding: 12px; border-radius: 8px;">
-                    <div style="font-size:11px; font-weight:600; color:#065f46; margin-bottom:4px; text-transform: uppercase;">Amount</div>
-                    <div style="font-size:18px; color:#047857; font-weight: 700;">₱@selectedTransaction.Amount.ToString("N2")</div>
+                <div style="background: #D4E6D4; padding: 12px; border-radius: 8px;">
+                    <div style="font-size:11px; font-weight:600; color:#2F3E2A; margin-bottom:4px; text-transform: uppercase;">Amount</div>
+                    <div style="font-size:18px; color:#2F3E2A; font-weight: 700;">₱@selectedTransaction.Amount.ToString("N2")</div>
                 </div>
                 <div style="background: #fef3c7; padding: 12px; border-radius: 8px;">
                     <div style="font-size:11px; font-weight:600; color:#92400e; margin-bottom:4px; text-transform: uppercase;">Fee</div>
@@ -265,7 +265,7 @@
                 }
             </div>
             <div style="padding:16px 24px; border-top:1px solid #e5e7eb; display:flex; justify-content:flex-end; gap: 12px;">
-                <button class="btn" style="background:#059669; color:white; padding:10px 20px; border-radius:8px; font-size:14px; font-weight: 600;" @onclick="() => DownloadInvoice(selectedTransaction)">
+                <button class="btn" style="background:#5F6F52; color:white; padding:10px 20px; border-radius:8px; font-size:14px; font-weight: 600;" @onclick="() => DownloadInvoice(selectedTransaction)">
                     📥 Download Invoice
                 </button>
                 <button class="btn" style="background:#f3f4f6; color:#111827; padding:10px 20px; border-radius:8px; font-size:14px; font-weight: 600;" @onclick="CloseDetailsModal">Close</button>
@@ -343,7 +343,7 @@
     {
         return type switch
         {
-            "Deposit" => ("#d1fae5", "#065f46", "+"),
+            "Deposit" => ("#D4E6D4", "#2F3E2A", "+"),
             "Withdrawal" => ("#fee2e2", "#991b1b", "-"),
             "Loan Payment" => ("#dbeafe", "#1e40af", "+"),
             "Loan Release" => ("#fef3c7", "#92400e", "-"),
@@ -356,7 +356,7 @@
     {
         return status switch
         {
-            "Completed" => "#d1fae5",
+            "Completed" => "#D4E6D4",
             "Pending" => "#fef3c7",
             "Failed" => "#fee2e2",
             _ => "#f3f4f6"
@@ -367,7 +367,7 @@
     {
         return status switch
         {
-            "Completed" => "#065f46",
+            "Completed" => "#2F3E2A",
             "Pending" => "#92400e",
             "Failed" => "#b91c1c",
             _ => "#4b5563"
@@ -423,13 +423,13 @@
             sb.AppendLine("<style>");
             sb.AppendLine("body { font-family: Arial, sans-serif; margin: 0; padding: 40px; background: #f8fafc; }");
             sb.AppendLine(".invoice { max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }");
-            sb.AppendLine(".header { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 30px; text-align: center; }");
+            sb.AppendLine(".header { background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; padding: 30px; text-align: center; }");
             sb.AppendLine(".header h1 { margin: 0; font-size: 24px; }");
             sb.AppendLine(".content { padding: 30px; }");
             sb.AppendLine(".row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb; }");
             sb.AppendLine(".label { color: #6b7280; font-size: 14px; }");
             sb.AppendLine(".value { font-weight: 600; color: #1f2937; }");
-            sb.AppendLine(".total-row { background: #f0fdf4; margin: 20px -30px; padding: 20px 30px; }");
+            sb.AppendLine(".total-row { background: #F0F2EC; margin: 20px -30px; padding: 20px 30px; }");
             sb.AppendLine(".admin-badge { background: #f3e8ff; color: #7c3aed; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; }");
             sb.AppendLine(".footer { text-align: center; padding: 20px; background: #f8fafc; font-size: 12px; color: #6b7280; }");
             sb.AppendLine("</style></head><body>");
@@ -446,7 +446,7 @@
             {
                 sb.AppendLine("<div class=\"row\"><span class=\"label\">Processed By</span><span class=\"admin-badge\">👑 Admin</span></div>");
             }
-            sb.AppendLine("<div class=\"row total-row\"><span class=\"label\" style=\"font-size:18px;font-weight:700;color:#065f46;\">Amount</span><span class=\"value\" style=\"font-size:24px;color:#059669;\">₱" + txn.Amount.ToString("N2") + "</span></div>");
+            sb.AppendLine("<div class=\"row total-row\"><span class=\"label\" style=\"font-size:18px;font-weight:700;color:#2F3E2A;\">Amount</span><span class=\"value\" style=\"font-size:24px;color:#5F6F52;\">₱" + txn.Amount.ToString("N2") + "</span></div>");
             sb.AppendLine("</div>");
             sb.AppendLine("<div class=\"footer\"><p>Thank you for banking with FinanceBank!</p><p>Generated on " + DateTime.Now.ToString("MMMM dd, yyyy hh:mm tt") + "</p></div>");
             sb.AppendLine("</div></body></html>");

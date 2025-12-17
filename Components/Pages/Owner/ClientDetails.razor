@@ -46,7 +46,8 @@
             <div class="info-icon">💳</div>
             <div class="info-content">
                 <span class="info-label">Outstanding Balance</span>
-                <span class="info-value @(client.OutstandingBalance > 0 ? "text-danger" : "text-success")">₱@client.OutstandingBalance.ToString("N2")</span>
+                <span
+                    class="info-value @(client.OutstandingBalance > 0 ? "text-danger" : "text-success")">₱@client.OutstandingBalance.ToString("N2")</span>
                 <span class="info-sub">Total Paid: ₱@client.TotalPaid.ToString("N0")</span>
             </div>
         </div>
@@ -63,10 +64,14 @@
     <!-- Main Content Tabs -->
     <div class="tabs-container">
         <div class="tabs-header">
-            <button class="tab-btn @(activeTab == "details" ? "active" : "")" @onclick='() => activeTab = "details"'>Details</button>
-            <button class="tab-btn @(activeTab == "invoices" ? "active" : "")" @onclick='() => activeTab = "invoices"'>Invoices (@invoices.Count)</button>
-            <button class="tab-btn @(activeTab == "payments" ? "active" : "")" @onclick='() => activeTab = "payments"'>Payments (@payments.Count)</button>
-            <button class="tab-btn @(activeTab == "modules" ? "active" : "")" @onclick='() => activeTab = "modules"'>Modules (@modules.Count)</button>
+            <button class="tab-btn @(activeTab == "details" ? "active" : "")"
+                @onclick='() => activeTab = "details"'>Details</button>
+            <button class="tab-btn @(activeTab == "invoices" ? "active" : "")"
+                @onclick='() => activeTab = "invoices"'>Invoices (@invoices.Count)</button>
+            <button class="tab-btn @(activeTab == "payments" ? "active" : "")"
+                @onclick='() => activeTab = "payments"'>Payments (@payments.Count)</button>
+            <button class="tab-btn @(activeTab == "modules" ? "active" : "")"
+                @onclick='() => activeTab = "modules"'>Modules (@modules.Count)</button>
         </div>
 
         <div class="tab-content">
@@ -162,7 +167,8 @@
                                         <button class="action-btn" title="View">👁️</button>
                                         @if (inv.Status == "Pending")
                                         {
-                                            <button class="action-btn" @onclick="() => RecordPayment(inv)" title="Record Payment">💳</button>
+                                            <button class="action-btn" @onclick="() => RecordPayment(inv)"
+                                                title="Record Payment">💳</button>
                                         }
                                     </td>
                                 </tr>
@@ -307,15 +313,15 @@
     .back-btn {
         background: none;
         border: none;
-        color: #6366f1;
+        color: #5F6F52;
         font-size: 14px;
         cursor: pointer;
     }
 
     .header-left h2 {
         font-size: 24px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
         margin: 0;
     }
 
@@ -329,18 +335,37 @@
         align-items: center;
         gap: 8px;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
         border: none;
         transition: all 0.2s;
     }
 
-    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
-    .btn-secondary { background: #f3f4f6; color: #374151; }
-    .btn-danger { background: #fee2e2; color: #dc2626; }
-    .btn-success { background: #d1fae5; color: #059669; }
-    .btn-sm { padding: 8px 16px; font-size: 13px; }
+    .btn-primary {
+        background: #2F3E2A;
+        color: #FFFFFF;
+    }
+
+    .btn-secondary {
+        background: #F7F7F4;
+        color: #2B2B2B;
+    }
+
+    .btn-danger {
+        background: rgba(155, 58, 58, 0.1);
+        color: #9B3A3A;
+    }
+
+    .btn-success {
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+    }
+
+    .btn-sm {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
 
     .status-badge {
         padding: 4px 12px;
@@ -349,12 +374,35 @@
         font-weight: 500;
     }
 
-    .status-badge.active { background: #d1fae5; color: #059669; }
-    .status-badge.trial { background: #fef3c7; color: #d97706; }
-    .status-badge.suspended { background: #fee2e2; color: #dc2626; }
-    .status-badge.pending { background: #fef3c7; color: #d97706; }
-    .status-badge.paid { background: #d1fae5; color: #059669; }
-    .status-badge.completed { background: #d1fae5; color: #059669; }
+    .status-badge.active {
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+    }
+
+    .status-badge.trial {
+        background: rgba(196, 154, 58, 0.15);
+        color: #C49A3A;
+    }
+
+    .status-badge.suspended {
+        background: rgba(155, 58, 58, 0.1);
+        color: #9B3A3A;
+    }
+
+    .status-badge.pending {
+        background: rgba(196, 154, 58, 0.15);
+        color: #C49A3A;
+    }
+
+    .status-badge.paid {
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+    }
+
+    .status-badge.completed {
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+    }
 
     .info-row {
         display: grid;
@@ -364,21 +412,21 @@
     }
 
     .info-card {
-        background: white;
-        border-radius: 12px;
+        background: #FFFFFF;
+        border-radius: 14px;
         padding: 20px;
         display: flex;
         align-items: flex-start;
         gap: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
     .info-icon {
         font-size: 24px;
         width: 48px;
         height: 48px;
-        background: #f5f3ff;
-        border-radius: 12px;
+        background: rgba(79, 111, 82, 0.15);
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -391,33 +439,38 @@
 
     .info-label {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .info-value {
         font-size: 18px;
         font-weight: 600;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .info-sub {
         font-size: 12px;
-        color: #9ca3af;
+        color: #6B6B6B;
     }
 
-    .text-danger { color: #dc2626 !important; }
-    .text-success { color: #059669 !important; }
+    .text-danger {
+        color: #9B3A3A !important;
+    }
+
+    .text-success {
+        color: #4F6F52 !important;
+    }
 
     .tabs-container {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        background: #FFFFFF;
+        border-radius: 14px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         overflow: hidden;
     }
 
     .tabs-header {
         display: flex;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #E2E2DC;
         padding: 0 24px;
     }
 
@@ -427,15 +480,15 @@
         background: none;
         font-size: 14px;
         font-weight: 500;
-        color: #6b7280;
+        color: #6B6B6B;
         cursor: pointer;
         border-bottom: 2px solid transparent;
         transition: all 0.2s;
     }
 
     .tab-btn.active {
-        color: #6366f1;
-        border-bottom-color: #6366f1;
+        color: #5F6F52;
+        border-bottom-color: #5F6F52;
     }
 
     .tab-content {
@@ -453,10 +506,10 @@
     .detail-section h4 {
         font-size: 14px;
         font-weight: 600;
-        color: #374151;
+        color: #2B2B2B;
         margin-bottom: 12px;
         padding-bottom: 8px;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid #F7F7F4;
     }
 
     .detail-grid {
@@ -473,12 +526,12 @@
 
     .detail-label {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .detail-value {
         font-size: 14px;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .data-table {
@@ -487,27 +540,27 @@
     }
 
     .data-table th {
-        background: #f9fafb;
+        background: #F7F7F4;
         padding: 12px 16px;
         text-align: left;
         font-size: 12px;
         font-weight: 600;
-        color: #6b7280;
+        color: #6B6B6B;
         text-transform: uppercase;
     }
 
     .data-table td {
         padding: 14px 16px;
-        border-top: 1px solid #f3f4f6;
+        border-top: 1px solid #F7F7F4;
     }
 
     .action-btn {
         width: 32px;
         height: 32px;
-        border-radius: 8px;
+        border-radius: 10px;
         border: none;
         cursor: pointer;
-        background: #f3f4f6;
+        background: #F7F7F4;
         margin-right: 4px;
     }
 
@@ -522,21 +575,21 @@
         align-items: center;
         gap: 16px;
         padding: 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
+        border: 1px solid #E2E2DC;
+        border-radius: 14px;
         transition: all 0.2s;
     }
 
     .module-card.enabled {
-        border-color: #6366f1;
-        background: #f5f3ff;
+        border-color: #5F6F52;
+        background: rgba(79, 111, 82, 0.15);
     }
 
     .module-icon {
         font-size: 24px;
         width: 48px;
         height: 48px;
-        background: white;
+        background: #FFFFFF;
         border-radius: 10px;
         display: flex;
         align-items: center;
@@ -551,12 +604,12 @@
 
     .module-name {
         font-weight: 600;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .module-desc {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .switch {
@@ -578,7 +631,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: #e5e7eb;
+        background: #E2E2DC;
         border-radius: 24px;
         transition: 0.3s;
     }
@@ -590,16 +643,16 @@
         width: 18px;
         left: 3px;
         bottom: 3px;
-        background: white;
+        background: #FFFFFF;
         border-radius: 50%;
         transition: 0.3s;
     }
 
-    input:checked + .slider {
-        background: #6366f1;
+    input:checked+.slider {
+        background: #5F6F52;
     }
 
-    input:checked + .slider:before {
+    input:checked+.slider:before {
         transform: translateX(24px);
     }
 
@@ -610,7 +663,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(47, 62, 42, 0.6);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -618,8 +671,8 @@
     }
 
     .modal-content {
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
         width: 90%;
         max-width: 500px;
     }
@@ -629,7 +682,7 @@
         justify-content: space-between;
         align-items: center;
         padding: 20px 24px;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #E2E2DC;
     }
 
     .modal-header h3 {
@@ -642,7 +695,7 @@
         border: none;
         font-size: 20px;
         cursor: pointer;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .modal-body {
@@ -654,7 +707,7 @@
         justify-content: flex-end;
         gap: 12px;
         padding: 16px 24px;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid #E2E2DC;
     }
 
     .form-group {
@@ -665,7 +718,7 @@
         display: block;
         font-size: 13px;
         font-weight: 500;
-        color: #374151;
+        color: #2B2B2B;
         margin-bottom: 6px;
     }
 
@@ -674,8 +727,8 @@
     .form-group textarea {
         width: 100%;
         padding: 10px 12px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
     }
 </style>
@@ -707,7 +760,7 @@
     private async Task LoadSampleData()
     {
         await Task.Delay(100);
-        
+
         // Sample client
         client = new SaaSClient
         {
@@ -739,33 +792,49 @@
         };
 
         invoices = new List<InvoiceInfo>
-        {
-            new InvoiceInfo { InvoiceId = 7, InvoiceNumber = "INV-2024-007", PeriodStart = DateTime.Now.AddMonths(-1), TotalAmount = 5999, BalanceDue = 5999, DueDate = DateTime.Now.AddDays(15), Status = "Pending" },
-            new InvoiceInfo { InvoiceId = 6, InvoiceNumber = "INV-2024-006", PeriodStart = DateTime.Now.AddMonths(-2), TotalAmount = 5999, BalanceDue = 0, DueDate = DateTime.Now.AddMonths(-1), Status = "Paid" },
-            new InvoiceInfo { InvoiceId = 5, InvoiceNumber = "INV-2024-005", PeriodStart = DateTime.Now.AddMonths(-3), TotalAmount = 5999, BalanceDue = 0, DueDate = DateTime.Now.AddMonths(-2), Status = "Paid" },
-            new InvoiceInfo { InvoiceId = 4, InvoiceNumber = "INV-2024-004", PeriodStart = DateTime.Now.AddMonths(-4), TotalAmount = 5999, BalanceDue = 0, DueDate = DateTime.Now.AddMonths(-3), Status = "Paid" },
-            new InvoiceInfo { InvoiceId = 3, InvoiceNumber = "INV-2024-003", PeriodStart = DateTime.Now.AddMonths(-5), TotalAmount = 5999, BalanceDue = 0, DueDate = DateTime.Now.AddMonths(-4), Status = "Paid" },
-        };
+{
+new InvoiceInfo { InvoiceId = 7, InvoiceNumber = "INV-2024-007", PeriodStart = DateTime.Now.AddMonths(-1), TotalAmount =
+5999, BalanceDue = 5999, DueDate = DateTime.Now.AddDays(15), Status = "Pending" },
+new InvoiceInfo { InvoiceId = 6, InvoiceNumber = "INV-2024-006", PeriodStart = DateTime.Now.AddMonths(-2), TotalAmount =
+5999, BalanceDue = 0, DueDate = DateTime.Now.AddMonths(-1), Status = "Paid" },
+new InvoiceInfo { InvoiceId = 5, InvoiceNumber = "INV-2024-005", PeriodStart = DateTime.Now.AddMonths(-3), TotalAmount =
+5999, BalanceDue = 0, DueDate = DateTime.Now.AddMonths(-2), Status = "Paid" },
+new InvoiceInfo { InvoiceId = 4, InvoiceNumber = "INV-2024-004", PeriodStart = DateTime.Now.AddMonths(-4), TotalAmount =
+5999, BalanceDue = 0, DueDate = DateTime.Now.AddMonths(-3), Status = "Paid" },
+new InvoiceInfo { InvoiceId = 3, InvoiceNumber = "INV-2024-003", PeriodStart = DateTime.Now.AddMonths(-5), TotalAmount =
+5999, BalanceDue = 0, DueDate = DateTime.Now.AddMonths(-4), Status = "Paid" },
+};
 
         payments = new List<PaymentInfo>
-        {
-            new PaymentInfo { TransactionNumber = "TXN-2024-006", TransactionDate = DateTime.Now.AddMonths(-1).AddDays(2), PaymentMethodName = "GCash", Amount = 5999, Status = "Completed", PaymentReference = "GC-123456789" },
-            new PaymentInfo { TransactionNumber = "TXN-2024-005", TransactionDate = DateTime.Now.AddMonths(-2).AddDays(4), PaymentMethodName = "BDO", Amount = 5999, Status = "Completed", PaymentReference = "BDO-987654321" },
-            new PaymentInfo { TransactionNumber = "TXN-2024-004", TransactionDate = DateTime.Now.AddMonths(-3).AddDays(1), PaymentMethodName = "GCash", Amount = 5999, Status = "Completed", PaymentReference = "GC-111222333" },
-            new PaymentInfo { TransactionNumber = "TXN-2024-003", TransactionDate = DateTime.Now.AddMonths(-4).AddDays(2), PaymentMethodName = "GCash", Amount = 5999, Status = "Completed", PaymentReference = "GC-444555666" },
-        };
+{
+new PaymentInfo { TransactionNumber = "TXN-2024-006", TransactionDate = DateTime.Now.AddMonths(-1).AddDays(2),
+PaymentMethodName = "GCash", Amount = 5999, Status = "Completed", PaymentReference = "GC-123456789" },
+new PaymentInfo { TransactionNumber = "TXN-2024-005", TransactionDate = DateTime.Now.AddMonths(-2).AddDays(4),
+PaymentMethodName = "BDO", Amount = 5999, Status = "Completed", PaymentReference = "BDO-987654321" },
+new PaymentInfo { TransactionNumber = "TXN-2024-004", TransactionDate = DateTime.Now.AddMonths(-3).AddDays(1),
+PaymentMethodName = "GCash", Amount = 5999, Status = "Completed", PaymentReference = "GC-111222333" },
+new PaymentInfo { TransactionNumber = "TXN-2024-003", TransactionDate = DateTime.Now.AddMonths(-4).AddDays(2),
+PaymentMethodName = "GCash", Amount = 5999, Status = "Completed", PaymentReference = "GC-444555666" },
+};
 
         modules = new List<ModuleInfo>
-        {
-            new ModuleInfo { ModuleId = 1, ModuleName = "Core System", Description = "Core banking foundation", Icon = "💎", IsEnabled = true },
-            new ModuleInfo { ModuleId = 2, ModuleName = "Teller Operations", Description = "Deposits & withdrawals", Icon = "💵", IsEnabled = true },
-            new ModuleInfo { ModuleId = 3, ModuleName = "Loan Management", Description = "Loan applications & payments", Icon = "💰", IsEnabled = true },
-            new ModuleInfo { ModuleId = 4, ModuleName = "Savings Accounts", Description = "Savings & interest", Icon = "🏦", IsEnabled = true },
-            new ModuleInfo { ModuleId = 5, ModuleName = "General Ledger", Description = "Chart of accounts", Icon = "📊", IsEnabled = true },
-            new ModuleInfo { ModuleId = 6, ModuleName = "Financial Reports", Description = "Balance sheets", Icon = "📈", IsEnabled = true },
-            new ModuleInfo { ModuleId = 7, ModuleName = "User Administration", Description = "User management", Icon = "👥", IsEnabled = true },
-            new ModuleInfo { ModuleId = 8, ModuleName = "Audit Trail", Description = "Security logs", Icon = "🔒", IsEnabled = true },
-        };
+{
+new ModuleInfo { ModuleId = 1, ModuleName = "Core System", Description = "Core banking foundation", Icon = "💎",
+IsEnabled = true },
+new ModuleInfo { ModuleId = 2, ModuleName = "Teller Operations", Description = "Deposits & withdrawals", Icon = "💵",
+IsEnabled = true },
+new ModuleInfo { ModuleId = 3, ModuleName = "Loan Management", Description = "Loan applications & payments", Icon =
+"💰", IsEnabled = true },
+new ModuleInfo { ModuleId = 4, ModuleName = "Savings Accounts", Description = "Savings & interest", Icon = "🏦",
+IsEnabled = true },
+new ModuleInfo { ModuleId = 5, ModuleName = "General Ledger", Description = "Chart of accounts", Icon = "📊", IsEnabled
+= true },
+new ModuleInfo { ModuleId = 6, ModuleName = "Financial Reports", Description = "Balance sheets", Icon = "📈", IsEnabled
+= true },
+new ModuleInfo { ModuleId = 7, ModuleName = "User Administration", Description = "User management", Icon = "👥",
+IsEnabled = true },
+new ModuleInfo { ModuleId = 8, ModuleName = "Audit Trail", Description = "Security logs", Icon = "🔒", IsEnabled = true },
+};
 
         paymentAmount = client.OutstandingBalance;
     }

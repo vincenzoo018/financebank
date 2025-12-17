@@ -7,7 +7,7 @@
 @using System.Text.Json
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
@@ -22,12 +22,12 @@
 </div>
 
 <!-- Data Source Info -->
-<div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border: 1px solid #6ee7b7; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #E8F0E8, #D4E6D4); border: 1px solid #A9B388; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 12px;">
         <span style="font-size: 24px;">📊</span>
         <div>
-            <p style="margin: 0; font-weight: 600; color: #047857;">Real-Time Data Connection</p>
-            <p style="margin: 4px 0 0; font-size: 13px; color: #059669;">
+            <p style="margin: 0; font-weight: 600; color: #2F3E2A;">Real-Time Data Connection</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #5F6F52;">
                 Financial statements are generated from: <strong>General Ledger</strong> (for Income/Balance Sheet), 
                 <strong>Customer Transactions</strong>, <strong>Loan Payments</strong>, and <strong>Loan Disbursals</strong> (for Cash Flow)
             </p>
@@ -37,7 +37,7 @@
 
 <!-- Action Buttons -->
 <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
-    <button style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 14px 28px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 15px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);"
+    <button style="background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; padding: 14px 28px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 15px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);"
         @onclick='() => ShowStatementModal("IncomeStatement")'>
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
@@ -45,7 +45,7 @@
         </svg>
         Income Statement
     </button>
-    <button style="background: linear-gradient(135deg, #047857, #059669); color: white; padding: 14px 28px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 15px; box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);"
+    <button style="background: linear-gradient(135deg, #2F3E2A, #5F6F52); color: white; padding: 14px 28px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 15px; box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);"
         @onclick='() => ShowStatementModal("BalanceSheet")'>
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -54,7 +54,7 @@
         </svg>
         Balance Sheet
     </button>
-    <button style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 14px 28px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 15px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);"
+    <button style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; padding: 14px 28px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 15px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);"
         @onclick='() => ShowStatementModal("CashFlow")'>
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -73,17 +73,17 @@
 
 <!-- Summary Cards -->
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px;">
-    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #5F6F52; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
         <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">📈 Income Statements</div>
         <div style="font-size: 32px; font-weight: 700; color: #111827; margin-bottom: 4px;">@statements.Count(s => s.StatementType == "IncomeStatement")</div>
         <div style="font-size: 13px; color: #6b7280;">Revenue vs Expenses analysis</div>
     </div>
-    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #5F6F52; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
         <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">📊 Balance Sheets</div>
         <div style="font-size: 32px; font-weight: 700; color: #111827; margin-bottom: 4px;">@statements.Count(s => s.StatementType == "BalanceSheet")</div>
         <div style="font-size: 13px; color: #6b7280;">Assets = Liabilities + Equity</div>
     </div>
-    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+    <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #5F6F52; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
         <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px;">💵 Cash Flow Statements</div>
         <div style="font-size: 32px; font-weight: 700; color: #111827; margin-bottom: 4px;">@statements.Count(s => s.StatementType == "CashFlow")</div>
         <div style="font-size: 13px; color: #6b7280;">Operating, Investing, Financing</div>
@@ -93,27 +93,27 @@
 <!-- Alerts -->
 @if (!string.IsNullOrEmpty(successMessage))
 {
-    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 1px solid #6ee7b7; color: #065f46; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+    <div style="background: linear-gradient(135deg, #D4E6D4, #BCC9A6); border: 1px solid #A9B388; color: #2F3E2A; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
         <span style="font-weight: 500;">@successMessage</span>
         <button @onclick="() => successMessage = string.Empty"
-            style="margin-left: auto; background: none; border: none; color: #065f46; cursor: pointer; font-size: 18px;">×</button>
+            style="margin-left: auto; background: none; border: none; color: #2F3E2A; cursor: pointer; font-size: 18px;">×</button>
     </div>
 }
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
-    <div style="background: #fee2e2; border: 1px solid #fca5a5; color: #dc2626; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
+    <div style="background: #F5E6E6; border: 1px solid #C9A3A3; color: #9B3A3A; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
         <span style="font-weight: 500;">@errorMessage</span>
     </div>
 }
 
 <!-- Financial Statements Table -->
 <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
-    <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
+    <div style="background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h4 style="margin: 0; font-weight: 600; font-size: 18px;">📄 Generated Statements</h4>
             <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">Click "View" to see detailed financial data</p>
@@ -131,7 +131,7 @@
         @if (isLoading)
         {
             <div style="text-align: center; padding: 60px;">
-                <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
                 <p style="margin-top: 16px; color: #6b7280;">Loading statements...</p>
             </div>
         }
@@ -172,7 +172,7 @@
                             <td style="padding: 16px; font-size: 14px; color: #64748b;">@stmt.GeneratedAt.ToString("MMM dd, yyyy HH:mm")</td>
                             <td style="padding: 16px; font-weight: 500;">@stmt.GeneratedBy</td>
                             <td style="padding: 16px; text-align: center;">
-                                <button style="background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;"
+                                <button style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;"
                                     @onclick="() => ViewStatement(stmt)">
                                     👁️ View Details
                                 </button>
@@ -210,7 +210,7 @@
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
                 <button style="background: #e5e7eb; color: #374151; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;"
                     @onclick="CloseStatementModal">Cancel</button>
-                <button style="background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;"
+                <button style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;"
                     @onclick="GenerateStatement" disabled="@isGenerating">
                     @if (isGenerating)
                     {
@@ -250,15 +250,15 @@
                 {
                     <!-- Income Statement Display -->
                     <div style="margin-bottom: 24px;">
-                        <h3 style="font-size: 18px; font-weight: 700; color: #5b21b6; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+                        <h3 style="font-size: 18px; font-weight: 700; color: #5F6F52; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
                             📈 Revenue
                         </h3>
                         <div style="background: #f8fafc; border-radius: 12px; overflow: hidden;">
                             <table style="width: 100%; border-collapse: collapse;">
                                 <thead>
-                                    <tr style="background: #ede9fe;">
-                                        <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #5b21b6;">Account</th>
-                                        <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #5b21b6;">Amount</th>
+                                    <tr style="background: #D4E6D4;">
+                                        <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #2F3E2A;">Account</th>
+                                        <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #2F3E2A;">Amount</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -266,12 +266,12 @@
                                     {
                                         <tr style="border-bottom: 1px solid #e5e7eb;">
                                             <td style="padding: 12px 16px; color: #374151;">@item.Account</td>
-                                            <td style="padding: 12px 16px; text-align: right; color: #059669; font-weight: 600;">₱@item.Amount.ToString("N2")</td>
+                                            <td style="padding: 12px 16px; text-align: right; color: #5F6F52; font-weight: 600;">₱@item.Amount.ToString("N2")</td>
                                         </tr>
                                     }
-                                    <tr style="background: #d1fae5;">
-                                        <td style="padding: 12px 16px; font-weight: 700; color: #047857;">Total Revenue</td>
-                                        <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: #047857;">₱@GetTotalRevenue().ToString("N2")</td>
+                                    <tr style="background: #D4E6D4;">
+                                        <td style="padding: 12px 16px; font-weight: 700; color: #2F3E2A;">Total Revenue</td>
+                                        <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: #2F3E2A;">₱@GetTotalRevenue().ToString("N2")</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -279,15 +279,15 @@
                     </div>
 
                     <div style="margin-bottom: 24px;">
-                        <h3 style="font-size: 18px; font-weight: 700; color: #dc2626; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+                        <h3 style="font-size: 18px; font-weight: 700; color: #9B3A3A; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
                             📉 Expenses
                         </h3>
                         <div style="background: #f8fafc; border-radius: 12px; overflow: hidden;">
                             <table style="width: 100%; border-collapse: collapse;">
                                 <thead>
-                                    <tr style="background: #fee2e2;">
-                                        <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #dc2626;">Account</th>
-                                        <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #dc2626;">Amount</th>
+                                    <tr style="background: #F5E6E6;">
+                                        <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #9B3A3A;">Account</th>
+                                        <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #9B3A3A;">Amount</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -295,22 +295,22 @@
                                     {
                                         <tr style="border-bottom: 1px solid #e5e7eb;">
                                             <td style="padding: 12px 16px; color: #374151;">@item.Account</td>
-                                            <td style="padding: 12px 16px; text-align: right; color: #dc2626; font-weight: 600;">₱@item.Amount.ToString("N2")</td>
+                                            <td style="padding: 12px 16px; text-align: right; color: #9B3A3A; font-weight: 600;">₱@item.Amount.ToString("N2")</td>
                                         </tr>
                                     }
-                                    <tr style="background: #fee2e2;">
-                                        <td style="padding: 12px 16px; font-weight: 700; color: #dc2626;">Total Expenses</td>
-                                        <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: #dc2626;">₱@GetTotalExpenses().ToString("N2")</td>
+                                    <tr style="background: #F5E6E6;">
+                                        <td style="padding: 12px 16px; font-weight: 700; color: #9B3A3A;">Total Expenses</td>
+                                        <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: #9B3A3A;">₱@GetTotalExpenses().ToString("N2")</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    <div style="background: @(GetNetIncome() >= 0 ? "linear-gradient(135deg, #d1fae5, #a7f3d0)" : "linear-gradient(135deg, #fee2e2, #fecaca)"); border-radius: 12px; padding: 24px; text-align: center;">
-                        <div style="font-size: 14px; font-weight: 600; color: @(GetNetIncome() >= 0 ? "#047857" : "#dc2626"); margin-bottom: 8px;">NET INCOME</div>
-                        <div style="font-size: 36px; font-weight: 700; color: @(GetNetIncome() >= 0 ? "#047857" : "#dc2626");">₱@GetNetIncome().ToString("N2")</div>
-                        <div style="font-size: 14px; color: @(GetNetIncome() >= 0 ? "#059669" : "#ef4444"); margin-top: 8px;">@(GetNetIncome() >= 0 ? "✓ Profit" : "⚠ Loss")</div>
+                    <div style="background: @(GetNetIncome() >= 0 ? "linear-gradient(135deg, #D4E6D4, #BCC9A6)" : "linear-gradient(135deg, #F5E6E6, #ECD8D8)"); border-radius: 12px; padding: 24px; text-align: center;">
+                        <div style="font-size: 14px; font-weight: 600; color: @(GetNetIncome() >= 0 ? "#2F3E2A" : "#9B3A3A"); margin-bottom: 8px;">NET INCOME</div>
+                        <div style="font-size: 36px; font-weight: 700; color: @(GetNetIncome() >= 0 ? "#2F3E2A" : "#9B3A3A");">₱@GetNetIncome().ToString("N2")</div>
+                        <div style="font-size: 14px; color: @(GetNetIncome() >= 0 ? "#5F6F52" : "#9B3A3A"); margin-top: 8px;">@(GetNetIncome() >= 0 ? "✓ Profit" : "⚠ Loss")</div>
                     </div>
                 }
                 else if (viewingStatement.StatementType == "BalanceSheet")
@@ -319,13 +319,13 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                         <!-- Assets -->
                         <div>
-                            <h3 style="font-size: 18px; font-weight: 700; color: #1e40af; margin: 0 0 16px 0;">🏦 Assets</h3>
+                            <h3 style="font-size: 18px; font-weight: 700; color: #5F6F52; margin: 0 0 16px 0;">🏦 Assets</h3>
                             <div style="background: #f8fafc; border-radius: 12px; overflow: hidden;">
                                 <table style="width: 100%; border-collapse: collapse;">
                                     <thead>
-                                        <tr style="background: #dbeafe;">
-                                            <th style="padding: 10px 12px; text-align: left; font-weight: 600; color: #1e40af; font-size: 13px;">Account</th>
-                                            <th style="padding: 10px 12px; text-align: right; font-weight: 600; color: #1e40af; font-size: 13px;">Balance</th>
+                                        <tr style="background: #E8F0E8;">
+                                            <th style="padding: 10px 12px; text-align: left; font-weight: 600; color: #5F6F52; font-size: 13px;">Account</th>
+                                            <th style="padding: 10px 12px; text-align: right; font-weight: 600; color: #5F6F52; font-size: 13px;">Balance</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -333,12 +333,12 @@
                                         {
                                             <tr style="border-bottom: 1px solid #e5e7eb;">
                                                 <td style="padding: 10px 12px; color: #374151; font-size: 13px;">@item.Account</td>
-                                                <td style="padding: 10px 12px; text-align: right; color: #1e40af; font-weight: 600; font-size: 13px;">₱@item.Balance.ToString("N2")</td>
+                                                <td style="padding: 10px 12px; text-align: right; color: #5F6F52; font-weight: 600; font-size: 13px;">₱@item.Balance.ToString("N2")</td>
                                             </tr>
                                         }
-                                        <tr style="background: #dbeafe;">
-                                            <td style="padding: 12px; font-weight: 700; color: #1e40af;">Total Assets</td>
-                                            <td style="padding: 12px; text-align: right; font-weight: 700; color: #1e40af;">₱@GetTotalAssets().ToString("N2")</td>
+                                        <tr style="background: #E8F0E8;">
+                                            <td style="padding: 12px; font-weight: 700; color: #5F6F52;">Total Assets</td>
+                                            <td style="padding: 12px; text-align: right; font-weight: 700; color: #5F6F52;">₱@GetTotalAssets().ToString("N2")</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -347,13 +347,13 @@
 
                         <!-- Liabilities & Equity -->
                         <div>
-                            <h3 style="font-size: 18px; font-weight: 700; color: #dc2626; margin: 0 0 16px 0;">📋 Liabilities</h3>
+                            <h3 style="font-size: 18px; font-weight: 700; color: #9B3A3A; margin: 0 0 16px 0;">📋 Liabilities</h3>
                             <div style="background: #f8fafc; border-radius: 12px; overflow: hidden; margin-bottom: 16px;">
                                 <table style="width: 100%; border-collapse: collapse;">
                                     <thead>
-                                        <tr style="background: #fee2e2;">
-                                            <th style="padding: 10px 12px; text-align: left; font-weight: 600; color: #dc2626; font-size: 13px;">Account</th>
-                                            <th style="padding: 10px 12px; text-align: right; font-weight: 600; color: #dc2626; font-size: 13px;">Balance</th>
+                                        <tr style="background: #F5E6E6;">
+                                            <th style="padding: 10px 12px; text-align: left; font-weight: 600; color: #9B3A3A; font-size: 13px;">Account</th>
+                                            <th style="padding: 10px 12px; text-align: right; font-weight: 600; color: #9B3A3A; font-size: 13px;">Balance</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -361,18 +361,18 @@
                                         {
                                             <tr style="border-bottom: 1px solid #e5e7eb;">
                                                 <td style="padding: 10px 12px; color: #374151; font-size: 13px;">@item.Account</td>
-                                                <td style="padding: 10px 12px; text-align: right; color: #dc2626; font-weight: 600; font-size: 13px;">₱@item.Balance.ToString("N2")</td>
+                                                <td style="padding: 10px 12px; text-align: right; color: #9B3A3A; font-weight: 600; font-size: 13px;">₱@item.Balance.ToString("N2")</td>
                                             </tr>
                                         }
-                                        <tr style="background: #fee2e2;">
-                                            <td style="padding: 12px; font-weight: 700; color: #dc2626;">Total Liabilities</td>
-                                            <td style="padding: 12px; text-align: right; font-weight: 700; color: #dc2626;">₱@GetTotalLiabilities().ToString("N2")</td>
+                                        <tr style="background: #F5E6E6;">
+                                            <td style="padding: 12px; font-weight: 700; color: #9B3A3A;">Total Liabilities</td>
+                                            <td style="padding: 12px; text-align: right; font-weight: 700; color: #9B3A3A;">₱@GetTotalLiabilities().ToString("N2")</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
 
-                            <h3 style="font-size: 18px; font-weight: 700; color: #059669; margin: 0 0 16px 0;">💰 Equity</h3>
+                            <h3 style="font-size: 18px; font-weight: 700; color: #5F6F52; margin: 0 0 16px 0;">💰 Equity</h3>
                             <div style="background: #f8fafc; border-radius: 12px; overflow: hidden;">
                                 <table style="width: 100%; border-collapse: collapse;">
                                     <tbody>
@@ -380,12 +380,12 @@
                                         {
                                             <tr style="border-bottom: 1px solid #e5e7eb;">
                                                 <td style="padding: 10px 12px; color: #374151; font-size: 13px;">@item.Account</td>
-                                                <td style="padding: 10px 12px; text-align: right; color: #059669; font-weight: 600; font-size: 13px;">₱@item.Balance.ToString("N2")</td>
+                                                <td style="padding: 10px 12px; text-align: right; color: #5F6F52; font-weight: 600; font-size: 13px;">₱@item.Balance.ToString("N2")</td>
                                             </tr>
                                         }
-                                        <tr style="background: #d1fae5;">
-                                            <td style="padding: 12px; font-weight: 700; color: #047857;">Total Equity</td>
-                                            <td style="padding: 12px; text-align: right; font-weight: 700; color: #047857;">₱@GetTotalEquity().ToString("N2")</td>
+                                        <tr style="background: #D4E6D4;">
+                                            <td style="padding: 12px; font-weight: 700; color: #2F3E2A;">Total Equity</td>
+                                            <td style="padding: 12px; text-align: right; font-weight: 700; color: #2F3E2A;">₱@GetTotalEquity().ToString("N2")</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -393,8 +393,8 @@
                         </div>
                     </div>
 
-                    <div style="background: @(IsBalanceSheetBalanced() ? "#d1fae5" : "#fee2e2"); border-radius: 12px; padding: 16px; margin-top: 24px; text-align: center;">
-                        <span style="font-weight: 700; color: @(IsBalanceSheetBalanced() ? "#047857" : "#dc2626");">
+                    <div style="background: @(IsBalanceSheetBalanced() ? "#D4E6D4" : "#F5E6E6"); border-radius: 12px; padding: 16px; margin-top: 24px; text-align: center;">
+                        <span style="font-weight: 700; color: @(IsBalanceSheetBalanced() ? "#2F3E2A" : "#9B3A3A");">
                             @(IsBalanceSheetBalanced() ? "✓ Balance Sheet is BALANCED" : "⚠ Balance Sheet is NOT BALANCED") 
                             (Assets: ₱@GetTotalAssets().ToString("N2") = Liabilities: ₱@GetTotalLiabilities().ToString("N2") + Equity: ₱@GetTotalEquity().ToString("N2"))
                         </span>
@@ -404,53 +404,53 @@
                 {
                     <!-- Cash Flow Statement Display -->
                     <div style="margin-bottom: 24px;">
-                        <h3 style="font-size: 18px; font-weight: 700; color: #059669; margin: 0 0 16px 0;">💼 Operating Activities</h3>
-                        <div style="background: #f0fdf4; border-radius: 12px; padding: 20px;">
+                        <h3 style="font-size: 18px; font-weight: 700; color: #5F6F52; margin: 0 0 16px 0;">💼 Operating Activities</h3>
+                        <div style="background: #F0F2EC; border-radius: 12px; padding: 20px;">
                             <div style="display: grid; gap: 12px;">
-                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #d1fae5;">
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #D4E6D4;">
                                     <span style="color: #374151;">Customer Deposits</span>
-                                    <span style="font-weight: 600; color: #059669;">₱@GetCashFlowItem("CustomerDeposits").ToString("N2")</span>
+                                    <span style="font-weight: 600; color: #5F6F52;">₱@GetCashFlowItem("CustomerDeposits").ToString("N2")</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #d1fae5;">
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #D4E6D4;">
                                     <span style="color: #374151;">Customer Withdrawals</span>
-                                    <span style="font-weight: 600; color: #dc2626;">₱@GetCashFlowItem("CustomerWithdrawals").ToString("N2")</span>
+                                    <span style="font-weight: 600; color: #9B3A3A;">₱@GetCashFlowItem("CustomerWithdrawals").ToString("N2")</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #d1fae5;">
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #D4E6D4;">
                                     <span style="color: #374151;">Service Fees Collected</span>
-                                    <span style="font-weight: 600; color: #059669;">₱@GetCashFlowItem("ServiceFees").ToString("N2")</span>
+                                    <span style="font-weight: 600; color: #5F6F52;">₱@GetCashFlowItem("ServiceFees").ToString("N2")</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #d1fae5;">
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #D4E6D4;">
                                     <span style="color: #374151;">Loan Payments Received</span>
-                                    <span style="font-weight: 600; color: #059669;">₱@GetCashFlowItem("LoanPaymentsReceived").ToString("N2")</span>
+                                    <span style="font-weight: 600; color: #5F6F52;">₱@GetCashFlowItem("LoanPaymentsReceived").ToString("N2")</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; padding: 12px; background: #d1fae5; border-radius: 8px; margin-top: 8px;">
-                                    <span style="font-weight: 700; color: #047857;">Net Cash from Operating</span>
-                                    <span style="font-weight: 700; color: #047857;">₱@GetNetCashFromOperating().ToString("N2")</span>
+                                <div style="display: flex; justify-content: space-between; padding: 12px; background: #D4E6D4; border-radius: 8px; margin-top: 8px;">
+                                    <span style="font-weight: 700; color: #2F3E2A;">Net Cash from Operating</span>
+                                    <span style="font-weight: 700; color: #2F3E2A;">₱@GetNetCashFromOperating().ToString("N2")</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div style="margin-bottom: 24px;">
-                        <h3 style="font-size: 18px; font-weight: 700; color: #dc2626; margin: 0 0 16px 0;">🏛️ Financing Activities</h3>
-                        <div style="background: #fef2f2; border-radius: 12px; padding: 20px;">
+                        <h3 style="font-size: 18px; font-weight: 700; color: #9B3A3A; margin: 0 0 16px 0;">🏛️ Financing Activities</h3>
+                        <div style="background: #FAF5F5; border-radius: 12px; padding: 20px;">
                             <div style="display: grid; gap: 12px;">
-                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #fee2e2;">
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #F5E6E6;">
                                     <span style="color: #374151;">Loan Disbursements</span>
-                                    <span style="font-weight: 600; color: #dc2626;">₱@GetCashFlowItem("LoanDisbursements").ToString("N2")</span>
+                                    <span style="font-weight: 600; color: #9B3A3A;">₱@GetCashFlowItem("LoanDisbursements").ToString("N2")</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; padding: 12px; background: #fee2e2; border-radius: 8px; margin-top: 8px;">
-                                    <span style="font-weight: 700; color: #dc2626;">Net Cash from Financing</span>
-                                    <span style="font-weight: 700; color: #dc2626;">₱@GetNetCashFromFinancing().ToString("N2")</span>
+                                <div style="display: flex; justify-content: space-between; padding: 12px; background: #F5E6E6; border-radius: 8px; margin-top: 8px;">
+                                    <span style="font-weight: 700; color: #9B3A3A;">Net Cash from Financing</span>
+                                    <span style="font-weight: 700; color: #9B3A3A;">₱@GetNetCashFromFinancing().ToString("N2")</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div style="background: @(GetNetCashChange() >= 0 ? "linear-gradient(135deg, #d1fae5, #a7f3d0)" : "linear-gradient(135deg, #fee2e2, #fecaca)"); border-radius: 12px; padding: 24px; text-align: center;">
-                        <div style="font-size: 14px; font-weight: 600; color: @(GetNetCashChange() >= 0 ? "#047857" : "#dc2626"); margin-bottom: 8px;">NET CHANGE IN CASH</div>
-                        <div style="font-size: 36px; font-weight: 700; color: @(GetNetCashChange() >= 0 ? "#047857" : "#dc2626");">₱@GetNetCashChange().ToString("N2")</div>
-                        <div style="font-size: 14px; color: @(GetNetCashChange() >= 0 ? "#059669" : "#ef4444"); margin-top: 8px;">@(GetNetCashChange() >= 0 ? "✓ Positive Cash Flow" : "⚠ Negative Cash Flow")</div>
+                    <div style="background: @(GetNetCashChange() >= 0 ? "linear-gradient(135deg, #D4E6D4, #BCC9A6)" : "linear-gradient(135deg, #F5E6E6, #ECD8D8)"); border-radius: 12px; padding: 24px; text-align: center;">
+                        <div style="font-size: 14px; font-weight: 600; color: @(GetNetCashChange() >= 0 ? "#2F3E2A" : "#9B3A3A"); margin-bottom: 8px;">NET CHANGE IN CASH</div>
+                        <div style="font-size: 36px; font-weight: 700; color: @(GetNetCashChange() >= 0 ? "#2F3E2A" : "#9B3A3A");">₱@GetNetCashChange().ToString("N2")</div>
+                        <div style="font-size: 14px; color: @(GetNetCashChange() >= 0 ? "#5F6F52" : "#9B3A3A"); margin-top: 8px;">@(GetNetCashChange() >= 0 ? "✓ Positive Cash Flow" : "⚠ Negative Cash Flow")</div>
                     </div>
                 }
             </div>
@@ -888,25 +888,25 @@
 
     private string GetTypeColor(string type) => type switch
     {
-        "IncomeStatement" => "#047857",
-        "BalanceSheet" => "#059669",
-        "CashFlow" => "#065f46",
+        "IncomeStatement" => "#2F3E2A",
+        "BalanceSheet" => "#5F6F52",
+        "CashFlow" => "#2F3E2A",
         _ => "#374151"
     };
 
     private string GetTypeBg(string type) => type switch
     {
-        "IncomeStatement" => "#d1fae5",
-        "BalanceSheet" => "#ecfdf5",
-        "CashFlow" => "#a7f3d0",
+        "IncomeStatement" => "#D4E6D4",
+        "BalanceSheet" => "#E8F0E8",
+        "CashFlow" => "#BCC9A6",
         _ => "#f3f4f6"
     };
 
     private string GetStatementHeaderColor(string type) => type switch
     {
-        "IncomeStatement" => "linear-gradient(135deg, #059669, #047857)",
-        "BalanceSheet" => "linear-gradient(135deg, #10b981, #059669)",
-        "CashFlow" => "linear-gradient(135deg, #047857, #065f46)",
+        "IncomeStatement" => "linear-gradient(135deg, #5F6F52, #2F3E2A)",
+        "BalanceSheet" => "linear-gradient(135deg, #5F6F52, #5F6F52)",
+        "CashFlow" => "linear-gradient(135deg, #2F3E2A, #2F3E2A)",
         _ => "linear-gradient(135deg, #6b7280, #4b5563)"
     };
 }

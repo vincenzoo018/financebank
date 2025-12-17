@@ -12,14 +12,15 @@
 <div style="display:grid; gap:16px;">
     @foreach (var a in accounts)
     {
-        <div style="background:white; border-radius:16px; padding:24px; border:1px solid var(--border);">
+        <div style="background:#FFFFFF; border-radius:14px; padding:24px; border:1px solid var(--border);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <div style="font-size:14px; color:var(--text-light);">Savings Account</div>
-                    <div style="font-size:24px; font-weight:700;">₱@a.Balance.ToString("N2")</div>
+                    <div style="font-size:24px; font-weight:600;">₱@a.Balance.ToString("N2")</div>
                     <div style="font-size:12px; color:var(--text-light);">@a.AccountNumber</div>
                 </div>
-                <a class="btn" style="background:#3b82f6; color:white; padding:8px 16px;" href="/customer/transactions?accountId=@a.AccountId">View Transactions</a>
+                <a class="btn" style="background:#2F3E2A; color:#FFFFFF; padding:8px 16px; border-radius:10px;"
+                    href="/customer/transactions?accountId=@a.AccountId">View Transactions</a>
             </div>
         </div>
     }
@@ -34,4 +35,3 @@
         accounts = await Service.GetByCustomerIdAsync(userId);
     }
 }
-

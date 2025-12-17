@@ -9,7 +9,7 @@
 @inject IDbContextFactory<BFASDbContext> DbFactory
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
@@ -33,15 +33,15 @@
     </div>
     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
         <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0 0 8px 0; text-transform: uppercase;">⏳ Pending</p>
-        <p style="font-size: 28px; font-weight: 700; color: #f59e0b; margin: 4px 0 0 0;">@postings.Count(p => p.PostingStatus == "Pending")</p>
+        <p style="font-size: 28px; font-weight: 700; color: #8B5A2B; margin: 4px 0 0 0;">@postings.Count(p => p.PostingStatus == "Pending")</p>
     </div>
     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
         <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0 0 8px 0; text-transform: uppercase;">✅ Completed</p>
-        <p style="font-size: 28px; font-weight: 700; color: #059669; margin: 4px 0 0 0;">@postings.Count(p => p.PostingStatus == "Completed")</p>
+        <p style="font-size: 28px; font-weight: 700; color: #5F6F52; margin: 4px 0 0 0;">@postings.Count(p => p.PostingStatus == "Completed")</p>
     </div>
     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
         <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0 0 8px 0; text-transform: uppercase;">💰 Total Interest</p>
-        <p style="font-size: 28px; font-weight: 700; color: #3b82f6; margin: 4px 0 0 0;">₱@postings.Sum(p => p.TotalInterestPosted).ToString("N2")</p>
+        <p style="font-size: 28px; font-weight: 700; color: #6B7B5E; margin: 4px 0 0 0;">₱@postings.Sum(p => p.TotalInterestPosted).ToString("N2")</p>
     </div>
 </div>
 
@@ -49,7 +49,7 @@
 <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin: 0;">Interest Posting Records</h3>
-        <button class="btn" style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 10px 18px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;" @onclick="RefreshData">
+        <button class="btn" style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; padding: 10px 18px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;" @onclick="RefreshData">
             Refresh Data
         </button>
     </div>
@@ -57,7 +57,7 @@
     @if (isLoading)
     {
         <div style="display: flex; justify-content: center; padding: 60px;">
-            <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <div style="width: 48px; height: 48px; border: 4px solid #E2E2DC; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite;"></div>
         </div>
     }
     else if (!postings.Any())
@@ -91,7 +91,7 @@
                         <td style="padding: 16px; font-size: 14px; color: #1e293b; font-weight: 500;">#@posting.PostingId</td>
                         <td style="padding: 16px; font-size: 14px; color: #1e293b;">@posting.PostingDate.ToString("MMM dd, yyyy")</td>
                         <td style="padding: 16px; font-size: 14px; color: #64748b;">@posting.PeriodStart.ToString("MMM dd") - @posting.PeriodEnd.ToString("MMM dd, yyyy")</td>
-                        <td style="padding: 16px; font-size: 14px; color: #059669; font-weight: 600; text-align: right;">₱@posting.TotalInterestPosted.ToString("N2")</td>
+                        <td style="padding: 16px; font-size: 14px; color: #5F6F52; font-weight: 600; text-align: right;">₱@posting.TotalInterestPosted.ToString("N2")</td>
                         <td style="padding: 16px; font-size: 14px; color: #1e293b; text-align: center;">@posting.AccountsProcessed</td>
                         <td style="padding: 16px; text-align: center;">
                             <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; @GetStatusStyle(posting.PostingStatus)">
@@ -168,7 +168,7 @@
 
     private string GetStatusStyle(string status) => status switch
     {
-        "Completed" => "background: #dcfce7; color: #166534;",
+        "Completed" => "background: #DDE6D5; color: #166534;",
         "FMApproved" => "background: #dbeafe; color: #1e40af;",
         "AccountantReleased" => "background: #fef3c7; color: #92400e;",
         "Pending" => "background: #fee2e2; color: #991b1b;",

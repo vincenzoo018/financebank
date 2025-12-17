@@ -137,7 +137,8 @@
                                         <option value="0">Select Plan</option>
                                         @foreach (var plan in plans)
                                         {
-                                            <option value="@plan.PlanId">@plan.PlanName - ₱@plan.MonthlyPrice.ToString("N0")/month</option>
+                                            <option value="@plan.PlanId">@plan.PlanName - ₱@plan.MonthlyPrice.ToString("N0")/month
+                                            </option>
                                         }
                                     </select>
                                 </div>
@@ -165,7 +166,8 @@
                     <div class="form-section">
                         <h3>Notes</h3>
                         <div class="form-group full-width">
-                            <textarea rows="3" @bind="editClient.Notes" placeholder="Internal notes about this client..."></textarea>
+                            <textarea rows="3" @bind="editClient.Notes"
+                                placeholder="Internal notes about this client..."></textarea>
                         </div>
                     </div>
 
@@ -257,7 +259,8 @@
                     {
                         <div class="no-subscription">
                             <p>No active subscription</p>
-                            <button class="btn-primary small" @onclick="() => ShowSubscribeModal(selectedClient.ClientId)">Assign Plan</button>
+                            <button class="btn-primary small"
+                                @onclick="() => ShowSubscribeModal(selectedClient.ClientId)">Assign Plan</button>
                         </div>
                     }
                 </div>
@@ -267,7 +270,8 @@
                     <h3>Billing</h3>
                     <div class="billing-stats">
                         <div class="billing-stat">
-                            <span class="billing-value @(selectedClient.OutstandingBalance > 0 ? "negative" : "")">₱@selectedClient.OutstandingBalance.ToString("N2")</span>
+                            <span
+                                class="billing-value @(selectedClient.OutstandingBalance > 0 ? "negative" : "")">₱@selectedClient.OutstandingBalance.ToString("N2")</span>
                             <span class="billing-label">Outstanding Balance</span>
                         </div>
                         <div class="billing-stat">
@@ -296,7 +300,8 @@
                             <p class="empty">No modules enabled</p>
                         }
                     </div>
-                    <button class="btn-secondary small" @onclick="() => ShowModuleManager(selectedClient.ClientId)">Manage Modules</button>
+                    <button class="btn-secondary small" @onclick="() => ShowModuleManager(selectedClient.ClientId)">Manage
+                        Modules</button>
                 </div>
 
                 <!-- Contact Person Card -->
@@ -379,7 +384,8 @@
             <div class="empty-state">
                 <span class="empty-icon">🏢</span>
                 <h3>No clients found</h3>
-                <p>@(string.IsNullOrEmpty(searchTerm) ? "Get started by adding your first client" : "Try adjusting your search")</p>
+                <p>@(string.IsNullOrEmpty(searchTerm) ? "Get started by adding your first client" : "Try adjusting your search")
+                </p>
                 <button class="btn-primary" @onclick="ShowAddForm">+ Add Client</button>
             </div>
         }
@@ -409,15 +415,15 @@
     .header-left h2 {
         margin: 0;
         font-size: 24px;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .count {
-        background: #e5e7eb;
+        background: #E2E2DC;
         padding: 4px 12px;
-        border-radius: 12px;
+        border-radius: 10px;
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .header-right {
@@ -428,41 +434,41 @@
 
     .search-box input {
         padding: 10px 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         width: 250px;
         font-size: 14px;
     }
 
     .filter-select {
         padding: 10px 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
-        background: white;
+        background: #FFFFFF;
     }
 
     .btn-primary {
-        background: #6366f1;
-        color: white;
+        background: #5F6F52;
+        color: #FFFFFF;
         border: none;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
         font-size: 14px;
     }
 
     .btn-primary:hover {
-        background: #4f46e5;
+        background: #2F3E2A;
     }
 
     .btn-secondary {
-        background: #f3f4f6;
-        color: #374151;
-        border: 1px solid #e5e7eb;
+        background: #F7F7F4;
+        color: #2B2B2B;
+        border: 1px solid #E2E2DC;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
         font-size: 14px;
@@ -476,9 +482,9 @@
     }
 
     .client-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        background: #FFFFFF;
+        border-radius: 14px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         cursor: pointer;
         transition: all 0.2s ease;
         overflow: hidden;
@@ -486,7 +492,7 @@
 
     .client-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     }
 
     .client-card .card-header {
@@ -494,41 +500,56 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        background: #2F3E2A;
     }
 
     .client-avatar {
         width: 48px;
         height: 48px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
+        color: #FFFFFF;
         font-size: 20px;
-        font-weight: 700;
+        font-weight: 600;
     }
 
     .client-avatar.large {
         width: 80px;
         height: 80px;
         font-size: 32px;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        background: #2F3E2A;
     }
 
     .status-badge {
         padding: 4px 12px;
-        border-radius: 12px;
+        border-radius: 10px;
         font-size: 11px;
         font-weight: 600;
         text-transform: uppercase;
     }
 
-    .status-badge.Active { background: #dcfce7; color: #166534; }
-    .status-badge.Suspended { background: #fee2e2; color: #991b1b; }
-    .status-badge.Trial { background: #dbeafe; color: #1e40af; }
-    .status-badge.Pending { background: #fef3c7; color: #92400e; }
+    .status-badge.Active {
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+    }
+
+    .status-badge.Suspended {
+        background: rgba(155, 58, 58, 0.1);
+        color: #9B3A3A;
+    }
+
+    .status-badge.Trial {
+        background: rgba(95, 122, 106, 0.15);
+        color: #5F7A6A;
+    }
+
+    .status-badge.Pending {
+        background: rgba(196, 154, 58, 0.15);
+        color: #C49A3A;
+    }
 
     .client-card .card-body {
         padding: 20px;
@@ -537,23 +558,23 @@
     .client-card h3 {
         margin: 0 0 4px 0;
         font-size: 16px;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .client-code {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
         margin-bottom: 8px;
     }
 
     .client-email {
         font-size: 13px;
-        color: #6366f1;
+        color: #5F6F52;
     }
 
     .client-card .card-footer {
         padding: 16px 20px;
-        background: #f9fafb;
+        background: #F7F7F4;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -562,18 +583,18 @@
     .plan-name {
         font-size: 13px;
         font-weight: 600;
-        color: #374151;
+        color: #2B2B2B;
     }
 
     .plan-price {
         font-size: 14px;
-        font-weight: 700;
-        color: #6366f1;
+        font-weight: 600;
+        color: #5F6F52;
     }
 
     .no-plan {
         font-size: 13px;
-        color: #9ca3af;
+        color: #6B6B6B;
         font-style: italic;
     }
 
@@ -590,7 +611,7 @@
     .back-btn {
         background: none;
         border: none;
-        color: #6366f1;
+        color: #5F6F52;
         font-size: 14px;
         cursor: pointer;
         margin-bottom: 12px;
@@ -599,13 +620,13 @@
     .form-header h2 {
         margin: 0;
         font-size: 24px;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .form-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        background: #FFFFFF;
+        border-radius: 14px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         padding: 32px;
     }
 
@@ -615,10 +636,10 @@
 
     .form-section h3 {
         font-size: 16px;
-        color: #374151;
+        color: #2B2B2B;
         margin-bottom: 16px;
         padding-bottom: 8px;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid #E2E2DC;
     }
 
     .form-grid {
@@ -640,15 +661,15 @@
     .form-group label {
         font-size: 13px;
         font-weight: 500;
-        color: #374151;
+        color: #2B2B2B;
     }
 
     .form-group input,
     .form-group select,
     .form-group textarea {
         padding: 10px 14px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
     }
 
@@ -656,8 +677,8 @@
     .form-group select:focus,
     .form-group textarea:focus {
         outline: none;
-        border-color: #6366f1;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        border-color: #5F6F52;
+        box-shadow: 0 0 0 3px rgba(95, 111, 82, 0.1);
     }
 
     .form-actions {
@@ -665,7 +686,7 @@
         justify-content: flex-end;
         gap: 12px;
         padding-top: 24px;
-        border-top: 1px solid #f3f4f6;
+        border-top: 1px solid #E2E2DC;
     }
 
     /* Details View */
@@ -682,29 +703,29 @@
     }
 
     .btn-edit {
-        background: #6366f1;
-        color: white;
+        background: #5F6F52;
+        color: #FFFFFF;
         border: none;
         padding: 8px 16px;
-        border-radius: 8px;
+        border-radius: 10px;
         cursor: pointer;
     }
 
     .btn-suspend {
-        background: #fef2f2;
-        color: #dc2626;
-        border: 1px solid #fecaca;
+        background: rgba(155, 58, 58, 0.1);
+        color: #9B3A3A;
+        border: 1px solid rgba(155, 58, 58, 0.3);
         padding: 8px 16px;
-        border-radius: 8px;
+        border-radius: 10px;
         cursor: pointer;
     }
 
     .btn-activate {
-        background: #dcfce7;
-        color: #166534;
-        border: 1px solid #bbf7d0;
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+        border: 1px solid rgba(79, 111, 82, 0.3);
         padding: 8px 16px;
-        border-radius: 8px;
+        border-radius: 10px;
         cursor: pointer;
     }
 
@@ -715,10 +736,10 @@
     }
 
     .info-card {
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
         padding: 24px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
     .info-card.main-info {
@@ -732,7 +753,7 @@
     .info-card h3 {
         margin: 0 0 16px 0;
         font-size: 14px;
-        color: #6b7280;
+        color: #6B6B6B;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -763,28 +784,28 @@
 
     .meta-label {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .meta-value {
         font-size: 14px;
-        color: #1f2937;
+        color: #2B2B2B;
         font-weight: 500;
     }
 
     .meta-value.code {
         font-family: monospace;
         font-size: 12px;
-        background: #f3f4f6;
+        background: #F7F7F4;
         padding: 4px 8px;
         border-radius: 4px;
     }
 
     .plan-badge {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: white;
+        background: #2F3E2A;
+        color: #FFFFFF;
         padding: 8px 16px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 600;
         margin-bottom: 16px;
     }
@@ -793,16 +814,16 @@
         display: flex;
         justify-content: space-between;
         padding: 8px 0;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid #E2E2DC;
         font-size: 14px;
     }
 
     .sub-item span {
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .sub-item strong {
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .billing-stats {
@@ -814,23 +835,28 @@
     .billing-stat {
         text-align: center;
         padding: 16px;
-        background: #f9fafb;
-        border-radius: 12px;
+        background: #F7F7F4;
+        border-radius: 10px;
     }
 
     .billing-value {
         font-size: 24px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
         display: block;
     }
 
-    .billing-value.negative { color: #dc2626; }
-    .billing-value.positive { color: #059669; }
+    .billing-value.negative {
+        color: #9B3A3A;
+    }
+
+    .billing-value.positive {
+        color: #4F6F52;
+    }
 
     .billing-label {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .modules-list {
@@ -843,20 +869,20 @@
     .module-tag {
         display: flex;
         flex-direction: column;
-        background: #f3f4f6;
+        background: #F7F7F4;
         padding: 8px 12px;
-        border-radius: 8px;
+        border-radius: 10px;
     }
 
     .module-name {
         font-size: 13px;
         font-weight: 500;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .module-source {
         font-size: 10px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .small {
@@ -868,8 +894,8 @@
     .empty-state {
         text-align: center;
         padding: 60px 20px;
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
     }
 
     .empty-icon {
@@ -880,11 +906,11 @@
 
     .empty-state h3 {
         margin: 0 0 8px 0;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .empty-state p {
-        color: #6b7280;
+        color: #6B6B6B;
         margin-bottom: 24px;
     }
 </style>
@@ -903,11 +929,11 @@
     private int selectedPlanId = 0;
 
     private IEnumerable<SaaSClient> FilteredClients => clients
-        .Where(c => string.IsNullOrEmpty(searchTerm) || 
-            c.CompanyName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-            c.ClientCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-            c.PrimaryEmail.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-        .Where(c => string.IsNullOrEmpty(statusFilter) || c.Status == statusFilter);
+    .Where(c => string.IsNullOrEmpty(searchTerm) ||
+    c.CompanyName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+    c.ClientCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+    c.PrimaryEmail.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+    .Where(c => string.IsNullOrEmpty(statusFilter) || c.Status == statusFilter);
 
     protected override async Task OnInitializedAsync()
     {
@@ -1004,7 +1030,7 @@
             else
             {
                 var newClient = await ClientService.CreateClientAsync(editClient);
-                
+
                 // Subscribe to plan if selected
                 if (selectedPlanId > 0)
                 {

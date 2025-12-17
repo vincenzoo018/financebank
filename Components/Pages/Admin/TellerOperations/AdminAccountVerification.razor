@@ -8,14 +8,14 @@
 @inject NavigationManager Navigation
 
 <div style="padding: 24px; max-width: 1100px; margin: 0 auto;">
-    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <h1 style="font-size: 24px; font-weight: 700; margin: 0 0 4px 0;">Account Verification</h1>
         <p style="font-size: 14px; opacity: 0.9; margin: 0;">Lookup and verify customer accounts before processing transactions.</p>
     </div>
 
     <!-- Admin Access Notice -->
-    <div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-        <p style="margin: 0; color: #1e40af; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+    <div style="background: #E8F0E8; border: 2px solid #5F6F52; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <p style="margin: 0; color: #2F3E2A; font-weight: 600; display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 20px;">ℹ️</span>
             <strong>SuperAdmin Teller Operations Access</strong> - Full account verification capability
         </p>
@@ -26,8 +26,8 @@
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
             <input type="text" @bind="searchQuery" @oninput="OnSearchChanged" 
                    placeholder="Enter account number or customer name..." 
-                   style="width: 100%; padding: 12px; border: 2px solid #059669; border-radius: 8px; font-size: 14px;" />
-            <button @onclick="SearchAccount" style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                   style="width: 100%; padding: 12px; border: 2px solid #5F6F52; border-radius: 8px; font-size: 14px;" />
+            <button @onclick="SearchAccount" style="background: #5F6F52; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer;">
                 🔍 Search
             </button>
         </div>
@@ -36,7 +36,7 @@
     @if (isLoading)
     {
         <div style="background: white; border-radius: 16px; padding: 40px; border: 1px solid #e5e7eb; text-align: center;">
-            <div style="width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            <div style="width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
             <p style="margin-top: 16px; color: #6b7280;">Searching...</p>
         </div>
     }
@@ -47,22 +47,22 @@
             <div style="display: grid; gap: 16px;">
                 @foreach (var account in searchResults)
                 {
-                    <div style="background: #f9fafb; border-radius: 12px; padding: 20px; border: 2px solid @(selectedAccount?.AccountId == account.AccountId ? "#059669" : "#e5e7eb"); cursor: pointer;"
+                    <div style="background: #f9fafb; border-radius: 12px; padding: 20px; border: 2px solid @(selectedAccount?.AccountId == account.AccountId ? "#5F6F52" : "#e5e7eb"); cursor: pointer;"
                          @onclick="() => SelectAccount(account)">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div>
                                 <div style="font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 4px;">@account.Customer?.FullName</div>
-                                <div style="font-size: 14px; color: #059669; font-weight: 600; margin-bottom: 8px;">@account.AccountNumber</div>
+                                <div style="font-size: 14px; color: #5F6F52; font-weight: 600; margin-bottom: 8px;">@account.AccountNumber</div>
                                 <div style="display: flex; gap: 16px; font-size: 13px; color: #6b7280;">
                                     <span>Balance: <strong style="color: #111827;">₱@account.Balance.ToString("N2")</strong></span>
                                     <span>Status: 
-                                        <span style="background: @(account.IsActive ? "#d1fae5" : "#fee2e2"); color: @(account.IsActive ? "#065f46" : "#991b1b"); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+                                        <span style="background: @(account.IsActive ? "#D4E6D4" : "#fee2e2"); color: @(account.IsActive ? "#2F3E2A" : "#991b1b"); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">
                                             @(account.IsActive ? "Active" : "Inactive")
                                         </span>
                                     </span>
                                 </div>
                             </div>
-                            <button style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;"
+                            <button style="background: #5F6F52; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;"
                                     @onclick:stopPropagation @onclick="() => SelectAccount(account)">
                                 Select
                             </button>
@@ -89,8 +89,8 @@
 
     @if (selectedAccount != null)
     {
-        <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #059669;">
-            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #059669;">✓ Account Verified</h2>
+        <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #5F6F52;">
+            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #5F6F52;">✓ Account Verified</h2>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                 <!-- Customer Info -->
@@ -118,11 +118,11 @@
                     <div style="display: grid; gap: 8px;">
                         <div>
                             <span style="font-size: 12px; color: #6b7280;">Account Number</span>
-                            <div style="font-size: 14px; font-weight: 600; color: #059669;">@selectedAccount.AccountNumber</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #5F6F52;">@selectedAccount.AccountNumber</div>
                         </div>
                         <div>
                             <span style="font-size: 12px; color: #6b7280;">Current Balance</span>
-                            <div style="font-size: 20px; font-weight: 700; color: #059669;">₱@selectedAccount.Balance.ToString("N2")</div>
+                            <div style="font-size: 20px; font-weight: 700; color: #5F6F52;">₱@selectedAccount.Balance.ToString("N2")</div>
                         </div>
                         <div>
                             <span style="font-size: 12px; color: #6b7280;">Available Balance</span>
@@ -136,7 +136,7 @@
             <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
                 <h3 style="font-size: 14px; font-weight: 700; color: #7c3aed; margin-bottom: 12px;">👑 Admin Quick Actions</h3>
                 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                    <button style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;"
+                    <button style="background: #5F6F52; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;"
                             @onclick="() => NavigateToDeposit()">💰 Process Deposit</button>
                     <button style="background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;"
                             @onclick="() => NavigateToWithdraw()">💸 Process Withdrawal</button>

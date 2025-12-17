@@ -8,7 +8,7 @@
 @inject NavigationManager Navigation
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
@@ -24,8 +24,8 @@
 </div>
 
 <!-- Admin Access Notice -->
-<div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-    <p style="margin: 0; color: #1e40af; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+<div style="background: #E8F0E8; border: 2px solid #5F6F52; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+    <p style="margin: 0; color: #2F3E2A; font-weight: 600; display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 20px;">ℹ️</span>
         <strong>SuperAdmin Teller Operations Access</strong> - Full customer account visibility with override capabilities
     </p>
@@ -46,27 +46,27 @@
         </select>
     </div>
     <div style="flex: 0 0 auto; display:flex; gap:8px;">
-        <button class="btn" style="background:#059669; color:white; padding:8px 16px; border-radius:8px; font-size:14px; font-weight:600;" @onclick="ReloadAccounts">🔄 Refresh</button>
+        <button class="btn" style="background:#5F6F52; color:white; padding:8px 16px; border-radius:8px; font-size:14px; font-weight:600;" @onclick="ReloadAccounts">🔄 Refresh</button>
     </div>
 </div>
 
 <!-- Summary Stats -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
-    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 16px; border: 1px solid #6ee7b7;">
-        <div style="font-size: 12px; color: #065f46; font-weight: 600;">TOTAL ACCOUNTS</div>
-        <div style="font-size: 24px; font-weight: 700; color: #047857;">@accounts.Count</div>
+    <div style="background: linear-gradient(135deg, #D4E6D4, #BCC9A6); border-radius: 12px; padding: 16px; border: 1px solid #A9B388;">
+        <div style="font-size: 12px; color: #2F3E2A; font-weight: 600;">TOTAL ACCOUNTS</div>
+        <div style="font-size: 24px; font-weight: 700; color: #2F3E2A;">@accounts.Count</div>
     </div>
-    <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 12px; padding: 16px; border: 1px solid #93c5fd;">
-        <div style="font-size: 12px; color: #1e40af; font-weight: 600;">ACTIVE</div>
-        <div style="font-size: 24px; font-weight: 700; color: #2563eb;">@accounts.Count(a => a.IsActive)</div>
+    <div style="background: linear-gradient(135deg, #F0F2EC, #DDE6D5); border-radius: 12px; padding: 16px; border: 1px solid #BCC9A6;">
+        <div style="font-size: 12px; color: #2F3E2A; font-weight: 600;">ACTIVE</div>
+        <div style="font-size: 24px; font-weight: 700; color: #5F6F52;">@accounts.Count(a => a.IsActive)</div>
     </div>
-    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 12px; padding: 16px; border: 1px solid #fca5a5;">
-        <div style="font-size: 12px; color: #991b1b; font-weight: 600;">INACTIVE</div>
-        <div style="font-size: 24px; font-weight: 700; color: #dc2626;">@accounts.Count(a => !a.IsActive)</div>
+    <div style="background: linear-gradient(135deg, #F5E8E8, #E8D5D5); border-radius: 12px; padding: 16px; border: 1px solid #D4B5B5;">
+        <div style="font-size: 12px; color: #7A2E2E; font-weight: 600;">INACTIVE</div>
+        <div style="font-size: 24px; font-weight: 700; color: #9B3A3A;">@accounts.Count(a => !a.IsActive)</div>
     </div>
-    <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 12px; padding: 16px; border: 1px solid #fcd34d;">
-        <div style="font-size: 12px; color: #92400e; font-weight: 600;">TOTAL BALANCE</div>
-        <div style="font-size: 24px; font-weight: 700; color: #d97706;">₱@accounts.Sum(a => a.Balance).ToString("N0")</div>
+    <div style="background: linear-gradient(135deg, #E5D9B6, #D4C9A8); border-radius: 12px; padding: 16px; border: 1px solid #C4B8A0;">
+        <div style="font-size: 12px; color: #6B4423; font-weight: 600;">TOTAL BALANCE</div>
+        <div style="font-size: 24px; font-weight: 700; color: #8B5A2B;">₱@accounts.Sum(a => a.Balance).ToString("N0")</div>
     </div>
 </div>
 
@@ -93,16 +93,16 @@
                         <td style="padding:12px; font-size:13px; color:#111827; font-weight:600;">@account.AccountNumber</td>
                         <td style="padding:12px; font-size:13px; color:#4b5563;">@account.Customer?.FullName</td>
                         <td style="padding:12px; font-size:13px; color:#111827; font-weight:600;">₱@account.Balance.ToString("N2")</td>
-                        <td style="padding:12px; font-size:13px; color:#059669; font-weight:600;">₱@account.AvailableBalance.ToString("N2")</td>
+                        <td style="padding:12px; font-size:13px; color:#5F6F52; font-weight:600;">₱@account.AvailableBalance.ToString("N2")</td>
                         <td style="padding:12px;">
-                            <span style="display:inline-flex; align-items:center; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:@(account.IsActive ? "#d1fae5" : "#fee2e2"); color:@(account.IsActive ? "#065f46" : "#b91c1c");">
+                            <span style="display:inline-flex; align-items:center; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:@(account.IsActive ? "#D4E6D4" : "#fee2e2"); color:@(account.IsActive ? "#2F3E2A" : "#b91c1c");">
                                 @(account.IsActive ? "Active" : "Inactive")
                             </span>
                         </td>
                         <td style="padding:12px; font-size:13px; color:#6b7280;">@account.CreatedAt.ToString("yyyy-MM-dd")</td>
                         <td style="padding:12px; text-align:center;">
                             <button class="btn" style="background:#1f2937; color:white; padding:6px 12px; font-size:12px; border-radius:6px; margin-right:4px;" @onclick="() => ViewAccountDetails(account)">View</button>
-                            <button class="btn" style="background:#059669; color:white; padding:6px 12px; font-size:12px; border-radius:6px;" @onclick="() => QuickDeposit(account)">Deposit</button>
+                            <button class="btn" style="background:#5F6F52; color:white; padding:6px 12px; font-size:12px; border-radius:6px;" @onclick="() => QuickDeposit(account)">Deposit</button>
                         </td>
                     </tr>
                 }
@@ -122,7 +122,7 @@
 {
     <div @onclick="CloseDetailsModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;">
         <div @onclick:stopPropagation style="background:white; border-radius:16px; max-width:700px; width:100%; max-height:80vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <div style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #059669, #047857); border-radius: 16px 16px 0 0;">
+            <div style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #5F6F52, #2F3E2A); border-radius: 16px 16px 0 0;">
                 <h2 style="font-size:20px; font-weight:700; color:white; margin:0;">👑 Admin: Account Details</h2>
                 <button @onclick="CloseDetailsModal" style="background:rgba(255,255,255,0.2); border:none; font-size:22px; color:white; cursor:pointer; width:32px; height:32px; border-radius:8px;">×</button>
             </div>
@@ -171,7 +171,7 @@
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                         <div>
                             <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Current Balance</div>
-                            <div style="font-size:18px; font-weight:700; color:#059669;">₱@selectedAccount.Balance.ToString("N2")</div>
+                            <div style="font-size:18px; font-weight:700; color:#5F6F52;">₱@selectedAccount.Balance.ToString("N2")</div>
                         </div>
                         <div>
                             <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Available Balance</div>
@@ -184,7 +184,7 @@
                 <div style="margin-bottom:24px; background:#f3e8ff; padding:16px; border-radius:12px; border:2px solid #c4b5fd;">
                     <h3 style="font-size:14px; font-weight:700; color:#7c3aed; margin-bottom:12px;">👑 Admin Quick Actions</h3>
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <button style="padding:8px 16px; background:#059669; color:white; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;" @onclick="() => QuickDeposit(selectedAccount)">💰 Quick Deposit</button>
+                        <button style="padding:8px 16px; background:#5F6F52; color:white; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;" @onclick="() => QuickDeposit(selectedAccount)">💰 Quick Deposit</button>
                         <button style="padding:8px 16px; background:#dc2626; color:white; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;" @onclick="() => QuickWithdraw(selectedAccount)">💸 Quick Withdraw</button>
                         <button style="padding:8px 16px; background:#7c3aed; color:white; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;">📊 Full History</button>
                     </div>

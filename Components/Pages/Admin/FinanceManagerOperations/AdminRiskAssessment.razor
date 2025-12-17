@@ -9,7 +9,7 @@
 
 <div class="page-container" style="padding: 24px;">
     <!-- Page Header -->
-    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 16px;">
                 <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
@@ -26,7 +26,7 @@
                 <button @onclick="RefreshData" style="padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">
                     🔄 Refresh
                 </button>
-                <button @onclick="GenerateReport" style="padding: 10px 20px; background: white; color: #059669; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                <button @onclick="GenerateReport" style="padding: 10px 20px; background: white; color: #5F6F52; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                     📊 Generate Report
                 </button>
             </div>
@@ -34,12 +34,12 @@
     </div>
 
     <!-- Admin Notice -->
-    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div style="background: linear-gradient(135deg, #E5D9B6 0%, #D4C9A8 100%); border: 1px solid #8B5A2B; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <span style="font-size: 24px;">🔐</span>
             <div>
-                <p style="font-weight: 600; color: #92400e; margin: 0;">Administrative Access Mode</p>
-                <p style="font-size: 13px; color: #a16207; margin: 4px 0 0 0;">Risk adjustments require justification and audit logging. Admin: @(AuthService.FullName ?? "Admin")</p>
+                <p style="font-weight: 600; color: #6B4423; margin: 0;">Administrative Access Mode</p>
+                <p style="font-size: 13px; color: #8B5A2B; margin: 4px 0 0 0;">Risk adjustments require justification and audit logging. Admin: @(AuthService.FullName ?? "Admin")</p>
             </div>
         </div>
     </div>
@@ -51,19 +51,19 @@
             <p style="font-size: 28px; font-weight: 700; color: @GetRiskColor(overallRisk); margin: 8px 0 0 0;">@overallRisk.ToString("N1")</p>
             <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">@GetRiskLevel(overallRisk) Risk Level</p>
         </div>
-        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6;">
-            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">💳 Credit Risk</p>
-            <p style="font-size: 28px; font-weight: 700; color: #3b82f6; margin: 8px 0 0 0;">@creditRisk.ToString("N1")%</p>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #6B7B5E;">
+            <p style="font-size: 13px; color: #6B6B6B; font-weight: 600; margin: 0;">💳 Credit Risk</p>
+            <p style="font-size: 28px; font-weight: 700; color: #6B7B5E; margin: 8px 0 0 0;">@creditRisk.ToString("N1")%</p>
             <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">Non-performing loans ratio</p>
         </div>
-        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #f59e0b;">
-            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">💧 Liquidity Risk</p>
-            <p style="font-size: 28px; font-weight: 700; color: #f59e0b; margin: 8px 0 0 0;">@liquidityRisk.ToString("N1")%</p>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #8B5A2B;">
+            <p style="font-size: 13px; color: #6B6B6B; font-weight: 600; margin: 0;">💧 Liquidity Risk</p>
+            <p style="font-size: 28px; font-weight: 700; color: #8B5A2B; margin: 8px 0 0 0;">@liquidityRisk.ToString("N1")%</p>
             <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">Liquidity coverage ratio</p>
         </div>
-        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #059669;">
-            <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0;">⚡ Operational Risk</p>
-            <p style="font-size: 28px; font-weight: 700; color: #059669; margin: 8px 0 0 0;">@operationalRisk.ToString("N1")%</p>
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #5F6F52;">
+            <p style="font-size: 13px; color: #6B6B6B; font-weight: 600; margin: 0;">⚡ Operational Risk</p>
+            <p style="font-size: 28px; font-weight: 700; color: #5F6F52; margin: 8px 0 0 0;">@operationalRisk.ToString("N1")%</p>
             <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">System uptime rate</p>
         </div>
     </div>
@@ -71,14 +71,14 @@
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
         <!-- Risk Matrix -->
         <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
-            <div style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 20px 24px;">
+            <div style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; padding: 20px 24px;">
                 <h3 style="font-size: 18px; font-weight: 600; margin: 0;">Risk Categories</h3>
             </div>
             <div style="padding: 24px;">
                 @if (isLoading)
                 {
                     <div style="display: flex; justify-content: center; padding: 60px;">
-                        <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <div style="width: 48px; height: 48px; border: 4px solid #E2E2DC; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                     </div>
                 }
                 else
@@ -102,7 +102,7 @@
 
         <!-- Risk Alerts -->
         <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
-            <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 20px 24px;">
+            <div style="background: linear-gradient(135deg, #9B3A3A, #7A2E2E); color: white; padding: 20px 24px;">
                 <h3 style="font-size: 18px; font-weight: 600; margin: 0;">⚠️ Risk Alerts</h3>
             </div>
             <div style="padding: 24px;">
@@ -132,7 +132,7 @@
 
     <!-- High Risk Loans -->
     <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-top: 24px;">
-        <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 20px 24px;">
+        <div style="background: linear-gradient(135deg, #8B5A2B, #6B4423); color: white; padding: 20px 24px;">
             <h3 style="font-size: 18px; font-weight: 600; margin: 0;">High Risk Loan Applications</h3>
         </div>
         <div style="padding: 24px;">
@@ -168,7 +168,7 @@
                                 </td>
                                 <td style="padding: 16px; font-size: 13px; color: #64748b;">Debt-to-income ratio, Credit history</td>
                                 <td style="padding: 16px; text-align: center;">
-                                    <button @onclick="() => ReviewLoan(loan)" style="padding: 6px 16px; background: #7c3aed; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                    <button @onclick="() => ReviewLoan(loan)" style="padding: 6px 16px; background: #5F6F52; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
                                         Review
                                     </button>
                                 </td>
@@ -292,7 +292,7 @@
 
     private string GetRiskColor(decimal score)
     {
-        if (score <= 3) return "#059669"; // Green
+        if (score <= 3) return "#5F6F52"; // Green
         if (score <= 6) return "#f59e0b"; // Yellow
         return "#dc2626"; // Red
     }

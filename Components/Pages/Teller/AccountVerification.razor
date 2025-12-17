@@ -7,21 +7,23 @@
 @inject IJSRuntime JS
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: #2F3E2A; border-radius: 14px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
                 <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
             <div>
-                <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Account Verification</h1>
-                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Lookup and verify customer accounts before processing transactions</p>
+                <h1 style="font-size: 24px; font-weight: 600; color: white; margin: 0;">Account Verification</h1>
+                <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Lookup and verify customer
+                    accounts before processing transactions</p>
             </div>
         </div>
         <div style="display: flex; gap: 12px;">
-            <button @onclick="DownloadCSV" disabled="@(!searchResults.Any())" style="display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; opacity: @(searchResults.Any() ? "1" : "0.5");">
+            <button @onclick="DownloadCSV" disabled="@(!searchResults.Any())"
+                style="display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; cursor: pointer; font-weight: 500; opacity: @(searchResults.Any() ? "1" : "0.5");">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="7 10 12 15 17 10"></polyline>
@@ -29,7 +31,8 @@
                 </svg>
                 CSV
             </button>
-            <button @onclick="DownloadPDF" disabled="@(!searchResults.Any())" style="display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; opacity: @(searchResults.Any() ? "1" : "0.5");">
+            <button @onclick="DownloadPDF" disabled="@(!searchResults.Any())"
+                style="display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; cursor: pointer; font-weight: 500; opacity: @(searchResults.Any() ? "1" : "0.5");">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
@@ -41,9 +44,11 @@
 </div>
 
 <!-- Search Section -->
-<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb; margin-bottom: 24px;">
-    <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-        <svg width="20" height="20" fill="none" stroke="#059669" stroke-width="2" viewBox="0 0 24 24">
+<div
+    style="background: #FFFFFF; border-radius: 14px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 24px;">
+    <h2
+        style="font-size: 18px; font-weight: 500; color: #2B2B2B; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <svg width="20" height="20" fill="none" stroke="#5F6F52" stroke-width="2" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
@@ -52,14 +57,16 @@
     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
         <div style="flex: 2; min-width: 250px;">
             <input type="text" @bind="searchQuery" @bind:event="oninput" @onkeypress="HandleKeyPress"
-                   placeholder="Enter account number or customer name..."
-                   style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; transition: border-color 0.2s;" />
+                placeholder="Enter account number or customer name..."
+                style="width: 100%; padding: 14px 16px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px; transition: border-color 0.2s;" />
         </div>
         <button @onclick="SearchAccounts" disabled="@isSearching"
-                style="padding: 14px 28px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            style="padding: 14px 28px; background: #2F3E2A; color: white; border: none; border-radius: 10px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px;">
             @if (isSearching)
             {
-                <div style="width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <div
+                    style="width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;">
+                </div>
                 <span>Searching...</span>
             }
             else
@@ -74,16 +81,17 @@
     </div>
     @if (!string.IsNullOrEmpty(errorMessage))
     {
-        <div style="margin-top: 12px; padding: 12px; background: #fee2e2; border-radius: 8px; color: #991b1b; font-size: 13px;">
+        <div
+            style="margin-top: 12px; padding: 12px; background: #F5E6E6; border-radius: 8px; color: #9B3A3A; font-size: 13px;">
             @errorMessage
         </div>
     }
 </div>
 
 <!-- Results Section -->
-<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+<div style="background: #FFFFFF; border-radius: 14px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">
+        <h2 style="font-size: 18px; font-weight: 500; color: #2B2B2B; margin: 0;">
             @if (hasSearched)
             {
                 <span>Results (@searchResults.Count found)</span>
@@ -97,8 +105,9 @@
 
     @if (!hasSearched)
     {
-        <div style="text-align: center; padding: 40px; color: #6b7280;">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" style="margin: 0 auto 12px;">
+        <div style="text-align: center; padding: 40px; color: #6B6B6B;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E2E2DC" stroke-width="1.5"
+                style="margin: 0 auto 12px;">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
@@ -108,8 +117,9 @@
     }
     else if (!searchResults.Any())
     {
-        <div style="text-align: center; padding: 40px; color: #6b7280;">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5" style="margin: 0 auto 12px;">
+        <div style="text-align: center; padding: 40px; color: #6B6B6B;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C49A3A" stroke-width="1.5"
+                style="margin: 0 auto 12px;">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="8" x2="12" y2="12"></line>
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -123,34 +133,44 @@
         <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
-                        <th style="padding: 14px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 700;">ACCOUNT #</th>
-                        <th style="padding: 14px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 700;">CUSTOMER NAME</th>
-                        <th style="padding: 14px; text-align: left; font-size: 12px; color: #6b7280; font-weight: 700;">EMAIL</th>
-                        <th style="padding: 14px; text-align: right; font-size: 12px; color: #6b7280; font-weight: 700;">BALANCE</th>
-                        <th style="padding: 14px; text-align: center; font-size: 12px; color: #6b7280; font-weight: 700;">STATUS</th>
-                        <th style="padding: 14px; text-align: center; font-size: 12px; color: #6b7280; font-weight: 700;">ACTION</th>
+                    <tr style="background: #F7F7F4; border-bottom: 2px solid #E2E2DC;">
+                        <th style="padding: 14px; text-align: left; font-size: 12px; color: #6B6B6B; font-weight: 600;">
+                            ACCOUNT #</th>
+                        <th style="padding: 14px; text-align: left; font-size: 12px; color: #6B6B6B; font-weight: 600;">
+                            CUSTOMER NAME</th>
+                        <th style="padding: 14px; text-align: left; font-size: 12px; color: #6B6B6B; font-weight: 600;">
+                            EMAIL</th>
+                        <th style="padding: 14px; text-align: right; font-size: 12px; color: #6B6B6B; font-weight: 600;">
+                            BALANCE</th>
+                        <th style="padding: 14px; text-align: center; font-size: 12px; color: #6B6B6B; font-weight: 600;">
+                            STATUS</th>
+                        <th style="padding: 14px; text-align: center; font-size: 12px; color: #6B6B6B; font-weight: 600;">
+                            ACTION</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var account in searchResults)
                     {
-                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                        <tr style="border-bottom: 1px solid #E2E2DC;">
                             <td style="padding: 14px;">
-                                <span style="background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;">@account.AccountNumber</span>
+                                <span
+                                    style="background: rgba(79, 111, 82, 0.15); color: #4F6F52; padding: 4px 12px; border-radius: 10px; font-size: 12px; font-weight: 500;">@account.AccountNumber</span>
                             </td>
-                            <td style="padding: 14px; font-size: 14px; color: #111827; font-weight: 500;">@account.CustomerName</td>
-                            <td style="padding: 14px; font-size: 14px; color: #6b7280;">@account.Email</td>
-                            <td style="padding: 14px; text-align: right; font-size: 14px; font-weight: 600; color: #059669;">₱@account.Balance.ToString("N2")</td>
+                            <td style="padding: 14px; font-size: 14px; color: #2B2B2B; font-weight: 500;">@account.CustomerName
+                            </td>
+                            <td style="padding: 14px; font-size: 14px; color: #6B6B6B;">@account.Email</td>
+                            <td style="padding: 14px; text-align: right; font-size: 14px; font-weight: 600; color: #5F6F52;">
+                                ₱@account.Balance.ToString("N2")</td>
                             <td style="padding: 14px; text-align: center;">
-                                <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; background: @(account.Status == "ACTIVE" ? "#d1fae5" : "#fee2e2"); color: @(account.Status == "ACTIVE" ? "#065f46" : "#991b1b");">
+                                <span
+                                    style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 500; background: @(account.Status == "ACTIVE" ? "rgba(79, 111, 82, 0.15)" : "rgba(155, 58, 58, 0.15)"); color: @(account.Status == "ACTIVE" ? "#4F6F52" : "#9B3A3A");">
                                     @account.Status
                                 </span>
                             </td>
                             <td style="padding: 14px; text-align: center;">
-                                <button @onclick="() => ViewAccountDetails(account)" 
-                                        style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
-                                    ✓ Verified 
+                                <button @onclick="() => ViewAccountDetails(account)"
+                                    style="background: #2F3E2A; color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer;">
+                                    ✓ Verified
                                 </button>
                             </td>
                         </tr>
@@ -164,63 +184,82 @@
 <!-- Account Details Modal -->
 @if (showDetailsModal && selectedAccount != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseModal">
-        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;" @onclick:stopPropagation>
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+        @onclick="CloseModal">
+        <div style="background: #FFFFFF; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;"
+            @onclick:stopPropagation>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin: 0;">Account Verified ✓</h2>
-                <button @onclick="CloseModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">×</button>
+                <h2 style="font-size: 20px; font-weight: 600; color: #2B2B2B; margin: 0;">Account Verified ✓</h2>
+                <button @onclick="CloseModal"
+                    style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6B6B6B;">×</button>
             </div>
-            
-            <div style="background: #f0fdf4; border: 2px solid #10b981; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+
+            <div
+                style="background: rgba(79, 111, 82, 0.15); border: 2px solid #4F6F52; border-radius: 14px; padding: 20px; margin-bottom: 20px;">
                 <div style="text-align: center; margin-bottom: 16px;">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" style="margin: 0 auto;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4F6F52" stroke-width="2"
+                        style="margin: 0 auto;">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                         <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
-                    <div style="font-size: 16px; font-weight: 700; color: #065f46; margin-top: 8px;">Account Verified</div>
+                    <div style="font-size: 16px; font-weight: 600; color: #4F6F52; margin-top: 8px;">Account Verified</div>
                 </div>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 8px;">
-                    <span style="color: #6b7280; font-size: 14px;">Account Number</span>
-                    <span style="font-weight: 600; color: #111827;">@selectedAccount.AccountNumber</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px; background: #F7F7F4; border-radius: 10px;">
+                    <span style="color: #6B6B6B; font-size: 14px;">Account Number</span>
+                    <span style="font-weight: 500; color: #2B2B2B;">@selectedAccount.AccountNumber</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 8px;">
-                    <span style="color: #6b7280; font-size: 14px;">Customer Name</span>
-                    <span style="font-weight: 600; color: #111827;">@selectedAccount.CustomerName</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px; background: #F7F7F4; border-radius: 10px;">
+                    <span style="color: #6B6B6B; font-size: 14px;">Customer Name</span>
+                    <span style="font-weight: 500; color: #2B2B2B;">@selectedAccount.CustomerName</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 8px;">
-                    <span style="color: #6b7280; font-size: 14px;">Email</span>
-                    <span style="font-weight: 600; color: #111827;">@selectedAccount.Email</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px; background: #F7F7F4; border-radius: 10px;">
+                    <span style="color: #6B6B6B; font-size: 14px;">Email</span>
+                    <span style="font-weight: 500; color: #2B2B2B;">@selectedAccount.Email</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 8px;">
-                    <span style="color: #6b7280; font-size: 14px;">Phone</span>
-                    <span style="font-weight: 600; color: #111827;">@selectedAccount.Phone</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px; background: #F7F7F4; border-radius: 10px;">
+                    <span style="color: #6B6B6B; font-size: 14px;">Phone</span>
+                    <span style="font-weight: 500; color: #2B2B2B;">@selectedAccount.Phone</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px; background: #f0fdf4; border-radius: 8px;">
-                    <span style="color: #065f46; font-size: 14px; font-weight: 600;">Available Balance</span>
-                    <span style="font-weight: 700; font-size: 18px; color: #059669;">₱@selectedAccount.Balance.ToString("N2")</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px; background: rgba(79, 111, 82, 0.15); border-radius: 10px;">
+                    <span style="color: #4F6F52; font-size: 14px; font-weight: 500;">Available Balance</span>
+                    <span
+                        style="font-weight: 600; font-size: 18px; color: #4F6F52;">₱@selectedAccount.Balance.ToString("N2")</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 8px;">
-                    <span style="color: #6b7280; font-size: 14px;">Account Status</span>
-                    <span style="font-weight: 600; color: @(selectedAccount.Status == "ACTIVE" ? "#059669" : "#dc2626");">@selectedAccount.Status</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px; background: #F7F7F4; border-radius: 10px;">
+                    <span style="color: #6B6B6B; font-size: 14px;">Account Status</span>
+                    <span
+                        style="font-weight: 500; color: @(selectedAccount.Status == "ACTIVE" ? "#4F6F52" : "#9B3A3A");">@selectedAccount.Status</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px; background: #f9fafb; border-radius: 8px;">
-                    <span style="color: #6b7280; font-size: 14px;">Account Created</span>
-                    <span style="font-weight: 600; color: #111827;">@selectedAccount.CreatedAt.ToString("MMM dd, yyyy")</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px; background: #F7F7F4; border-radius: 10px;">
+                    <span style="color: #6B6B6B; font-size: 14px;">Account Created</span>
+                    <span style="font-weight: 500; color: #2B2B2B;">@selectedAccount.CreatedAt.ToString("MMM dd,                    yyyy")</span>
                 </div>
             </div>
 
             <div style="margin-top: 24px; display: flex; gap: 12px;">
-                <button @onclick="CloseModal" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Close</button>
+                <button @onclick="CloseModal"
+                    style="flex: 1; padding: 14px; background: #A9B388; color: #2F3E2A; border: none; border-radius: 10px; font-weight: 500; cursor: pointer;">Close</button>
             </div>
         </div>
     </div>
 }
 
 <style>
-    @@keyframes spin { to { transform: rotate(360deg); } }
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
 </style>
 
 @code {
@@ -257,15 +296,15 @@
         try
         {
             using var context = await DbContextFactory.CreateDbContextAsync();
-            
+
             var query = searchQuery.Trim().ToLower();
-            
+
             var accounts = await context.CustomerAccounts
-                .Include(a => a.Customer)
-                .Where(a => a.AccountNumber.ToLower().Contains(query) ||
-                           (a.Customer != null && a.Customer.FullName != null && a.Customer.FullName.ToLower().Contains(query)))
-                .Take(20)
-                .ToListAsync();
+            .Include(a => a.Customer)
+            .Where(a => a.AccountNumber.ToLower().Contains(query) ||
+            (a.Customer != null && a.Customer.FullName != null && a.Customer.FullName.ToLower().Contains(query)))
+            .Take(20)
+            .ToListAsync();
 
             searchResults = accounts.Select(a => new AccountSearchResult
             {
@@ -310,7 +349,7 @@
         {
             var sb = new System.Text.StringBuilder();
             sb.AppendLine("Account Number,Customer Name,Email,Phone,Balance,Status,Created Date");
-            
+
             foreach (var acc in searchResults)
             {
                 sb.AppendLine($"{acc.AccountNumber},{acc.CustomerName},{acc.Email},{acc.Phone},{acc.Balance:N2},{acc.Status},{acc.CreatedAt:yyyy-MM-dd}");
@@ -321,13 +360,13 @@
             var fileName = $"AccountVerification_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
 
             await JS.InvokeVoidAsync("eval", $@"
-                var link = document.createElement('a');
-                link.href = 'data:text/csv;base64,{base64}';
-                link.download = '{fileName}';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            ");
+var link = document.createElement('a');
+link.href = 'data:text/csv;base64,{base64}';
+link.download = '{fileName}';
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+");
         }
         catch (Exception ex)
         {
@@ -346,11 +385,11 @@
             sb.AppendLine("<style>");
             sb.AppendLine("body { font-family: Arial, sans-serif; margin: 0; padding: 40px; background: #f8fafc; }");
             sb.AppendLine(".report { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }");
-            sb.AppendLine(".header { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 30px; text-align: center; }");
+            sb.AppendLine(".header { background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; padding: 30px; text-align: center; }");
             sb.AppendLine(".header h1 { margin: 0; font-size: 24px; }");
             sb.AppendLine(".content { padding: 30px; }");
             sb.AppendLine("table { width: 100%; border-collapse: collapse; }");
-            sb.AppendLine("th { background: #f0fdf4; padding: 12px; text-align: left; font-size: 12px; color: #065f46; border-bottom: 2px solid #10b981; }");
+            sb.AppendLine("th { background: #F0F2EC; padding: 12px; text-align: left; font-size: 12px; color: #2F3E2A; border-bottom: 2px solid #5F6F52; }");
             sb.AppendLine("td { padding: 12px; border-bottom: 1px solid #e5e7eb; font-size: 13px; }");
             sb.AppendLine(".footer { text-align: center; padding: 20px; background: #f8fafc; font-size: 12px; color: #6b7280; }");
             sb.AppendLine("</style></head><body>");
@@ -375,13 +414,13 @@
             var fileName = $"AccountVerification_{DateTime.Now:yyyyMMdd_HHmmss}.html";
 
             await JS.InvokeVoidAsync("eval", $@"
-                var link = document.createElement('a');
-                link.href = 'data:text/html;base64,{base64}';
-                link.download = '{fileName}';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            ");
+var link = document.createElement('a');
+link.href = 'data:text/html;base64,{base64}';
+link.download = '{fileName}';
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+");
         }
         catch (Exception ex)
         {

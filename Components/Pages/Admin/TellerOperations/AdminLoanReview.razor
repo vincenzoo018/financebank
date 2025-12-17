@@ -9,29 +9,29 @@
 @inject NotificationService NotificationService
 
 <!-- Admin Notice -->
-<div style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+<div style="background: #E8F0E8; border: 1px solid #5F6F52; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
     <div style="display: flex; align-items: flex-start; gap: 12px;">
         <span style="font-size: 20px;">ℹ️</span>
         <div>
-            <h4 style="margin: 0 0 4px; font-size: 14px; font-weight: 700; color: #1e40af;">SuperAdmin Loan Review Access</h4>
-            <p style="margin: 0; font-size: 13px; color: #1e40af; opacity: 0.9;">You have direct authority to approve/reject loan applications. All admin actions are logged with full audit trail.</p>
+            <h4 style="margin: 0 0 4px; font-size: 14px; font-weight: 700; color: #2F3E2A;">SuperAdmin Loan Review Access</h4>
+            <p style="margin: 0; font-size: 13px; color: #2F3E2A; opacity: 0.9;">You have direct authority to approve/reject loan applications. All admin actions are logged with full audit trail.</p>
         </div>
     </div>
 </div>
 
 <!-- Admin Reason Field -->
-<div style="background: #f0fdf4; border: 2px solid #059669; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-    <label style="font-size: 14px; font-weight: 700; display: block; margin-bottom: 8px; color: #065f46;">
+<div style="background: #F0F2EC; border: 2px solid #5F6F52; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <label style="font-size: 14px; font-weight: 700; display: block; margin-bottom: 8px; color: #2F3E2A;">
         📋 Admin Action Reason (Required for Actions)
     </label>
     <textarea @bind="adminActionReason" 
-              style="width: 100%; padding: 12px; border: 1px solid #86efac; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 60px;" 
+              style="width: 100%; padding: 12px; border: 1px solid #A9B388; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 60px;" 
               placeholder="Document why you are reviewing loans as admin (e.g., 'Teller absence - reviewing pending applications', 'Urgent loan review requested by management')..."></textarea>
 </div>
 
 <div class="sidebar-content">
     <div class="card">
-        <div class="card-header" style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 20px;">
+        <div class="card-header" style="background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; padding: 20px;">
             <h4 style="margin: 0; font-weight: 600;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px; vertical-align: middle;">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -47,7 +47,7 @@
         <div class="card-body" style="padding: 24px;">
             @if (!string.IsNullOrEmpty(successMessage))
             {
-                <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 16px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                <div style="background: #D4E6D4; border: 1px solid #A9B388; color: #2F3E2A; padding: 16px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                         <polyline points="22 4 12 14.01 9 11.01"></polyline>
@@ -66,7 +66,7 @@
             @if (isLoading)
             {
                 <div style="text-align: center; padding: 40px;">
-                    <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                    <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
                     <p style="margin-top: 16px; color: #6b7280;">Loading applications...</p>
                 </div>
             }
@@ -110,7 +110,7 @@
                                         <div style="font-size: 12px; color: #6b7280;">@(app.Account?.AccountNumber ?? "")</div>
                                     </td>
                                     <td style="padding: 16px 12px; color: #374151;">@app.LoanType</td>
-                                    <td style="padding: 16px 12px; text-align: right; font-weight: 600; color: #059669;">₱@app.RequestedAmount.ToString("N2")</td>
+                                    <td style="padding: 16px 12px; text-align: right; font-weight: 600; color: #5F6F52;">₱@app.RequestedAmount.ToString("N2")</td>
                                     <td style="padding: 16px 12px; text-align: right; color: #374151;">₱@(app.MonthlyIncome?.ToString("N2") ?? "N/A")</td>
                                     <td style="padding: 16px 12px; text-align: center;">
                                         <span style="background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
@@ -118,7 +118,7 @@
                                         </span>
                                     </td>
                                     <td style="padding: 16px 12px; text-align: center;">
-                                        <button style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; margin-right: 8px;"
+                                        <button style="background: #5F6F52; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; margin-right: 8px;"
                                                 @onclick="() => OpenReviewModal(app)">
                                             🔐 Admin Review
                                         </button>
@@ -220,7 +220,7 @@
 {
     <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseModal">
         <div style="background: white; border-radius: 16px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.25);" @onclick:stopPropagation>
-            <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px; border-radius: 16px 16px 0 0;">
+            <div style="background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; padding: 24px; border-radius: 16px 16px 0 0;">
                 <h4 style="margin: 0; font-weight: 600;">🔐 Admin Loan Application Review</h4>
                 <p style="margin: 8px 0 0 0; opacity: 0.9;">Application #@selectedApplication.ApplicationNumber</p>
             </div>
@@ -255,13 +255,13 @@
                         </div>
                         <div>
                             <label style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Monthly Income</label>
-                            <p style="margin: 4px 0 0 0; font-weight: 500; color: #059669;">₱@(selectedApplication.MonthlyIncome?.ToString("N2") ?? "N/A")</p>
+                            <p style="margin: 4px 0 0 0; font-weight: 500; color: #5F6F52;">₱@(selectedApplication.MonthlyIncome?.ToString("N2") ?? "N/A")</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Loan Details -->
-                <div style="background: #f0fdf4; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                <div style="background: #F0F2EC; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
                     <h5 style="color: #374151; margin: 0 0 16px 0; font-weight: 600;">Loan Request Details</h5>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div>
@@ -270,7 +270,7 @@
                         </div>
                         <div>
                             <label style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Requested Amount</label>
-                            <p style="margin: 4px 0 0 0; font-weight: 600; color: #059669; font-size: 18px;">₱@selectedApplication.RequestedAmount.ToString("N2")</p>
+                            <p style="margin: 4px 0 0 0; font-weight: 600; color: #5F6F52; font-size: 18px;">₱@selectedApplication.RequestedAmount.ToString("N2")</p>
                         </div>
                         <div style="grid-column: span 2;">
                             <label style="font-size: 12px; color: #6b7280; text-transform: uppercase;">Purpose</label>
@@ -318,7 +318,7 @@
                                 @onclick="() => isRejecting = true" disabled="@isProcessing">
                             Reject
                         </button>
-                        <button style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;"
+                        <button style="background: #5F6F52; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;"
                                 @onclick="ApproveApplication" disabled="@isProcessing">
                             @if (isProcessing)
                             {

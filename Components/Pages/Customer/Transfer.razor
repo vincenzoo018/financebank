@@ -5,11 +5,12 @@
     <h2 class="section-title">Transfer Money</h2>
 </div>
 
-<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border);">
+<div style="background: #FFFFFF; border-radius: 14px; padding: 24px; border: 1px solid var(--border);">
     <form @onsubmit="HandleTransfer">
         <div class="form-group">
             <label class="form-label">Recipient Account Number</label>
-            <input type="text" class="form-control" @bind="recipientAccount" placeholder="Enter account number" required />
+            <input type="text" class="form-control" @bind="recipientAccount" placeholder="Enter account number"
+                required />
         </div>
 
         <div class="form-group">
@@ -24,7 +25,8 @@
 
         @if (!string.IsNullOrEmpty(successMessage))
         {
-            <div style="padding: 12px; background: #d1fae5; color: #065f46; border-radius: 12px; margin-bottom: 16px;">
+            <div
+                style="padding: 12px; background: rgba(95, 111, 82, 0.2); color: #4F6F52; border-radius: 12px; margin-bottom: 16px;">
                 @successMessage
             </div>
         }
@@ -49,4 +51,3 @@
         message = "";
     }
 }
-

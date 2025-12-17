@@ -19,7 +19,8 @@
     <!-- Stats Row -->
     <div class="stats-row">
         <div class="stat-card">
-            <span class="stat-value">₱@transactions.Where(t => t.TransactionDate.Month == DateTime.Now.Month).Sum(t => t.Amount).ToString("N0")</span>
+            <span class="stat-value">₱@transactions.Where(t => t.TransactionDate.Month == DateTime.Now.Month).Sum(t =>
+                                t.Amount).ToString("N0")</span>
             <span class="stat-label">This Month</span>
         </div>
         <div class="stat-card pending">
@@ -31,7 +32,8 @@
             <span class="stat-label">Completed</span>
         </div>
         <div class="stat-card total">
-            <span class="stat-value">₱@transactions.Where(t => t.Status == "Completed").Sum(t => t.Amount).ToString("N0")</span>
+            <span class="stat-value">₱@transactions.Where(t => t.Status == "Completed").Sum(t =>
+                                t.Amount).ToString("N0")</span>
             <span class="stat-label">Total Collected</span>
         </div>
     </div>
@@ -104,8 +106,10 @@
                                 <button class="action-btn" @onclick="() => ViewTransaction(txn)" title="View">👁️</button>
                                 @if (txn.Status == "Pending")
                                 {
-                                    <button class="action-btn approve" @onclick="() => ApproveTransaction(txn)" title="Approve">✓</button>
-                                    <button class="action-btn reject" @onclick="() => RejectTransaction(txn)" title="Reject">✕</button>
+                                    <button class="action-btn approve" @onclick="() => ApproveTransaction(txn)"
+                                        title="Approve">✓</button>
+                                    <button class="action-btn reject" @onclick="() => RejectTransaction(txn)"
+                                        title="Reject">✕</button>
                                 }
                             </div>
                         </td>
@@ -226,7 +230,8 @@
                         </div>
                         <div class="detail-row">
                             <span class="label">Status</span>
-                            <span class="status-badge @selectedTransaction.Status.ToLower()">@selectedTransaction.Status</span>
+                            <span
+                                class="status-badge @selectedTransaction.Status.ToLower()">@selectedTransaction.Status</span>
                         </div>
                         <div class="detail-row">
                             <span class="label">Description</span>
@@ -238,7 +243,8 @@
                     @if (selectedTransaction.Status == "Pending")
                     {
                         <button class="btn btn-danger" @onclick="() => RejectTransaction(selectedTransaction)">Reject</button>
-                        <button class="btn btn-success" @onclick="() => ApproveTransaction(selectedTransaction)">✓ Approve</button>
+                        <button class="btn btn-success" @onclick="() => ApproveTransaction(selectedTransaction)">✓
+                            Approve</button>
                     }
                     else
                     {
@@ -251,7 +257,9 @@
 </div>
 
 <style>
-    .transactions-page { padding: 0; }
+    .transactions-page {
+        padding: 0;
+    }
 
     .page-header {
         display: flex;
@@ -262,14 +270,14 @@
 
     .header-left h2 {
         font-size: 24px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
         margin: 0;
     }
 
     .header-left .subtitle {
         font-size: 14px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .btn {
@@ -277,17 +285,32 @@
         align-items: center;
         gap: 8px;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
         border: none;
         transition: all 0.2s;
     }
 
-    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
-    .btn-secondary { background: #f3f4f6; color: #374151; }
-    .btn-success { background: #10b981; color: white; }
-    .btn-danger { background: #ef4444; color: white; }
+    .btn-primary {
+        background: #2F3E2A;
+        color: #FFFFFF;
+    }
+
+    .btn-secondary {
+        background: #F7F7F4;
+        color: #2B2B2B;
+    }
+
+    .btn-success {
+        background: #4F6F52;
+        color: #FFFFFF;
+    }
+
+    .btn-danger {
+        background: #9B3A3A;
+        color: #FFFFFF;
+    }
 
     .stats-row {
         display: grid;
@@ -297,28 +320,36 @@
     }
 
     .stat-card {
-        background: white;
+        background: #FFFFFF;
         padding: 20px;
-        border-radius: 12px;
+        border-radius: 14px;
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        border-left: 4px solid #6366f1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        border-left: 4px solid #5F6F52;
     }
 
-    .stat-card.pending { border-left-color: #f59e0b; }
-    .stat-card.completed { border-left-color: #10b981; }
-    .stat-card.total { border-left-color: #8b5cf6; }
+    .stat-card.pending {
+        border-left-color: #C49A3A;
+    }
+
+    .stat-card.completed {
+        border-left-color: #4F6F52;
+    }
+
+    .stat-card.total {
+        border-left-color: #2F3E2A;
+    }
 
     .stat-value {
         display: block;
         font-size: 28px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
     }
 
     .stat-label {
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .filters-bar {
@@ -336,8 +367,8 @@
     .search-box input {
         width: 100%;
         padding: 12px 12px 12px 40px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
     }
 
     .search-icon {
@@ -350,16 +381,16 @@
     .filters-bar select,
     .filters-bar input[type="date"] {
         padding: 12px 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        background: white;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
+        background: #FFFFFF;
     }
 
     .table-card {
-        background: white;
-        border-radius: 12px;
+        background: #FFFFFF;
+        border-radius: 14px;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
     .data-table {
@@ -368,34 +399,45 @@
     }
 
     .data-table th {
-        background: #f9fafb;
+        background: #F7F7F4;
         padding: 14px 16px;
         text-align: left;
         font-size: 12px;
         font-weight: 600;
-        color: #6b7280;
+        color: #6B6B6B;
         text-transform: uppercase;
     }
 
     .data-table td {
         padding: 14px 16px;
-        border-top: 1px solid #f3f4f6;
+        border-top: 1px solid #E2E2DC;
     }
 
     .data-table tr.highlight {
-        background: #fffbeb;
+        background: rgba(196, 154, 58, 0.1);
     }
 
     .type-badge {
         padding: 4px 10px;
-        border-radius: 20px;
+        border-radius: 10px;
         font-size: 12px;
         font-weight: 500;
     }
 
-    .type-badge.payment { background: #d1fae5; color: #059669; }
-    .type-badge.refund { background: #fee2e2; color: #dc2626; }
-    .type-badge.credit { background: #dbeafe; color: #1d4ed8; }
+    .type-badge.payment {
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+    }
+
+    .type-badge.refund {
+        background: rgba(155, 58, 58, 0.1);
+        color: #9B3A3A;
+    }
+
+    .type-badge.credit {
+        background: rgba(47, 62, 42, 0.1);
+        color: #2F3E2A;
+    }
 
     .method-cell {
         display: flex;
@@ -407,20 +449,42 @@
         font-size: 18px;
     }
 
-    .text-success { color: #059669; font-weight: 600; }
-    .text-danger { color: #dc2626; font-weight: 600; }
+    .text-success {
+        color: #4F6F52;
+        font-weight: 600;
+    }
+
+    .text-danger {
+        color: #9B3A3A;
+        font-weight: 600;
+    }
 
     .status-badge {
         padding: 4px 10px;
-        border-radius: 20px;
+        border-radius: 10px;
         font-size: 12px;
         font-weight: 500;
     }
 
-    .status-badge.pending { background: #fef3c7; color: #d97706; }
-    .status-badge.completed { background: #d1fae5; color: #059669; }
-    .status-badge.failed { background: #fee2e2; color: #dc2626; }
-    .status-badge.refunded { background: #f3f4f6; color: #6b7280; }
+    .status-badge.pending {
+        background: rgba(196, 154, 58, 0.15);
+        color: #C49A3A;
+    }
+
+    .status-badge.completed {
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+    }
+
+    .status-badge.failed {
+        background: rgba(155, 58, 58, 0.1);
+        color: #9B3A3A;
+    }
+
+    .status-badge.refunded {
+        background: #F7F7F4;
+        color: #6B6B6B;
+    }
 
     .action-buttons {
         display: flex;
@@ -430,20 +494,30 @@
     .action-btn {
         width: 32px;
         height: 32px;
-        border-radius: 8px;
+        border-radius: 10px;
         border: none;
         cursor: pointer;
-        background: #f3f4f6;
+        background: #F7F7F4;
     }
 
-    .action-btn.approve { background: #d1fae5; color: #059669; }
-    .action-btn.reject { background: #fee2e2; color: #dc2626; }
+    .action-btn.approve {
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+    }
+
+    .action-btn.reject {
+        background: rgba(155, 58, 58, 0.1);
+        color: #9B3A3A;
+    }
 
     /* Modal styles */
     .modal-overlay {
         position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.5);
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(47, 62, 42, 0.6);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -451,8 +525,8 @@
     }
 
     .modal-content {
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
         width: 90%;
         max-width: 550px;
         max-height: 90vh;
@@ -464,27 +538,32 @@
         justify-content: space-between;
         align-items: center;
         padding: 20px 24px;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #E2E2DC;
     }
 
-    .modal-header h3 { margin: 0; font-size: 18px; }
+    .modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+    }
 
     .close-btn {
         background: none;
         border: none;
         font-size: 20px;
         cursor: pointer;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
-    .modal-body { padding: 24px; }
+    .modal-body {
+        padding: 24px;
+    }
 
     .modal-footer {
         display: flex;
         justify-content: flex-end;
         gap: 12px;
         padding: 16px 24px;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid #E2E2DC;
     }
 
     .form-row {
@@ -501,7 +580,7 @@
         display: block;
         font-size: 13px;
         font-weight: 500;
-        color: #374151;
+        color: #2B2B2B;
         margin-bottom: 6px;
     }
 
@@ -510,29 +589,32 @@
     .form-group textarea {
         width: 100%;
         padding: 10px 12px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
     }
 
     .file-upload {
-        border: 2px dashed #e5e7eb;
-        border-radius: 8px;
+        border: 2px dashed #E2E2DC;
+        border-radius: 10px;
         padding: 24px;
         text-align: center;
-        color: #6b7280;
+        color: #6B6B6B;
         position: relative;
         cursor: pointer;
     }
 
     .file-upload:hover {
-        border-color: #6366f1;
-        background: #f5f3ff;
+        border-color: #5F6F52;
+        background: rgba(79, 111, 82, 0.1);
     }
 
     .file-upload input {
         position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         opacity: 0;
         cursor: pointer;
     }
@@ -548,28 +630,28 @@
         justify-content: space-between;
         align-items: center;
         padding: 12px;
-        background: #f9fafb;
-        border-radius: 8px;
+        background: #F7F7F4;
+        border-radius: 10px;
     }
 
     .detail-row.highlight {
-        background: #f5f3ff;
+        background: rgba(79, 111, 82, 0.1);
     }
 
     .detail-row .label {
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .detail-row .value {
         font-weight: 500;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .detail-row .amount {
         font-size: 20px;
-        font-weight: 700;
-        color: #059669;
+        font-weight: 600;
+        color: #4F6F52;
     }
 </style>
 
@@ -588,14 +670,14 @@
     private TransactionData? selectedTransaction;
 
     private IEnumerable<TransactionData> FilteredTransactions => transactions
-        .Where(t => string.IsNullOrEmpty(searchTerm) || 
-            t.TransactionNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-            t.ClientName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-        .Where(t => string.IsNullOrEmpty(statusFilter) || t.Status == statusFilter)
-        .Where(t => string.IsNullOrEmpty(methodFilter) || t.PaymentMethod == methodFilter)
-        .Where(t => !startDate.HasValue || t.TransactionDate >= startDate.Value)
-        .Where(t => !endDate.HasValue || t.TransactionDate <= endDate.Value)
-        .OrderByDescending(t => t.TransactionDate);
+    .Where(t => string.IsNullOrEmpty(searchTerm) ||
+    t.TransactionNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+    t.ClientName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+    .Where(t => string.IsNullOrEmpty(statusFilter) || t.Status == statusFilter)
+    .Where(t => string.IsNullOrEmpty(methodFilter) || t.PaymentMethod == methodFilter)
+    .Where(t => !startDate.HasValue || t.TransactionDate >= startDate.Value)
+    .Where(t => !endDate.HasValue || t.TransactionDate <= endDate.Value)
+    .OrderByDescending(t => t.TransactionDate);
 
     protected override async Task OnInitializedAsync()
     {
@@ -607,22 +689,29 @@
         await Task.Delay(100);
 
         clients = new List<ClientData>
-        {
-            new ClientData { ClientId = 1, CompanyName = "FineBank Cooperative" },
-            new ClientData { ClientId = 2, CompanyName = "Demo Company Inc." },
-            new ClientData { ClientId = 3, CompanyName = "Metro Credit Union" },
-        };
+{
+new ClientData { ClientId = 1, CompanyName = "FineBank Cooperative" },
+new ClientData { ClientId = 2, CompanyName = "Demo Company Inc." },
+new ClientData { ClientId = 3, CompanyName = "Metro Credit Union" },
+};
 
         transactions = new List<TransactionData>
-        {
-            new TransactionData { TransactionId = 1, TransactionNumber = "TXN-2024-001", ClientId = 1, ClientName = "FineBank Cooperative", TransactionDate = DateTime.Now.AddMonths(-6).AddDays(5), TransactionType = "Payment", PaymentMethod = "GCash", Amount = 5999, Reference = "GC-123456789", Status = "Completed", Description = "Monthly subscription - July 2024" },
-            new TransactionData { TransactionId = 2, TransactionNumber = "TXN-2024-002", ClientId = 1, ClientName = "FineBank Cooperative", TransactionDate = DateTime.Now.AddMonths(-5).AddDays(3), TransactionType = "Payment", PaymentMethod = "BDO", Amount = 5999, Reference = "BDO-987654321", Status = "Completed", Description = "Monthly subscription - August 2024" },
-            new TransactionData { TransactionId = 3, TransactionNumber = "TXN-2024-003", ClientId = 3, ClientName = "Metro Credit Union", TransactionDate = DateTime.Now.AddMonths(-4).AddDays(2), TransactionType = "Payment", PaymentMethod = "GCash", Amount = 5999, Reference = "GC-111222333", Status = "Completed", Description = "Monthly subscription - September 2024" },
-            new TransactionData { TransactionId = 4, TransactionNumber = "TXN-2024-004", ClientId = 1, ClientName = "FineBank Cooperative", TransactionDate = DateTime.Now.AddMonths(-3).AddDays(1), TransactionType = "Payment", PaymentMethod = "GCash", Amount = 5999, Reference = "GC-444555666", Status = "Completed", Description = "Monthly subscription - October 2024" },
-            new TransactionData { TransactionId = 5, TransactionNumber = "TXN-2024-005", ClientId = 2, ClientName = "Demo Company Inc.", TransactionDate = DateTime.Now.AddMonths(-2).AddDays(4), TransactionType = "Payment", PaymentMethod = "BDO", Amount = 2999, Reference = "BDO-777888999", Status = "Completed", Description = "Monthly subscription - November 2024" },
-            new TransactionData { TransactionId = 6, TransactionNumber = "TXN-2024-006", ClientId = 1, ClientName = "FineBank Cooperative", TransactionDate = DateTime.Now.AddMonths(-1).AddDays(2), TransactionType = "Payment", PaymentMethod = "GCash", Amount = 5999, Reference = "GC-999000111", Status = "Completed", Description = "Monthly subscription - December 2024" },
-            new TransactionData { TransactionId = 7, TransactionNumber = "TXN-2024-007", ClientId = 3, ClientName = "Metro Credit Union", TransactionDate = DateTime.Now.AddDays(-2), TransactionType = "Payment", PaymentMethod = "PayMaya", Amount = 5999, Reference = "PM-123123123", Status = "Pending", Description = "Monthly subscription - January 2025" },
-        };
+{
+new TransactionData { TransactionId = 1, TransactionNumber = "TXN-2024-001", ClientId = 1, ClientName = "FineBank Cooperative", TransactionDate = DateTime.Now.AddMonths(-6).AddDays(5), TransactionType = "Payment", PaymentMethod =
+"GCash", Amount = 5999, Reference = "GC-123456789", Status = "Completed", Description = "Monthly subscription - July 2024" },
+new TransactionData { TransactionId = 2, TransactionNumber = "TXN-2024-002", ClientId = 1, ClientName = "FineBank Cooperative", TransactionDate = DateTime.Now.AddMonths(-5).AddDays(3), TransactionType = "Payment", PaymentMethod =
+"BDO", Amount = 5999, Reference = "BDO-987654321", Status = "Completed", Description = "Monthly subscription - August 2024" },
+new TransactionData { TransactionId = 3, TransactionNumber = "TXN-2024-003", ClientId = 3, ClientName = "Metro Credit Union", TransactionDate = DateTime.Now.AddMonths(-4).AddDays(2), TransactionType = "Payment", PaymentMethod = "GCash",
+Amount = 5999, Reference = "GC-111222333", Status = "Completed", Description = "Monthly subscription - September 2024" },
+new TransactionData { TransactionId = 4, TransactionNumber = "TXN-2024-004", ClientId = 1, ClientName = "FineBank Cooperative", TransactionDate = DateTime.Now.AddMonths(-3).AddDays(1), TransactionType = "Payment", PaymentMethod =
+"GCash", Amount = 5999, Reference = "GC-444555666", Status = "Completed", Description = "Monthly subscription - October 2024" },
+new TransactionData { TransactionId = 5, TransactionNumber = "TXN-2024-005", ClientId = 2, ClientName = "Demo Company Inc.", TransactionDate = DateTime.Now.AddMonths(-2).AddDays(4), TransactionType = "Payment", PaymentMethod = "BDO",
+Amount = 2999, Reference = "BDO-777888999", Status = "Completed", Description = "Monthly subscription - November 2024" },
+new TransactionData { TransactionId = 6, TransactionNumber = "TXN-2024-006", ClientId = 1, ClientName = "FineBank Cooperative", TransactionDate = DateTime.Now.AddMonths(-1).AddDays(2), TransactionType = "Payment", PaymentMethod =
+"GCash", Amount = 5999, Reference = "GC-999000111", Status = "Completed", Description = "Monthly subscription - December 2024" },
+new TransactionData { TransactionId = 7, TransactionNumber = "TXN-2024-007", ClientId = 3, ClientName = "Metro Credit Union", TransactionDate = DateTime.Now.AddDays(-2), TransactionType = "Payment", PaymentMethod = "PayMaya", Amount =
+5999, Reference = "PM-123123123", Status = "Pending", Description = "Monthly subscription - January 2025" },
+};
     }
 
     private void ShowRecordPayment()

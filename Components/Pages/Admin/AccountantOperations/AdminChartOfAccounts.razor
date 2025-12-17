@@ -9,7 +9,7 @@
 @inject IDbContextFactory<BFASDbContext> DbFactory
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
@@ -23,7 +23,7 @@
                 <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Admin view of chart of accounts (Read-Only)</p>
             </div>
         </div>
-        <button class="btn" style="background: white; color: #059669; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;" @onclick="RefreshData">
+        <button class="btn" style="background: white; color: #5F6F52; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;" @onclick="RefreshData">
             Refresh Data
         </button>
     </div>
@@ -37,15 +37,15 @@
     </div>
     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
         <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0 0 8px 0; text-transform: uppercase;">✅ Active</p>
-        <p style="font-size: 28px; font-weight: 700; color: #059669; margin: 4px 0 0 0;">@accounts.Count(a => a.IsActive)</p>
+        <p style="font-size: 28px; font-weight: 700; color: #5F6F52; margin: 4px 0 0 0;">@accounts.Count(a => a.IsActive)</p>
     </div>
     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
         <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0 0 8px 0; text-transform: uppercase;">⛔ Inactive</p>
-        <p style="font-size: 28px; font-weight: 700; color: #dc2626; margin: 4px 0 0 0;">@accounts.Count(a => !a.IsActive)</p>
+        <p style="font-size: 28px; font-weight: 700; color: #9B3A3A; margin: 4px 0 0 0;">@accounts.Count(a => !a.IsActive)</p>
     </div>
     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
         <p style="font-size: 13px; color: #6b7280; font-weight: 600; margin: 0 0 8px 0; text-transform: uppercase;">🏷️ Account Types</p>
-        <p style="font-size: 28px; font-weight: 700; color: #3b82f6; margin: 4px 0 0 0;">@accounts.Select(a => a.AccountType).Distinct().Count()</p>
+        <p style="font-size: 28px; font-weight: 700; color: #6B7B5E; margin: 4px 0 0 0;">@accounts.Select(a => a.AccountType).Distinct().Count()</p>
     </div>
 </div>
 
@@ -70,7 +70,7 @@
     @if (isLoading)
     {
         <div style="display: flex; justify-content: center; padding: 60px;">
-            <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <div style="width: 48px; height: 48px; border: 4px solid #E2E2DC; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite;"></div>
         </div>
     }
     else if (!FilteredAccounts.Any())
@@ -110,7 +110,7 @@
                         <td style="padding: 16px; font-size: 14px; color: #1e293b; text-align: center;">@account.Level</td>
                         <td style="padding: 16px; font-size: 14px; color: #64748b;">@(account.ParentAccountCode ?? "-")</td>
                         <td style="padding: 16px; text-align: center;">
-                            <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; @(account.IsActive ? "background: #dcfce7; color: #166534;" : "background: #fee2e2; color: #991b1b;")">
+                            <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; @(account.IsActive ? "background: #DDE6D5; color: #166534;" : "background: #fee2e2; color: #991b1b;")">
                                 @(account.IsActive ? "Active" : "Inactive")
                             </span>
                         </td>
@@ -191,7 +191,7 @@
         "Asset" => "background: #dbeafe; color: #1e40af;",
         "Liability" => "background: #fee2e2; color: #991b1b;",
         "Equity" => "background: #fef3c7; color: #92400e;",
-        "Revenue" => "background: #dcfce7; color: #166534;",
+        "Revenue" => "background: #DDE6D5; color: #166534;",
         "Expense" => "background: #fce7f3; color: #9d174d;",
         _ => "background: #f3f4f6; color: #6b7280;"
     };

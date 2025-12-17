@@ -28,8 +28,7 @@
 }
 
 <!-- Page Header -->
-<div
-    style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 32px; margin-bottom: 24px; color: white;">
+<div style="background: #2F3E2A; border-radius: 14px; padding: 32px; margin-bottom: 24px; color: #FFFFFF;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div
             style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
@@ -42,7 +41,7 @@
             </svg>
         </div>
         <div>
-            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Settings</h1>
+            <h1 style="font-size: 24px; font-weight: 600; color: #FFFFFF; margin: 0;">Settings</h1>
             <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Customize your banking
                 experience</p>
         </div>
@@ -52,14 +51,14 @@
 <!-- Settings Content -->
 <div style="display: grid; grid-template-columns: 1fr; gap: 24px; max-width: 800px;">
     <!-- Appearance & Accessibility -->
-    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Appearance & Accessibility
+    <div style="background: #FFFFFF; border-radius: 14px; padding: 24px; border: 1px solid #E2E2DC;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #2B2B2B; margin-bottom: 24px;">Appearance & Accessibility
         </h2>
 
-        <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 20px;">
+        <div style="padding: 20px; background: #F7F7F4; border-radius: 12px; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">
+                    <div style="font-weight: 600; color: #2B2B2B; margin-bottom: 4px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             style="display: inline-block; margin-right: 8px; vertical-align: middle;">
@@ -67,22 +66,22 @@
                         </svg>
                         Dark Mode
                     </div>
-                    <div style="font-size: 14px; color: #6b7280;">Enable dark mode for better viewing at night</div>
+                    <div style="font-size: 14px; color: #6B6B6B;">Enable dark mode for better viewing at night</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
                     <input type="checkbox" @bind="darkMode" @bind:after="SaveSettings"
                         style="opacity: 0; width: 0; height: 0;" />
                     <span
-                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(darkMode ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
+                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(darkMode ? "#5F6F52" : "#E2E2DC"); transition: 0.4s; border-radius: 34px;">
                         <span
-                            style="position: absolute; height: 26px; width: 26px; left: @(darkMode ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
+                            style="position: absolute; height: 26px; width: 26px; left: @(darkMode ? "30px" : "4px"); bottom: 4px; background: #FFFFFF; transition: 0.4s; border-radius: 50%;"></span>
                     </span>
                 </label>
             </div>
         </div>
 
-        <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 20px;">
-            <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">
+        <div style="padding: 20px; background: #F7F7F4; border-radius: 12px; margin-bottom: 20px;">
+            <div style="font-weight: 600; color: #2B2B2B; margin-bottom: 12px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round"
                     style="display: inline-block; margin-right: 8px; vertical-align: middle;">
@@ -91,7 +90,7 @@
                 Font Size
             </div>
             <select @bind="fontSize" @bind:after="SaveSettings"
-                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                style="width: 100%; padding: 12px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px;">
                 <option value="small">Small</option>
                 <option value="medium">Medium</option>
                 <option value="large">Large</option>
@@ -99,10 +98,10 @@
             </select>
         </div>
 
-        <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 20px;">
+        <div style="padding: 20px; background: #F7F7F4; border-radius: 12px; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">
+                    <div style="font-weight: 600; color: #2B2B2B; margin-bottom: 4px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             style="display: inline-block; margin-right: 8px; vertical-align: middle;">
@@ -118,22 +117,22 @@
                         </svg>
                         High Contrast Mode
                     </div>
-                    <div style="font-size: 14px; color: #6b7280;">Increase contrast for better visibility</div>
+                    <div style="font-size: 14px; color: #6B6B6B;">Increase contrast for better visibility</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
                     <input type="checkbox" @bind="highContrast" @bind:after="SaveSettings"
                         style="opacity: 0; width: 0; height: 0;" />
                     <span
-                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(highContrast ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
+                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(highContrast ? "#5F6F52" : "#E2E2DC"); transition: 0.4s; border-radius: 34px;">
                         <span
-                            style="position: absolute; height: 26px; width: 26px; left: @(highContrast ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
+                            style="position: absolute; height: 26px; width: 26px; left: @(highContrast ? "30px" : "4px"); bottom: 4px; background: #FFFFFF; transition: 0.4s; border-radius: 50%;"></span>
                     </span>
                 </label>
             </div>
         </div>
 
-        <div style="padding: 20px; background: #f9fafb; border-radius: 12px;">
-            <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">
+        <div style="padding: 20px; background: #F7F7F4; border-radius: 12px;">
+            <div style="font-weight: 600; color: #2B2B2B; margin-bottom: 12px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round"
                     style="display: inline-block; margin-right: 8px; vertical-align: middle;">
@@ -146,7 +145,7 @@
                 Language
             </div>
             <select @bind="language" @bind:after="SaveSettings"
-                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                style="width: 100%; padding: 12px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px;">
                 <option value="en">English</option>
                 <option value="fil">Filipino</option>
                 <option value="es">Español</option>
@@ -156,11 +155,11 @@
     </div>
 
     <!-- Security -->
-    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Security</h2>
+    <div style="background: #FFFFFF; border-radius: 14px; padding: 24px; border: 1px solid #E2E2DC;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #2B2B2B; margin-bottom: 24px;">Security</h2>
 
-        <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 16px;">
-            <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">
+        <div style="padding: 20px; background: #F7F7F4; border-radius: 12px; margin-bottom: 16px;">
+            <div style="font-weight: 600; color: #2B2B2B; margin-bottom: 12px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round"
                     style="display: inline-block; margin-right: 8px; vertical-align: middle;">
@@ -172,7 +171,7 @@
             @if (!showPasswordForm)
             {
                 <button @onclick="() => showPasswordForm = true"
-                    style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Update
+                    style="background: #5F6F52; color: #FFFFFF; border: none; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;">Update
                     Password</button>
             }
             else
@@ -182,38 +181,38 @@
                         <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Current
                             Password</label>
                         <input type="password" @bind="currentPassword" placeholder="Enter current password"
-                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box;" />
+                            style="width: 100%; padding: 10px; border: 1px solid #E2E2DC; border-radius: 10px; box-sizing: border-box;" />
                     </div>
                     <div>
                         <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">New
                             Password</label>
                         <input type="password" @bind="newPassword" placeholder="Enter new password (min 12 chars)"
-                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box;" />
+                            style="width: 100%; padding: 10px; border: 1px solid #E2E2DC; border-radius: 10px; box-sizing: border-box;" />
                     </div>
                     <div>
                         <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Confirm New
                             Password</label>
                         <input type="password" @bind="confirmPassword" placeholder="Confirm new password"
-                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box;" />
+                            style="width: 100%; padding: 10px; border: 1px solid #E2E2DC; border-radius: 10px; box-sizing: border-box;" />
                     </div>
                     @if (!string.IsNullOrEmpty(passwordError))
                     {
-                        <div style="color: #dc2626; font-size: 13px;">@passwordError</div>
+                        <div style="color: #9B3A3A; font-size: 13px;">@passwordError</div>
                     }
                     <div style="display: flex; gap: 8px;">
                         <button @onclick="ChangePassword" disabled="@isChangingPassword"
-                            style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                            style="background: #5F6F52; color: #FFFFFF; border: none; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;">
                             @(isChangingPassword ? "Changing..." : "Change Password")
                         </button>
                         <button @onclick="CancelPasswordForm"
-                            style="background: #f3f4f6; color: #374151; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Cancel</button>
+                            style="background: #F7F7F4; color: #2B2B2B; border: none; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;">Cancel</button>
                     </div>
                 </div>
             }
         </div>
 
-        <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 16px;">
-            <div style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">
+        <div style="padding: 20px; background: #F7F7F4; border-radius: 12px; margin-bottom: 16px;">
+            <div style="font-weight: 600; color: #2B2B2B; margin-bottom: 12px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round"
                     style="display: inline-block; margin-right: 8px; vertical-align: middle;">
@@ -225,7 +224,7 @@
             @if (!showPinForm)
             {
                 <button @onclick="() => showPinForm = true"
-                    style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Update
+                    style="background: #5F6F52; color: #FFFFFF; border: none; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;">Update
                     PIN</button>
             }
             else
@@ -235,40 +234,40 @@
                         <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Current
                             PIN</label>
                         <input type="password" @bind="currentPin" placeholder="Enter current PIN" maxlength="4"
-                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box; letter-spacing: 6px; text-align: center;" />
+                            style="width: 100%; padding: 10px; border: 1px solid #E2E2DC; border-radius: 10px; box-sizing: border-box; letter-spacing: 6px; text-align: center;" />
                     </div>
                     <div>
                         <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">New PIN (4
                             digits)</label>
                         <input type="password" @bind="newPin" placeholder="Enter new PIN" maxlength="4"
-                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box; letter-spacing: 6px; text-align: center;" />
+                            style="width: 100%; padding: 10px; border: 1px solid #E2E2DC; border-radius: 10px; box-sizing: border-box; letter-spacing: 6px; text-align: center;" />
                     </div>
                     <div>
                         <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Confirm New
                             PIN</label>
                         <input type="password" @bind="confirmPin" placeholder="Confirm new PIN" maxlength="4"
-                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; box-sizing: border-box; letter-spacing: 6px; text-align: center;" />
+                            style="width: 100%; padding: 10px; border: 1px solid #E2E2DC; border-radius: 10px; box-sizing: border-box; letter-spacing: 6px; text-align: center;" />
                     </div>
                     @if (!string.IsNullOrEmpty(pinError))
                     {
-                        <div style="color: #dc2626; font-size: 13px;">@pinError</div>
+                        <div style="color: #9B3A3A; font-size: 13px;">@pinError</div>
                     }
                     <div style="display: flex; gap: 8px;">
                         <button @onclick="ChangePin" disabled="@isChangingPin"
-                            style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                            style="background: #5F6F52; color: #FFFFFF; border: none; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;">
                             @(isChangingPin ? "Changing..." : "Change PIN")
                         </button>
                         <button @onclick="CancelPinForm"
-                            style="background: #f3f4f6; color: #374151; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Cancel</button>
+                            style="background: #F7F7F4; color: #2B2B2B; border: none; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;">Cancel</button>
                     </div>
                 </div>
             }
         </div>
 
-        <div style="padding: 20px; background: #f9fafb; border-radius: 12px;">
+        <div style="padding: 20px; background: #F7F7F4; border-radius: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">
+                    <div style="font-weight: 600; color: #2B2B2B; margin-bottom: 4px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             style="display: inline-block; margin-right: 8px; vertical-align: middle;">
@@ -276,15 +275,15 @@
                         </svg>
                         Two-Factor Authentication
                     </div>
-                    <div style="font-size: 14px; color: #6b7280;">Add an extra layer of security</div>
+                    <div style="font-size: 14px; color: #6B6B6B;">Add an extra layer of security</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
                     <input type="checkbox" @bind="twoFactorAuth" @bind:after="SaveSettings"
                         style="opacity: 0; width: 0; height: 0;" />
                     <span
-                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(twoFactorAuth ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
+                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(twoFactorAuth ? "#5F6F52" : "#E2E2DC"); transition: 0.4s; border-radius: 34px;">
                         <span
-                            style="position: absolute; height: 26px; width: 26px; left: @(twoFactorAuth ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
+                            style="position: absolute; height: 26px; width: 26px; left: @(twoFactorAuth ? "30px" : "4px"); bottom: 4px; background: #FFFFFF; transition: 0.4s; border-radius: 50%;"></span>
                     </span>
                 </label>
             </div>
@@ -292,59 +291,59 @@
     </div>
 
     <!-- Notifications -->
-    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Notification Preferences
+    <div style="background: #FFFFFF; border-radius: 14px; padding: 24px; border: 1px solid #E2E2DC;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #2B2B2B; margin-bottom: 24px;">Notification Preferences
         </h2>
 
-        <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 16px;">
+        <div style="padding: 20px; background: #F7F7F4; border-radius: 12px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">Email Notifications</div>
-                    <div style="font-size: 14px; color: #6b7280;">Receive updates via email</div>
+                    <div style="font-weight: 600; color: #2B2B2B; margin-bottom: 4px;">Email Notifications</div>
+                    <div style="font-size: 14px; color: #6B6B6B;">Receive updates via email</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
                     <input type="checkbox" @bind="emailNotifications" @bind:after="SaveSettings"
                         style="opacity: 0; width: 0; height: 0;" />
                     <span
-                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(emailNotifications ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
+                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(emailNotifications ? "#5F6F52" : "#E2E2DC"); transition: 0.4s; border-radius: 34px;">
                         <span
-                            style="position: absolute; height: 26px; width: 26px; left: @(emailNotifications ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
+                            style="position: absolute; height: 26px; width: 26px; left: @(emailNotifications ? "30px" : "4px"); bottom: 4px; background: #FFFFFF; transition: 0.4s; border-radius: 50%;"></span>
                     </span>
                 </label>
             </div>
         </div>
 
-        <div style="padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 16px;">
+        <div style="padding: 20px; background: #F7F7F4; border-radius: 12px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">SMS Notifications</div>
-                    <div style="font-size: 14px; color: #6b7280;">Receive alerts via text message</div>
+                    <div style="font-weight: 600; color: #2B2B2B; margin-bottom: 4px;">SMS Notifications</div>
+                    <div style="font-size: 14px; color: #6B6B6B;">Receive alerts via text message</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
                     <input type="checkbox" @bind="smsNotifications" @bind:after="SaveSettings"
                         style="opacity: 0; width: 0; height: 0;" />
                     <span
-                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(smsNotifications ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
+                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(smsNotifications ? "#5F6F52" : "#E2E2DC"); transition: 0.4s; border-radius: 34px;">
                         <span
-                            style="position: absolute; height: 26px; width: 26px; left: @(smsNotifications ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
+                            style="position: absolute; height: 26px; width: 26px; left: @(smsNotifications ? "30px" : "4px"); bottom: 4px; background: #FFFFFF; transition: 0.4s; border-radius: 50%;"></span>
                     </span>
                 </label>
             </div>
         </div>
 
-        <div style="padding: 20px; background: #f9fafb; border-radius: 12px;">
+        <div style="padding: 20px; background: #F7F7F4; border-radius: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">Transaction Alerts</div>
-                    <div style="font-size: 14px; color: #6b7280;">Get notified for every transaction</div>
+                    <div style="font-weight: 600; color: #2B2B2B; margin-bottom: 4px;">Transaction Alerts</div>
+                    <div style="font-size: 14px; color: #6B6B6B;">Get notified for every transaction</div>
                 </div>
                 <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
                     <input type="checkbox" @bind="transactionAlerts" @bind:after="SaveSettings"
                         style="opacity: 0; width: 0; height: 0;" />
                     <span
-                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(transactionAlerts ? "#059669" : "#cbd5e1"); transition: 0.4s; border-radius: 34px;">
+                        style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: @(transactionAlerts ? "#5F6F52" : "#E2E2DC"); transition: 0.4s; border-radius: 34px;">
                         <span
-                            style="position: absolute; height: 26px; width: 26px; left: @(transactionAlerts ? "30px" : "4px"); bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
+                            style="position: absolute; height: 26px; width: 26px; left: @(transactionAlerts ? "30px" : "4px"); bottom: 4px; background: #FFFFFF; transition: 0.4s; border-radius: 50%;"></span>
                     </span>
                 </label>
             </div>
@@ -355,7 +354,7 @@
     @if (!string.IsNullOrEmpty(saveMessage))
     {
         <div
-            style="background: #d1fae5; border-radius: 12px; padding: 16px; color: #065f46; display: flex; align-items: center; gap: 12px;">
+            style="background: rgba(95, 111, 82, 0.2); border-radius: 12px; padding: 16px; color: #4F6F52; display: flex; align-items: center; gap: 12px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>

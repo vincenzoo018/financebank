@@ -10,21 +10,25 @@
 
 <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, var(--accent), #059669); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="background: #2F3E2A; border-radius: 14px; padding: 24px; margin-bottom: 24px; color: #FFFFFF;">
         <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div
+                style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <line x1="12" y1="2" x2="12" y2="22"></line>
                     <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3H17"></path>
                     <path d="M15 19H6.5a1.5 1.5 0 0 1 0-3H15"></path>
                 </svg>
             </div>
             <div style="flex: 1;">
-                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">All Transactions</h1>
+                <h1 style="font-size: 28px; font-weight: 600; margin: 0;">All Transactions</h1>
                 <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">View and filter your transaction history</p>
             </div>
-            <button @onclick="ShowFilters" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button @onclick="ShowFilters"
+                style="background: rgba(255,255,255,0.2); border: none; color: #FFFFFF; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                 </svg>
                 Filters
@@ -36,12 +40,14 @@
         <!-- Sidebar -->
         <div style="display: flex; flex-direction: column; gap: 16px;">
             <!-- Filter by Type -->
-            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                <h3 style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 16px;">Filter by Type</h3>
+            <div
+                style="background: #FFFFFF; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <h3 style="font-size: 16px; font-weight: 600; color: #2B2B2B; margin-bottom: 16px;">Filter by Type</h3>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     @foreach (var type in filterTypes)
                     {
-                        <button @onclick="() => selectedFilter = type" style="padding: 10px 12px; background: @(selectedFilter == type ? "#d1fae5" : "transparent"); border: none; border-radius: 8px; text-align: left; cursor: pointer; font-weight: @(selectedFilter == type ? "600" : "400"); color: @(selectedFilter == type ? "var(--accent)" : "#1f2937"); transition: all 0.2s;">
+                        <button @onclick="() => selectedFilter = type"
+                            style="padding: 10px 12px; background: @(selectedFilter == type ? "#D4E6D4" : "transparent"); border: none; border-radius: 10px; text-align: left; cursor: pointer; font-weight: @(selectedFilter == type ? "600" : "400"); color: @(selectedFilter == type ? "var(--accent)" : "#2B2B2B"); transition: all 0.2s;">
                             @type
                         </button>
                     }
@@ -49,58 +55,67 @@
             </div>
 
             <!-- Summary -->
-            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                <h3 style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 16px;">This Month</h3>
+            <div
+                style="background: #FFFFFF; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <h3 style="font-size: 16px; font-weight: 600; color: #2B2B2B; margin-bottom: 16px;">This Month</h3>
                 <div style="margin-bottom: 12px;">
-                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Income</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #059669;">+₱@CalculateIncome().ToString("N2")</div>
+                    <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Income</div>
+                    <div style="font-size: 20px; font-weight: 600; color: #5F6F52;">+₱@CalculateIncome().ToString("N2")
+                    </div>
                 </div>
                 <div>
-                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Expenses</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #dc2626;">-₱@CalculateExpenses().ToString("N2")</div>
+                    <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Expenses</div>
+                    <div style="font-size: 20px; font-weight: 600; color: #9B3A3A;">
+                        -₱@CalculateExpenses().ToString("N2")</div>
                 </div>
             </div>
         </div>
 
         <!-- Transactions List -->
-        <div style="background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">Transaction History</h2>
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h2 style="font-size: 20px; font-weight: 600; color: #2B2B2B; margin-bottom: 24px;">Transaction History</h2>
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 @foreach (var transaction in GetFilteredTransactions())
                 {
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #f9fafb; border-radius: 12px; cursor: pointer; transition: all 0.2s;" class="transaction-row" @onclick="() => ShowTransactionDetails(transaction)">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #F7F7F4; border-radius: 12px; cursor: pointer; transition: all 0.2s;"
+                        class="transaction-row" @onclick="() => ShowTransactionDetails(transaction)">
                         <div style="display: flex; align-items: center; gap: 16px;">
-                            <div style="width: 48px; height: 48px; background: @(IsIncomingTransaction(transaction) ? "linear-gradient(135deg, #d1fae5, #a7f3d0)" : "linear-gradient(135deg, #fee2e2, #fecaca)"); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="@(IsIncomingTransaction(transaction) ? "#059669" : "#dc2626")" stroke-width="2">
+                            <div
+                                style="width: 48px; height: 48px; background: @(IsIncomingTransaction(transaction) ? "linear-gradient(135deg, #D4E6D4, #BCC9A6)" : "linear-gradient(135deg, #fee2e2, #fecaca)"); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    stroke="@(IsIncomingTransaction(transaction) ? "#5F6F52" : "#9B3A3A")" stroke-width="2">
                                     @if (transaction.TransactionType == "Deposit")
                                     {
-                                        <path d="M12 5v14M5 12l7 7 7-7"/>
+                                        <path d="M12 5v14M5 12l7 7 7-7" />
                                     }
                                     else if (transaction.TransactionType == "Transfer")
                                     {
-                                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                                        <path d="M5 12h14M12 5l7 7-7 7" />
                                     }
                                     else if (transaction.TransactionType == "Bills")
                                     {
-                                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                        <path d="M3 9h18"/>
+                                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                                        <path d="M3 9h18" />
                                     }
                                     else
                                     {
-                                        <path d="M12 19V5M5 12l7-7 7 7"/>
+                                        <path d="M12 19V5M5 12l7-7 7 7" />
                                     }
                                 </svg>
                             </div>
                             <div>
-                                <div style="font-weight: 600; color: #1f2937; font-size: 15px;">@transaction.Description</div>
-                                <div style="font-size: 13px; color: #6b7280; margin-top: 2px;">@transaction.CreatedAt.ToString("MMM dd, yyyy - hh:mm tt")</div>
+                                <div style="font-weight: 600; color: #2B2B2B; font-size: 15px;">@transaction.Description
+                                </div>
+                                <div style="font-size: 13px; color: #6B6B6B; margin-top: 2px;">
+                                    @transaction.CreatedAt.ToString("MMM dd, yyyy - hh:mm tt")</div>
                             </div>
                         </div>
                         <div style="text-align: right;">
-                            <div style="font-weight: 700; font-size: 16px; color: @(IsIncomingTransaction(transaction) ? "#059669" : "#dc2626");">
+                            <div
+                                style="font-weight: 600; font-size: 16px; color: @(IsIncomingTransaction(transaction) ? "#5F6F52" : "#9B3A3A");">
                                 @(IsIncomingTransaction(transaction) ? "+" : "-")₱@transaction.Amount.ToString("N2")
                             </div>
-                            <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">@transaction.Status</div>
+                            <div style="font-size: 12px; color: #6B6B6B; margin-top: 2px;">@transaction.Status</div>
                         </div>
                     </div>
                 }
@@ -112,36 +127,44 @@
 <!-- Transaction Details Modal -->
 @if (selectedTransaction != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseDetails">
-        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation="true">
-            <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 24px;">Transaction Details</h2>
-            
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+        @onclick="CloseDetails">
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
+            @onclick:stopPropagation="true">
+            <h2 style="font-size: 24px; font-weight: 600; color: #2B2B2B; margin-bottom: 24px;">Transaction Details</h2>
+
             <div style="display: flex; flex-direction: column; gap: 16px;">
                 <div>
-                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Transaction ID</div>
-                    <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedTransaction.TransactionId</div>
+                    <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Transaction ID</div>
+                    <div style="font-size: 14px; font-weight: 600; color: #2B2B2B;">@selectedTransaction.TransactionId</div>
                 </div>
                 <div>
-                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Description</div>
-                    <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedTransaction.Description</div>
+                    <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Description</div>
+                    <div style="font-size: 14px; font-weight: 600; color: #2B2B2B;">@selectedTransaction.Description</div>
                 </div>
                 <div>
-                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Date & Time</div>
-                    <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@selectedTransaction.CreatedAt.ToString("MMMM dd, yyyy - hh:mm:ss tt")</div>
+                    <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Date & Time</div>
+                    <div style="font-size: 14px; font-weight: 600; color: #2B2B2B;">
+                        @selectedTransaction.CreatedAt.ToString("MMMM dd, yyyy - hh:mm:ss tt")</div>
                 </div>
                 <div>
-                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Amount</div>
-                    <div style="font-size: 24px; font-weight: 700; color: @(selectedTransaction.TransactionType == "Deposit" ? "#059669" : "#dc2626");">
-                        @(selectedTransaction.TransactionType == "Deposit" ? "+" : "-")₱@selectedTransaction.Amount.ToString("N2")
+                    <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Amount</div>
+                    <div
+                        style="font-size: 24px; font-weight: 600; color: @(selectedTransaction.TransactionType == "Deposit" ? "#5F6F52" : "#9B3A3A");">
+                        @(selectedTransaction.TransactionType == "Deposit" ? "+" :
+                                            "-")₱@selectedTransaction.Amount.ToString("N2")
                     </div>
                 </div>
                 <div>
-                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Status</div>
-                    <div style="padding: 8px 16px; background: #d1fae5; color: #065f46; border-radius: 8px; display: inline-block; font-size: 14px; font-weight: 600;">@selectedTransaction.Status</div>
+                    <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Status</div>
+                    <div
+                        style="padding: 8px 16px; background: #D4E6D4; color: #2F3E2A; border-radius: 10px; display: inline-block; font-size: 14px; font-weight: 600;">
+                        @selectedTransaction.Status</div>
                 </div>
             </div>
 
-            <button @onclick="CloseDetails" style="width: 100%; margin-top: 24px; padding: 14px; background: linear-gradient(135deg, #0891b2, #0e7490); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
+            <button @onclick="CloseDetails"
+                style="width: 100%; margin-top: 24px; padding: 14px; background: #2F3E2A; border: none; border-radius: 10px; color: #FFFFFF; font-size: 16px; font-weight: 600; cursor: pointer;">
                 Close
             </button>
         </div>
@@ -150,7 +173,7 @@
 
 <style>
     .transaction-row:hover {
-        background: #e0f2fe !important;
+        background: #E2E2DC !important;
         transform: translateX(4px);
     }
 </style>
@@ -167,7 +190,7 @@
         var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
         var aid = GetQueryParam(uri, "accountId");
         if (!string.IsNullOrEmpty(aid)) int.TryParse(aid, out accountId);
-        
+
         if (accountId <= 0)
         {
             var account = await BankingService.GetPrimaryAccountForCurrentCustomerAsync();
@@ -208,17 +231,22 @@
     private decimal CalculateIncome()
     {
         // Income = Deposits + Incoming Transfers (Transfer from)
-        var deposits = transactions.Where(t => t.TransactionType == "Deposit" && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
-        var incomingTransfers = transactions.Where(t => t.TransactionType == "Transfer" && t.Description != null && t.Description.Contains("Transfer from") && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
+        var deposits = transactions.Where(t => t.TransactionType == "Deposit" && t.CreatedAt.Month == DateTime.Now.Month).Sum(t
+        => t.Amount);
+        var incomingTransfers = transactions.Where(t => t.TransactionType == "Transfer" && t.Description != null &&
+        t.Description.Contains("Transfer from") && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
         return deposits + incomingTransfers;
     }
 
     private decimal CalculateExpenses()
     {
         // Expenses = Withdrawals + Bills + Outgoing Transfers (Transfer to)
-        var withdrawals = transactions.Where(t => t.TransactionType == "Withdrawal" && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
-        var bills = transactions.Where(t => t.TransactionType == "Bills" && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
-        var outgoingTransfers = transactions.Where(t => t.TransactionType == "Transfer" && t.Description != null && t.Description.Contains("Transfer to") && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
+        var withdrawals = transactions.Where(t => t.TransactionType == "Withdrawal" && t.CreatedAt.Month ==
+        DateTime.Now.Month).Sum(t => t.Amount);
+        var bills = transactions.Where(t => t.TransactionType == "Bills" && t.CreatedAt.Month == DateTime.Now.Month).Sum(t =>
+        t.Amount);
+        var outgoingTransfers = transactions.Where(t => t.TransactionType == "Transfer" && t.Description != null &&
+        t.Description.Contains("Transfer to") && t.CreatedAt.Month == DateTime.Now.Month).Sum(t => t.Amount);
         return withdrawals + bills + outgoingTransfers;
     }
 
@@ -226,13 +254,13 @@
     {
         // Deposits are incoming
         if (transaction.TransactionType == "Deposit") return true;
-        
+
         // Check if transfer is incoming (from someone else)
         if (transaction.TransactionType == "Transfer" && transaction.Description != null)
         {
             return transaction.Description.Contains("Transfer from");
         }
-        
+
         // All other transactions are outgoing
         return false;
     }
@@ -247,6 +275,5 @@
         selectedTransaction = null;
     }
 
-    
-}
 
+}

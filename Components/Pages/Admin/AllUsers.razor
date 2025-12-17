@@ -8,7 +8,7 @@
 
 <!-- Page Header -->
 <div
-    style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
@@ -30,34 +30,34 @@
 <div
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
     <div
-        style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 16px; border: 2px solid #6ee7b7;">
-        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">
+        style="background: linear-gradient(135deg, #E8F0E8, #D4E6D4); border-radius: 12px; padding: 16px; border: 2px solid #A9B388;">
+        <div style="font-size: 11px; font-weight: 600; color: #2F3E2A; margin-bottom: 4px; text-transform: uppercase;">
             TOTAL USERS</div>
-        <div style="font-size: 24px; font-weight: 800; color: #059669;">@allUsers.Count</div>
+        <div style="font-size: 24px; font-weight: 800; color: #5F6F52;">@allUsers.Count</div>
     </div>
     <div
-        style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 16px; border: 2px solid #6ee7b7;">
-        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">
+        style="background: linear-gradient(135deg, #D4E6D4, #BCC9A6); border-radius: 12px; padding: 16px; border: 2px solid #A9B388;">
+        <div style="font-size: 11px; font-weight: 600; color: #2F3E2A; margin-bottom: 4px; text-transform: uppercase;">
             ACTIVE</div>
-        <div style="font-size: 24px; font-weight: 800; color: #059669;">@allUsers.Count(u => u.IsActive)</div>
+        <div style="font-size: 24px; font-weight: 800; color: #5F6F52;">@allUsers.Count(u => u.IsActive)</div>
     </div>
-    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 12px; padding: 16px; border: 2px solid #f87171; cursor: pointer;"
+    <div style="background: linear-gradient(135deg, #F0E8E8, #E8D8D8); border-radius: 12px; padding: 16px; border: 2px solid #C9A9A9; cursor: pointer;"
         @onclick='() => { selectedStatus = "Inactive"; ApplyFilters(); }'>
-        <div style="font-size: 11px; font-weight: 600; color: #b91c1c; margin-bottom: 4px; text-transform: uppercase;">
+        <div style="font-size: 11px; font-weight: 600; color: #6B3A3A; margin-bottom: 4px; text-transform: uppercase;">
             INACTIVE</div>
-        <div style="font-size: 24px; font-weight: 800; color: #dc2626;">@allUsers.Count(u => !u.IsActive)</div>
+        <div style="font-size: 24px; font-weight: 800; color: #9B3A3A;">@allUsers.Count(u => !u.IsActive)</div>
     </div>
     <div
-        style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 16px; border: 2px solid #86efac;">
-        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">
+        style="background: linear-gradient(135deg, #F0F2EC, #DDE6D5); border-radius: 12px; padding: 16px; border: 2px solid #A9B388;">
+        <div style="font-size: 11px; font-weight: 600; color: #2F3E2A; margin-bottom: 4px; text-transform: uppercase;">
             EMPLOYEES</div>
-        <div style="font-size: 24px; font-weight: 800; color: #059669;">@allUsers.Count(u => u.Role != "Customer")</div>
+        <div style="font-size: 24px; font-weight: 800; color: #5F6F52;">@allUsers.Count(u => u.Role != "Customer")</div>
     </div>
     <div
-        style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 16px; border: 2px solid #6ee7b7;">
-        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">
+        style="background: linear-gradient(135deg, #E8F0E8, #D4E6D4); border-radius: 12px; padding: 16px; border: 2px solid #A9B388;">
+        <div style="font-size: 11px; font-weight: 600; color: #2F3E2A; margin-bottom: 4px; text-transform: uppercase;">
             CUSTOMERS</div>
-        <div style="font-size: 24px; font-weight: 800; color: #059669;">@allUsers.Count(u => u.Role == "Customer")</div>
+        <div style="font-size: 24px; font-weight: 800; color: #5F6F52;">@allUsers.Count(u => u.Role == "Customer")</div>
     </div>
 </div>
 
@@ -95,7 +95,7 @@
     </div>
     <div style="flex: 0 0 auto; display:flex; gap:8px;">
         <button class="btn"
-            style="background: linear-gradient(135deg, #059669, #047857); color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
+            style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
             @onclick="ApplyFilters">🔍 Filter</button>
         <button class="btn"
             style="background:#e5e7eb; color:#374151; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
@@ -180,9 +180,9 @@
                             </td>
                             <td style="padding: 12px; text-align: center;">
                                 <span
-                                    style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; background: @(user.IsActive ? "#d1fae5" : "#fee2e2"); color: @(user.IsActive ? "#065f46" : "#991b1b");">
+                                    style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; background: @(user.IsActive ? "#D4E6D4" : "#fee2e2"); color: @(user.IsActive ? "#2F3E2A" : "#991b1b");">
                                     <span
-                                        style="width: 6px; height: 6px; border-radius: 50%; background: @(user.IsActive ? "#10b981" : "#ef4444");"></span>
+                                        style="width: 6px; height: 6px; border-radius: 50%; background: @(user.IsActive ? "#5F6F52" : "#ef4444");"></span>
                                     @(user.IsActive ? "Active" : "Inactive")
                                 </span>
                             </td>
@@ -204,7 +204,7 @@
                                     else
                                     {
                                         <button @onclick="() => ActivateUser(user)"
-                                            style="padding: 6px 12px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                            style="padding: 6px 12px; background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                             ✓ Activate
                                         </button>
                                     }
@@ -283,7 +283,7 @@
             @if (!string.IsNullOrEmpty(editMessage))
             {
                 <div
-                    style="padding: 12px; margin-bottom: 16px; border-radius: 8px; background: @(editSuccess ? "#d1fae5" : "#fee2e2"); color: @(editSuccess ? "#065f46" : "#991b1b"); font-size: 14px;">
+                    style="padding: 12px; margin-bottom: 16px; border-radius: 8px; background: @(editSuccess ? "#D4E6D4" : "#fee2e2"); color: @(editSuccess ? "#2F3E2A" : "#991b1b"); font-size: 14px;">
                     @editMessage
                 </div>
             }
@@ -330,7 +330,7 @@
                     Cancel
                 </button>
                 <button @onclick="SaveUserChanges" disabled="@isSaving"
-                    style="flex: 1; padding: 12px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    style="flex: 1; padding: 12px; background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
                     @(isSaving ? "Saving..." : "💾 Save Changes")
                 </button>
             </div>
@@ -372,7 +372,7 @@
             @if (!string.IsNullOrEmpty(deactivateMessage))
             {
                 <div
-                    style="padding: 12px; margin-bottom: 16px; border-radius: 8px; background: @(deactivateSuccess ? "#d1fae5" : "#fee2e2"); color: @(deactivateSuccess ? "#065f46" : "#991b1b"); font-size: 14px;">
+                    style="padding: 12px; margin-bottom: 16px; border-radius: 8px; background: @(deactivateSuccess ? "#D4E6D4" : "#fee2e2"); color: @(deactivateSuccess ? "#2F3E2A" : "#991b1b"); font-size: 14px;">
                     @deactivateMessage
                 </div>
             }
@@ -528,7 +528,7 @@
         "SuperAdmin" => "#dc2626",
         "Accountant" => "#8b5cf6",
         "FinanceManager" => "#f59e0b",
-        "Teller" => "#10b981",
+        "Teller" => "#5F6F52",
         "Registrar" => "#3b82f6",
         "Customer" => "#6b7280",
         _ => "#6b7280"
@@ -539,7 +539,7 @@
         "SuperAdmin" => "#991b1b",
         "Accountant" => "#6b21a8",
         "FinanceManager" => "#d97706",
-        "Teller" => "#059669",
+        "Teller" => "#5F6F52",
         "Registrar" => "#1e40af",
         "Customer" => "#4b5563",
         _ => "#4b5563"
@@ -550,7 +550,7 @@
         "SuperAdmin" => "#fee2e2",
         "Accountant" => "#ede9fe",
         "FinanceManager" => "#fef3c7",
-        "Teller" => "#d1fae5",
+        "Teller" => "#D4E6D4",
         "Registrar" => "#dbeafe",
         "Customer" => "#f3f4f6",
         _ => "#f3f4f6"
@@ -561,7 +561,7 @@
         "SuperAdmin" => "#991b1b",
         "Accountant" => "#5b21b6",
         "FinanceManager" => "#92400e",
-        "Teller" => "#065f46",
+        "Teller" => "#2F3E2A",
         "Registrar" => "#1e40af",
         "Customer" => "#4b5563",
         _ => "#4b5563"

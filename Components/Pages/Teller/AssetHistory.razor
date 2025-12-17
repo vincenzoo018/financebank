@@ -11,25 +11,29 @@
 
 <div class="sidebar-content">
     <div class="card">
-        <div class="card-header" style="background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; padding: 20px;">
-            <h4 style="margin: 0; font-weight: 600;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px; vertical-align: middle;">
+        <div class="card-header" style="background: #2F3E2A; color: white; padding: 20px;">
+            <h4 style="margin: 0; font-weight: 500;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="margin-right: 8px; vertical-align: middle;">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
                 Asset Application History
             </h4>
-            <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">View all forwarded and released asset applications with contracts</p>
+            <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">View all forwarded and released asset
+                applications with contracts</p>
         </div>
 
         <div class="card-body" style="padding: 24px;">
             <!-- Filter Section -->
-            <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 24px;">
-                <h6 style="margin: 0 0 16px 0; color: #374151; font-weight: 600;">🔍 Filter History</h6>
+            <div style="background: #F7F7F4; padding: 20px; border-radius: 14px; margin-bottom: 24px;">
+                <h6 style="margin: 0 0 16px 0; color: #2B2B2B; font-weight: 500;">🔍 Filter History</h6>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
                     <div>
-                        <label style="font-size: 13px; color: #6b7280; display: block; margin-bottom: 4px;">Action Type</label>
-                        <select @bind="filterActionType" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                        <label style="font-size: 13px; color: #6B6B6B; display: block; margin-bottom: 4px;">Action
+                            Type</label>
+                        <select @bind="filterActionType"
+                            style="width: 100%; padding: 10px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;">
                             <option value="">All Actions</option>
                             <option value="FORWARDED_TO_ACCOUNTANT">📤 Forwarded to Accountant</option>
                             <option value="FORWARDED_TO_FINANCEMANAGER">📤 Forwarded to Finance Manager</option>
@@ -39,60 +43,74 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-size: 13px; color: #6b7280; display: block; margin-bottom: 4px;">From Date</label>
-                        <input type="date" @bind="filterFromDate" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+                        <label style="font-size: 13px; color: #6B6B6B; display: block; margin-bottom: 4px;">From
+                            Date</label>
+                        <input type="date" @bind="filterFromDate"
+                            style="width: 100%; padding: 10px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                     </div>
                     <div>
-                        <label style="font-size: 13px; color: #6b7280; display: block; margin-bottom: 4px;">To Date</label>
-                        <input type="date" @bind="filterToDate" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+                        <label style="font-size: 13px; color: #6B6B6B; display: block; margin-bottom: 4px;">To
+                            Date</label>
+                        <input type="date" @bind="filterToDate"
+                            style="width: 100%; padding: 10px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                     </div>
                 </div>
                 <div style="margin-top: 16px; display: flex; gap: 12px;">
-                    <button @onclick="ApplyFilters" style="padding: 10px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <button @onclick="ApplyFilters"
+                        style="padding: 10px 24px; background: #2F3E2A; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 500;">
                         Apply Filters
                     </button>
-                    <button @onclick="ClearFilters" style="padding: 10px 24px; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <button @onclick="ClearFilters"
+                        style="padding: 10px 24px; background: #A9B388; color: #2F3E2A; border: none; border-radius: 10px; cursor: pointer; font-weight: 500;">
                         Clear
                     </button>
                 </div>
             </div>
 
             <!-- Quick Stats -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px;">
-                <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); padding: 16px; border-radius: 12px; text-align: center;">
-                    <div style="font-size: 24px; font-weight: 700; color: #1e40af;">@forwardedCount</div>
-                    <div style="font-size: 12px; color: #3b82f6;">📤 Forwarded</div>
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div
+                    style="background: rgba(79, 111, 82, 0.15); padding: 16px; border-radius: 14px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 600; color: #4F6F52;">@forwardedCount</div>
+                    <div style="font-size: 12px; color: #4F6F52;">📤 Forwarded</div>
                 </div>
-                <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); padding: 16px; border-radius: 12px; text-align: center;">
-                    <div style="font-size: 24px; font-weight: 700; color: #065f46;">@approvedCount</div>
-                    <div style="font-size: 12px; color: #059669;">✅ Approved</div>
+                <div
+                    style="background: rgba(79, 111, 82, 0.15); padding: 16px; border-radius: 14px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 600; color: #4F6F52;">@approvedCount</div>
+                    <div style="font-size: 12px; color: #4F6F52;">✅ Approved</div>
                 </div>
-                <div style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); padding: 16px; border-radius: 12px; text-align: center;">
-                    <div style="font-size: 24px; font-weight: 700; color: #5b21b6;">@releasedCount</div>
-                    <div style="font-size: 12px; color: #8b5cf6;">🎉 Released</div>
+                <div
+                    style="background: rgba(95, 122, 106, 0.15); padding: 16px; border-radius: 14px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 600; color: #5F7A6A;">@releasedCount</div>
+                    <div style="font-size: 12px; color: #5F7A6A;">🎉 Released</div>
                 </div>
-                <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); padding: 16px; border-radius: 12px; text-align: center;">
-                    <div style="font-size: 24px; font-weight: 700; color: #991b1b;">@rejectedCount</div>
-                    <div style="font-size: 12px; color: #ef4444;">❌ Rejected</div>
+                <div
+                    style="background: rgba(155, 58, 58, 0.15); padding: 16px; border-radius: 14px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 600; color: #9B3A3A;">@rejectedCount</div>
+                    <div style="font-size: 12px; color: #9B3A3A;">❌ Rejected</div>
                 </div>
             </div>
 
             @if (isLoading)
             {
                 <div style="text-align: center; padding: 40px;">
-                    <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-                    <p style="margin-top: 16px; color: #6b7280;">Loading history...</p>
+                    <div
+                        style="width: 40px; height: 40px; border: 3px solid #E2E2DC; border-top-color: #2F3E2A; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+                    </div>
+                    <p style="margin-top: 16px; color: #6B6B6B;">Loading history...</p>
                 </div>
             }
             else if (historyList == null || historyList.Count == 0)
             {
-                <div style="text-align: center; padding: 60px 20px; background: #f9fafb; border-radius: 12px;">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin: 0 auto;">
+                <div style="text-align: center; padding: 60px 20px; background: #F7F7F4; border-radius: 14px;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#E2E2DC" stroke-width="1.5"
+                        style="margin: 0 auto;">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
-                    <h5 style="color: #6b7280; margin-top: 16px;">No History Found</h5>
-                    <p style="color: #9ca3af; font-size: 14px;">No workflow events match your filters.</p>
+                    <h5 style="color: #6B6B6B; margin-top: 16px;">No History Found</h5>
+                    <p style="color: #6B6B6B; font-size: 14px;">No workflow events match your filters.</p>
                 </div>
             }
             else
@@ -100,70 +118,82 @@
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
-                            <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
-                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Date/Time</th>
-                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Application</th>
-                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Asset</th>
-                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151;">Action</th>
-                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">By</th>
-                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Contract</th>
-                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Amount</th>
-                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151;">Details</th>
+                            <tr style="background: #F7F7F4; border-bottom: 2px solid #E2E2DC;">
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #2B2B2B;">Date/Time
+                                </th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #2B2B2B;">Application
+                                </th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #2B2B2B;">Asset</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 500; color: #2B2B2B;">Action</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #2B2B2B;">By</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #2B2B2B;">Contract</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 500; color: #2B2B2B;">Amount</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 500; color: #2B2B2B;">Details
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var history in historyList)
                             {
-                                <tr style="border-bottom: 1px solid #e5e7eb; transition: background 0.2s;" class="table-row-hover">
+                                <tr style="border-bottom: 1px solid #E2E2DC; transition: background 0.2s;"
+                                    class="table-row-hover">
                                     <td style="padding: 14px 12px;">
-                                        <div style="font-weight: 600; color: #374151;">@history.ActionDate.ToString("MMM dd, yyyy")</div>
-                                        <div style="font-size: 12px; color: #6b7280;">@history.ActionDate.ToString("hh:mm tt")</div>
+                                        <div style="font-weight: 500; color: #2B2B2B;">@history.ActionDate.ToString("MMM dd, yyyy")</div>
+                                        <div style="font-size: 12px; color: #6B6B6B;">@history.ActionDate.ToString("hh:mm tt")
+                                        </div>
                                     </td>
                                     <td style="padding: 14px 12px;">
-                                        <span style="background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 16px; font-weight: 600; font-size: 11px;">
+                                        <span
+                                            style="background: rgba(79, 111, 82, 0.15); color: #4F6F52; padding: 4px 10px; border-radius: 10px; font-weight: 500; font-size: 11px;">
                                             @history.Application?.ApplicationNumber
                                         </span>
                                     </td>
                                     <td style="padding: 14px 12px;">
-                                        <div style="font-weight: 600; color: #374151; font-size: 13px;">@(history.Application?.Asset?.DisplayTitle ?? "N/A")</div>
-                                        <div style="font-size: 11px; color: #6b7280;">@history.Application?.Asset?.AssetType</div>
+                                        <div style="font-weight: 500; color: #2B2B2B; font-size: 13px;">
+                                            @(history.Application?.Asset?.DisplayTitle ?? "N/A")</div>
+                                        <div style="font-size: 11px; color: #6B6B6B;">@history.Application?.Asset?.AssetType
+                                        </div>
                                     </td>
                                     <td style="padding: 14px 12px; text-align: center;">
                                         @{
                                             var (actionColor, actionBg, actionIcon) = GetActionStyle(history.ActionType);
                                         }
-                                        <span style="background: @actionBg; color: @actionColor; padding: 5px 12px; border-radius: 16px; font-size: 11px; font-weight: 600;">
+                                        <span
+                                            style="background: @actionBg; color: @actionColor; padding: 5px 12px; border-radius: 16px; font-size: 11px; font-weight: 600;">
                                             @actionIcon @GetActionLabel(history.ActionType)
                                         </span>
                                     </td>
                                     <td style="padding: 14px 12px;">
-                                        <div style="font-weight: 600; color: #374151; font-size: 13px;">@history.ActionBy</div>
-                                        <div style="font-size: 11px; color: #6b7280;">@history.ActionByRole</div>
+                                        <div style="font-weight: 500; color: #2B2B2B; font-size: 13px;">@history.ActionBy</div>
+                                        <div style="font-size: 11px; color: #6B6B6B;">@history.ActionByRole</div>
                                     </td>
                                     <td style="padding: 14px 12px;">
                                         @if (!string.IsNullOrEmpty(history.ContractNumber))
                                         {
-                                            <div style="font-weight: 600; color: #059669; font-size: 13px;">@history.ContractNumber</div>
-                                            <div style="font-size: 11px; color: #6b7280;">@history.ContractDate?.ToString("MM/dd/yyyy")</div>
+                                            <div style="font-weight: 500; color: #4F6F52; font-size: 13px;">@history.ContractNumber
+                                            </div>
+                                            <div style="font-size: 11px; color: #6B6B6B;">
+                                                @history.ContractDate?.ToString("MM/dd/yyyy")</div>
                                         }
                                         else
                                         {
-                                            <span style="color: #9ca3af; font-size: 12px;">-</span>
+                                            <span style="color: #6B6B6B; font-size: 12px;">-</span>
                                         }
                                     </td>
                                     <td style="padding: 14px 12px; text-align: right;">
                                         @if (history.AssetPrice > 0)
                                         {
-                                            <div style="font-weight: 700; color: #374151;">₱@history.AssetPrice?.ToString("N2")</div>
+                                            <div style="font-weight: 600; color: #2B2B2B;">₱@history.AssetPrice?.ToString("N2")
+                                            </div>
                                         }
                                         else
                                         {
-                                            <span style="color: #9ca3af;">-</span>
+                                            <span style="color: #6B6B6B;">-</span>
                                         }
                                     </td>
                                     <td style="padding: 14px 12px; text-align: center;">
-                                        <button @onclick="() => ShowHistoryDetails(history)" 
-                                            style="padding: 6px 14px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;">
+                                        <button @onclick="() => ShowHistoryDetails(history)"
+                                            style="padding: 6px 14px; background: #2F3E2A; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: 500;">
                                             View
                                         </button>
                                     </td>
@@ -180,40 +210,50 @@
 <!-- History Details Modal -->
 @if (showDetailsModal && selectedHistory != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseModal">
-        <div style="background: white; border-radius: 16px; width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);" @onclick:stopPropagation>
-            <div style="padding: 20px; border-bottom: 1px solid #e5e7eb; background: linear-gradient(135deg, #3b82f6, #60a5fa); border-radius: 16px 16px 0 0;">
-                <h4 style="margin: 0; color: white; font-weight: 600;">📜 History Details</h4>
-                <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">@selectedHistory.Application?.ApplicationNumber</p>
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+        @onclick="CloseModal">
+        <div style="background: #FFFFFF; border-radius: 16px; width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);"
+            @onclick:stopPropagation>
+            <div
+                style="padding: 20px; border-bottom: 1px solid #E2E2DC; background: #2F3E2A; border-radius: 16px 16px 0 0;">
+                <h4 style="margin: 0; color: white; font-weight: 500;">📜 History Details</h4>
+                <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
+                    @selectedHistory.Application?.ApplicationNumber</p>
             </div>
-            
+
             <div style="padding: 24px;">
                 <!-- Action Info -->
-                <div style="background: #f8fafc; padding: 16px; border-radius: 12px; margin-bottom: 16px;">
-                    <h6 style="margin: 0 0 12px 0; color: #374151; font-weight: 600; font-size: 14px;">Action Information</h6>
+                <div style="background: #F7F7F4; padding: 16px; border-radius: 14px; margin-bottom: 16px;">
+                    <h6 style="margin: 0 0 12px 0; color: #2B2B2B; font-weight: 500; font-size: 14px;">Action Information
+                    </h6>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div>
-                            <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Action Type</label>
-                            <div style="font-weight: 600; color: #374151; margin-top: 2px; font-size: 14px;">@GetActionLabel(selectedHistory.ActionType)</div>
+                            <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Action Type</label>
+                            <div style="font-weight: 500; color: #2B2B2B; margin-top: 2px; font-size: 14px;">
+                                @GetActionLabel(selectedHistory.ActionType)</div>
                         </div>
                         <div>
-                            <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Date & Time</label>
-                            <div style="font-weight: 600; color: #374151; margin-top: 2px; font-size: 14px;">@selectedHistory.ActionDate.ToString("MMM dd, yyyy hh:mm tt")</div>
+                            <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Date & Time</label>
+                            <div style="font-weight: 500; color: #2B2B2B; margin-top: 2px; font-size: 14px;">
+                                @selectedHistory.ActionDate.ToString("MMM dd, yyyy hh:mm tt")</div>
                         </div>
                         <div>
-                            <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Performed By</label>
-                            <div style="font-weight: 600; color: #374151; margin-top: 2px; font-size: 14px;">@selectedHistory.ActionBy (@selectedHistory.ActionByRole)</div>
+                            <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Performed By</label>
+                            <div style="font-weight: 500; color: #2B2B2B; margin-top: 2px; font-size: 14px;">
+                                @selectedHistory.ActionBy (@selectedHistory.ActionByRole)</div>
                         </div>
                         <div>
-                            <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Status Change</label>
-                            <div style="font-weight: 600; color: #374151; margin-top: 2px; font-size: 14px;">@(selectedHistory.PreviousStatus ?? "-") → @(selectedHistory.NewStatus ?? "-")</div>
+                            <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Status Change</label>
+                            <div style="font-weight: 500; color: #2B2B2B; margin-top: 2px; font-size: 14px;">
+                                @(selectedHistory.PreviousStatus ?? "-") → @(selectedHistory.NewStatus ?? "-")</div>
                         </div>
                     </div>
                     @if (!string.IsNullOrEmpty(selectedHistory.Remarks))
                     {
                         <div style="margin-top: 12px;">
-                            <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Remarks</label>
-                            <div style="font-weight: 500; color: #374151; margin-top: 4px; padding: 10px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 13px;">
+                            <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Remarks</label>
+                            <div
+                                style="font-weight: 500; color: #2B2B2B; margin-top: 4px; padding: 10px; background: #FFFFFF; border-radius: 10px; border: 1px solid #E2E2DC; font-size: 13px;">
                                 @selectedHistory.Remarks
                             </div>
                         </div>
@@ -223,36 +263,44 @@
                 <!-- Contract Info (if released) -->
                 @if (!string.IsNullOrEmpty(selectedHistory.ContractNumber))
                 {
-                    <div style="background: #ecfdf5; padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #a7f3d0;">
-                        <h6 style="margin: 0 0 12px 0; color: #065f46; font-weight: 600; font-size: 14px;">📄 Contract Information</h6>
+                    <div
+                        style="background: rgba(79, 111, 82, 0.15); padding: 16px; border-radius: 14px; margin-bottom: 16px; border: 1px solid rgba(79, 111, 82, 0.3);">
+                        <h6 style="margin: 0 0 12px 0; color: #4F6F52; font-weight: 500; font-size: 14px;">📄 Contract
+                            Information</h6>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             <div>
-                                <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Contract Number</label>
-                                <div style="font-weight: 700; color: #059669; margin-top: 2px; font-size: 15px;">@selectedHistory.ContractNumber</div>
+                                <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Contract
+                                    Number</label>
+                                <div style="font-weight: 600; color: #4F6F52; margin-top: 2px; font-size: 15px;">
+                                    @selectedHistory.ContractNumber</div>
                             </div>
                             <div>
-                                <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Contract Date</label>
-                                <div style="font-weight: 600; color: #374151; margin-top: 2px; font-size: 14px;">@selectedHistory.ContractDate?.ToString("MMM dd, yyyy")</div>
+                                <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Contract Date</label>
+                                <div style="font-weight: 500; color: #2B2B2B; margin-top: 2px; font-size: 14px;">
+                                    @selectedHistory.ContractDate?.ToString("MMM dd, yyyy")</div>
                             </div>
                             @if (!string.IsNullOrEmpty(selectedHistory.DeedOfSaleNumber))
                             {
                                 <div>
-                                    <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Deed of Sale</label>
-                                    <div style="font-weight: 600; color: #374151; margin-top: 2px; font-size: 14px;">@selectedHistory.DeedOfSaleNumber</div>
+                                    <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Deed of Sale</label>
+                                    <div style="font-weight: 500; color: #2B2B2B; margin-top: 2px; font-size: 14px;">
+                                        @selectedHistory.DeedOfSaleNumber</div>
                                 </div>
                             }
                             @if (!string.IsNullOrEmpty(selectedHistory.ORNumber))
                             {
                                 <div>
-                                    <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">OR Number</label>
-                                    <div style="font-weight: 600; color: #374151; margin-top: 2px; font-size: 14px;">@selectedHistory.ORNumber</div>
+                                    <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">OR Number</label>
+                                    <div style="font-weight: 500; color: #2B2B2B; margin-top: 2px; font-size: 14px;">
+                                        @selectedHistory.ORNumber</div>
                                 </div>
                             }
                             @if (!string.IsNullOrEmpty(selectedHistory.CRNumber))
                             {
                                 <div>
-                                    <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">CR Number</label>
-                                    <div style="font-weight: 600; color: #374151; margin-top: 2px; font-size: 14px;">@selectedHistory.CRNumber</div>
+                                    <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">CR Number</label>
+                                    <div style="font-weight: 500; color: #2B2B2B; margin-top: 2px; font-size: 14px;">
+                                        @selectedHistory.CRNumber</div>
                                 </div>
                             }
                         </div>
@@ -262,32 +310,40 @@
                 <!-- Financial Details -->
                 @if (selectedHistory.AssetPrice > 0)
                 {
-                    <div style="background: #fef3c7; padding: 16px; border-radius: 12px; border: 1px solid #fde68a;">
-                        <h6 style="margin: 0 0 12px 0; color: #92400e; font-weight: 600; font-size: 14px;">💰 Financial Details</h6>
+                    <div
+                        style="background: rgba(196, 154, 58, 0.15); padding: 16px; border-radius: 14px; border: 1px solid rgba(196, 154, 58, 0.3);">
+                        <h6 style="margin: 0 0 12px 0; color: #C49A3A; font-weight: 500; font-size: 14px;">💰 Financial Details
+                        </h6>
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
                             <div>
-                                <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Asset Price</label>
-                                <div style="font-weight: 700; color: #374151; margin-top: 2px; font-size: 14px;">₱@selectedHistory.AssetPrice?.ToString("N2")</div>
+                                <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Asset Price</label>
+                                <div style="font-weight: 600; color: #2B2B2B; margin-top: 2px; font-size: 14px;">
+                                    ₱@selectedHistory.AssetPrice?.ToString("N2")</div>
                             </div>
                             <div>
-                                <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Down Payment</label>
-                                <div style="font-weight: 600; color: #374151; margin-top: 2px; font-size: 14px;">₱@selectedHistory.DownPaymentAmount?.ToString("N2")</div>
+                                <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Down Payment</label>
+                                <div style="font-weight: 500; color: #2B2B2B; margin-top: 2px; font-size: 14px;">
+                                    ₱@selectedHistory.DownPaymentAmount?.ToString("N2")</div>
                             </div>
                             <div>
-                                <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Loan Amount</label>
-                                <div style="font-weight: 600; color: #374151; margin-top: 2px; font-size: 14px;">₱@selectedHistory.LoanAmount?.ToString("N2")</div>
+                                <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Loan Amount</label>
+                                <div style="font-weight: 500; color: #2B2B2B; margin-top: 2px; font-size: 14px;">
+                                    ₱@selectedHistory.LoanAmount?.ToString("N2")</div>
                             </div>
                             <div>
-                                <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Term</label>
-                                <div style="font-weight: 600; color: #374151; margin-top: 2px; font-size: 14px;">@selectedHistory.TermMonths months</div>
+                                <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Term</label>
+                                <div style="font-weight: 500; color: #2B2B2B; margin-top: 2px; font-size: 14px;">
+                                    @selectedHistory.TermMonths months</div>
                             </div>
                             <div>
-                                <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Interest</label>
-                                <div style="font-weight: 600; color: #374151; margin-top: 2px; font-size: 14px;">@selectedHistory.InterestRate?.ToString("N2")%</div>
+                                <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Interest</label>
+                                <div style="font-weight: 500; color: #2B2B2B; margin-top: 2px; font-size: 14px;">
+                                    @selectedHistory.InterestRate?.ToString("N2")%</div>
                             </div>
                             <div>
-                                <label style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Monthly</label>
-                                <div style="font-weight: 700; color: #059669; margin-top: 2px; font-size: 14px;">₱@selectedHistory.MonthlyPayment?.ToString("N2")</div>
+                                <label style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Monthly</label>
+                                <div style="font-weight: 600; color: #4F6F52; margin-top: 2px; font-size: 14px;">
+                                    ₱@selectedHistory.MonthlyPayment?.ToString("N2")</div>
                             </div>
                         </div>
                     </div>
@@ -295,13 +351,16 @@
 
                 @if (selectedHistory.LinkedLoanId.HasValue)
                 {
-                    <div style="background: #dbeafe; padding: 12px; border-radius: 8px; text-align: center; margin-top: 16px;">
-                        <span style="color: #1e40af; font-weight: 600; font-size: 13px;">📋 Linked Loan ID: @selectedHistory.LinkedLoanId</span>
+                    <div
+                        style="background: rgba(79, 111, 82, 0.15); padding: 12px; border-radius: 10px; text-align: center; margin-top: 16px;">
+                        <span style="color: #4F6F52; font-weight: 500; font-size: 13px;">📋 Linked Loan ID:
+                            @selectedHistory.LinkedLoanId</span>
                     </div>
                 }
 
                 <div style="text-align: right; margin-top: 20px;">
-                    <button @onclick="CloseModal" style="padding: 10px 28px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <button @onclick="CloseModal"
+                        style="padding: 10px 28px; background: #2F3E2A; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 500;">
                         Close
                     </button>
                 </div>
@@ -312,11 +371,13 @@
 
 <style>
     .table-row-hover:hover {
-        background: #f9fafb;
+        background: #F7F7F4;
     }
-    
+
     @@keyframes spin {
-        to { transform: rotate(360deg); }
+        to {
+            transform: rotate(360deg);
+        }
     }
 </style>
 
@@ -324,18 +385,19 @@
     private List<FinanceBank.Models.AssetHistory>? historyList;
     private List<FinanceBank.Models.AssetHistory>? allHistory;
     private bool isLoading = true;
-    
+
     // Filter fields
     private string filterActionType = "";
     private DateTime? filterFromDate;
     private DateTime? filterToDate;
-    
+
     // Modal
     private bool showDetailsModal = false;
     private FinanceBank.Models.AssetHistory? selectedHistory;
-    
+
     // Statistics
-    private int forwardedCount => allHistory?.Count(h => h.ActionType == "FORWARDED_TO_ACCOUNTANT" || h.ActionType == "FORWARDED_TO_FINANCEMANAGER") ?? 0;
+    private int forwardedCount => allHistory?.Count(h => h.ActionType == "FORWARDED_TO_ACCOUNTANT" || h.ActionType ==
+    "FORWARDED_TO_FINANCEMANAGER") ?? 0;
     private int approvedCount => allHistory?.Count(h => h.ActionType == "APPROVED") ?? 0;
     private int releasedCount => allHistory?.Count(h => h.ActionType == "RELEASED") ?? 0;
     private int rejectedCount => allHistory?.Count(h => h.ActionType == "REJECTED") ?? 0;
@@ -369,10 +431,10 @@
         try
         {
             historyList = await AssetService.GetAllHistoryAsync(
-                filterFromDate, 
-                filterToDate, 
-                string.IsNullOrEmpty(filterActionType) ? null : filterActionType,
-                null);
+            filterFromDate,
+            filterToDate,
+            string.IsNullOrEmpty(filterActionType) ? null : filterActionType,
+            null);
         }
         finally
         {
@@ -404,13 +466,13 @@
     {
         return actionType switch
         {
-            "FORWARDED_TO_ACCOUNTANT" => ("#1e40af", "#dbeafe", "📤"),
-            "FORWARDED_TO_FINANCEMANAGER" => ("#92400e", "#fef3c7", "📤"),
-            "APPROVED" => ("#065f46", "#d1fae5", "✅"),
-            "RELEASED" => ("#5b21b6", "#ede9fe", "🎉"),
-            "REJECTED" => ("#991b1b", "#fee2e2", "❌"),
-            "SUBMITTED" => ("#6b7280", "#f3f4f6", "📋"),
-            _ => ("#374151", "#f3f4f6", "📄")
+            "FORWARDED_TO_ACCOUNTANT" => ("#4F6F52", "rgba(79, 111, 82, 0.15)", "📤"),
+            "FORWARDED_TO_FINANCEMANAGER" => ("#C49A3A", "rgba(196, 154, 58, 0.15)", "📤"),
+            "APPROVED" => ("#4F6F52", "rgba(79, 111, 82, 0.15)", "✅"),
+            "RELEASED" => ("#5F7A6A", "rgba(95, 122, 106, 0.15)", "🎉"),
+            "REJECTED" => ("#9B3A3A", "rgba(155, 58, 58, 0.15)", "❌"),
+            "SUBMITTED" => ("#6B6B6B", "rgba(107, 107, 107, 0.15)", "📋"),
+            _ => ("#2B2B2B", "rgba(43, 43, 43, 0.1)", "📄")
         };
     }
 

@@ -8,7 +8,7 @@
 
 <!-- Page Header -->
 <div
-    style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
@@ -28,7 +28,7 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
     <div style="display: flex; gap: 12px;">
         <button
-            style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;"
+            style="background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;"
             @onclick="ShowAddModal">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -62,31 +62,31 @@
 <!-- Summary Cards -->
 <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px;">
     <div
-        style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; text-align: center; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #5F6F52; text-align: center; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
         <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 6px;">ASSETS</div>
         <div style="font-size: 32px; font-weight: 700; color: #111827;">@accounts.Count(a => a.AccountType == "Asset")
         </div>
     </div>
     <div
-        style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; text-align: center; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #5F6F52; text-align: center; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
         <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 6px;">LIABILITIES</div>
         <div style="font-size: 32px; font-weight: 700; color: #111827;">@accounts.Count(a => a.AccountType ==
                         "Liability")</div>
     </div>
     <div
-        style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; text-align: center; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #5F6F52; text-align: center; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
         <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 6px;">EQUITY</div>
         <div style="font-size: 32px; font-weight: 700; color: #111827;">@accounts.Count(a => a.AccountType == "Equity")
         </div>
     </div>
     <div
-        style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; text-align: center; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #5F6F52; text-align: center; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
         <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 6px;">REVENUE</div>
         <div style="font-size: 32px; font-weight: 700; color: #111827;">@accounts.Count(a => a.AccountType == "Revenue")
         </div>
     </div>
     <div
-        style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #059669; text-align: center; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid #5F6F52; text-align: center; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
         <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 6px;">EXPENSES</div>
         <div style="font-size: 32px; font-weight: 700; color: #111827;">@accounts.Count(a => a.AccountType == "Expense")
         </div>
@@ -97,30 +97,30 @@
 @if (!string.IsNullOrEmpty(successMessage))
 {
     <div
-        style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 1px solid #6ee7b7; color: #065f46; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+        style="background: linear-gradient(135deg, #D4E6D4, #BCC9A6); border: 1px solid #A9B388; color: #2F3E2A; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
         <span style="font-weight: 500;">@successMessage</span>
         <button @onclick="() => successMessage = string.Empty"
-            style="margin-left: auto; background: none; border: none; color: #065f46; cursor: pointer; font-size: 18px;">×</button>
+            style="margin-left: auto; background: none; border: none; color: #2F3E2A; cursor: pointer; font-size: 18px;">×</button>
     </div>
 }
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
     <div
-        style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+        style="background: #F5E6E6; border: 1px solid #E5D0D0; color: #7A2E2E; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
         <span style="font-weight: 500;">❌ @errorMessage</span>
         <button @onclick="() => errorMessage = string.Empty"
-            style="margin-left: auto; background: none; border: none; color: #991b1b; cursor: pointer; font-size: 18px;">×</button>
+            style="margin-left: auto; background: none; border: none; color: #7A2E2E; cursor: pointer; font-size: 18px;">×</button>
     </div>
 }
 
 <!-- Chart of Accounts Table -->
 <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
-    <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 20px 24px;">
+    <div style="background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; padding: 20px 24px;">
         <h4 style="margin: 0; font-weight: 600; font-size: 18px;">
             📊 Account List
         </h4>
@@ -132,7 +132,7 @@
         {
             <div style="text-align: center; padding: 60px;">
                 <div
-                    style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+                    style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
                 </div>
                 <p style="margin-top: 16px; color: #6b7280;">Loading accounts...</p>
             </div>
@@ -204,7 +204,7 @@
                                 @if (account.IsActive)
                                 {
                                     <span
-                                        style="background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">Active</span>
+                                        style="background: #D4E6D4; color: #2F3E2A; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">Active</span>
                                 }
                                 else
                                 {
@@ -214,7 +214,7 @@
                             </td>
                             <td style="padding: 16px; text-align: center;">
                                 <button
-                                    style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; margin-right: 4px;"
+                                    style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; margin-right: 4px;"
                                     @onclick="() => EditAccount(account)">
                                     ✏️ Edit
                                 </button>
@@ -243,7 +243,7 @@
             @if (!string.IsNullOrEmpty(formErrorMessage))
             {
                 <div
-                    style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;">
+                    style="background: #F5E6E6; border: 1px solid #E5D0D0; color: #7A2E2E; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;">
                     ⚠️ @formErrorMessage
                 </div>
             }
@@ -251,9 +251,9 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <div>
                     <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">Account Code <span
-                            style="color: #ef4444;">*</span></label>
+                            style="color: #9B3A3A;">*</span></label>
                     <input type="text" @bind="editAccount.AccountCode"
-                        style="width: 100%; padding: 12px; border: 2px solid @(string.IsNullOrEmpty(editAccount.AccountCode) && !string.IsNullOrEmpty(formErrorMessage) ? "#fecaca" : "#e5e7eb"); border-radius: 8px; font-size: 14px;"
+                        style="width: 100%; padding: 12px; border: 2px solid @(string.IsNullOrEmpty(editAccount.AccountCode) && !string.IsNullOrEmpty(formErrorMessage) ? "#E5D0D0" : "#e5e7eb"); border-radius: 8px; font-size: 14px;"
                         placeholder="e.g., 1000, 1010, 2000" />
                 </div>
                 <div>
@@ -307,7 +307,7 @@
                     style="background: #e5e7eb; color: #374151; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;"
                     @onclick="CloseModal">Cancel</button>
                 <button
-                    style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;"
+                    style="background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;"
                     @onclick="SaveAccount">
                     @(isEditing ? "Update Account" : "Add Account")
                 </button>
@@ -473,11 +473,11 @@
 
     private (string color, string bg) GetAccountTypeStyle(string type) => type switch
     {
-        "Asset" => ("#1e40af", "#dbeafe"),
-        "Liability" => ("#9d174d", "#fce7f3"),
-        "Equity" => ("#5b21b6", "#ede9fe"),
-        "Revenue" => ("#065f46", "#d1fae5"),
-        "Expense" => ("#991b1b", "#fee2e2"),
+        "Asset" => ("#5F6F52", "#E8F0E8"),
+        "Liability" => ("#9B3A3A", "#F5E6E6"),
+        "Equity" => ("#6B4423", "#F5EFE0"),
+        "Revenue" => ("#2F3E2A", "#D4E6D4"),
+        "Expense" => ("#7A2E2E", "#FAF5F5"),
         _ => ("#374151", "#f3f4f6")
     };
 }

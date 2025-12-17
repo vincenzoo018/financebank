@@ -7,209 +7,294 @@
 @inject NavigationManager Navigation
 @attribute [Authorize(Roles = "Teller")]
 
-<div class="card shadow">
-        <div class="card-header bg-info text-white">
-            <h4 class="mb-0"><i class="bi bi-credit-card"></i> Loan Payment Processing</h4>
-        </div>
-        <div class="card-body">
-            @if (successMessage != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show">
-                    @successMessage
-                    <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
-                </div>
-            }
-
-            @if (errorMessage != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show">
-                    @errorMessage
-                    <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
-                </div>
-            }
-
-            <ul class="nav nav-tabs mb-3" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" @onclick="OnPendingTabClick" type="button" role="tab">
-                        <i class="bi bi-hourglass-split"></i> Pending Payments
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" @onclick="OnOverdueTabClick" type="button" role="tab">
-                        <i class="bi bi-exclamation-triangle"></i> Overdue Payments
-                    </button>
-                </li>
-            </ul>
-
-            @if (activeTab == "pending")
-            {
-                @if (pendingPayments == null)
-                {
-                    <div class="text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                }
-                else if (pendingPayments.Count == 0)
-                {
-                    <div class="alert alert-info">No pending payments.</div>
-                }
-                else
-                {
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Schedule ID</th>
-                                    <th>Loan Number</th>
-                                    <th>Payment #</th>
-                                    <th>Due Date</th>
-                                    <th>Minimum Payment</th>
-                                    <th>Principal</th>
-                                    <th>Interest</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var payment in pendingPayments)
-                                {
-                                    <tr>
-                                        <td><span class="badge bg-primary">SCH-@payment.ScheduleId</span></td>
-                                        <td>@payment.Loan?.LoanNumber</td>
-                                        <td>#@payment.PaymentNumber</td>
-                                        <td>@payment.DueDate.ToString("yyyy-MM-dd")</td>
-                                        <td>₱@payment.MinimumPayment.ToString("N2")</td>
-                                        <td>₱@payment.PrincipalAmount.ToString("N2")</td>
-                                        <td>₱@payment.InterestAmount.ToString("N2")</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-success" @onclick="() => ShowPaymentForm(payment)">
-                                                <i class="bi bi-check-lg"></i> Pay
-                                            </button>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-            }
-
-            @if (activeTab == "overdue")
-            {
-                @if (overduePayments == null)
-                {
-                    <div class="text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                }
-                else if (overduePayments.Count == 0)
-                {
-                    <div class="alert alert-info">No overdue payments.</div>
-                }
-                else
-                {
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover table-danger">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Schedule ID</th>
-                                    <th>Loan Number</th>
-                                    <th>Payment #</th>
-                                    <th>Due Date</th>
-                                    <th>Days Overdue</th>
-                                    <th>Penalty</th>
-                                    <th>Total Due</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var payment in overduePayments)
-                                {
-                                    <tr>
-                                        <td><span class="badge bg-danger">SCH-@payment.ScheduleId</span></td>
-                                        <td>@payment.Loan?.LoanNumber</td>
-                                        <td>#@payment.PaymentNumber</td>
-                                        <td>@payment.DueDate.ToString("yyyy-MM-dd")</td>
-                                        <td><span class="badge bg-danger">@payment.DaysOverdue days</span></td>
-                                        <td>₱@payment.Penalty.ToString("N2")</td>
-                                        <td>₱@(payment.MinimumPayment + payment.Penalty).ToString("N2")</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-danger" @onclick="() => ShowPaymentForm(payment)">
-                                                <i class="bi bi-exclamation-lg"></i> Collect
-                                            </button>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-            }
-
-            @if (selectedSchedule != null)
-            {
-                <div class="card mt-4 border-primary">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Process Payment</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Payment Amount (₱)</label>
-                                <input type="number" class="form-control" @bind="paymentAmount" step="0.01" />
-                                <small class="text-muted">Minimum: ₱@selectedSchedule.MinimumPayment.ToString("N2")</small>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Payment Method</label>
-                                <select class="form-select" @bind="paymentMethod">
-                                    <option value="Bank Transfer">Bank Transfer</option>
-                                    <option value="Check">Check</option>
-                                    <option value="Cash">Cash</option>
-                                    <option value="Online Banking">Online Banking</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Reference Number</label>
-                            <input type="text" class="form-control" @bind="paymentReference" placeholder="e.g., CHK-001" />
-                        </div>
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-primary" @onclick="ProcessPaymentAsync">
-                                <i class="bi bi-check-lg"></i> Process Payment
-                            </button>
-                            <button class="btn btn-secondary" @onclick="CancelPayment">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            @if (paymentConfirmation != null)
-            {
-                <div class="card mt-4 border-success">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Payment Confirmation</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>Amount Paid:</strong> ₱@paymentConfirmation.PaymentAmount.ToString("N2")</p>
-                                <p><strong>Method:</strong> @paymentConfirmation.PaymentMethod</p>
-                                <p><strong>Date:</strong> @paymentConfirmation.PaymentDate.ToString("yyyy-MM-dd HH:mm")</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Reference:</strong> <span class="badge bg-primary">@paymentConfirmation.Reference</span></p>
-                                <p><strong>Processed By:</strong> @paymentConfirmation.ProcessedBy</p>
-                                <p><strong>Status:</strong> <span class="badge bg-success">PROCESSED</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
+<div style="background: #FFFFFF; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); overflow: hidden;">
+    <div style="background: #2F3E2A; color: white; padding: 20px;">
+        <h4 style="margin: 0; font-weight: 600; font-size: 18px;"><i class="bi bi-credit-card"></i> Loan Payment
+            Processing</h4>
     </div>
+    <div style="padding: 24px;">
+        @if (successMessage != null)
+        {
+            <div
+                style="background: rgba(79, 111, 82, 0.15); border: 1px solid rgba(79, 111, 82, 0.3); color: #4F6F52; padding: 16px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                @successMessage
+                <button type="button"
+                    style="background: none; border: none; font-size: 18px; cursor: pointer; color: #4F6F52;"
+                    @onclick="() => successMessage = null">×</button>
+            </div>
+        }
+
+        @if (errorMessage != null)
+        {
+            <div
+                style="background: rgba(155, 58, 58, 0.15); border: 1px solid rgba(155, 58, 58, 0.3); color: #9B3A3A; padding: 16px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                @errorMessage
+                <button type="button"
+                    style="background: none; border: none; font-size: 18px; cursor: pointer; color: #9B3A3A;"
+                    @onclick="() => errorMessage = null">×</button>
+            </div>
+        }
+
+        <div
+            style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid #E2E2DC; padding-bottom: 12px;">
+            <button
+                style="padding: 10px 20px; border-radius: 10px; font-weight: 500; cursor: pointer; border: none; background: @(activeTab == "pending" ? "#2F3E2A" : "#FFFFFF"); color: @(activeTab == "pending" ? "white" : "#6B6B6B"); border: @(activeTab == "pending" ? "none" : "2px solid #E2E2DC");"
+                @onclick="OnPendingTabClick" type="button">
+                <i class="bi bi-hourglass-split"></i> Pending Payments
+            </button>
+            <button
+                style="padding: 10px 20px; border-radius: 10px; font-weight: 500; cursor: pointer; border: none; background: @(activeTab == "overdue" ? "#9B3A3A" : "#FFFFFF"); color: @(activeTab == "overdue" ? "white" : "#6B6B6B"); border: @(activeTab == "overdue" ? "none" : "2px solid #E2E2DC");"
+                @onclick="OnOverdueTabClick" type="button">
+                <i class="bi bi-exclamation-triangle"></i> Overdue Payments
+            </button>
+        </div>
+
+        @if (activeTab == "pending")
+        {
+            @if (pendingPayments == null)
+            {
+                <div style="text-align: center; padding: 40px;">
+                    <div
+                        style="width: 40px; height: 40px; border: 4px solid #E2E2DC; border-top-color: #2F3E2A; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+                    </div>
+                    <p style="margin-top: 16px; color: #6B6B6B;">Loading...</p>
+                </div>
+            }
+            else if (pendingPayments.Count == 0)
+            {
+                <div style="background: rgba(95, 122, 106, 0.15); padding: 16px; border-radius: 10px; color: #5F7A6A;">No
+                    pending payments.</div>
+            }
+            else
+            {
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #F7F7F4; border-bottom: 2px solid #E2E2DC;">
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                                    Schedule ID</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                                    Loan Number</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                                    Payment #</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                                    Due Date</th>
+                                <th
+                                    style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                                    Minimum Payment</th>
+                                <th
+                                    style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                                    Principal</th>
+                                <th
+                                    style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                                    Interest</th>
+                                <th
+                                    style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                                    Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var payment in pendingPayments)
+                            {
+                                <tr style="border-bottom: 1px solid #E2E2DC;">
+                                    <td style="padding: 12px;"><span
+                                            style="background: rgba(95, 122, 106, 0.15); color: #5F7A6A; padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;">SCH-@payment.ScheduleId</span>
+                                    </td>
+                                    <td style="padding: 12px; font-size: 14px; color: #2B2B2B;">@payment.Loan?.LoanNumber</td>
+                                    <td style="padding: 12px; font-size: 14px; color: #2B2B2B;">#@payment.PaymentNumber</td>
+                                    <td style="padding: 12px; font-size: 14px; color: #6B6B6B;">
+                                        @payment.DueDate.ToString("yyyy-MM-dd")</td>
+                                    <td
+                                        style="padding: 12px; text-align: right; font-size: 14px; font-weight: 600; color: #4F6F52;">
+                                        ₱@payment.MinimumPayment.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: right; font-size: 14px; color: #6B6B6B;">
+                                        ₱@payment.PrincipalAmount.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: right; font-size: 14px; color: #6B6B6B;">
+                                        ₱@payment.InterestAmount.ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <button
+                                            style="background: #4F6F52; color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer;"
+                                            @onclick="() => ShowPaymentForm(payment)">
+                                            <i class="bi bi-check-lg"></i> Pay
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+
+        @if (activeTab == "overdue")
+        {
+            @if (overduePayments == null)
+            {
+                <div style="text-align: center; padding: 40px;">
+                    <div
+                        style="width: 40px; height: 40px; border: 4px solid #E2E2DC; border-top-color: #9B3A3A; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+                    </div>
+                    <p style="margin-top: 16px; color: #6B6B6B;">Loading...</p>
+                </div>
+            }
+            else if (overduePayments.Count == 0)
+            {
+                <div style="background: rgba(95, 122, 106, 0.15); padding: 16px; border-radius: 10px; color: #5F7A6A;">No
+                    overdue payments.</div>
+            }
+            else
+            {
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: rgba(155, 58, 58, 0.15); border-bottom: 2px solid rgba(155, 58, 58, 0.3);">
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #9B3A3A;">
+                                    Schedule ID</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #9B3A3A;">
+                                    Loan Number</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #9B3A3A;">
+                                    Payment #</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #9B3A3A;">
+                                    Due Date</th>
+                                <th
+                                    style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: #9B3A3A;">
+                                    Days Overdue</th>
+                                <th
+                                    style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #9B3A3A;">
+                                    Penalty</th>
+                                <th
+                                    style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #9B3A3A;">
+                                    Total Due</th>
+                                <th
+                                    style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: #9B3A3A;">
+                                    Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var payment in overduePayments)
+                            {
+                                <tr style="border-bottom: 1px solid #E2E2DC; background: rgba(155, 58, 58, 0.05);">
+                                    <td style="padding: 12px;"><span
+                                            style="background: rgba(155, 58, 58, 0.15); color: #9B3A3A; padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;">SCH-@payment.ScheduleId</span>
+                                    </td>
+                                    <td style="padding: 12px; font-size: 14px; color: #2B2B2B;">@payment.Loan?.LoanNumber</td>
+                                    <td style="padding: 12px; font-size: 14px; color: #2B2B2B;">#@payment.PaymentNumber</td>
+                                    <td style="padding: 12px; font-size: 14px; color: #9B3A3A;">
+                                        @payment.DueDate.ToString("yyyy-MM-dd")</td>
+                                    <td style="padding: 12px; text-align: center;"><span
+                                            style="background: rgba(155, 58, 58, 0.15); color: #9B3A3A; padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;">@payment.DaysOverdue
+                                            days</span></td>
+                                    <td style="padding: 12px; text-align: right; font-size: 14px; color: #9B3A3A;">
+                                        ₱@payment.Penalty.ToString("N2")</td>
+                                    <td
+                                        style="padding: 12px; text-align: right; font-size: 14px; font-weight: 600; color: #9B3A3A;">
+                                        ₱@(payment.MinimumPayment + payment.Penalty).ToString("N2")</td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <button
+                                            style="background: #9B3A3A; color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer;"
+                                            @onclick="() => ShowPaymentForm(payment)">
+                                            <i class="bi bi-exclamation-lg"></i> Collect
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+
+        @if (selectedSchedule != null)
+        {
+            <div
+                style="margin-top: 24px; background: #FFFFFF; border: 2px solid #2F3E2A; border-radius: 14px; overflow: hidden;">
+                <div style="background: #2F3E2A; color: white; padding: 16px;">
+                    <h5 style="margin: 0; font-weight: 600;">Process Payment</h5>
+                </div>
+                <div style="padding: 24px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #2B2B2B;">Payment
+                                Amount (₱)</label>
+                            <input type="number"
+                                style="width: 100%; padding: 10px; border: 2px solid #E2E2DC; border-radius: 10px;"
+                                @bind="paymentAmount" step="0.01" />
+                            <small style="color: #6B6B6B;">Minimum: ₱@selectedSchedule.MinimumPayment.ToString("N2")</small>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #2B2B2B;">Payment
+                                Method</label>
+                            <select style="width: 100%; padding: 10px; border: 2px solid #E2E2DC; border-radius: 10px;"
+                                @bind="paymentMethod">
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Check">Check</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Online Banking">Online Banking</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #2B2B2B;">Reference
+                            Number</label>
+                        <input type="text"
+                            style="width: 100%; padding: 10px; border: 2px solid #E2E2DC; border-radius: 10px;"
+                            @bind="paymentReference" placeholder="e.g., CHK-001" />
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <button
+                            style="background: #2F3E2A; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 500; cursor: pointer;"
+                            @onclick="ProcessPaymentAsync">
+                            <i class="bi bi-check-lg"></i> Process Payment
+                        </button>
+                        <button
+                            style="background: #FFFFFF; color: #2B2B2B; border: 2px solid #E2E2DC; padding: 12px 24px; border-radius: 10px; font-weight: 500; cursor: pointer;"
+                            @onclick="CancelPayment">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (paymentConfirmation != null)
+        {
+            <div
+                style="margin-top: 24px; background: #FFFFFF; border: 2px solid #4F6F52; border-radius: 14px; overflow: hidden;">
+                <div style="background: #4F6F52; color: white; padding: 16px;">
+                    <h5 style="margin: 0; font-weight: 600;">Payment Confirmation</h5>
+                </div>
+                <div style="padding: 24px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <div style="font-size: 14px;">
+                            <p style="margin-bottom: 8px;"><strong>Amount Paid:</strong> <span
+                                    style="color: #4F6F52; font-weight: 600;">₱@paymentConfirmation.PaymentAmount.ToString("N2")</span>
+                            </p>
+                            <p style="margin-bottom: 8px;"><strong>Method:</strong> @paymentConfirmation.PaymentMethod</p>
+                            <p style="margin-bottom: 0;"><strong>Date:</strong>
+                                @paymentConfirmation.PaymentDate.ToString("yyyy-MM-dd HH:mm")</p>
+                        </div>
+                        <div style="font-size: 14px;">
+                            <p style="margin-bottom: 8px;"><strong>Reference:</strong> <span
+                                    style="background: rgba(95, 122, 106, 0.15); color: #5F7A6A; padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;">@paymentConfirmation.Reference</span>
+                            </p>
+                            <p style="margin-bottom: 8px;"><strong>Processed By:</strong> @paymentConfirmation.ProcessedBy
+                            </p>
+                            <p style="margin-bottom: 0;"><strong>Status:</strong> <span
+                                    style="background: rgba(79, 111, 82, 0.15); color: #4F6F52; padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;">PROCESSED</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
 
 @code {
     private List<LoanPaymentSchedule>? pendingPayments;
@@ -255,11 +340,11 @@
             if (selectedSchedule != null)
             {
                 paymentConfirmation = await LoanPaymentService.ProcessPaymentAsync(
-                    scheduleId: selectedSchedule.ScheduleId,
-                    amount: paymentAmount,
-                    method: paymentMethod ?? "",
-                    processedBy: "teller-user"
-                );
+                scheduleId: selectedSchedule.ScheduleId,
+                amount: paymentAmount,
+                method: paymentMethod ?? "",
+                processedBy: "teller-user"
+                                );
 
                 successMessage = "Payment processed successfully!";
                 selectedSchedule = null;

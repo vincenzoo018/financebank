@@ -3,7 +3,7 @@
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Header -->
-    <div class="ds-card" style="padding: 24px; margin-bottom: 24px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border: 1px solid var(--color-accent);">
+    <div class="ds-card" style="padding: 24px; margin-bottom: 24px; background: linear-gradient(135deg, #E8F0E8, #D4E6D4); border: 1px solid var(--color-accent);">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="width: 48px; height: 48px; background: var(--color-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                 <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -35,9 +35,9 @@
             <div class="ds-text-heavy ds-text-primary" style="font-size: 24px;">@tasks.Count(t => t.Status == "Completed")</div>
             <div class="ds-text-muted" style="font-size: 12px; margin-top: 4px;">Completed</div>
         </div>
-        <div class="ds-card" style="padding: 16px; background: linear-gradient(135deg, #fef3c7, #fde68a); border: 1px solid #fbbf24; text-align: center;">
-            <div style="font-size: 24px; font-weight: 700; color: #d97706;">@tasks.Count(t => t.IsOverdue)</div>
-            <div style="font-size: 12px; color: #92400e; margin-top: 4px;">Overdue</div>
+        <div class="ds-card" style="padding: 16px; background: linear-gradient(135deg, #F5EFE0, #E5D9B6); border: 1px solid #8B5A2B; text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: #8B5A2B;">@tasks.Count(t => t.IsOverdue)</div>
+            <div style="font-size: 12px; color: #6B4423; margin-top: 4px;">Overdue</div>
         </div>
     </div>
 
@@ -135,9 +135,9 @@
     {
         return status switch
         {
-            "Pending" => "#fef3c7",
-            "In Progress" => "#dbeafe",
-            "Completed" => "#d1fae5",
+            "Pending" => "#F5EFE0",
+            "In Progress" => "#E8F0E8",
+            "Completed" => "#D4E6D4",
             _ => "#f3f4f6"
         };
     }
@@ -146,9 +146,9 @@
     {
         return priority switch
         {
-            "High" => "#fee2e2",
-            "Medium" => "#fef3c7",
-            "Low" => "#dbeafe",
+            "High" => "#F5E6E6",
+            "Medium" => "#F5EFE0",
+            "Low" => "#E8F0E8",
             _ => "#f3f4f6"
         };
     }

@@ -9,7 +9,7 @@
 
 <!-- Page Header -->
 <div
-    style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
@@ -35,7 +35,7 @@
                 @balance.AccountCode</div>
             <div style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                 title="@balance.AccountName">@balance.AccountName</div>
-            <div style="font-size: 18px; font-weight: 800; color: @(balance.Balance >= 0 ? "#059669" : "#ef4444");">
+            <div style="font-size: 18px; font-weight: 800; color: @(balance.Balance >= 0 ? "#5F6F52" : "#9B3A3A");">
                 ₱@Math.Abs(balance.Balance).ToString("N2")</div>
             <div style="font-size: 11px; color: #6b7280;">@balance.AccountType</div>
         </div>
@@ -82,13 +82,13 @@
     </div>
     <div style="flex: 0 0 auto; display:flex; gap:8px;">
         <button class="btn"
-            style="background:#059669; color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
+            style="background:#5F6F52; color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
             @onclick="ApplyFilters">🔍 Filter</button>
         <button class="btn"
             style="background:#e5e7eb; color:#374151; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
             @onclick="ResetFilters">↻ Reset</button>
         <button class="btn"
-            style="background: linear-gradient(135deg, #059669, #10b981); color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
+            style="background: linear-gradient(135deg, #5F6F52, #5F6F52); color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
             @onclick="ExportToCsv" disabled="@(!filteredTransactions.Any())">📥 Export CSV</button>
     </div>
 </div>
@@ -101,10 +101,10 @@
             <span style="font-size: 14px; font-weight: 400; color: #6b7280;">(@filteredTransactions.Count() records)</span>
         </h2>
         <div style="display: flex; gap: 8px; font-size: 12px;">
-            <span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 4px;">Asset</span>
-            <span style="padding: 4px 8px; background: #ecfdf5; color: #047857; border-radius: 4px;">Liability</span>
-            <span style="padding: 4px 8px; background: #a7f3d0; color: #047857; border-radius: 4px;">Revenue</span>
-            <span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 4px;">Expense</span>
+            <span style="padding: 4px 8px; background: #D4E6D4; color: #2F3E2A; border-radius: 4px;">Asset</span>
+            <span style="padding: 4px 8px; background: #E8F0E8; color: #2F3E2A; border-radius: 4px;">Liability</span>
+            <span style="padding: 4px 8px; background: #BCC9A6; color: #2F3E2A; border-radius: 4px;">Revenue</span>
+            <span style="padding: 4px 8px; background: #D4E6D4; color: #2F3E2A; border-radius: 4px;">Expense</span>
         </div>
     </div>
 
@@ -141,7 +141,7 @@
                         <tr style="border-bottom: 1px solid #e5e7eb; background: @GetRowBackground(transaction.AccountType ?? "");">
                             <td style="padding: 12px; font-size: 13px; color: #111827;">
                                 @transaction.TransactionDate.ToString("yyyy-MM-dd")</td>
-                            <td style="padding: 12px; font-size: 13px; color: #3b82f6; font-weight: 500;">@transaction.Reference</td>
+                            <td style="padding: 12px; font-size: 13px; color: #5F6F52; font-weight: 500;">@transaction.Reference</td>
                             <td style="padding: 12px; font-size: 13px;">
                                 <span style="font-weight: 600; color: #111827;">@transaction.AccountCode</span>
                                 <span style="color: #6b7280;"> - @transaction.AccountName</span>
@@ -155,11 +155,11 @@
                             <td style="padding: 12px; font-size: 13px; color: #4b5563; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
                                 title="@transaction.Description">@transaction.Description</td>
                             <td
-                                style="padding: 12px; text-align: right; font-size: 13px; color: @(transaction.DebitAmount > 0 ? "#10b981" : "#9ca3af"); font-weight: @(transaction.DebitAmount > 0 ? "600" : "400");">
+                                style="padding: 12px; text-align: right; font-size: 13px; color: @(transaction.DebitAmount > 0 ? "#5F6F52" : "#9ca3af"); font-weight: @(transaction.DebitAmount > 0 ? "600" : "400");">
                                 @(transaction.DebitAmount > 0 ? "₱" + transaction.DebitAmount.ToString("N2") : "-")
                             </td>
                             <td
-                                style="padding: 12px; text-align: right; font-size: 13px; color: @(transaction.CreditAmount > 0 ? "#ef4444" : "#9ca3af"); font-weight: @(transaction.CreditAmount > 0 ? "600" : "400");">
+                                style="padding: 12px; text-align: right; font-size: 13px; color: @(transaction.CreditAmount > 0 ? "#9B3A3A" : "#9ca3af"); font-weight: @(transaction.CreditAmount > 0 ? "600" : "400");">
                                 @(transaction.CreditAmount > 0 ? "₱" + transaction.CreditAmount.ToString("N2") : "-")
                             </td>
                             <td style="padding: 12px; text-align: right; font-size: 13px; color: #111827; font-weight: 600;">
@@ -167,7 +167,7 @@
                             </td>
                             <td style="padding: 12px; text-align: center;">
                                 <button class="btn"
-                                    style="background: #059669; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600;"
+                                    style="background: #5F6F52; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600;"
                                     @onclick="() => ViewTransaction(transaction)">View</button>
                             </td>
                         </tr>
@@ -188,12 +188,12 @@
             @if (filteredTransactions.Any())
             {
                 <tfoot>
-                    <tr style="background: #f0fdf4; border-top: 2px solid #059669;">
+                    <tr style="background: #F0F2EC; border-top: 2px solid #5F6F52;">
                         <td colspan="5" style="padding: 12px; text-align: right; font-weight: 700; color: #111827;">TOTALS:
                         </td>
-                        <td style="padding: 12px; text-align: right; font-weight: 700; color: #10b981;">
+                        <td style="padding: 12px; text-align: right; font-weight: 700; color: #5F6F52;">
                             ₱@filteredTransactions.Sum(t => t.DebitAmount).ToString("N2")</td>
-                        <td style="padding: 12px; text-align: right; font-weight: 700; color: #ef4444;">
+                        <td style="padding: 12px; text-align: right; font-weight: 700; color: #9B3A3A;">
                             ₱@filteredTransactions.Sum(t => t.CreditAmount).ToString("N2")</td>
                         <td colspan="2" style="padding: 12px;"></td>
                     </tr>
@@ -274,19 +274,19 @@
                         </tr>
                         <tr style="border-bottom: 1px solid #e5e7eb;">
                             <td style="padding: 12px; font-weight: 600; color: #6b7280;">Debit Amount</td>
-                            <td style="padding: 12px; color: #10b981; font-weight: 700; font-size: 16px;">
+                            <td style="padding: 12px; color: #5F6F52; font-weight: 700; font-size: 16px;">
                                 @(viewTransaction.DebitAmount > 0 ? "₱" + viewTransaction.DebitAmount.ToString("N2") : "-")
                             </td>
                         </tr>
                         <tr style="border-bottom: 1px solid #e5e7eb;">
                             <td style="padding: 12px; font-weight: 600; color: #6b7280;">Credit Amount</td>
-                            <td style="padding: 12px; color: #ef4444; font-weight: 700; font-size: 16px;">
+                            <td style="padding: 12px; color: #9B3A3A; font-weight: 700; font-size: 16px;">
                                 @(viewTransaction.CreditAmount > 0 ? "₱" + viewTransaction.CreditAmount.ToString("N2") : "-")
                             </td>
                         </tr>
-                        <tr style="background: #f0fdf4;">
-                            <td style="padding: 12px; font-weight: 700; color: #065f46;">Running Balance</td>
-                            <td style="padding: 12px; color: #059669; font-weight: 700; font-size: 18px;">
+                        <tr style="background: #F0F2EC;">
+                            <td style="padding: 12px; font-weight: 700; color: #2F3E2A;">Running Balance</td>
+                            <td style="padding: 12px; color: #5F6F52; font-weight: 700; font-size: 18px;">
                                 ₱@viewTransaction.RunningBalance.ToString("N2")
                             </td>
                         </tr>
@@ -299,16 +299,16 @@
             {
                 var journal = viewTransaction.JournalLine.Journal;
                 <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Related Journal Entry</h3>
-                <div style="background: #fafbff; padding: 16px; border-radius: 8px; border: 1px solid #dbeafe; margin-bottom: 20px;">
+                <div style="background: #F8F9F5; padding: 16px; border-radius: 8px; border: 1px solid #D4E6D4; margin-bottom: 20px;">
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
                         <div>
                             <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Journal Number</div>
-                            <div style="font-size: 14px; color: #3b82f6; font-weight: 600;">@journal.JournalNumber</div>
+                            <div style="font-size: 14px; color: #5F6F52; font-weight: 600;">@journal.JournalNumber</div>
                         </div>
                         <div>
                             <div style="font-size: 12px; color: #6b7280; font-weight: 600;">Status</div>
                             <div style="font-size: 14px;">
-                                <span style="padding: 2px 8px; background: #d1fae5; color: #065f46; border-radius: 4px; font-size: 12px; font-weight: 600;">
+                                <span style="padding: 2px 8px; background: #D4E6D4; color: #2F3E2A; border-radius: 4px; font-size: 12px; font-weight: 600;">
                                     @journal.Status
                                 </span>
                             </div>
@@ -336,10 +336,10 @@
                                     {
                                         <tr style="border-bottom: 1px solid #f3f4f6;">
                                             <td style="padding: 8px;">@line.AccountCode - @line.AccountName</td>
-                                            <td style="padding: 8px; text-align: right; color: #10b981;">
+                                            <td style="padding: 8px; text-align: right; color: #5F6F52;">
                                                 @(line.DebitAmount > 0 ? "₱" + line.DebitAmount.ToString("N2") : "-")
                                             </td>
-                                            <td style="padding: 8px; text-align: right; color: #ef4444;">
+                                            <td style="padding: 8px; text-align: right; color: #9B3A3A;">
                                                 @(line.CreditAmount > 0 ? "₱" + line.CreditAmount.ToString("N2") : "-")
                                             </td>
                                         </tr>
@@ -472,40 +472,40 @@
 
     private string GetAccountColor(string accountType) => accountType switch
     {
-        "Asset" => "#059669",
-        "Liability" => "#10b981",
-        "Revenue" => "#047857",
-        "Expense" => "#059669",
-        "Equity" => "#10b981",
+        "Asset" => "#5F6F52",
+        "Liability" => "#5F6F52",
+        "Revenue" => "#2F3E2A",
+        "Expense" => "#5F6F52",
+        "Equity" => "#5F6F52",
         _ => "#6b7280"
     };
 
     private string GetRowBackground(string accountType) => accountType switch
     {
-        "Asset" => "#f0fdf4",
-        "Liability" => "#ecfdf5",
-        "Revenue" => "#f0fdf4",
-        "Expense" => "#ecfdf5",
+        "Asset" => "#F0F2EC",
+        "Liability" => "#E8F0E8",
+        "Revenue" => "#F0F2EC",
+        "Expense" => "#E8F0E8",
         _ => "white"
     };
 
     private string GetTypeBadgeBackground(string accountType) => accountType switch
     {
-        "Asset" => "#d1fae5",
-        "Liability" => "#ecfdf5",
-        "Revenue" => "#a7f3d0",
-        "Expense" => "#d1fae5",
-        "Equity" => "#ecfdf5",
+        "Asset" => "#D4E6D4",
+        "Liability" => "#E8F0E8",
+        "Revenue" => "#BCC9A6",
+        "Expense" => "#D4E6D4",
+        "Equity" => "#E8F0E8",
         _ => "#f3f4f6"
     };
 
     private string GetTypeBadgeColor(string accountType) => accountType switch
     {
-        "Asset" => "#065f46",
-        "Liability" => "#047857",
-        "Revenue" => "#047857",
-        "Expense" => "#065f46",
-        "Equity" => "#047857",
+        "Asset" => "#2F3E2A",
+        "Liability" => "#2F3E2A",
+        "Revenue" => "#2F3E2A",
+        "Expense" => "#2F3E2A",
+        "Equity" => "#2F3E2A",
         _ => "#4b5563"
     };
 }

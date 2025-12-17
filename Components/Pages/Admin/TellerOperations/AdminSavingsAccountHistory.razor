@@ -10,7 +10,7 @@
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Page Header -->
-    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <h1 style="font-size: 24px; font-weight: 700; margin: 0 0 4px 0;">💰 Savings Account History</h1>
@@ -24,8 +24,8 @@
     </div>
 
     <!-- Admin Access Notice -->
-    <div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-        <p style="margin: 0; color: #1e40af; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+    <div style="background: #E8F0E8; border: 2px solid #5F6F52; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <p style="margin: 0; color: #2F3E2A; font-weight: 600; display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 20px;">ℹ️</span>
             <strong>SuperAdmin Teller Operations Access</strong> - Full access to all savings accounts across branches
         </p>
@@ -34,28 +34,28 @@
     <!-- Summary Statistics -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <!-- Total Accounts -->
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; color: white;">
+        <div style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 12px; padding: 20px; color: white;">
             <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px; font-weight: 600;">TOTAL ACCOUNTS</div>
             <div style="font-size: 32px; font-weight: 700; margin-bottom: 4px;">@filteredAccounts.Count</div>
             <div style="font-size: 11px; opacity: 0.8;">accounts in system</div>
         </div>
 
         <!-- Total Deposits -->
-        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; padding: 20px; color: white;">
+        <div style="background: linear-gradient(135deg, #5F6F52 0%, #5F6F52 100%); border-radius: 12px; padding: 20px; color: white;">
             <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px; font-weight: 600;">TOTAL DEPOSITS</div>
             <div style="font-size: 32px; font-weight: 700; margin-bottom: 4px;">₱@(totalDeposits.ToString("N2"))</div>
             <div style="font-size: 11px; opacity: 0.8;">initial deposits</div>
         </div>
 
         <!-- Active Accounts -->
-        <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 12px; padding: 20px; color: white;">
+        <div style="background: linear-gradient(135deg, #6B7B5E 0%, #5F6F52 100%); border-radius: 12px; padding: 20px; color: white;">
             <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px; font-weight: 600;">ACTIVE</div>
             <div style="font-size: 32px; font-weight: 700; margin-bottom: 4px;">@activeCount</div>
             <div style="font-size: 11px; opacity: 0.8;">active accounts</div>
         </div>
 
         <!-- Average Balance -->
-        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; padding: 20px; color: white;">
+        <div style="background: linear-gradient(135deg, #8B5A2B 0%, #6B4423 100%); border-radius: 12px; padding: 20px; color: white;">
             <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px; font-weight: 600;">AVG BALANCE</div>
             <div style="font-size: 32px; font-weight: 700; margin-bottom: 4px;">₱@(averageBalance.ToString("N2"))</div>
             <div style="font-size: 11px; opacity: 0.8;">per account</div>
@@ -75,7 +75,7 @@
                        @bind="searchTerm" 
                        @bind:event="oninput"
                        placeholder="Account number or customer name..."
-                       style="width: 100%; padding: 10px 12px; border: 2px solid #059669; border-radius: 8px; font-size: 14px;" />
+                       style="width: 100%; padding: 10px 12px; border: 2px solid #5F6F52; border-radius: 8px; font-size: 14px;" />
             </div>
 
             <!-- Account Type -->
@@ -146,7 +146,7 @@
         <!-- Filter Actions -->
         <div style="margin-top: 16px; display: flex; gap: 12px;">
             <button @onclick="ApplyFilters" 
-                    style="padding: 10px 24px; background: #059669; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    style="padding: 10px 24px; background: #5F6F52; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
                 🔍 Apply Filters
             </button>
             <button @onclick="ResetFilters" 
@@ -165,7 +165,7 @@
         @if (loading)
         {
             <div style="text-align: center; padding: 40px;">
-                <div style="width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                <div style="width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
                 <p style="margin-top: 16px; color: #6b7280;">Loading accounts...</p>
             </div>
         }
@@ -209,7 +209,7 @@
                                 <td style="padding: 12px; font-size: 13px; color: #374151;">
                                     @account.AccountTypeName
                                 </td>
-                                <td style="padding: 12px; text-align: right; font-size: 14px; font-weight: 700; color: #10b981;">
+                                <td style="padding: 12px; text-align: right; font-size: 14px; font-weight: 700; color: #5F6F52;">
                                     ₱@account.Balance.ToString("N2")
                                 </td>
                                 <td style="padding: 12px; text-align: right; font-size: 13px; color: #6b7280;">
@@ -228,14 +228,14 @@
                                     @{
                                         var statusColor = account.Status switch
                                         {
-                                            "ACTIVE" => "#10b981",
+                                            "ACTIVE" => "#5F6F52",
                                             "CLOSED" => "#ef4444",
                                             "DORMANT" => "#f59e0b",
                                             _ => "#6b7280"
                                         };
                                         var statusBg = account.Status switch
                                         {
-                                            "ACTIVE" => "#d1fae5",
+                                            "ACTIVE" => "#D4E6D4",
                                             "CLOSED" => "#fee2e2",
                                             "DORMANT" => "#fef3c7",
                                             _ => "#f3f4f6"
@@ -247,7 +247,7 @@
                                 </td>
                                 <td style="padding: 12px; text-align: center;">
                                     <button @onclick="() => ViewAccountDetails(account)" 
-                                            style="background: #059669; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                                            style="background: #5F6F52; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">
                                         View
                                     </button>
                                 </td>
@@ -292,7 +292,7 @@
                     </div>
                     <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
                         <span style="color: #6b7280;">Current Balance</span>
-                        <span style="font-weight: 700; color: #059669;">₱@selectedAccount.Balance.ToString("N2")</span>
+                        <span style="font-weight: 700; color: #5F6F52;">₱@selectedAccount.Balance.ToString("N2")</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
                         <span style="color: #6b7280;">Interest Rate</span>
@@ -314,7 +314,7 @@
 
                 <div style="margin-top: 20px; display: flex; gap: 12px;">
                     <button @onclick="() => NavigateToDeposit(selectedAccount.AccountNumber)"
-                            style="flex: 1; background: #059669; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            style="flex: 1; background: #5F6F52; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
                         💰 Deposit
                     </button>
                     <button @onclick="() => NavigateToWithdraw(selectedAccount.AccountNumber)"

@@ -22,7 +22,7 @@
                 </svg>
             </div>
             <div style="flex: 1;">
-                <h1 style="font-size: 32px; font-weight: 700; margin: 0;">Pay Bills</h1>
+                <h1 style="font-size: 32px; font-weight: 600; margin: 0;">Pay Bills</h1>
                 <p style="margin: 6px 0 0; opacity: 0.95; font-size: 16px;">Manage and pay your bills easily</p>
             </div>
             <button type="button" @onclick="ShowHistory" class="btn btn-secondary"
@@ -40,16 +40,16 @@
     <!-- Main Content -->
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
         <!-- Payment Form -->
-        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
             <!-- Biller Categories -->
             <div style="margin-bottom: 32px;">
-                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Select Biller
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #2B2B2B;">Select Biller
                     Category</h3>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
                     @foreach (var category in billerCategories)
                     {
                         <button type="button" @onclick="() => SelectCategory(category)"
-                            style="padding: 16px; background: @(selectedCategory == category ? "linear-gradient(135deg, var(--accent), #059669)" : "#f9fafb"); color: @(selectedCategory == category ? "white" : "#1f2937"); border: 2px solid @(selectedCategory == category ? "var(--accent)" : "#e5e7eb"); border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 14px;">
+                            style="padding: 16px; background: @(selectedCategory == category ? "#2F3E2A" : "#F7F7F4"); color: @(selectedCategory == category ? "#FFFFFF" : "#2B2B2B"); border: 2px solid @(selectedCategory == category ? "var(--accent)" : "#E2E2DC"); border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 14px;">
                             @category
                         </button>
                     }
@@ -60,14 +60,14 @@
             {
                 <!-- Biller Selection -->
                 <div style="margin-bottom: 24px;">
-                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Choose Biller</h3>
+                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #2B2B2B;">Choose Biller</h3>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
                         @foreach (var biller in GetBillersByCategory(selectedCategory))
                         {
                             <div @onclick="() => SelectBiller(biller)"
-                                style="padding: 16px; background: @(selectedBiller == biller ? "#d1fae5" : "white"); border: 2px solid @(selectedBiller == biller ? "var(--accent)" : "#e5e7eb"); border-radius: 12px; cursor: pointer; transition: all 0.3s;"
+                                style="padding: 16px; background: @(selectedBiller == biller ? "rgba(95, 111, 82, 0.2)" : "#FFFFFF"); border: 2px solid @(selectedBiller == biller ? "var(--accent)" : "#E2E2DC"); border-radius: 10px; cursor: pointer; transition: all 0.3s;"
                                 class="biller-card">
-                                <div style="font-weight: 600; color: #1f2937; font-size: 14px;">@biller</div>
+                                <div style="font-weight: 600; color: #2B2B2B; font-size: 14px;">@biller</div>
                             </div>
                         }
                     </div>
@@ -77,7 +77,7 @@
                 {
                     <!-- Payment Details -->
                     <div style="margin-bottom: 24px;">
-                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Payment Details</h3>
+                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #2B2B2B;">Payment Details</h3>
                         <div class="form-group" style="margin-bottom: 16px;">
                             <label class="form-label">Account Number</label>
                             <input type="text" class="form-control" @bind="accountNumber" placeholder="Enter account number"
@@ -87,7 +87,7 @@
                             <label class="form-label">Amount to Pay</label>
                             <input type="number" class="form-control" @bind="amount" placeholder="0.00"
                                 style="font-size: 24px; font-weight: 600; padding: 16px; text-align: center; color: var(--accent);" />
-                            <div style="text-align: center; margin-top: 8px; font-size: 14px; color: #6b7280;">Convenience Fee:
+                            <div style="text-align: center; margin-top: 8px; font-size: 14px; color: #6B6B6B;">Convenience Fee:
                                 ₱10.00</div>
                         </div>
                     </div>
@@ -144,7 +144,7 @@
                                 <div style="font-size: 12px; color: var(--text-gray); margin-top: 2px;">
                                     @payment.Date.ToString("MMM dd, yyyy")</div>
                             </div>
-                            <div style="font-weight: 700; color: var(--danger);">-₱@payment.Amount.ToString("N2")</div>
+                            <div style="font-weight: 600; color: var(--danger);">-₱@payment.Amount.ToString("N2")</div>
                         </div>
                     </div>
                 }
@@ -166,11 +166,11 @@
             <div class="card" style="padding: 16px; background: var(--bg-lighter);">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div
-                        style="width: 48px; height: 48px; background: var(--primary-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 20px;">
+                        style="width: 48px; height: 48px; background: var(--primary-gradient); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-weight: 600; font-size: 20px;">
                         @selectedBiller.Substring(0, 1)
                     </div>
                     <div>
-                        <div style="font-weight: 700; color: var(--text-dark);">@selectedBiller</div>
+                        <div style="font-weight: 600; color: var(--text-dark);">@selectedBiller</div>
                         <div style="font-size: 13px; color: var(--text-gray);">@selectedCategory</div>
                     </div>
                 </div>
@@ -188,9 +188,9 @@
                 <label class="form-label required">Amount to Pay</label>
                 <div style="position: relative;">
                     <span
-                        style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--primary-green-start); font-size: 20px;">₱</span>
+                        style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-weight: 600; color: var(--primary-green-start); font-size: 20px;">₱</span>
                     <input type="number" class="form-control" @bind="amount" placeholder="0.00"
-                        style="font-size: 24px; font-weight: 700; padding-left: 40px; text-align: left; color: var(--primary-green-start);" />
+                        style="font-size: 24px; font-weight: 600; padding-left: 40px; text-align: left; color: var(--primary-green-start);" />
                 </div>
                 <small class="form-help">Convenience fee of ₱10.00 will be added</small>
             </div>
@@ -220,7 +220,7 @@
                 <span class="summary-value">₱10.00</span>
             </div>
             <div class="summary-row" style="padding-top: 16px; border-top: 2px solid var(--border); margin-top: 8px;">
-                <span class="summary-label" style="font-size: 16px; color: var(--text-dark); font-weight: 700;">Total
+                <span class="summary-label" style="font-size: 16px; color: var(--text-dark); font-weight: 600;">Total
                     Amount:</span>
                 <span class="summary-value highlight">₱@((amount + 10).ToString("N2"))</span>
             </div>
@@ -248,37 +248,37 @@
 <!-- Payment History Modal -->
 @if (showHistoryModal)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
         @onclick="CloseHistory">
-        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 32px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
             @onclick:stopPropagation="true">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h2 style="font-size: 24px; font-weight: 700; color: #1f2937;">Payment History</h2>
+                <h2 style="font-size: 24px; font-weight: 600; color: #2B2B2B;">Payment History</h2>
                 <button @onclick="CloseHistory"
-                    style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+                    style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6B6B6B;">&times;</button>
             </div>
 
             <div>
                 @foreach (var payment in recentPayments)
                 {
-                    <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+                    <div style="border: 1px solid #E2E2DC; border-radius: 10px; padding: 16px; margin-bottom: 12px;">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div style="flex: 1;">
                                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                                     <span style="font-size: 20px;">[BILL]</span>
                                     <div>
-                                        <div style="font-weight: 600; color: #1f2937;">@payment.Biller</div>
-                                        <div style="font-size: 12px; color: #6b7280;">@payment.Reference</div>
+                                        <div style="font-weight: 600; color: #2B2B2B;">@payment.Biller</div>
+                                        <div style="font-size: 12px; color: #6B6B6B;">@payment.Reference</div>
                                     </div>
                                 </div>
                                 <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">@payment.Date.ToString("MMM dd,     yyyy hh:mm tt")</div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-weight: 700; font-size: 18px; color: #dc2626;">-₱@payment.Amount.ToString("N2")
+                                <div style="font-weight: 600; font-size: 18px; color: #9B3A3A;">-₱@payment.Amount.ToString("N2")
                                 </div>
                                 <div style="font-size: 12px; margin-top: 4px;">
                                     <span
-                                        style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 4px; font-weight: 500;">Paid</span>
+                                        style="padding: 4px 8px; background: rgba(95, 111, 82, 0.2); color: #2F3E2A; border-radius: 4px; font-weight: 500;">Paid</span>
                                 </div>
                             </div>
                         </div>
@@ -292,18 +292,18 @@
 <!-- Success Modal -->
 @if (showSuccessModal)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001;"
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1001;"
         @onclick="CloseSuccess">
-        <div style="background: white; border-radius: 16px; padding: 40px; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 40px; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
             @onclick:stopPropagation="true">
             <div
-                style="width: 100px; height: 100px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 50%; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
+                style="width: 100px; height: 100px; background: rgba(95, 111, 82, 0.2); border-radius: 50%; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
                 <span style="font-size: 50px;">✅</span>
             </div>
-            <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 12px;">Payment Successful!</h2>
-            <p style="color: #6b7280; margin-bottom: 24px;">Your bill payment has been processed successfully.</p>
+            <h2 style="font-size: 24px; font-weight: 600; color: #2B2B2B; margin-bottom: 12px;">Payment Successful!</h2>
+            <p style="color: #6B6B6B; margin-bottom: 24px;">Your bill payment has been processed successfully.</p>
             <button @onclick="CloseSuccess"
-                style="padding: 16px 32px; background: linear-gradient(135deg, #059669, #047857); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">
+                style="padding: 16px 32px; background: #2F3E2A; border: none; border-radius: 10px; color: #FFFFFF; font-size: 16px; font-weight: 600; cursor: pointer;">
                 Done
             </button>
         </div>

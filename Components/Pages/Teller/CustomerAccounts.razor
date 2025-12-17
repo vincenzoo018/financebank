@@ -7,51 +7,51 @@
 @inject CustomerTransactionService CustomerTransactionService
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: #2F3E2A; border-radius: 14px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 10px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                 <circle cx="12" cy="7" r="4"/>
             </svg>
         </div>
         <div>
-            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Customer Accounts</h1>
+            <h1 style="font-size: 24px; font-weight: 600; color: white; margin: 0;">Customer Accounts</h1>
             <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">View and manage customer accounts</p>
         </div>
     </div>
 </div>
 
 <!-- Search & Filter -->
-<div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+<div style="background: #FFFFFF; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
     <div style="flex: 1 1 250px;">
-        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Search Account</label>
-        <input type="text" class="form-control" @bind="searchQuery" @oninput="FilterAccounts" placeholder="Account number or customer name..." />
+        <label style="display:block; font-size:12px; font-weight:500; color:#2B2B2B; margin-bottom:4px;">Search Account</label>
+        <input type="text" style="width:100%; padding:10px 12px; border:1px solid #E2E2DC; border-radius:10px; font-size:14px;" @bind="searchQuery" @oninput="FilterAccounts" placeholder="Account number or customer name..." />
     </div>
     <div style="flex: 1 1 200px;">
-        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Account Status</label>
-        <select class="form-control" @bind="selectedStatus">
+        <label style="display:block; font-size:12px; font-weight:500; color:#2B2B2B; margin-bottom:4px;">Account Status</label>
+        <select style="width:100%; padding:10px 12px; border:1px solid #E2E2DC; border-radius:10px; font-size:14px; background:#FFFFFF;" @bind="selectedStatus">
             <option value="">All</option>
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
         </select>
     </div>
     <div style="flex: 0 0 auto; display:flex; gap:8px;">
-        <button class="btn" style="background:#f3f4f6; color:#111827; padding:8px 16px; border-radius:8px; font-size:14px;" @onclick="ReloadAccounts">Refresh</button>
+        <button style="background:#A9B388; color:#2F3E2A; padding:10px 16px; border-radius:10px; font-size:14px; font-weight:500; border:none; cursor:pointer;" @onclick="ReloadAccounts">Refresh</button>
     </div>
 </div>
 
 <!-- Accounts Table -->
-<div style="background:white; border-radius:16px; border:1px solid #e5e7eb; overflow:hidden;">
+<div style="background:#FFFFFF; border-radius:14px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); overflow:hidden;">
     <table style="width:100%; border-collapse:collapse;">
         <thead>
-            <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
-                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">ACCOUNT NUMBER</th>
-                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">CUSTOMER NAME</th>
-                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">BALANCE</th>
-                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">ACTIVE</th>
-                <th style="padding:12px; text-align:left; font-size:12px; color:#6b7280;">CREATED</th>
-                <th style="padding:12px; text-align:center; font-size:12px; color:#6b7280;">ACTIONS</th>
+            <tr style="background:#F7F7F4; border-bottom:2px solid #E2E2DC;">
+                <th style="padding:12px; text-align:left; font-size:12px; font-weight:600; color:#6B6B6B;">ACCOUNT NUMBER</th>
+                <th style="padding:12px; text-align:left; font-size:12px; font-weight:600; color:#6B6B6B;">CUSTOMER NAME</th>
+                <th style="padding:12px; text-align:left; font-size:12px; font-weight:600; color:#6B6B6B;">BALANCE</th>
+                <th style="padding:12px; text-align:left; font-size:12px; font-weight:600; color:#6B6B6B;">ACTIVE</th>
+                <th style="padding:12px; text-align:left; font-size:12px; font-weight:600; color:#6B6B6B;">CREATED</th>
+                <th style="padding:12px; text-align:center; font-size:12px; font-weight:600; color:#6B6B6B;">ACTIONS</th>
             </tr>
         </thead>
         <tbody>
@@ -59,18 +59,18 @@
             {
                 @foreach (var account in filteredAccounts)
                 {
-                    <tr style="border-bottom:1px solid #e5e7eb;">
-                        <td style="padding:12px; font-size:13px; color:#111827; font-weight:600;">@account.AccountNumber</td>
-                        <td style="padding:12px; font-size:13px; color:#4b5563;">@account.Customer?.FullName</td>
-                        <td style="padding:12px; font-size:13px; color:#111827; font-weight:600;">₱@account.Balance.ToString("N2")</td>
+                    <tr style="border-bottom:1px solid #E2E2DC;">
+                        <td style="padding:12px; font-size:14px; color:#2B2B2B; font-weight:500;">@account.AccountNumber</td>
+                        <td style="padding:12px; font-size:14px; color:#6B6B6B;">@account.Customer?.FullName</td>
+                        <td style="padding:12px; font-size:14px; color:#2B2B2B; font-weight:600;">₱@account.Balance.ToString("N2")</td>
                         <td style="padding:12px;">
-                            <span style="display:inline-flex; align-items:center; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:@(account.IsActive ? "#d1fae5" : "#fee2e2"); color:@(account.IsActive ? "#065f46" : "#b91c1c");">
+                            <span style="display:inline-flex; align-items:center; padding:4px 12px; border-radius:10px; font-size:12px; font-weight:500; background:@(account.IsActive ? "rgba(79, 111, 82, 0.1)" : "rgba(155, 58, 58, 0.1)"); color:@(account.IsActive ? "#4F6F52" : "#9B3A3A");">
                                 @(account.IsActive ? "Active" : "Inactive")
                             </span>
                         </td>
-                        <td style="padding:12px; font-size:13px; color:#6b7280;">@account.CreatedAt.ToString("yyyy-MM-dd")</td>
+                        <td style="padding:12px; font-size:13px; color:#6B6B6B;">@account.CreatedAt.ToString("yyyy-MM-dd")</td>
                         <td style="padding:12px; text-align:center;">
-                            <button class="btn" style="background:#1f2937; color:white; padding:6px 12px; font-size:12px; border-radius:6px;" @onclick="() => ViewAccountDetails(account)">View</button>
+                            <button style="background:#2F3E2A; color:white; padding:6px 12px; font-size:12px; border-radius:10px; border:none; cursor:pointer; font-weight:500;" @onclick="() => ViewAccountDetails(account)">View</button>
                         </td>
                     </tr>
                 }
@@ -78,7 +78,7 @@
             else
             {
                 <tr>
-                    <td colspan="7" style="padding:24px; text-align:center; font-size:14px; color:#6b7280;">No accounts found.</td>
+                    <td colspan="7" style="padding:24px; text-align:center; font-size:14px; color:#6B6B6B;">No accounts found.</td>
                 </tr>
             }
         </tbody>
@@ -88,87 +88,87 @@
 <!-- Account Details Modal -->
 @if (showDetailsModal && selectedAccount != null)
 {
-    <div @onclick="CloseDetailsModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;">
-        <div @onclick:stopPropagation style="background:white; border-radius:16px; max-width:700px; width:100%; max-height:80vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <div style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
-                <h2 style="font-size:20px; font-weight:700; color:#111827; margin:0;">Account Details</h2>
-                <button @onclick="CloseDetailsModal" style="background:none; border:none; font-size:22px; color:#6b7280; cursor:pointer;">×</button>
+    <div @onclick="CloseDetailsModal" style="position:fixed; inset:0; background:rgba(47, 62, 42, 0.6); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;">
+        <div @onclick:stopPropagation style="background:#FFFFFF; border-radius:16px; max-width:700px; width:100%; max-height:80vh; overflow-y:auto; box-shadow:0 25px 60px rgba(0,0,0,0.2);">
+            <div style="padding:20px 24px; border-bottom:1px solid #E2E2DC; display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="font-size:20px; font-weight:600; color:#2B2B2B; margin:0;">Account Details</h2>
+                <button @onclick="CloseDetailsModal" style="background:none; border:none; font-size:22px; color:#6B6B6B; cursor:pointer;">×</button>
             </div>
             <div style="padding:20px 24px;">
                 <!-- Account Info -->
                 <div style="margin-bottom:24px;">
-                    <h3 style="font-size:16px; font-weight:600; color:#111827; margin-bottom:12px;">Account Information</h3>
+                    <h3 style="font-size:16px; font-weight:600; color:#2B2B2B; margin-bottom:12px;">Account Information</h3>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                         <div>
-                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Account Number</div>
-                            <div style="font-size:14px; color:#111827;">@selectedAccount.AccountNumber</div>
+                            <div style="font-size:12px; font-weight:500; color:#6B6B6B; margin-bottom:4px;">Account Number</div>
+                            <div style="font-size:14px; color:#2B2B2B;">@selectedAccount.AccountNumber</div>
                         </div>
                         <div>
-                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Status</div>
-                            <div style="font-size:14px; color:#111827;">@(selectedAccount.IsActive ? "Active" : "Inactive")</div>
+                            <div style="font-size:12px; font-weight:500; color:#6B6B6B; margin-bottom:4px;">Status</div>
+                            <div style="font-size:14px; color:#2B2B2B;">@(selectedAccount.IsActive ? "Active" : "Inactive")</div>
                         </div>
                         <div>
-                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Created</div>
-                            <div style="font-size:14px; color:#111827;">@selectedAccount.CreatedAt.ToString("yyyy-MM-dd")</div>
+                            <div style="font-size:12px; font-weight:500; color:#6B6B6B; margin-bottom:4px;">Created</div>
+                            <div style="font-size:14px; color:#2B2B2B;">@selectedAccount.CreatedAt.ToString("yyyy-MM-dd")</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Customer Info -->
                 <div style="margin-bottom:24px;">
-                    <h3 style="font-size:16px; font-weight:600; color:#111827; margin-bottom:12px;">Customer Information</h3>
+                    <h3 style="font-size:16px; font-weight:600; color:#2B2B2B; margin-bottom:12px;">Customer Information</h3>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                         <div>
-                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Full Name</div>
-                            <div style="font-size:14px; color:#111827;">@selectedAccount.Customer?.FullName</div>
+                            <div style="font-size:12px; font-weight:500; color:#6B6B6B; margin-bottom:4px;">Full Name</div>
+                            <div style="font-size:14px; color:#2B2B2B;">@selectedAccount.Customer?.FullName</div>
                         </div>
                         <div>
-                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Email</div>
-                            <div style="font-size:14px; color:#111827;">@selectedAccount.Customer?.Email</div>
+                            <div style="font-size:12px; font-weight:500; color:#6B6B6B; margin-bottom:4px;">Email</div>
+                            <div style="font-size:14px; color:#2B2B2B;">@selectedAccount.Customer?.Email</div>
                         </div>
                         <div>
-                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Phone</div>
-                            <div style="font-size:14px; color:#111827;">@selectedAccount.Customer?.PhoneNumber</div>
+                            <div style="font-size:12px; font-weight:500; color:#6B6B6B; margin-bottom:4px;">Phone</div>
+                            <div style="font-size:14px; color:#2B2B2B;">@selectedAccount.Customer?.PhoneNumber</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Balance Info -->
                 <div style="margin-bottom:24px;">
-                    <h3 style="font-size:16px; font-weight:600; color:#111827; margin-bottom:12px;">Balance Information</h3>
+                    <h3 style="font-size:16px; font-weight:600; color:#2B2B2B; margin-bottom:12px;">Balance Information</h3>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                         <div>
-                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Current Balance</div>
-                            <div style="font-size:18px; font-weight:700; color:#059669;">₱@selectedAccount.Balance.ToString("N2")</div>
+                            <div style="font-size:12px; font-weight:500; color:#6B6B6B; margin-bottom:4px;">Current Balance</div>
+                            <div style="font-size:18px; font-weight:600; color:#5F6F52;">₱@selectedAccount.Balance.ToString("N2")</div>
                         </div>
                         <div>
-                            <div style="font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px;">Available Balance</div>
-                            <div style="font-size:18px; font-weight:700; color:#0891b2;">₱@selectedAccount.AvailableBalance.ToString("N2")</div>
+                            <div style="font-size:12px; font-weight:500; color:#6B6B6B; margin-bottom:4px;">Available Balance</div>
+                            <div style="font-size:18px; font-weight:600; color:#5F7A6A;">₱@selectedAccount.AvailableBalance.ToString("N2")</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Recent Transactions -->
                 <div>
-                    <h3 style="font-size:16px; font-weight:600; color:#111827; margin-bottom:12px;">Recent Transactions</h3>
+                    <h3 style="font-size:16px; font-weight:600; color:#2B2B2B; margin-bottom:12px;">Recent Transactions</h3>
                     @if (recentTransactions.Any())
                     {
-                        <div style="border:1px solid #e5e7eb; border-radius:8px; overflow:hidden;">
+                        <div style="border:1px solid #E2E2DC; border-radius:10px; overflow:hidden;">
                             <table style="width:100%; border-collapse:collapse;">
                                 <thead>
-                                    <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
-                                        <th style="padding:8px 12px; text-align:left; font-size:11px; color:#6b7280;">TYPE</th>
-                                        <th style="padding:8px 12px; text-align:left; font-size:11px; color:#6b7280;">AMOUNT</th>
-                                        <th style="padding:8px 12px; text-align:left; font-size:11px; color:#6b7280;">DATE</th>
+                                    <tr style="background:#F7F7F4; border-bottom:1px solid #E2E2DC;">
+                                        <th style="padding:8px 12px; text-align:left; font-size:11px; font-weight:600; color:#6B6B6B;">TYPE</th>
+                                        <th style="padding:8px 12px; text-align:left; font-size:11px; font-weight:600; color:#6B6B6B;">AMOUNT</th>
+                                        <th style="padding:8px 12px; text-align:left; font-size:11px; font-weight:600; color:#6B6B6B;">DATE</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var txn in recentTransactions.Take(5))
                                     {
-                                        <tr style="border-bottom:1px solid #e5e7eb;">
-                                            <td style="padding:8px 12px; font-size:12px; color:#111827;">@txn.TransactionType</td>
-                                            <td style="padding:8px 12px; font-size:12px; color:#111827; font-weight:600;">₱@txn.Amount.ToString("N2")</td>
-                                            <td style="padding:8px 12px; font-size:12px; color:#6b7280;">@txn.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <tr style="border-bottom:1px solid #E2E2DC;">
+                                            <td style="padding:8px 12px; font-size:12px; color:#2B2B2B;">@txn.TransactionType</td>
+                                            <td style="padding:8px 12px; font-size:12px; color:#2B2B2B; font-weight:500;">₱@txn.Amount.ToString("N2")</td>
+                                            <td style="padding:8px 12px; font-size:12px; color:#6B6B6B;">@txn.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -177,12 +177,12 @@
                     }
                     else
                     {
-                        <div style="padding:12px; text-align:center; font-size:12px; color:#6b7280;">No transactions yet.</div>
+                        <div style="padding:12px; text-align:center; font-size:12px; color:#6B6B6B;">No transactions yet.</div>
                     }
                 </div>
             </div>
-            <div style="padding:16px 24px; border-top:1px solid #e5e7eb; display:flex; justify-content:flex-end;">
-                <button class="btn" style="background:#f3f4f6; color:#111827; padding:8px 16px; border-radius:8px; font-size:14px;" @onclick="CloseDetailsModal">Close</button>
+            <div style="padding:16px 24px; border-top:1px solid #E2E2DC; display:flex; justify-content:flex-end;">
+                <button style="background:#A9B388; color:#2F3E2A; padding:10px 20px; border-radius:10px; font-size:14px; font-weight:500; border:none; cursor:pointer;" @onclick="CloseDetailsModal">Close</button>
             </div>
         </div>
     </div>

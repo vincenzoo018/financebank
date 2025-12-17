@@ -6,7 +6,7 @@
 
 <div style="min-height: 100vh; display: flex; background: #f9fafb;">
     <!-- Left Side - Illustration (Green Gradient) -->
-    <div style="flex: 1; background: linear-gradient(135deg, #059669 0%, #10b981 100%); display: flex; align-items: center; justify-content: center; padding: 40px; position: relative; overflow: hidden; display: none;"
+    <div style="flex: 1; background: linear-gradient(135deg, #5F6F52 0%, #5F6F52 100%); display: flex; align-items: center; justify-content: center; padding: 40px; position: relative; overflow: hidden; display: none;"
         class="left-side">
         <div
             style="position: absolute; width: 400px; height: 400px; background: rgba(255,255,255,0.1); border-radius: 50%; top: -200px; right: -200px;">
@@ -75,7 +75,7 @@
                 <!-- Recovery Password Link -->
                 <div style="text-align: right; margin-bottom: 24px;">
                     <a href="/forgot-password"
-                        style="font-size: 12px; color: #059669; text-decoration: none; font-weight: 600;">Recovery
+                        style="font-size: 12px; color: #5F6F52; text-decoration: none; font-weight: 600;">Recovery
                         Password</a>
                 </div>
 
@@ -167,12 +167,12 @@
                 }
                 else
                 {
-                    <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #059669, #10b981); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                    <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #5F6F52, #5F6F52); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                     </div>
-                    <h3 style="font-size: 20px; font-weight: 700; color: #059669; margin-bottom: 8px;">PIN Verified!</h3>
+                    <h3 style="font-size: 20px; font-weight: 700; color: #5F6F52; margin-bottom: 8px;">PIN Verified!</h3>
                     <p style="font-size: 14px; color: #6b7280; line-height: 1.5;">
                         Your PIN has been verified. Choose what you want to do:
                     </p>
@@ -210,7 +210,7 @@
                                    @oninput="(e) => HandlePinInput(e, index)"
                                    id="pin-@index"
                                    style="width: 56px; height: 56px; text-align: center; font-size: 24px; font-weight: 700; border: 2px solid #e5e7eb; border-radius: 12px; outline: none; transition: all 0.2s;"
-                                   onfocus="this.style.borderColor='#059669'; this.style.boxShadow='0 0 0 3px rgba(5,150,105,0.1)';"
+                                   onfocus="this.style.borderColor='#5F6F52'; this.style.boxShadow='0 0 0 3px rgba(5,150,105,0.1)';"
                                    onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';" />
                         }
                     </div>
@@ -245,7 +245,7 @@
                         </button>
                         <button @onclick="HandlePinVerificationOnly" 
                                 disabled="@isPinLoading"
-                                style="flex: 1; padding: 12px; background: linear-gradient(135deg, #059669, #10b981); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: white; cursor: pointer;">
+                                style="flex: 1; padding: 12px; background: linear-gradient(135deg, #5F6F52, #5F6F52); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: white; cursor: pointer;">
                             @if (isPinLoading)
                             {
                                 <span>Verifying...</span>
@@ -263,12 +263,12 @@
                 <!-- PIN Verified - Show Options -->
                 <div style="display: flex; flex-direction: column; gap: 16px;">
                     <!-- Option 1: Change Password -->
-                    <div style="border: 2px solid @(selectedOption == "change" ? "#059669" : "#e5e7eb"); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s;" @onclick='() => selectedOption = "change"'>
+                    <div style="border: 2px solid @(selectedOption == "change" ? "#5F6F52" : "#e5e7eb"); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s;" @onclick='() => selectedOption = "change"'>
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 24px; height: 24px; border: 2px solid @(selectedOption == "change" ? "#059669" : "#d1d5db"); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 24px; height: 24px; border: 2px solid @(selectedOption == "change" ? "#5F6F52" : "#d1d5db"); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                                 @if (selectedOption == "change")
                                 {
-                                    <div style="width: 12px; height: 12px; background: #059669; border-radius: 50%;"></div>
+                                    <div style="width: 12px; height: 12px; background: #5F6F52; border-radius: 50%;"></div>
                                 }
                             </div>
                             <div>
@@ -279,12 +279,12 @@
                     </div>
 
                     <!-- Option 2: Continue to Dashboard -->
-                    <div style="border: 2px solid @(selectedOption == "continue" ? "#059669" : "#e5e7eb"); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s;" @onclick='() => selectedOption = "continue"'>
+                    <div style="border: 2px solid @(selectedOption == "continue" ? "#5F6F52" : "#e5e7eb"); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s;" @onclick='() => selectedOption = "continue"'>
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 24px; height: 24px; border: 2px solid @(selectedOption == "continue" ? "#059669" : "#d1d5db"); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 24px; height: 24px; border: 2px solid @(selectedOption == "continue" ? "#5F6F52" : "#d1d5db"); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                                 @if (selectedOption == "continue")
                                 {
-                                    <div style="width: 12px; height: 12px; background: #059669; border-radius: 50%;"></div>
+                                    <div style="width: 12px; height: 12px; background: #5F6F52; border-radius: 50%;"></div>
                                 }
                             </div>
                             <div>
@@ -325,7 +325,7 @@
 
                     @if (!string.IsNullOrEmpty(pinSuccessMessage))
                     {
-                        <div style="padding: 12px; background: #d1fae5; border: 1px solid #a7f3d0; border-radius: 8px; color: #065f46; font-size: 13px;">
+                        <div style="padding: 12px; background: #D4E6D4; border: 1px solid #BCC9A6; border-radius: 8px; color: #2F3E2A; font-size: 13px;">
                             @pinSuccessMessage
                         </div>
                     }
@@ -333,7 +333,7 @@
                     <!-- Action Button -->
                     <button @onclick="HandleSelectedOption" 
                             disabled="@(isPinLoading || string.IsNullOrEmpty(selectedOption))"
-                            style="width: 100%; padding: 14px; background: linear-gradient(135deg, #059669, #10b981); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: white; cursor: pointer; opacity: @(string.IsNullOrEmpty(selectedOption) ? "0.5" : "1");">
+                            style="width: 100%; padding: 14px; background: linear-gradient(135deg, #5F6F52, #5F6F52); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: white; cursor: pointer; opacity: @(string.IsNullOrEmpty(selectedOption) ? "0.5" : "1");">
                         @if (isPinLoading)
                         {
                             <span>Processing...</span>
@@ -396,7 +396,7 @@
 
     .login-input:focus {
         outline: none;
-        border-color: #059669;
+        border-color: #5F6F52;
         box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
     }
 
@@ -414,7 +414,7 @@
     .login-button {
         width: 100%;
         padding: 12px 16px;
-        background: linear-gradient(135deg, #059669, #10b981);
+        background: linear-gradient(135deg, #5F6F52, #5F6F52);
         border: none;
         border-radius: 8px;
         color: white;

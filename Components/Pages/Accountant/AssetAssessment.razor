@@ -9,7 +9,7 @@
 
 <div class="sidebar-content">
     <div class="card">
-        <div class="card-header" style="background: linear-gradient(135deg, #7c3aed, #a78bfa); color: white; padding: 20px;">
+        <div class="card-header" style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; padding: 20px;">
             <h4 style="margin: 0; font-weight: 600;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px; vertical-align: middle;">
                     <path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
@@ -22,14 +22,14 @@
         <div class="card-body" style="padding: 24px;">
             @if (!string.IsNullOrEmpty(successMessage))
             {
-                <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="background: #D4E6D4; border: 1px solid #A9B388; color: #2F3E2A; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
                     ✅ @successMessage
                 </div>
             }
 
             @if (!string.IsNullOrEmpty(errorMessage))
             {
-                <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="background: #F5E6E6; border: 1px solid #E5D0D0; color: #7A2E2E; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
                     ❌ @errorMessage
                 </div>
             }
@@ -37,7 +37,7 @@
             @if (isLoading)
             {
                 <div style="text-align: center; padding: 40px;">
-                    <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                    <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
                     <p style="margin-top: 16px; color: #6b7280;">Loading applications...</p>
                 </div>
             }
@@ -71,7 +71,7 @@
                             {
                                 <tr style="border-bottom: 1px solid #e5e7eb;">
                                     <td style="padding: 16px 12px;">
-                                        <span style="background: #ede9fe; color: #6d28d9; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 13px;">
+                                        <span style="background: #E8F0E8; color: #5F6F52; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 13px;">
                                             @app.ApplicationNumber
                                         </span>
                                     </td>
@@ -83,7 +83,7 @@
                                         <div style="font-weight: 500; color: #374151;">@(app.Asset?.AssetName ?? "N/A")</div>
                                         <div style="font-size: 12px; color: #6b7280;">@(app.Asset?.AssetType ?? "")</div>
                                     </td>
-                                    <td style="padding: 16px 12px; text-align: right; font-weight: 600; color: #059669;">
+                                    <td style="padding: 16px 12px; text-align: right; font-weight: 600; color: #5F6F52;">
                                         ₱@app.LoanAmount.ToString("N2")
                                     </td>
                                     <td style="padding: 16px 12px; text-align: right; color: #374151;">
@@ -93,7 +93,7 @@
                                         @app.TellerReviewedBy
                                     </td>
                                     <td style="padding: 16px 12px; text-align: center;">
-                                        <button style="background: #7c3aed; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;"
+                                        <button style="background: #5F6F52; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;"
                                                 @onclick="() => OpenAssessmentModal(app)">
                                             Assess
                                         </button>
@@ -113,7 +113,7 @@
 {
     <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;">
         <div style="background: white; border-radius: 16px; width: 100%; max-width: 1000px; max-height: 90vh; overflow-y: auto;">
-            <div style="background: linear-gradient(135deg, #7c3aed, #a78bfa); color: white; padding: 20px; border-radius: 16px 16px 0 0;">
+            <div style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; padding: 20px; border-radius: 16px 16px 0 0;">
                 <h4 style="margin: 0;">📊 Financial Assessment</h4>
                 <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Application #: @selectedApplication.ApplicationNumber</p>
             </div>
@@ -127,23 +127,23 @@
                         <div style="font-size: 14px;">
                             <p><strong>Name:</strong> @selectedApplication.CustomerName</p>
                             <p><strong>Employment:</strong> @selectedApplication.EmploymentStatus</p>
-                            <p><strong>Monthly Income:</strong> <span style="color: #059669; font-weight: 700;">₱@(selectedApplication.MonthlyIncome?.ToString("N2") ?? "N/A")</span></p>
+                            <p><strong>Monthly Income:</strong> <span style="color: #5F6F52; font-weight: 700;">₱@(selectedApplication.MonthlyIncome?.ToString("N2") ?? "N/A")</span></p>
                         </div>
                     </div>
 
                     <!-- Asset Details -->
                     <div style="background: #eff6ff; border-radius: 12px; padding: 16px;">
-                        <h5 style="margin: 0 0 12px 0; color: #3b82f6; font-weight: 700;">🏠 Asset Details</h5>
+                        <h5 style="margin: 0 0 12px 0; color: #5F6F52; font-weight: 700;">🏠 Asset Details</h5>
                         <div style="font-size: 14px;">
                             <p><strong>Asset:</strong> @(selectedApplication.Asset?.AssetName ?? "N/A")</p>
                             <p><strong>Type:</strong> @(selectedApplication.Asset?.AssetType ?? "N/A")</p>
-                            <p><strong>Price:</strong> <span style="color: #059669; font-weight: 700;">₱@selectedApplication.AssetPrice.ToString("N2")</span></p>
+                            <p><strong>Price:</strong> <span style="color: #5F6F52; font-weight: 700;">₱@selectedApplication.AssetPrice.ToString("N2")</span></p>
                         </div>
                     </div>
 
                     <!-- Loan Terms -->
-                    <div style="background: #f0fdf4; border-radius: 12px; padding: 16px; border: 1px solid #bbf7d0;">
-                        <h5 style="margin: 0 0 12px 0; color: #059669; font-weight: 700;">💰 Loan Terms</h5>
+                    <div style="background: #F0F2EC; border-radius: 12px; padding: 16px; border: 1px solid #BCC9A6;">
+                        <h5 style="margin: 0 0 12px 0; color: #5F6F52; font-weight: 700;">💰 Loan Terms</h5>
                         <div style="font-size: 14px;">
                             <p><strong>Down Payment:</strong> ₱@selectedApplication.DownPaymentAmount.ToString("N2")</p>
                             <p><strong>Loan Amount:</strong> ₱@selectedApplication.LoanAmount.ToString("N2")</p>
@@ -187,9 +187,9 @@
                     <!-- Uploaded Documents Info -->
                     @if (!string.IsNullOrEmpty(selectedApplication.UploadedDocuments))
                     {
-                        <div style="margin-top: 12px; padding: 12px; background: #d1fae5; border-radius: 8px;">
-                            <strong style="color: #059669;">📁 Documents Uploaded by Teller:</strong>
-                            <span style="color: #065f46;"> Documents have been scanned and uploaded</span>
+                        <div style="margin-top: 12px; padding: 12px; background: #D4E6D4; border-radius: 8px;">
+                            <strong style="color: #5F6F52;">📁 Documents Uploaded by Teller:</strong>
+                            <span style="color: #2F3E2A;"> Documents have been scanned and uploaded</span>
                         </div>
                     }
                     
@@ -235,15 +235,15 @@
                 }
 
                 <!-- Financial Assessment -->
-                <div style="background: #ede9fe; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #c4b5fd;">
-                    <h5 style="margin: 0 0 16px 0; color: #6d28d9; font-weight: 700;">📊 Financial Assessment</h5>
+                <div style="background: #F0F2EC; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #A9B388;">
+                    <h5 style="margin: 0 0 16px 0; color: #5F6F52; font-weight: 700;">📊 Financial Assessment</h5>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
                         <!-- DTI Ratio -->
                         <div>
                             <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Debt-to-Income Ratio (%)</label>
                             <input @bind="assessedDTI" type="number" step="0.01" placeholder="Calculate DTI"
-                                style="width: 100%; padding: 12px; border: 2px solid #c4b5fd; border-radius: 8px;" />
+                                style="width: 100%; padding: 12px; border: 2px solid #A9B388; border-radius: 8px;" />
                             <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
                                 Calculated: @CalculatedDTI.ToString("N2")% (Monthly Payment / Income)
                             </div>
@@ -273,11 +273,11 @@
                         <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Recommendation</label>
                         <div style="display: flex; gap: 12px;">
                             <button type="button" @onclick='() => recommendation = "APPROVE"'
-                                style="flex: 1; padding: 14px; border-radius: 8px; border: 2px solid @(recommendation == "APPROVE" ? "#059669" : "#e5e7eb"); background: @(recommendation == "APPROVE" ? "#f0fdf4" : "white"); cursor: pointer; font-weight: 600; color: @(recommendation == "APPROVE" ? "#059669" : "#6b7280");">
+                                style="flex: 1; padding: 14px; border-radius: 8px; border: 2px solid @(recommendation == "APPROVE" ? "#5F6F52" : "#e5e7eb"); background: @(recommendation == "APPROVE" ? "#F0F2EC" : "white"); cursor: pointer; font-weight: 600; color: @(recommendation == "APPROVE" ? "#5F6F52" : "#6b7280");">
                                 ✅ Recommend Approve
                             </button>
                             <button type="button" @onclick='() => recommendation = "DECLINE"'
-                                style="flex: 1; padding: 14px; border-radius: 8px; border: 2px solid @(recommendation == "DECLINE" ? "#dc2626" : "#e5e7eb"); background: @(recommendation == "DECLINE" ? "#fee2e2" : "white"); cursor: pointer; font-weight: 600; color: @(recommendation == "DECLINE" ? "#dc2626" : "#6b7280");">
+                                style="flex: 1; padding: 14px; border-radius: 8px; border: 2px solid @(recommendation == "DECLINE" ? "#9B3A3A" : "#e5e7eb"); background: @(recommendation == "DECLINE" ? "#F5E6E6" : "white"); cursor: pointer; font-weight: 600; color: @(recommendation == "DECLINE" ? "#9B3A3A" : "#6b7280");">
                                 ❌ Recommend Decline
                             </button>
                         </div>
@@ -296,11 +296,11 @@
                     <button @onclick="CloseModal" style="background: white; border: 2px solid #e5e7eb; color: #374151; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
                         Cancel
                     </button>
-                    <button @onclick="RejectApplication" style="background: #dc2626; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <button @onclick="RejectApplication" style="background: #9B3A3A; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
                         ❌ Reject Application
                     </button>
                     <button @onclick="AssessAndForward" disabled="@(!CanSubmit || isProcessing)"
-                        style="background: @(CanSubmit ? "linear-gradient(135deg, #7c3aed, #a78bfa)" : "#9ca3af"); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: @(CanSubmit ? "pointer" : "not-allowed"); font-weight: 600;">
+                        style="background: @(CanSubmit ? "linear-gradient(135deg, #5F6F52, #2F3E2A)" : "#9ca3af"); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: @(CanSubmit ? "pointer" : "not-allowed"); font-weight: 600;">
                         @(isProcessing ? "Processing..." : "✅ Assess & Forward to Finance Manager")
                     </button>
                 </div>

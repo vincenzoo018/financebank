@@ -7,22 +7,26 @@
 @inject IJSRuntime JS
 
 <!-- Header with Filter -->
-<div style="background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), rgba(4, 120, 87, 0.15)); border: 1px solid rgba(5, 150, 105, 0.3); border-radius: 16px; padding: 24px; margin-bottom: 32px; color: #065f46;">
+<div
+    style="background: linear-gradient(135deg, #2F3E2A 0%, #5F6F52 100%); border-radius: 14px; padding: 24px; margin-bottom: 24px; color: white;">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div>
-            <h1 style="font-size: 24px; font-weight: 700; margin: 0;">Teller Dashboard</h1>
-            <p style="margin: 8px 0 0; font-size: 14px; opacity: 0.85;">Real-time ERP Analytics & Transaction Processing</p>
+            <h1 style="font-size: 24px; font-weight: 600; margin: 0; font-family: 'Inter', 'Poppins', sans-serif;">
+                Teller Dashboard</h1>
+            <p style="margin: 8px 0 0; font-size: 14px; opacity: 0.9; font-weight: 400;">Real-time ERP Analytics &
+                Transaction Processing</p>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
             <button @onclick='() => { selectedPeriod = "today"; OnPeriodChanged(); }'
-                style="padding: 8px 16px; background: @(selectedPeriod == "today" ? "white" : "rgba(255,255,255,0.5)"); color: @(selectedPeriod == "today" ? "#065f46" : "#065f46"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Day</button>
+                style="padding: 10px 16px; background: @(selectedPeriod == "today" ? "#FFFFFF" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "today" ? "#2F3E2A" : "#FFFFFF"); border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 150ms ease-in-out;">Day</button>
             <button @onclick='() => { selectedPeriod = "week"; OnPeriodChanged(); }'
-                style="padding: 8px 16px; background: @(selectedPeriod == "week" ? "white" : "rgba(255,255,255,0.5)"); color: @(selectedPeriod == "week" ? "#065f46" : "#065f46"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Week</button>
+                style="padding: 10px 16px; background: @(selectedPeriod == "week" ? "#FFFFFF" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "week" ? "#2F3E2A" : "#FFFFFF"); border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 150ms ease-in-out;">Week</button>
             <button @onclick='() => { selectedPeriod = "month"; OnPeriodChanged(); }'
-                style="padding: 8px 16px; background: @(selectedPeriod == "month" ? "white" : "rgba(255,255,255,0.5)"); color: @(selectedPeriod == "month" ? "#065f46" : "#065f46"); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Month</button>
-            <button @onclick="OpenReportModal" 
-                style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.5); border: 2px solid rgba(5, 150, 105, 0.5); padding: 8px 16px; border-radius: 8px; color: #065f46; font-weight: 600; cursor: pointer; margin-left: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                style="padding: 10px 16px; background: @(selectedPeriod == "month" ? "#FFFFFF" : "rgba(255,255,255,0.2)"); color: @(selectedPeriod == "month" ? "#2F3E2A" : "#FFFFFF"); border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 150ms ease-in-out;">Month</button>
+            <button @onclick="OpenReportModal"
+                style="display: flex; align-items: center; gap: 8px; background: #A9B388; border: none; padding: 10px 16px; border-radius: 10px; color: #2F3E2A; font-weight: 600; cursor: pointer; margin-left: 8px; transition: all 150ms ease-in-out;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="7 10 12 15 17 10"></polyline>
                     <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -36,23 +40,31 @@
 @if (isLoading)
 {
     <div style="display: flex; justify-content: center; padding: 60px;">
-        <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <div
+            style="width: 48px; height: 48px; border: 4px solid #E2E2DC; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite;">
+        </div>
     </div>
 }
 else if (analytics != null)
 {
     <!-- Quick Stats - Primary Metrics -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 32px;">
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <!-- Total Deposits -->
-        <div style="background: white; border-radius: 16px; padding: 24px; border-left: 4px solid #059669; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div
+            style="background: #FFFFFF; border-radius: 14px; padding: 20px; border-left: 4px solid #4F6F52; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
-                    <p style="margin: 0; font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Deposits</p>
-                    <h3 style="margin: 8px 0 0; font-size: 28px; font-weight: 700; color: #059669;">₱@analytics.TotalDeposits.ToString("N2")</h3>
-                    <p style="margin: 4px 0 0; font-size: 12px; color: #6b7280;">@analytics.DepositCount transactions</p>
+                    <p style="margin: 0; font-size: 12px; color: #6B6B6B; font-weight: 500; text-transform: uppercase;">
+                        Deposits</p>
+                    <h3 style="margin: 8px 0 0; font-size: 28px; font-weight: 600; color: #4F6F52;">
+                        ₱@analytics.TotalDeposits.ToString("N2")</h3>
+                    <p style="margin: 4px 0 0; font-size: 12px; color: #6B6B6B;">@analytics.DepositCount transactions</p>
                 </div>
-                <div style="width: 48px; height: 48px; background: #d1fae5; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                    <svg width="24" height="24" fill="none" stroke="#059669" stroke-width="2">
+                <div
+                    style="width: 48px; height: 48px; background: rgba(79, 111, 82, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="24" height="24" fill="none" stroke="#5F6F52" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
                         <path d="M12 2v20M2 12l10-10 10 10"></path>
                     </svg>
                 </div>
@@ -60,15 +72,20 @@ else if (analytics != null)
         </div>
 
         <!-- Total Withdrawals -->
-        <div style="background: white; border-radius: 16px; padding: 24px; border-left: 4px solid #dc2626; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div
+            style="background: #FFFFFF; border-radius: 14px; padding: 20px; border-left: 4px solid #9B3A3A; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
-                    <p style="margin: 0; font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Withdrawals</p>
-                    <h3 style="margin: 8px 0 0; font-size: 28px; font-weight: 700; color: #dc2626;">₱@analytics.TotalWithdrawals.ToString("N2")</h3>
-                    <p style="margin: 4px 0 0; font-size: 12px; color: #6b7280;">@analytics.WithdrawalCount transactions</p>
+                    <p style="margin: 0; font-size: 12px; color: #6B6B6B; font-weight: 500; text-transform: uppercase;">
+                        Withdrawals</p>
+                    <h3 style="margin: 8px 0 0; font-size: 28px; font-weight: 600; color: #9B3A3A;">
+                        ₱@analytics.TotalWithdrawals.ToString("N2")</h3>
+                    <p style="margin: 4px 0 0; font-size: 12px; color: #6B6B6B;">@analytics.WithdrawalCount transactions</p>
                 </div>
-                <div style="width: 48px; height: 48px; background: #fee2e2; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                    <svg width="24" height="24" fill="none" stroke="#dc2626" stroke-width="2">
+                <div
+                    style="width: 48px; height: 48px; background: rgba(155, 58, 58, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="24" height="24" fill="none" stroke="#9B3A3A" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
                         <path d="M12 22V2M2 12l10 10 10-10"></path>
                     </svg>
                 </div>
@@ -76,15 +93,20 @@ else if (analytics != null)
         </div>
 
         <!-- Loan Payments Received -->
-        <div style="background: white; border-radius: 16px; padding: 24px; border-left: 4px solid #3b82f6; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div
+            style="background: #FFFFFF; border-radius: 14px; padding: 20px; border-left: 4px solid #5F7A6A; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
-                    <p style="margin: 0; font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Loan Payments</p>
-                    <h3 style="margin: 8px 0 0; font-size: 28px; font-weight: 700; color: #3b82f6;">₱@analytics.TotalLoanPayments.ToString("N2")</h3>
-                    <p style="margin: 4px 0 0; font-size: 12px; color: #6b7280;">@analytics.LoanPaymentCount payments</p>
+                    <p style="margin: 0; font-size: 12px; color: #6B6B6B; font-weight: 500; text-transform: uppercase;">Loan
+                        Payments</p>
+                    <h3 style="margin: 8px 0 0; font-size: 28px; font-weight: 600; color: #5F7A6A;">
+                        ₱@analytics.TotalLoanPayments.ToString("N2")</h3>
+                    <p style="margin: 4px 0 0; font-size: 12px; color: #6B6B6B;">@analytics.LoanPaymentCount payments</p>
                 </div>
-                <div style="width: 48px; height: 48px; background: #dbeafe; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                    <svg width="24" height="24" fill="none" stroke="#3b82f6" stroke-width="2">
+                <div
+                    style="width: 48px; height: 48px; background: rgba(95, 122, 106, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="24" height="24" fill="none" stroke="#5F7A6A" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
                         <rect x="2" y="6" width="20" height="12" rx="2"></rect>
                         <path d="M2 10h20"></path>
                     </svg>
@@ -93,32 +115,47 @@ else if (analytics != null)
         </div>
 
         <!-- Loan Disbursements -->
-        <div style="background: white; border-radius: 16px; padding: 24px; border-left: 4px solid #f59e0b; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div
+            style="background: #FFFFFF; border-radius: 14px; padding: 20px; border-left: 4px solid #8B5A2B; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
-                    <p style="margin: 0; font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Loan Releases</p>
-                    <h3 style="margin: 8px 0 0; font-size: 28px; font-weight: 700; color: #f59e0b;">₱@analytics.TotalLoanDisbursements.ToString("N2")</h3>
-                    <p style="margin: 4px 0 0; font-size: 12px; color: #6b7280;">@analytics.LoanDisbursementCount releases</p>
+                    <p style="margin: 0; font-size: 12px; color: #6B6B6B; font-weight: 500; text-transform: uppercase;">Loan
+                        Releases</p>
+                    <h3 style="margin: 8px 0 0; font-size: 28px; font-weight: 600; color: #8B5A2B;">
+                        ₱@analytics.TotalLoanDisbursements.ToString("N2")</h3>
+                    <p style="margin: 4px 0 0; font-size: 12px; color: #6B6B6B;">@analytics.LoanDisbursementCount releases
+                    </p>
                 </div>
-                <div style="width: 48px; height: 48px; background: #fef3c7; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                    <svg width="24" height="24" fill="none" stroke="#f59e0b" stroke-width="2">
-                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+                <div
+                    style="width: 48px; height: 48px; background: rgba(139, 90, 43, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="24" height="24" fill="none" stroke="#8B5A2B" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path
+                            d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83">
+                        </path>
                     </svg>
                 </div>
             </div>
         </div>
 
         <!-- Savings Accounts Opened -->
-        <div style="background: white; border-radius: 16px; padding: 24px; border-left: 4px solid #8b5cf6; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div
+            style="background: #FFFFFF; border-radius: 14px; padding: 20px; border-left: 4px solid #5F6F52; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
-                    <p style="margin: 0; font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Savings Accounts</p>
-                    <h3 style="margin: 8px 0 0; font-size: 28px; font-weight: 700; color: #8b5cf6;">@analytics.SavingsAccountsOpened</h3>
-                    <p style="margin: 4px 0 0; font-size: 12px; color: #6b7280;">accounts opened</p>
+                    <p style="margin: 0; font-size: 12px; color: #6B6B6B; font-weight: 500; text-transform: uppercase;">
+                        Savings Accounts</p>
+                    <h3 style="margin: 8px 0 0; font-size: 28px; font-weight: 600; color: #5F6F52;">
+                        @analytics.SavingsAccountsOpened</h3>
+                    <p style="margin: 4px 0 0; font-size: 12px; color: #6B6B6B;">accounts opened</p>
                 </div>
-                <div style="width: 48px; height: 48px; background: #ede9fe; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                    <svg width="24" height="24" fill="none" stroke="#8b5cf6" stroke-width="2">
-                        <path d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                <div
+                    style="width: 48px; height: 48px; background: rgba(95, 111, 82, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="24" height="24" fill="none" stroke="#5F6F52" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path
+                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
                     </svg>
                 </div>
             </div>
@@ -126,112 +163,143 @@ else if (analytics != null)
     </div>
 
     <!-- ERP Accounting Summary -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
         <!-- Cash Flow Analysis -->
-        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-            <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1f2937; display: flex; align-items: center; gap: 8px;">
-                <svg width="22" height="22" fill="none" stroke="#059669" stroke-width="2" viewBox="0 0 24 24">
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+            <h3
+                style="margin: 0 0 20px; font-size: 16px; font-weight: 600; color: #2B2B2B; display: flex; align-items: center; gap: 8px;">
+                <svg width="22" height="22" fill="none" stroke="#5F6F52" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" viewBox="0 0 24 24">
                     <path d="M12 2v20M2 12h20"></path>
                 </svg>
                 Cash Flow Analysis
             </h3>
             <div style="display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; justify-content: space-between; padding: 12px 16px; background: #f0fdf4; border-radius: 8px;">
-                    <span style="color: #166534; font-weight: 500;">Cash Inflows (Deposits)</span>
-                    <span style="color: #166534; font-weight: 700;">+ ₱@analytics.TotalDeposits.ToString("N2")</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px 16px; background: rgba(79, 111, 82, 0.1); border-radius: 10px;">
+                    <span style="color: #4F6F52; font-weight: 500; font-size: 14px;">Cash Inflows (Deposits)</span>
+                    <span style="color: #4F6F52; font-weight: 600;">+ ₱@analytics.TotalDeposits.ToString("N2")</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px 16px; background: #eff6ff; border-radius: 8px;">
-                    <span style="color: #1e40af; font-weight: 500;">Cash Inflows (Loan Payments)</span>
-                    <span style="color: #1e40af; font-weight: 700;">+ ₱@analytics.TotalLoanPayments.ToString("N2")</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px 16px; background: rgba(95, 122, 106, 0.1); border-radius: 10px;">
+                    <span style="color: #5F7A6A; font-weight: 500; font-size: 14px;">Cash Inflows (Loan Payments)</span>
+                    <span style="color: #5F7A6A; font-weight: 600;">+ ₱@analytics.TotalLoanPayments.ToString("N2")</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px 16px; background: #fef2f2; border-radius: 8px;">
-                    <span style="color: #991b1b; font-weight: 500;">Cash Outflows (Withdrawals)</span>
-                    <span style="color: #991b1b; font-weight: 700;">- ₱@analytics.TotalWithdrawals.ToString("N2")</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px 16px; background: rgba(155, 58, 58, 0.1); border-radius: 10px;">
+                    <span style="color: #9B3A3A; font-weight: 500; font-size: 14px;">Cash Outflows (Withdrawals)</span>
+                    <span style="color: #9B3A3A; font-weight: 600;">- ₱@analytics.TotalWithdrawals.ToString("N2")</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px 16px; background: #fefce8; border-radius: 8px;">
-                    <span style="color: #854d0e; font-weight: 500;">Cash Outflows (Loan Releases)</span>
-                    <span style="color: #854d0e; font-weight: 700;">- ₱@analytics.TotalLoanDisbursements.ToString("N2")</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px 16px; background: rgba(139, 90, 43, 0.1); border-radius: 10px;">
+                    <span style="color: #8B5A2B; font-weight: 500; font-size: 14px;">Cash Outflows (Loan Releases)</span>
+                    <span style="color: #8B5A2B; font-weight: 600;">-
+                        ₱@analytics.TotalLoanDisbursements.ToString("N2")</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 16px; background: linear-gradient(135deg, @(analytics.NetCashFlow >= 0 ? "#059669" : "#dc2626"), @(analytics.NetCashFlow >= 0 ? "#10b981" : "#ef4444")); border-radius: 10px; margin-top: 8px;">
+                <div
+                    style="display: flex; justify-content: space-between; padding: 16px; background: @(analytics.NetCashFlow >= 0 ? "#2F3E2A" : "#9B3A3A"); border-radius: 10px; margin-top: 8px;">
                     <span style="color: white; font-weight: 600; font-size: 16px;">Net Cash Flow</span>
-                    <span style="color: white; font-weight: 700; font-size: 20px;">₱@analytics.NetCashFlow.ToString("N2")</span>
+                    <span
+                        style="color: white; font-weight: 600; font-size: 20px;">₱@analytics.NetCashFlow.ToString("N2")</span>
                 </div>
             </div>
         </div>
 
         <!-- Fee Income & Revenue -->
-        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-            <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1f2937; display: flex; align-items: center; gap: 8px;">
-                <svg width="22" height="22" fill="none" stroke="#059669" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+            <h3
+                style="margin: 0 0 20px; font-size: 16px; font-weight: 600; color: #2B2B2B; display: flex; align-items: center; gap: 8px;">
+                <svg width="22" height="22" fill="none" stroke="#5F6F52" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                    </path>
                 </svg>
                 Fee Income & Revenue
             </h3>
             <div style="display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; justify-content: space-between; padding: 12px 16px; background: #f9fafb; border-radius: 8px; border-left: 3px solid #059669;">
-                    <span style="color: #374151; font-weight: 500;">Deposit Fees</span>
-                    <span style="color: #059669; font-weight: 700;">₱@analytics.DepositFees.ToString("N2")</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px 16px; background: #F7F7F4; border-radius: 10px; border-left: 3px solid #4F6F52;">
+                    <span style="color: #2B2B2B; font-weight: 500; font-size: 14px;">Deposit Fees</span>
+                    <span style="color: #4F6F52; font-weight: 600;">₱@analytics.DepositFees.ToString("N2")</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px 16px; background: #f9fafb; border-radius: 8px; border-left: 3px solid #dc2626;">
-                    <span style="color: #374151; font-weight: 500;">Withdrawal Fees</span>
-                    <span style="color: #dc2626; font-weight: 700;">₱@analytics.WithdrawalFees.ToString("N2")</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px 16px; background: #F7F7F4; border-radius: 10px; border-left: 3px solid #9B3A3A;">
+                    <span style="color: #2B2B2B; font-weight: 500; font-size: 14px;">Withdrawal Fees</span>
+                    <span style="color: #9B3A3A; font-weight: 600;">₱@analytics.WithdrawalFees.ToString("N2")</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px 16px; background: #f9fafb; border-radius: 8px; border-left: 3px solid #f59e0b;">
-                    <span style="color: #374151; font-weight: 500;">Loan Penalties Collected</span>
-                    <span style="color: #f59e0b; font-weight: 700;">₱@analytics.TotalPenaltiesCollected.ToString("N2")</span>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 12px 16px; background: #F7F7F4; border-radius: 10px; border-left: 3px solid #8B5A2B;">
+                    <span style="color: #2B2B2B; font-weight: 500; font-size: 14px;">Loan Penalties Collected</span>
+                    <span
+                        style="color: #8B5A2B; font-weight: 600;">₱@analytics.TotalPenaltiesCollected.ToString("N2")</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 16px; background: linear-gradient(135deg, #059669, #10b981); border-radius: 10px; margin-top: 8px;">
+                <div
+                    style="display: flex; justify-content: space-between; padding: 16px; background: #2F3E2A; border-radius: 10px; margin-top: 8px;">
                     <span style="color: white; font-weight: 600; font-size: 16px;">Total Fee Income</span>
-                    <span style="color: white; font-weight: 700; font-size: 20px;">₱@analytics.TotalFeeIncome.ToString("N2")</span>
+                    <span
+                        style="color: white; font-weight: 600; font-size: 20px;">₱@analytics.TotalFeeIncome.ToString("N2")</span>
                 </div>
             </div>
-            <div style="margin-top: 16px; padding: 16px; background: #f0fdf4; border-radius: 10px; border: 1px solid #bbf7d0;">
+            <div
+                style="margin-top: 16px; padding: 16px; background: rgba(79, 111, 82, 0.1); border-radius: 10px; border: 1px solid #A9B388;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="color: #166534; font-weight: 600;">Total Transactions</span>
-                    <span style="color: #166534; font-weight: 700; font-size: 24px;">@analytics.TotalTransactionCount</span>
+                    <span style="color: #4F6F52; font-weight: 600;">Total Transactions</span>
+                    <span style="color: #4F6F52; font-weight: 600; font-size: 24px;">@analytics.TotalTransactionCount</span>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Quick Actions -->
-    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb; margin-bottom: 32px;">
-        <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1f2937;">Quick Actions</h3>
+    <div
+        style="background: #FFFFFF; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 24px;">
+        <h3 style="margin: 0 0 20px; font-size: 16px; font-weight: 600; color: #2B2B2B;">Quick Actions</h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-            <a href="/teller/deposits" style="display: flex; align-items: center; gap: 12px; padding: 16px; background: linear-gradient(135deg, #059669, #047857); color: white; border-radius: 12px; text-decoration: none; transition: transform 0.2s;">
-                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <a href="/teller/deposits"
+                style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #2F3E2A; color: white; border-radius: 10px; text-decoration: none; transition: all 150ms ease-in-out;">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <path d="M12 2v20M2 12l10-10 10 10"></path>
                 </svg>
                 <div>
-                    <div style="font-weight: 600;">Process Deposit</div>
+                    <div style="font-weight: 600; font-size: 14px;">Process Deposit</div>
                     <div style="font-size: 12px; opacity: 0.9;">Cash-in transactions</div>
                 </div>
             </a>
-            <a href="/teller/withdrawals" style="display: flex; align-items: center; gap: 12px; padding: 16px; background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; border-radius: 12px; text-decoration: none; transition: transform 0.2s;">
-                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <a href="/teller/withdrawals"
+                style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #9B3A3A; color: white; border-radius: 10px; text-decoration: none; transition: all 150ms ease-in-out;">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <path d="M12 22V2M2 12l10 10 10-10"></path>
                 </svg>
                 <div>
-                    <div style="font-weight: 600;">Process Withdrawal</div>
+                    <div style="font-weight: 600; font-size: 14px;">Process Withdrawal</div>
                     <div style="font-size: 12px; opacity: 0.9;">Cash-out transactions</div>
                 </div>
             </a>
-            <a href="/teller/loan-payments" style="display: flex; align-items: center; gap: 12px; padding: 16px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border-radius: 12px; text-decoration: none; transition: transform 0.2s;">
-                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <a href="/teller/loan-payments"
+                style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #5F6F52; color: white; border-radius: 10px; text-decoration: none; transition: all 150ms ease-in-out;">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <rect x="2" y="6" width="20" height="12" rx="2"></rect>
                     <path d="M2 10h20"></path>
                 </svg>
                 <div>
-                    <div style="font-weight: 600;">Loan Payments</div>
+                    <div style="font-weight: 600; font-size: 14px;">Loan Payments</div>
                     <div style="font-size: 12px; opacity: 0.9;">Process loan payments</div>
                 </div>
             </a>
-            <a href="/teller/transactions" style="display: flex; align-items: center; gap: 12px; padding: 16px; background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border-radius: 12px; text-decoration: none; transition: transform 0.2s;">
-                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            <a href="/teller/transactions"
+                style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #5F7A6A; color: white; border-radius: 10px; text-decoration: none; transition: all 150ms ease-in-out;">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
                 </svg>
                 <div>
-                    <div style="font-weight: 600;">Transaction History</div>
+                    <div style="font-weight: 600; font-size: 14px;">Transaction History</div>
                     <div style="font-size: 12px; opacity: 0.9;">View all transactions</div>
                 </div>
             </a>
@@ -239,47 +307,53 @@ else if (analytics != null)
     </div>
 
     <!-- Transaction Breakdown -->
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px;">
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px;">
         <!-- Hourly Transaction Chart -->
-        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px;">Hourly Transaction Volume</h3>
-            <div style="display: flex; align-items: flex-end; gap: 8px; height: 220px; padding-bottom: 20px; border-bottom: 2px solid #e5e7eb;">
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+            <h3 style="font-size: 16px; font-weight: 600; color: #2B2B2B; margin-bottom: 20px;">Hourly Transaction Volume
+            </h3>
+            <div
+                style="display: flex; align-items: flex-end; gap: 8px; height: 220px; padding-bottom: 20px; border-bottom: 2px solid #E2E2DC;">
                 @foreach (var data in analytics.HourlyBreakdown)
                 {
-                    var maxValue = Math.Max(1m, analytics.HourlyBreakdown.Max(h => Math.Max(h.Deposits, Math.Max(h.Withdrawals, Math.Max(h.LoanPayments, h.LoanDisbursements)))));
+                    var maxValue = Math.Max(1m, analytics.HourlyBreakdown.Max(h => Math.Max(h.Deposits, Math.Max(h.Withdrawals,
+                    Math.Max(h.LoanPayments, h.LoanDisbursements)))));
                     var depositHeight = Math.Max(5, (int)((data.Deposits / maxValue) * 150));
                     var withdrawalHeight = Math.Max(5, (int)((data.Withdrawals / maxValue) * 150));
-                    
+
                     <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;">
                         <div style="display: flex; gap: 2px; align-items: flex-end; height: 160px;">
-                            <div style="width: 12px; background: linear-gradient(180deg, #059669, #047857); border-radius: 4px 4px 0 0; height: @(depositHeight)px;" title="Deposits: ₱@data.Deposits.ToString("N0")"></div>
-                            <div style="width: 12px; background: linear-gradient(180deg, #dc2626, #991b1b); border-radius: 4px 4px 0 0; height: @(withdrawalHeight)px;" title="Withdrawals: ₱@data.Withdrawals.ToString("N0")"></div>
+                            <div style="width: 12px; background: #5F6F52; border-radius: 4px 4px 0 0; height: @(depositHeight)px;"
+                                title="Deposits: ₱@data.Deposits.ToString("N0")"></div>
+                            <div style="width: 12px; background: #9B3A3A; border-radius: 4px 4px 0 0; height: @(withdrawalHeight)px;"
+                                title="Withdrawals: ₱@data.Withdrawals.ToString("N0")"></div>
                         </div>
-                        <div style="font-size: 10px; color: #6b7280; font-weight: 600;">@data.Hour</div>
+                        <div style="font-size: 10px; color: #6B6B6B; font-weight: 500;">@data.Hour</div>
                     </div>
                 }
             </div>
             <div style="display: flex; justify-content: center; gap: 24px; margin-top: 16px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 12px; height: 12px; background: #059669; border-radius: 2px;"></div>
-                    <span style="font-size: 12px; color: #6b7280;">Deposits</span>
+                    <div style="width: 12px; height: 12px; background: #5F6F52; border-radius: 2px;"></div>
+                    <span style="font-size: 12px; color: #6B6B6B;">Deposits</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 12px; height: 12px; background: #dc2626; border-radius: 2px;"></div>
-                    <span style="font-size: 12px; color: #6b7280;">Withdrawals</span>
+                    <div style="width: 12px; height: 12px; background: #9B3A3A; border-radius: 2px;"></div>
+                    <span style="font-size: 12px; color: #6B6B6B;">Withdrawals</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></div>
-                    <span style="font-size: 12px; color: #6b7280;">Loan Payments</span>
+                    <div style="width: 12px; height: 12px; background: #5F7A6A; border-radius: 2px;"></div>
+                    <span style="font-size: 12px; color: #6B6B6B;">Loan Payments</span>
                 </div>
             </div>
         </div>
 
         <!-- Transaction Type Breakdown -->
-        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px;">Transaction Breakdown</h3>
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+            <h3 style="font-size: 16px; font-weight: 600; color: #2B2B2B; margin-bottom: 20px;">Transaction Breakdown</h3>
             @{
-                var total = analytics.TotalDeposits + analytics.TotalWithdrawals + analytics.TotalLoanPayments + analytics.TotalLoanDisbursements;
+                var total = analytics.TotalDeposits + analytics.TotalWithdrawals + analytics.TotalLoanPayments +
+                analytics.TotalLoanDisbursements;
                 var depositPercent = total > 0 ? (analytics.TotalDeposits / total * 100) : 0;
                 var withdrawalPercent = total > 0 ? (analytics.TotalWithdrawals / total * 100) : 0;
                 var loanPaymentPercent = total > 0 ? (analytics.TotalLoanPayments / total * 100) : 0;
@@ -288,38 +362,45 @@ else if (analytics != null)
             <div style="display: flex; flex-direction: column; gap: 16px;">
                 <div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="font-size: 12px; color: #6b7280;">Deposits (@depositPercent.ToString("F0")%)</span>
-                        <span style="font-size: 12px; font-weight: 700; color: #059669;">₱@analytics.TotalDeposits.ToString("N0")</span>
+                        <span style="font-size: 12px; color: #6B6B6B;">Deposits (@depositPercent.ToString("F0")%)</span>
+                        <span
+                            style="font-size: 12px; font-weight: 600; color: #4F6F52;">₱@analytics.TotalDeposits.ToString("N0")</span>
                     </div>
-                    <div style="height: 8px; background: #f3f4f6; border-radius: 4px; overflow: hidden;">
-                        <div style="width: @depositPercent.ToString("F0")%; height: 100%; background: linear-gradient(90deg, #059669, #10b981);"></div>
-                    </div>
-                </div>
-                <div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="font-size: 12px; color: #6b7280;">Withdrawals (@withdrawalPercent.ToString("F0")%)</span>
-                        <span style="font-size: 12px; font-weight: 700; color: #dc2626;">₱@analytics.TotalWithdrawals.ToString("N0")</span>
-                    </div>
-                    <div style="height: 8px; background: #f3f4f6; border-radius: 4px; overflow: hidden;">
-                        <div style="width: @withdrawalPercent.ToString("F0")%; height: 100%; background: linear-gradient(90deg, #dc2626, #ef4444);"></div>
+                    <div style="height: 8px; background: #E2E2DC; border-radius: 4px; overflow: hidden;">
+                        <div style="width: @depositPercent.ToString("F0")%; height: 100%; background: #5F6F52;"></div>
                     </div>
                 </div>
                 <div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="font-size: 12px; color: #6b7280;">Loan Payments (@loanPaymentPercent.ToString("F0")%)</span>
-                        <span style="font-size: 12px; font-weight: 700; color: #3b82f6;">₱@analytics.TotalLoanPayments.ToString("N0")</span>
+                        <span style="font-size: 12px; color: #6B6B6B;">Withdrawals
+                            (@withdrawalPercent.ToString("F0")%)</span>
+                        <span
+                            style="font-size: 12px; font-weight: 600; color: #9B3A3A;">₱@analytics.TotalWithdrawals.ToString("N0")</span>
                     </div>
-                    <div style="height: 8px; background: #f3f4f6; border-radius: 4px; overflow: hidden;">
-                        <div style="width: @loanPaymentPercent.ToString("F0")%; height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa);"></div>
+                    <div style="height: 8px; background: #E2E2DC; border-radius: 4px; overflow: hidden;">
+                        <div style="width: @withdrawalPercent.ToString("F0")%; height: 100%; background: #9B3A3A;"></div>
                     </div>
                 </div>
                 <div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="font-size: 12px; color: #6b7280;">Loan Releases (@loanReleasePercent.ToString("F0")%)</span>
-                        <span style="font-size: 12px; font-weight: 700; color: #f59e0b;">₱@analytics.TotalLoanDisbursements.ToString("N0")</span>
+                        <span style="font-size: 12px; color: #6B6B6B;">Loan Payments
+                            (@loanPaymentPercent.ToString("F0")%)</span>
+                        <span
+                            style="font-size: 12px; font-weight: 600; color: #5F7A6A;">₱@analytics.TotalLoanPayments.ToString("N0")</span>
                     </div>
-                    <div style="height: 8px; background: #f3f4f6; border-radius: 4px; overflow: hidden;">
-                        <div style="width: @loanReleasePercent.ToString("F0")%; height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
+                    <div style="height: 8px; background: #E2E2DC; border-radius: 4px; overflow: hidden;">
+                        <div style="width: @loanPaymentPercent.ToString("F0")%; height: 100%; background: #5F7A6A;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 12px; color: #6B6B6B;">Loan Releases
+                            (@loanReleasePercent.ToString("F0")%)</span>
+                        <span
+                            style="font-size: 12px; font-weight: 600; color: #8B5A2B;">₱@analytics.TotalLoanDisbursements.ToString("N0")</span>
+                    </div>
+                    <div style="height: 8px; background: #E2E2DC; border-radius: 4px; overflow: hidden;">
+                        <div style="width: @loanReleasePercent.ToString("F0")%; height: 100%; background: #8B5A2B;"></div>
                     </div>
                 </div>
             </div>
@@ -327,19 +408,25 @@ else if (analytics != null)
     </div>
 
     <!-- Recent Transactions -->
-    <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+    <div style="background: #FFFFFF; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #1f2937;">Recent Transactions</h3>
-            <a href="/teller/transactions" style="color: #059669; font-size: 14px; font-weight: 600; text-decoration: none;">View All →</a>
+            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #2B2B2B;">Recent Transactions</h3>
+            <a href="/teller/transactions"
+                style="color: #5F6F52; font-size: 14px; font-weight: 500; text-decoration: none;">View All →</a>
         </div>
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
-                <tr style="border-bottom: 2px solid #e5e7eb; background: #f9fafb;">
-                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">TRANSACTION</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">CUSTOMER</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">TYPE</th>
-                    <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 700; color: #6b7280;">AMOUNT</th>
-                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">TIME</th>
+                <tr style="border-bottom: 2px solid #E2E2DC; background: #F7F7F4;">
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                        TRANSACTION</th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">CUSTOMER
+                    </th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">TYPE
+                    </th>
+                    <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #6B6B6B;">AMOUNT
+                    </th>
+                    <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">TIME
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -348,23 +435,24 @@ else if (analytics != null)
                     @foreach (var txn in analytics.RecentTransactions.Take(10))
                     {
                         var (bgColor, textColor, prefix) = GetTransactionStyle(txn.TransactionType);
-                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                        <tr style="border-bottom: 1px solid #E2E2DC;">
                             <td style="padding: 16px;">
-                                <div style="font-weight: 600; font-size: 13px;">@txn.TransactionNumber</div>
+                                <div style="font-weight: 500; font-size: 14px; color: #2B2B2B;">@txn.TransactionNumber</div>
                             </td>
                             <td style="padding: 16px;">
-                                <div style="font-weight: 600;">@txn.CustomerName</div>
-                                <div style="font-size: 12px; color: #6b7280;">@txn.AccountNumber</div>
+                                <div style="font-weight: 500; color: #2B2B2B;">@txn.CustomerName</div>
+                                <div style="font-size: 12px; color: #6B6B6B;">@txn.AccountNumber</div>
                             </td>
                             <td style="padding: 16px;">
-                                <span style="padding: 4px 12px; background: @bgColor; color: @textColor; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                                <span
+                                    style="padding: 4px 12px; background: @bgColor; color: @textColor; border-radius: 10px; font-size: 12px; font-weight: 500;">
                                     @txn.TransactionType
                                 </span>
                             </td>
                             <td style="padding: 16px; text-align: right; font-weight: 600; color: @textColor;">
                                 @prefix₱@txn.Amount.ToString("N2")
                             </td>
-                            <td style="padding: 16px; font-size: 12px; color: #6b7280;">
+                            <td style="padding: 16px; font-size: 12px; color: #6B6B6B;">
                                 @txn.TransactionDate.ToString("hh:mm tt")
                             </td>
                         </tr>
@@ -373,7 +461,7 @@ else if (analytics != null)
                 else
                 {
                     <tr>
-                        <td colspan="5" style="padding: 40px; text-align: center; color: #6b7280;">
+                        <td colspan="5" style="padding: 40px; text-align: center; color: #6B6B6B;">
                             No transactions found for the selected period.
                         </td>
                     </tr>
@@ -386,17 +474,23 @@ else if (analytics != null)
 <!-- Report Download Modal -->
 @if (showReportModal)
 {
-    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseReportModal">
-        <div style="background: white; border-radius: 20px; max-width: 500px; width: 95%; box-shadow: 0 25px 60px rgba(0,0,0,0.3);" @onclick:stopPropagation>
-            <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px 28px; border-radius: 20px 20px 0 0;">
-                <h4 style="margin: 0; font-weight: 700; font-size: 20px;">📊 Generate Report</h4>
-                <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">Download transaction report with ERP accounting details</p>
+    <div style="position: fixed; inset: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+        @onclick="CloseReportModal">
+        <div style="background: #FFFFFF; border-radius: 16px; max-width: 500px; width: 95%; box-shadow: 0 25px 60px rgba(0,0,0,0.2);"
+            @onclick:stopPropagation>
+            <div style="background: #2F3E2A; color: white; padding: 24px; border-radius: 16px 16px 0 0;">
+                <h4 style="margin: 0; font-weight: 600; font-size: 20px;">📊 Generate Report</h4>
+                <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">Download transaction report with ERP accounting
+                    details</p>
             </div>
 
-            <div style="padding: 28px;">
+            <div style="padding: 24px;">
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Report Period</label>
-                    <select @bind="reportPeriod" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px;">
+                    <label
+                        style="display: block; font-size: 14px; font-weight: 500; color: #2B2B2B; margin-bottom: 8px;">Report
+                        Period</label>
+                    <select @bind="reportPeriod"
+                        style="width: 100%; padding: 12px 16px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #FFFFFF; color: #2B2B2B;">
                         <option value="today">Today</option>
                         <option value="week">This Week</option>
                         <option value="month">This Month</option>
@@ -408,44 +502,60 @@ else if (analytics != null)
                 {
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
                         <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Start Date</label>
-                            <input type="date" @bind="reportStartDate" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px;" />
+                            <label
+                                style="display: block; font-size: 14px; font-weight: 500; color: #2B2B2B; margin-bottom: 8px;">Start
+                                Date</label>
+                            <input type="date" @bind="reportStartDate"
+                                style="width: 100%; padding: 12px 16px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                         </div>
                         <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">End Date</label>
-                            <input type="date" @bind="reportEndDate" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px;" />
+                            <label
+                                style="display: block; font-size: 14px; font-weight: 500; color: #2B2B2B; margin-bottom: 8px;">End
+                                Date</label>
+                            <input type="date" @bind="reportEndDate"
+                                style="width: 100%; padding: 12px 16px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                         </div>
                     </div>
                 }
 
                 <div style="margin-bottom: 24px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Report Format</label>
+                    <label
+                        style="display: block; font-size: 14px; font-weight: 500; color: #2B2B2B; margin-bottom: 8px;">Report
+                        Format</label>
                     <div style="display: flex; gap: 12px;">
-                        <button @onclick='() => reportFormat = "pdf"' 
-                                style="flex: 1; padding: 16px; border: 2px solid @(reportFormat == "pdf" ? "#059669" : "#e5e7eb"); background: @(reportFormat == "pdf" ? "#f0fdf4" : "white"); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            <svg width="24" height="24" fill="none" stroke="@(reportFormat == "pdf" ? "#059669" : "#6b7280")" stroke-width="2" viewBox="0 0 24 24">
+                        <button @onclick='() => reportFormat = "pdf"'
+                            style="flex: 1; padding: 16px; border: 1px solid @(reportFormat == "pdf" ? "#5F6F52" : "#E2E2DC"); background: @(reportFormat == "pdf" ? "#E5D9B6" : "#FFFFFF"); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <svg width="24" height="24" fill="none"
+                                stroke="@(reportFormat == "pdf" ? "#5F6F52" : "#6B6B6B")" stroke-width="2"
+                                viewBox="0 0 24 24">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>
                             </svg>
-                            <span style="font-weight: 600; color: @(reportFormat == "pdf" ? "#059669" : "#6b7280");">PDF</span>
+                            <span
+                                style="font-weight: 500; color: @(reportFormat == "pdf" ? "#5F6F52" : "#6B6B6B");">PDF</span>
                         </button>
-                        <button @onclick='() => reportFormat = "excel"' 
-                                style="flex: 1; padding: 16px; border: 2px solid @(reportFormat == "excel" ? "#059669" : "#e5e7eb"); background: @(reportFormat == "excel" ? "#f0fdf4" : "white"); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            <svg width="24" height="24" fill="none" stroke="@(reportFormat == "excel" ? "#059669" : "#6b7280")" stroke-width="2" viewBox="0 0 24 24">
+                        <button @onclick='() => reportFormat = "excel"'
+                            style="flex: 1; padding: 16px; border: 1px solid @(reportFormat == "excel" ? "#5F6F52" : "#E2E2DC"); background: @(reportFormat == "excel" ? "#E5D9B6" : "#FFFFFF"); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <svg width="24" height="24" fill="none"
+                                stroke="@(reportFormat == "excel" ? "#5F6F52" : "#6B6B6B")" stroke-width="2"
+                                viewBox="0 0 24 24">
                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                                 <line x1="3" y1="9" x2="21" y2="9"></line>
                                 <line x1="9" y1="21" x2="9" y2="9"></line>
                             </svg>
-                            <span style="font-weight: 600; color: @(reportFormat == "excel" ? "#059669" : "#6b7280");">Excel</span>
+                            <span
+                                style="font-weight: 500; color: @(reportFormat == "excel" ? "#5F6F52" : "#6B6B6B");">Excel</span>
                         </button>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 12px;">
-                    <button @onclick="CloseReportModal" style="flex: 1; padding: 14px; background: #f1f5f9; border: none; border-radius: 10px; color: #475569; font-weight: 600; cursor: pointer;">
+                    <button @onclick="CloseReportModal"
+                        style="flex: 1; padding: 14px; background: #A9B388; border: none; border-radius: 10px; color: #2F3E2A; font-weight: 500; cursor: pointer;">
                         Cancel
                     </button>
-                    <button @onclick="DownloadReport" disabled="@isDownloading" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #059669, #10b981); border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; opacity: @(isDownloading ? "0.6" : "1");">
+                    <button @onclick="DownloadReport" disabled="@isDownloading"
+                        style="flex: 1; padding: 14px; background: #2F3E2A; border: none; border-radius: 10px; color: white; font-weight: 500; cursor: pointer; opacity: @(isDownloading ? "0.6" : "1");">
                         @(isDownloading ? "Generating..." : "Download Report")
                     </button>
                 </div>
@@ -455,8 +565,16 @@ else if (analytics != null)
 }
 
 <style>
-    @@keyframes spin { to { transform: rotate(360deg); } }
-    a:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    a:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
 </style>
 
 @code {
@@ -520,10 +638,10 @@ else if (analytics != null)
     {
         return type switch
         {
-            "Deposit" => ("#d1fae5", "#065f46", "+"),
-            "Withdrawal" => ("#fee2e2", "#991b1b", "-"),
-            "Loan Payment" => ("#dbeafe", "#1e40af", "+"),
-            "Loan Release" => ("#fef3c7", "#92400e", "-"),
+            "Deposit" => ("#D4E6D4", "#2F3E2A", "+"),
+            "Withdrawal" => ("#F5E6E6", "#9B3A3A", "-"),
+            "Loan Payment" => ("#E8F0E8", "#5F6F52", "+"),
+            "Loan Release" => ("#F5EFE0", "#8B5A2B", "-"),
             _ => ("#f3f4f6", "#374151", "")
         };
     }
@@ -544,9 +662,9 @@ else if (analytics != null)
         isDownloading = true;
         try
         {
-            var (start, end) = reportPeriod == "custom" 
-                ? (reportStartDate, reportEndDate.AddDays(1).AddSeconds(-1))
-                : GetDateRange(reportPeriod);
+            var (start, end) = reportPeriod == "custom"
+            ? (reportStartDate, reportEndDate.AddDays(1).AddSeconds(-1))
+            : GetDateRange(reportPeriod);
 
             if (reportFormat == "excel")
             {
@@ -580,12 +698,12 @@ else if (analytics != null)
         var bytes = System.Text.Encoding.UTF8.GetBytes(content);
         var base64 = Convert.ToBase64String(bytes);
         await JS.InvokeVoidAsync("eval", $@"
-            var link = document.createElement('a');
-            link.href = 'data:{mimeType};base64,{base64}';
-            link.download = '{fileName}';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        ");
+var link = document.createElement('a');
+link.href = 'data:{mimeType};base64,{base64}';
+link.download = '{fileName}';
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+");
     }
 }

@@ -37,7 +37,8 @@
 
                         <div class="form-group">
                             <label>Description</label>
-                            <textarea rows="2" @bind="editPlan.Description" placeholder="Brief description of this plan..."></textarea>
+                            <textarea rows="2" @bind="editPlan.Description"
+                                placeholder="Brief description of this plan..."></textarea>
                         </div>
 
                         <div class="form-row">
@@ -52,7 +53,8 @@
                                 <label>Yearly Price (optional)</label>
                                 <div class="input-prefix">
                                     <span>₱</span>
-                                    <input type="number" step="0.01" @bind="editPlan.YearlyPrice" placeholder="Leave empty for 10% discount" />
+                                    <input type="number" step="0.01" @bind="editPlan.YearlyPrice"
+                                        placeholder="Leave empty for 10% discount" />
                                 </div>
                             </div>
                         </div>
@@ -70,7 +72,8 @@
 
                         <div class="form-group">
                             <label>Features (comma-separated)</label>
-                            <textarea rows="2" @bind="editPlan.Features" placeholder="Email support, Phone support, Priority updates..."></textarea>
+                            <textarea rows="2" @bind="editPlan.Features"
+                                placeholder="Email support, Phone support, Priority updates..."></textarea>
                         </div>
 
                         <div class="modules-section">
@@ -78,11 +81,11 @@
                             <div class="modules-grid">
                                 @foreach (var module in allModules)
                                 {
-                                    <div class="module-checkbox @(selectedModuleIds.Contains(module.ModuleId) ? "selected" : "")">
-                                        <input type="checkbox" 
-                                               id="mod_@module.ModuleId" 
-                                               checked="@selectedModuleIds.Contains(module.ModuleId)"
-                                               @onchange="() => ToggleModule(module.ModuleId)" />
+                                    <div
+                                        class="module-checkbox @(selectedModuleIds.Contains(module.ModuleId) ? "selected" : "")">
+                                        <input type="checkbox" id="mod_@module.ModuleId"
+                                            checked="@selectedModuleIds.Contains(module.ModuleId)"
+                                            @onchange="() => ToggleModule(module.ModuleId)" />
                                         <label for="mod_@module.ModuleId">
                                             <span class="mod-icon">@module.Icon</span>
                                             <span class="mod-name">@module.ModuleName</span>
@@ -133,7 +136,8 @@
                 </div>
                 @if (plan.YearlyPrice > 0)
                 {
-                    <p class="yearly-price">₱@plan.YearlyPrice.ToString("N0")/year (Save @(((1 - plan.YearlyPrice / (plan.MonthlyPrice * 12)) * 100).ToString("N0"))%)</p>
+                    <p class="yearly-price">₱@plan.YearlyPrice.ToString("N0")/year (Save @(((1 - plan.YearlyPrice /
+                                        (plan.MonthlyPrice * 12)) * 100).ToString("N0"))%)</p>
                 }
                 <p class="plan-desc">@plan.Description</p>
 
@@ -225,38 +229,38 @@
     .header-left h2 {
         margin: 0;
         font-size: 24px;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .count {
-        background: #e5e7eb;
+        background: #E2E2DC;
         padding: 4px 12px;
-        border-radius: 12px;
+        border-radius: 10px;
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .btn-primary {
-        background: #6366f1;
-        color: white;
+        background: #5F6F52;
+        color: #FFFFFF;
         border: none;
         padding: 12px 24px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
         font-size: 14px;
     }
 
     .btn-primary:hover {
-        background: #4f46e5;
+        background: #2F3E2A;
     }
 
     .btn-secondary {
-        background: #f3f4f6;
-        color: #374151;
-        border: 1px solid #e5e7eb;
+        background: #F7F7F4;
+        color: #2B2B2B;
+        border: 1px solid #E2E2DC;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
     }
@@ -269,26 +273,26 @@
     }
 
     .plan-card {
-        background: white;
-        border-radius: 20px;
+        background: #FFFFFF;
+        border-radius: 14px;
         padding: 32px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
         position: relative;
         transition: all 0.3s ease;
         border: 2px solid transparent;
     }
 
     .plan-card:hover {
-        box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
     }
 
     .plan-card.popular {
-        border-color: #6366f1;
+        border-color: #5F6F52;
     }
 
     .plan-card.inactive {
         opacity: 0.6;
-        background: #f9fafb;
+        background: #F7F7F4;
     }
 
     .popular-badge {
@@ -296,8 +300,8 @@
         top: -12px;
         left: 50%;
         transform: translateX(-50%);
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: white;
+        background: #2F3E2A;
+        color: #FFFFFF;
         padding: 6px 20px;
         border-radius: 20px;
         font-size: 12px;
@@ -312,12 +316,12 @@
     .plan-header h3 {
         margin: 0 0 4px 0;
         font-size: 22px;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .plan-code {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
         font-family: monospace;
     }
 
@@ -328,31 +332,31 @@
 
     .plan-price .currency {
         font-size: 24px;
-        color: #6366f1;
+        color: #5F6F52;
         vertical-align: super;
     }
 
     .plan-price .amount {
         font-size: 48px;
-        font-weight: 800;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
     }
 
     .plan-price .period {
         font-size: 16px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .yearly-price {
         text-align: center;
         font-size: 13px;
-        color: #059669;
+        color: #5F6F52;
         margin-bottom: 16px;
     }
 
     .plan-desc {
         text-align: center;
-        color: #6b7280;
+        color: #6B6B6B;
         font-size: 14px;
         margin-bottom: 24px;
         line-height: 1.5;
@@ -361,8 +365,8 @@
     .plan-features {
         margin-bottom: 24px;
         padding: 16px;
-        background: #f9fafb;
-        border-radius: 12px;
+        background: #F7F7F4;
+        border-radius: 10px;
     }
 
     .feature {
@@ -371,7 +375,7 @@
         gap: 10px;
         padding: 8px 0;
         font-size: 14px;
-        color: #374151;
+        color: #2B2B2B;
     }
 
     .feature-icon {
@@ -384,7 +388,7 @@
 
     .plan-modules h4 {
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
         margin: 0 0 12px 0;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -399,7 +403,7 @@
     .module-icons .mod-icon {
         width: 40px;
         height: 40px;
-        background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        background: rgba(79, 111, 82, 0.15);
         border-radius: 10px;
         display: flex;
         align-items: center;
@@ -410,33 +414,33 @@
     .mod-more {
         width: 40px;
         height: 40px;
-        background: #e5e7eb;
+        background: #E2E2DC;
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 12px;
         font-weight: 600;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .plan-stats {
         text-align: center;
         padding: 16px 0;
-        border-top: 1px solid #f3f4f6;
+        border-top: 1px solid #E2E2DC;
         margin-bottom: 16px;
     }
 
     .stat-value {
         font-size: 24px;
-        font-weight: 700;
-        color: #6366f1;
+        font-weight: 600;
+        color: #5F6F52;
         display: block;
     }
 
     .stat-label {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .plan-actions {
@@ -446,22 +450,22 @@
 
     .btn-edit {
         flex: 1;
-        background: #6366f1;
-        color: white;
+        background: #5F6F52;
+        color: #FFFFFF;
         border: none;
         padding: 12px;
-        border-radius: 8px;
+        border-radius: 10px;
         cursor: pointer;
         font-weight: 500;
     }
 
     .btn-toggle {
         flex: 1;
-        background: #f3f4f6;
-        color: #374151;
-        border: 1px solid #e5e7eb;
+        background: #F7F7F4;
+        color: #2B2B2B;
+        border: 1px solid #E2E2DC;
         padding: 12px;
-        border-radius: 8px;
+        border-radius: 10px;
         cursor: pointer;
         font-weight: 500;
     }
@@ -470,7 +474,7 @@
     .modal-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(47, 62, 42, 0.6);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -479,8 +483,8 @@
     }
 
     .modal-content {
-        background: white;
-        border-radius: 20px;
+        background: #FFFFFF;
+        border-radius: 14px;
         width: 100%;
         max-width: 600px;
         max-height: 90vh;
@@ -496,25 +500,25 @@
         justify-content: space-between;
         align-items: center;
         padding: 24px;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid #E2E2DC;
         position: sticky;
         top: 0;
-        background: white;
-        border-radius: 20px 20px 0 0;
+        background: #FFFFFF;
+        border-radius: 14px 14px 0 0;
     }
 
     .modal-header h3 {
         margin: 0;
         font-size: 20px;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .close-btn {
         width: 36px;
         height: 36px;
         border: none;
-        background: #f3f4f6;
-        border-radius: 8px;
+        background: #F7F7F4;
+        border-radius: 10px;
         font-size: 24px;
         cursor: pointer;
         display: flex;
@@ -543,31 +547,31 @@
     .form-group label {
         font-size: 13px;
         font-weight: 500;
-        color: #374151;
+        color: #2B2B2B;
     }
 
     .form-group input,
     .form-group select,
     .form-group textarea {
         padding: 10px 14px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
     }
 
     .input-prefix {
         display: flex;
         align-items: center;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         overflow: hidden;
     }
 
     .input-prefix span {
         padding: 10px 12px;
-        background: #f9fafb;
-        border-right: 1px solid #e5e7eb;
-        color: #6b7280;
+        background: #F7F7F4;
+        border-right: 1px solid #E2E2DC;
+        color: #6B6B6B;
     }
 
     .input-prefix input {
@@ -579,14 +583,14 @@
     .modules-section {
         margin-bottom: 24px;
         padding: 20px;
-        background: #f9fafb;
-        border-radius: 12px;
+        background: #F7F7F4;
+        border-radius: 10px;
     }
 
     .modules-section h4 {
         margin: 0 0 16px 0;
         font-size: 14px;
-        color: #374151;
+        color: #2B2B2B;
     }
 
     .modules-grid {
@@ -596,15 +600,15 @@
     }
 
     .module-checkbox {
-        border: 1px solid #e5e7eb;
+        border: 1px solid #E2E2DC;
         border-radius: 10px;
-        background: white;
+        background: #FFFFFF;
         transition: all 0.2s ease;
     }
 
     .module-checkbox.selected {
-        border-color: #6366f1;
-        background: #eef2ff;
+        border-color: #5F6F52;
+        background: rgba(79, 111, 82, 0.15);
     }
 
     .module-checkbox input {
@@ -627,12 +631,12 @@
         flex: 1;
         font-size: 13px;
         font-weight: 500;
-        color: #374151;
+        color: #2B2B2B;
     }
 
     .module-checkbox .mod-price {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .form-row.checkboxes {
@@ -646,7 +650,7 @@
         gap: 8px;
         cursor: pointer;
         font-size: 14px;
-        color: #374151;
+        color: #2B2B2B;
     }
 
     .form-actions {
@@ -654,7 +658,7 @@
         justify-content: flex-end;
         gap: 12px;
         padding-top: 16px;
-        border-top: 1px solid #f3f4f6;
+        border-top: 1px solid #E2E2DC;
         margin-top: 16px;
     }
 
@@ -662,8 +666,8 @@
     .empty-state {
         text-align: center;
         padding: 60px 20px;
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
     }
 
     .empty-icon {
@@ -674,11 +678,11 @@
 
     .empty-state h3 {
         margin: 0 0 8px 0;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .empty-state p {
-        color: #6b7280;
+        color: #6B6B6B;
         margin-bottom: 24px;
     }
 </style>
@@ -709,13 +713,13 @@
             IsActive = true
         };
         selectedModuleIds.Clear();
-        
+
         // Auto-select core modules
         foreach (var module in allModules.Where(m => m.IsCore))
         {
             selectedModuleIds.Add(module.ModuleId);
         }
-        
+
         isEditing = false;
         showForm = true;
     }
@@ -741,11 +745,11 @@
             IsActive = plan.IsActive,
             IsPopular = plan.IsPopular
         };
-        
+
         selectedModuleIds = new HashSet<int>(
-            plan.PlanModules?.Select(pm => pm.ModuleId) ?? Enumerable.Empty<int>()
+        plan.PlanModules?.Select(pm => pm.ModuleId) ?? Enumerable.Empty<int>()
         );
-        
+
         isEditing = true;
         showForm = true;
     }

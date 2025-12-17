@@ -42,12 +42,14 @@
                             </div>
                             <div class="form-group">
                                 <label>Module Name *</label>
-                                <input type="text" @bind="editModule.ModuleName" required placeholder="e.g., Loan Management" />
+                                <input type="text" @bind="editModule.ModuleName" required
+                                    placeholder="e.g., Loan Management" />
                             </div>
                         </div>
                         <div class="form-group">
                             <label>Description</label>
-                            <textarea rows="2" @bind="editModule.Description" placeholder="Brief description of the module..."></textarea>
+                            <textarea rows="2" @bind="editModule.Description"
+                                placeholder="Brief description of the module..."></textarea>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -136,7 +138,8 @@
                 </div>
                 <div class="module-actions">
                     <button class="action-btn edit" @onclick="() => EditModule(module)" title="Edit">✏️</button>
-                    <button class="action-btn toggle" @onclick="() => ToggleActive(module)" title="@(module.IsActive ? "Deactivate" : "Activate")">
+                    <button class="action-btn toggle" @onclick="() => ToggleActive(module)"
+                        title="@(module.IsActive ? "Deactivate" : "Activate")">
                         @(module.IsActive ? "🔒" : "🔓")
                     </button>
                 </div>
@@ -176,15 +179,15 @@
     .header-left h2 {
         margin: 0;
         font-size: 24px;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .count {
-        background: #e5e7eb;
+        background: #E2E2DC;
         padding: 4px 12px;
-        border-radius: 12px;
+        border-radius: 10px;
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .header-right {
@@ -195,40 +198,40 @@
 
     .search-box input {
         padding: 10px 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         width: 250px;
         font-size: 14px;
     }
 
     .filter-select {
         padding: 10px 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
-        background: white;
+        background: #FFFFFF;
     }
 
     .btn-primary {
-        background: #6366f1;
-        color: white;
+        background: #2F3E2A;
+        color: #FFFFFF;
         border: none;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
     }
 
     .btn-primary:hover {
-        background: #4f46e5;
+        background: #5F6F52;
     }
 
     .btn-secondary {
-        background: #f3f4f6;
-        color: #374151;
-        border: 1px solid #e5e7eb;
+        background: #F7F7F4;
+        color: #2B2B2B;
+        border: 1px solid #E2E2DC;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
     }
@@ -241,28 +244,28 @@
     }
 
     .module-card {
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
         padding: 20px;
         display: flex;
         gap: 16px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         transition: all 0.2s ease;
     }
 
     .module-card:hover {
-        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     }
 
     .module-card.inactive {
         opacity: 0.6;
-        background: #f9fafb;
+        background: #F7F7F4;
     }
 
     .module-icon {
         width: 56px;
         height: 56px;
-        background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        background: linear-gradient(135deg, #F7F7F4, #E2E2DC);
         border-radius: 14px;
         display: flex;
         align-items: center;
@@ -286,12 +289,12 @@
     .module-header h3 {
         margin: 0;
         font-size: 16px;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .core-badge {
-        background: #6366f1;
-        color: white;
+        background: #2F3E2A;
+        color: #FFFFFF;
         padding: 2px 8px;
         border-radius: 10px;
         font-size: 10px;
@@ -301,14 +304,14 @@
 
     .module-code {
         font-size: 11px;
-        color: #6b7280;
+        color: #6B6B6B;
         font-family: monospace;
         margin-bottom: 8px;
     }
 
     .module-desc {
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
         margin-bottom: 12px;
         line-height: 1.4;
         display: -webkit-box;
@@ -324,17 +327,17 @@
     }
 
     .category {
-        background: #f3f4f6;
+        background: #F7F7F4;
         padding: 4px 10px;
         border-radius: 6px;
         font-size: 11px;
-        color: #374151;
+        color: #2B2B2B;
     }
 
     .price {
         font-size: 14px;
-        font-weight: 700;
-        color: #6366f1;
+        font-weight: 600;
+        color: #5F6F52;
     }
 
     .module-actions {
@@ -347,7 +350,7 @@
         width: 36px;
         height: 36px;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         cursor: pointer;
         font-size: 16px;
         display: flex;
@@ -356,11 +359,11 @@
     }
 
     .action-btn.edit {
-        background: #eef2ff;
+        background: rgba(79, 111, 82, 0.15);
     }
 
     .action-btn.toggle {
-        background: #f3f4f6;
+        background: #F7F7F4;
     }
 
     .action-btn:hover {
@@ -371,7 +374,7 @@
     .modal-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(47, 62, 42, 0.6);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -379,7 +382,7 @@
     }
 
     .modal-content {
-        background: white;
+        background: #FFFFFF;
         border-radius: 20px;
         width: 100%;
         max-width: 600px;
@@ -392,21 +395,21 @@
         justify-content: space-between;
         align-items: center;
         padding: 24px;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid #E2E2DC;
     }
 
     .modal-header h3 {
         margin: 0;
         font-size: 20px;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .close-btn {
         width: 36px;
         height: 36px;
         border: none;
-        background: #f3f4f6;
-        border-radius: 8px;
+        background: #F7F7F4;
+        border-radius: 10px;
         font-size: 24px;
         cursor: pointer;
         display: flex;
@@ -435,15 +438,15 @@
     .form-group label {
         font-size: 13px;
         font-weight: 500;
-        color: #374151;
+        color: #2B2B2B;
     }
 
     .form-group input,
     .form-group select,
     .form-group textarea {
         padding: 10px 14px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
     }
 
@@ -451,23 +454,23 @@
     .form-group select:focus,
     .form-group textarea:focus {
         outline: none;
-        border-color: #6366f1;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        border-color: #5F6F52;
+        box-shadow: 0 0 0 3px rgba(95, 111, 82, 0.1);
     }
 
     .input-prefix {
         display: flex;
         align-items: center;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         overflow: hidden;
     }
 
     .input-prefix span {
         padding: 10px 12px;
-        background: #f9fafb;
-        border-right: 1px solid #e5e7eb;
-        color: #6b7280;
+        background: #F7F7F4;
+        border-right: 1px solid #E2E2DC;
+        color: #6B6B6B;
     }
 
     .input-prefix input {
@@ -486,7 +489,7 @@
         gap: 8px;
         cursor: pointer;
         font-size: 14px;
-        color: #374151;
+        color: #2B2B2B;
     }
 
     .checkbox-label input[type="checkbox"] {
@@ -499,7 +502,7 @@
         justify-content: flex-end;
         gap: 12px;
         padding-top: 16px;
-        border-top: 1px solid #f3f4f6;
+        border-top: 1px solid #E2E2DC;
         margin-top: 16px;
     }
 
@@ -507,8 +510,8 @@
     .empty-state {
         text-align: center;
         padding: 60px 20px;
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
     }
 
     .empty-icon {
@@ -519,11 +522,11 @@
 
     .empty-state h3 {
         margin: 0 0 8px 0;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .empty-state p {
-        color: #6b7280;
+        color: #6B6B6B;
     }
 </style>
 
@@ -535,14 +538,15 @@
     private string searchTerm = "";
     private string categoryFilter = "";
 
-    private IEnumerable<string> categories => modules.Select(m => m.Category).Where(c => c != null).Distinct().OrderBy(c => c)!;
+    private IEnumerable<string> categories => modules.Select(m => m.Category).Where(c => c != null).Distinct().OrderBy(c =>
+    c)!;
 
     private IEnumerable<SystemModule> FilteredModules => modules
-        .Where(m => string.IsNullOrEmpty(searchTerm) ||
-            m.ModuleName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-            m.ModuleCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-        .Where(m => string.IsNullOrEmpty(categoryFilter) || m.Category == categoryFilter)
-        .OrderBy(m => m.DisplayOrder);
+    .Where(m => string.IsNullOrEmpty(searchTerm) ||
+    m.ModuleName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+    m.ModuleCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+    .Where(m => string.IsNullOrEmpty(categoryFilter) || m.Category == categoryFilter)
+    .OrderBy(m => m.DisplayOrder);
 
     protected override async Task OnInitializedAsync()
     {

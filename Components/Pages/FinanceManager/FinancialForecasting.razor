@@ -10,7 +10,7 @@
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Page Header -->
     <div
-        style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+        style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
@@ -37,40 +37,40 @@
     <div
         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 24px;">
         <div
-            style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #047857; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #2F3E2A; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
             <div
                 style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
                 📊 Total Projected</div>
-            <div style="font-size: 24px; font-weight: 700; color: #047857; margin-top: 8px;">
+            <div style="font-size: 24px; font-weight: 700; color: #2F3E2A; margin-top: 8px;">
                 ₱@totalProjected.ToString("N2")</div>
             <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">@activeForecasts.Count active forecasts</div>
         </div>
         <div
-            style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #059669; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #5F6F52; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
             <div
                 style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
                 ✓
                 Total Actual</div>
-            <div style="font-size: 24px; font-weight: 700; color: #059669; margin-top: 8px;">
+            <div style="font-size: 24px; font-weight: 700; color: #5F6F52; margin-top: 8px;">
                 ₱@totalActual.ToString("N2")</div>
             <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Realized amounts</div>
         </div>
         <div
-            style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #10b981; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #5F6F52; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
             <div
                 style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
                 📈 Avg Variance</div>
-            <div style="font-size: 24px; font-weight: 700; color: #10b981; margin-top: 8px;">
+            <div style="font-size: 24px; font-weight: 700; color: #5F6F52; margin-top: 8px;">
                 @overallVariance.ToString("N1")%</div>
             <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">
                 @(overallVariance >= 0 ? "Above projections" : "Below projections")</div>
         </div>
         <div
-            style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #047857; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #2F3E2A; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
             <div
                 style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
                 🎯 Accuracy Rate</div>
-            <div style="font-size: 24px; font-weight: 700; color: #047857; margin-top: 8px;">
+            <div style="font-size: 24px; font-weight: 700; color: #2F3E2A; margin-top: 8px;">
                 @accuracyRate.ToString("N1")%</div>
             <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Within 10% variance</div>
         </div>
@@ -89,12 +89,12 @@
                 <option value="Deposits">Deposits</option>
             </select>
             <button @onclick="GenerateAutoForecast"
-                style="padding: 10px 20px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                style="padding: 10px 20px; background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
                 🔮 Auto-Generate Forecast
             </button>
         </div>
         <button class="btn btn-primary"
-            style="background: linear-gradient(135deg, #059669, #047857); border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600;"
+            style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600;"
             @onclick="ShowAddModal">
             + Create Forecast
         </button>
@@ -104,7 +104,7 @@
     @if (!string.IsNullOrEmpty(successMessage))
     {
         <div
-            style="background: #d1fae5; border: 2px solid #6ee7b7; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #047857;">
+            style="background: #D4E6D4; border: 2px solid #A9B388; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #2F3E2A;">
             ✅ @successMessage
         </div>
     }
@@ -112,7 +112,7 @@
     @if (!string.IsNullOrEmpty(errorMessage))
     {
         <div
-            style="background: #fee2e2; border: 2px solid #fca5a5; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #b91c1c;">
+            style="background: #F5E6E6; border: 2px solid #C4A5A5; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #9B3A3A;">
             ❌ @errorMessage
         </div>
     }
@@ -122,8 +122,8 @@
         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 24px;">
         @foreach (var forecast in FilteredForecasts)
         {
-            var varianceColor = forecast.Variance >= 0 ? "#059669" : "#dc2626";
-            var varianceBg = forecast.Variance >= 0 ? "#d1fae5" : "#fee2e2";
+            var varianceColor = forecast.Variance >= 0 ? "#5F6F52" : "#9B3A3A";
+            var varianceBg = forecast.Variance >= 0 ? "#D4E6D4" : "#F5E6E6";
             var progress = forecast.ProjectedAmount > 0 ? Math.Min((forecast.ActualAmount / forecast.ProjectedAmount) * 100,
             150) : 0;
 
@@ -141,7 +141,7 @@
                         <button @onclick="() => EditForecast(forecast)"
                             style="padding: 6px 10px; background: #f3f4f6; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">Edit</button>
                         <button @onclick="() => UpdateActual(forecast)"
-                            style="padding: 6px 10px; background: #dbeafe; color: #1e40af; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">Update</button>
+                            style="padding: 6px 10px; background: #E8F0E8; color: #5F6F52; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">Update</button>
                     </div>
                 </div>
 
@@ -149,7 +149,7 @@
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                         <div>
                             <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Projected</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #059669;">
+                            <div style="font-size: 18px; font-weight: 700; color: #5F6F52;">
                                 ₱@forecast.ProjectedAmount.ToString("N2")</div>
                         </div>
                         <div style="text-align: right;">
@@ -162,7 +162,7 @@
                     <div
                         style="width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
                         <div
-                            style="width: @(Math.Min(progress, 100))%; height: 100%; background: @(progress > 100 ? "#10b981" : progress > 80 ? "#059669" : "#10b981"); border-radius: 4px; transition: width 0.3s;">
+                            style="width: @(Math.Min(progress, 100))%; height: 100%; background: @(progress > 100 ? "#5F6F52" : progress > 80 ? "#5F6F52" : "#5F6F52"); border-radius: 4px; transition: width 0.3s;">
                         </div>
                     </div>
 
@@ -203,7 +203,7 @@
                 on
                 historical data.</p>
             <button @onclick="ShowAddModal"
-                style="padding: 12px 24px; background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                style="padding: 12px 24px; background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
                 Create Forecast
             </button>
         </div>
@@ -219,12 +219,12 @@
             {
                 <div style="background: #f9fafb; border-radius: 12px; padding: 16px; text-align: center;">
                     <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">@month.Month</div>
-                    <div style="font-size: 11px; color: #059669; margin-bottom: 4px;">Deposits:
+                    <div style="font-size: 11px; color: #5F6F52; margin-bottom: 4px;">Deposits:
                         ₱@month.Deposits.ToString("N0")
                     </div>
-                    <div style="font-size: 11px; color: #dc2626; margin-bottom: 4px;">Withdrawals:
+                    <div style="font-size: 11px; color: #9B3A3A; margin-bottom: 4px;">Withdrawals:
                         ₱@month.Withdrawals.ToString("N0")</div>
-                    <div style="font-size: 11px; color: #047857;">Loans: ₱@month.LoanDisbursements.ToString("N0")</div>
+                    <div style="font-size: 11px; color: #2F3E2A;">Loans: ₱@month.LoanDisbursements.ToString("N0")</div>
                 </div>
             }
         </div>
@@ -237,7 +237,7 @@
             @onclick="CloseModal">
             <div style="background: white; border-radius: 20px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.25);"
                 @onclick:stopPropagation>
-                <div style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); padding: 24px; color: white;">
+                <div style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); padding: 24px; color: white;">
                     <h2 style="margin: 0; font-size: 20px; font-weight: 700;">@(isEditing ? "Edit Forecast" : "Create New Forecast")</h2>
                 </div>
 
@@ -318,7 +318,7 @@
 
                     <div style="display: flex; gap: 12px; margin-top: 24px;">
                         <button @onclick="SaveForecast"
-                            style="flex: 1; padding: 14px; background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                            style="flex: 1; padding: 14px; background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
                             @(isEditing ? "Update Forecast" : "Create Forecast")
                         </button>
                         <button @onclick="CloseModal"
@@ -338,7 +338,7 @@
             @onclick="CloseUpdateModal">
             <div style="background: white; border-radius: 20px; width: 90%; max-width: 450px; box-shadow: 0 25px 50px rgba(0,0,0,0.25);"
                 @onclick:stopPropagation>
-                <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 24px; color: white;">
+                <div style="background: linear-gradient(135deg, #5F6F52, #5F6F52); padding: 24px; color: white;">
                     <h2 style="margin: 0; font-size: 20px; font-weight: 700;">Update Actual Amount</h2>
                     <p style="margin: 4px 0 0 0; opacity: 0.9; font-size: 14px;">@selectedForecast.ForecastName</p>
                 </div>
@@ -369,7 +369,7 @@
 
                     <div style="display: flex; gap: 12px;">
                         <button @onclick="SaveActualAmount"
-                            style="flex: 1; padding: 14px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                            style="flex: 1; padding: 14px; background: linear-gradient(135deg, #5F6F52, #5F6F52); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
                             Update Actual
                         </button>
                         <button @onclick="CloseUpdateModal"
@@ -676,11 +676,11 @@
     {
         return type switch
         {
-            "Revenue" => "#d1fae5",
-            "Expense" => "#fee2e2",
-            "Cashflow" => "#dbeafe",
-            "Loan Portfolio" => "#ecfdf5",
-            "Deposits" => "#f3e8ff",
+            "Revenue" => "#D4E6D4",
+            "Expense" => "#F5E6E6",
+            "Cashflow" => "#E8F0E8",
+            "Loan Portfolio" => "#E8F0E8",
+            "Deposits" => "#F0F2EC",
             _ => "#f3f4f6"
         };
     }
@@ -689,11 +689,11 @@
     {
         return type switch
         {
-            "Revenue" => "#047857",
-            "Expense" => "#dc2626",
-            "Cashflow" => "#1e40af",
-            "Loan Portfolio" => "#047857",
-            "Deposits" => "#6d28d9",
+            "Revenue" => "#2F3E2A",
+            "Expense" => "#9B3A3A",
+            "Cashflow" => "#5F6F52",
+            "Loan Portfolio" => "#2F3E2A",
+            "Deposits" => "#6B7B5E",
             _ => "#374151"
         };
     }

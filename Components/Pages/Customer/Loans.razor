@@ -16,8 +16,8 @@
     @if (!string.IsNullOrEmpty(alertMessage))
     {
         <div
-            style="background: @(isError ? "#fee2e2" : "#d1fae5"); border-left: 4px solid @(isError ? "#dc2626" : "#059669"); padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="@(isError ? "#dc2626" : "#059669")"
+            style="background: @(isError ? "rgba(155, 58, 58, 0.1)" : "rgba(95, 111, 82, 0.2)"); border-left: 4px solid @(isError ? "#9B3A3A" : "#5F6F52"); padding: 16px; border-radius: 10px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="@(isError ? "#9B3A3A" : "#5F6F52")"
                 stroke-width="2">
                 @if (isError)
                 {
@@ -30,40 +30,39 @@
                     <polyline points="20 6 9 17 4 12"></polyline>
                 }
             </svg>
-            <span style="color: @(isError ? "#991b1b" : "#065f46"); font-size: 16px; flex: 1;">@alertMessage</span>
+            <span style="color: @(isError ? "#9B3A3A" : "#2F3E2A"); font-size: 16px; flex: 1;">@alertMessage</span>
             <button @onclick="() => alertMessage = string.Empty"
-                style="background: none; border: none; color: @(isError ? "#991b1b" : "#065f46"); cursor: pointer; font-size: 20px;">×</button>
+                style="background: none; border: none; color: @(isError ? "#9B3A3A" : "#2F3E2A"); cursor: pointer; font-size: 20px;">×</button>
         </div>
     }
 
     <!-- Header -->
-    <div
-        style="background: linear-gradient(135deg, #059669, #10b981); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+    <div style="background: #2F3E2A; border-radius: 14px; padding: 24px; margin-bottom: 24px; color: #FFFFFF;">
         <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
             <div
                 style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2">
                     <rect x="2" y="7" width="20" height="14" rx="2"></rect>
                     <path d="M16 4V2M8 4V2"></path>
                 </svg>
             </div>
             <div style="flex: 1; min-width: 200px;">
-                <h1 style="font-size: 28px; font-weight: 700; margin: 0;">My Loans</h1>
+                <h1 style="font-size: 28px; font-weight: 600; margin: 0;">My Loans</h1>
                 <p style="margin: 4px 0 0; opacity: 0.9; font-size: 16px;">Manage applications, payments, and
                     transaction history</p>
             </div>
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <button @onclick="() => activeTab = 0"
-                    style="background: @(activeTab == 0 ? "white" : "rgba(255,255,255,0.2)"); color: @(activeTab == 0 ? "#059669" : "white"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    style="background: @(activeTab == 0 ? "#FFFFFF" : "rgba(255,255,255,0.2)"); color: @(activeTab == 0 ? "#5F6F52" : "#FFFFFF"); border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600;">
                     📋 My Loans
                 </button>
                 <button @onclick="() => activeTab = 1"
-                    style="background: @(activeTab == 1 ? "white" : "rgba(255,255,255,0.2)"); color: @(activeTab == 1 ? "#059669" : "white"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    style="background: @(activeTab == 1 ? "#FFFFFF" : "rgba(255,255,255,0.2)"); color: @(activeTab == 1 ? "#5F6F52" : "#FFFFFF"); border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600;">
                     📜 Transaction History
                 </button>
                 <button @onclick="ShowLoanApplication"
-                    style="background: rgba(255,255,255,0.3); border: 2px solid white; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    style="background: rgba(255,255,255,0.3); border: 2px solid #FFFFFF; color: #FFFFFF; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
@@ -79,45 +78,58 @@
         <!-- Tab 0: My Loans (Products + Active Loans + Calculator) -->
 
         <!-- Stats Cards -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
-            <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 20px; border: 1px solid #bbf7d0;">
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div
+                style="background: linear-gradient(135deg, #F0F2EC, #DDE6D5); border-radius: 10px; padding: 20px; border: 1px solid #BCC9A6;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 48px; height: 48px; background: #059669; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <div
+                        style="width: 48px; height: 48px; background: #5F6F52; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                             <polyline points="22 4 12 14.01 9 11.01"></polyline>
                         </svg>
                     </div>
                     <div>
-                        <p style="margin: 0; color: #059669; font-size: 12px; font-weight: 600; text-transform: uppercase;">Active Loans</p>
-                        <p style="margin: 4px 0 0 0; font-size: 28px; font-weight: 700; color: #065f46;">@(activeLoans?.Count ?? 0)</p>
+                        <p style="margin: 0; color: #5F6F52; font-size: 12px; font-weight: 600; text-transform: uppercase;">
+                            Active Loans</p>
+                        <p style="margin: 4px 0 0 0; font-size: 28px; font-weight: 600; color: #2F3E2A;">
+                            @(activeLoans?.Count ?? 0)</p>
                     </div>
                 </div>
             </div>
-            <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 12px; padding: 20px; border: 1px solid #bfdbfe;">
+            <div
+                style="background: linear-gradient(135deg, #F0F2EC, #DDE6D5); border-radius: 10px; padding: 20px; border: 1px solid #BCC9A6;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 48px; height: 48px; background: #3b82f6; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <div
+                        style="width: 48px; height: 48px; background: #5F6F52; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2">
                             <path d="M12 2v20M2 12h20"></path>
                         </svg>
                     </div>
                     <div>
-                        <p style="margin: 0; color: #3b82f6; font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Borrowed</p>
-                        <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #1e40af;">₱@((activeLoans?.Sum(l => l.Principal) ?? 0).ToString("N2"))</p>
+                        <p style="margin: 0; color: #5F6F52; font-size: 12px; font-weight: 600; text-transform: uppercase;">
+                            Total Borrowed</p>
+                        <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 600; color: #2F3E2A;">
+                            ₱@((activeLoans?.Sum(l => l.Principal) ?? 0).ToString("N2"))</p>
                     </div>
                 </div>
             </div>
-            <div style="background: linear-gradient(135deg, #fefce8, #fef9c3); border-radius: 12px; padding: 20px; border: 1px solid #fde047;">
+            <div
+                style="background: linear-gradient(135deg, #F0F2EC, #DDE6D5); border-radius: 10px; padding: 20px; border: 1px solid #BCC9A6;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 48px; height: 48px; background: #eab308; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <div
+                        style="width: 48px; height: 48px; background: #8B5A2B; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                             <polyline points="14 2 14 8 20 8"></polyline>
                         </svg>
                     </div>
                     <div>
-                        <p style="margin: 0; color: #ca8a04; font-size: 12px; font-weight: 600; text-transform: uppercase;">Outstanding</p>
-                        <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #854d0e;">₱@((activeLoans?.Sum(l => l.Outstanding) ?? 0).ToString("N2"))</p>
+                        <p style="margin: 0; color: #8B5A2B; font-size: 12px; font-weight: 600; text-transform: uppercase;">
+                            Outstanding</p>
+                        <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 600; color: #2F3E2A;">
+                            ₱@((activeLoans?.Sum(l => l.Outstanding) ?? 0).ToString("N2"))</p>
                     </div>
                 </div>
             </div>
@@ -125,9 +137,9 @@
 
         <!-- Loan Products -->
         <div
-            style="background: white; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
-            <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"
+            style="background: #FFFFFF; border-radius: 14px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 600; color: #2B2B2B; margin-bottom: 24px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5F6F52" stroke-width="2"
                     style="vertical-align: middle; margin-right: 8px;">
                     <rect x="2" y="7" width="20" height="14" rx="2"></rect>
                     <path d="M16 4V2M8 4V2"></path>
@@ -138,11 +150,11 @@
                 @foreach (var product in loanProducts)
                 {
                     <div @onclick="() => SelectLoanProduct(product)"
-                        style="padding: 24px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #059669; border-radius: 16px; cursor: pointer; transition: all 0.3s;"
+                        style="padding: 24px; background: linear-gradient(135deg, #F0F2EC, #DDE6D5); border: 2px solid #5F6F52; border-radius: 14px; cursor: pointer; transition: all 0.3s;"
                         class="loan-card">
                         <div
-                            style="width: 56px; height: 56px; background: linear-gradient(135deg, #059669, #10b981); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            style="width: 56px; height: 56px; background: #2F3E2A; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2">
                                 @if (product.Name == "Personal Loan")
                                 {
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -165,17 +177,17 @@
                                 }
                             </svg>
                         </div>
-                        <div style="font-weight: 600; color: #1f2937; font-size: 18px; margin-bottom: 8px;">@product.Name</div>
-                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">@product.Description</div>
+                        <div style="font-weight: 600; color: #2B2B2B; font-size: 18px; margin-bottom: 8px;">@product.Name</div>
+                        <div style="font-size: 14px; color: #6B6B6B; margin-bottom: 12px;">@product.Description</div>
                         <div
-                            style="display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid #bbf7d0;">
+                            style="display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid #E2E2DC;">
                             <div>
-                                <div style="font-size: 11px; color: #6b7280;">Up to</div>
-                                <div style="font-size: 16px; font-weight: 700; color: #059669;">@product.MaxAmount</div>
+                                <div style="font-size: 11px; color: #6B6B6B;">Up to</div>
+                                <div style="font-size: 16px; font-weight: 600; color: #5F6F52;">@product.MaxAmount</div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-size: 11px; color: #6b7280;">Interest Rate</div>
-                                <div style="font-size: 16px; font-weight: 700; color: #059669;">@product.InterestRate%</div>
+                                <div style="font-size: 11px; color: #6B6B6B;">Interest Rate</div>
+                                <div style="font-size: 16px; font-weight: 600; color: #5F6F52;">@product.InterestRate%</div>
                             </div>
                         </div>
                     </div>
@@ -186,16 +198,19 @@
         <!-- Pending Applications Section -->
         @if (pendingApplications != null && pendingApplications.Any())
         {
-            <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
-                <div style="background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white; padding: 20px 24px;">
+            <div
+                style="background: #FFFFFF; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
+                <div style="background: #8B5A2B; color: #FFFFFF; padding: 20px 24px;">
                     <h4 style="margin: 0; font-weight: 600; font-size: 18px;">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px; vertical-align: middle;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            style="margin-right: 8px; vertical-align: middle;">
                             <circle cx="12" cy="12" r="10"></circle>
                             <polyline points="12 6 12 12 16 14"></polyline>
                         </svg>
                         Pending Applications (@pendingApplications.Count)
                     </h4>
-                    <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">Track your loan application status and make changes if needed</p>
+                    <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">Track your loan application status and make
+                        changes if needed</p>
                 </div>
 
                 <div style="padding: 24px;">
@@ -205,43 +220,56 @@
                             var statusInfo = GetApplicationStatusInfo(app.Status);
                             var canEdit = CanEditApplication(app.Status);
                             var canCancel = CanCancelApplication(app.Status);
-                            
-                            <div style="background: #f9fafb; border-radius: 12px; padding: 20px; border: 1px solid #e5e7eb;">
-                                <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 16px;">
+
+                            <div style="background: #F7F7F4; border-radius: 10px; padding: 20px; border: 1px solid #E2E2DC;">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 16px;">
                                     <div style="flex: 1; min-width: 200px;">
                                         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                            <span style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px;">
+                                            <span
+                                                style="background: linear-gradient(135deg, rgba(95, 111, 82, 0.2), #BCC9A6); color: #2F3E2A; padding: 6px 14px; border-radius: 10px; font-weight: 600; font-size: 13px;">
                                                 @app.ApplicationNumber
                                             </span>
-                                            <span style="background: @statusInfo.BgColor; color: @statusInfo.TextColor; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                            <span
+                                                style="background: @statusInfo.BgColor; color: @statusInfo.TextColor; padding: 4px 12px; border-radius: 10px; font-size: 12px; font-weight: 600;">
                                                 @statusInfo.Label
                                             </span>
                                         </div>
-                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                                        <div
+                                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
                                             <div>
-                                                <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Loan Type</div>
-                                                <div style="font-size: 15px; font-weight: 600; color: #1f2937;">@app.LoanType</div>
+                                                <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Loan Type
+                                                </div>
+                                                <div style="font-size: 15px; font-weight: 600; color: #2B2B2B;">@app.LoanType</div>
                                             </div>
                                             <div>
-                                                <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Requested Amount</div>
-                                                <div style="font-size: 15px; font-weight: 700; color: #059669;">₱@app.RequestedAmount.ToString("N2")</div>
+                                                <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Requested
+                                                    Amount</div>
+                                                <div style="font-size: 15px; font-weight: 600; color: #5F6F52;">
+                                                    ₱@app.RequestedAmount.ToString("N2")</div>
                                             </div>
                                             <div>
-                                                <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Applied Date</div>
-                                                <div style="font-size: 15px; font-weight: 500; color: #374151;">@app.ApplicationDate.ToString("MMM dd, yyyy")</div>
+                                                <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Applied
+                                                    Date</div>
+                                                <div style="font-size: 15px; font-weight: 500; color: #2B2B2B;">
+                                                    @app.ApplicationDate.ToString("MMM dd, yyyy")</div>
                                             </div>
                                             <div>
-                                                <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Purpose</div>
-                                                <div style="font-size: 14px; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;" title="@app.Purpose">@(app.Purpose ?? "N/A")</div>
+                                                <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Purpose
+                                                </div>
+                                                <div style="font-size: 14px; color: #2B2B2B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;"
+                                                    title="@app.Purpose">@(app.Purpose ?? "N/A")</div>
                                             </div>
                                         </div>
                                     </div>
                                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                         @if (canEdit)
                                         {
-                                            <button style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px;"
-                                                    @onclick="() => OpenEditApplicationModal(app)">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <button
+                                                style="background: #5F6F52; color: #FFFFFF; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px;"
+                                                @onclick="() => OpenEditApplicationModal(app)">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
                                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                                 </svg>
@@ -250,9 +278,11 @@
                                         }
                                         @if (canCancel)
                                         {
-                                            <button style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px;"
-                                                    @onclick="() => ConfirmCancelApplication(app)">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <button
+                                                style="background: #9B3A3A; color: #FFFFFF; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px;"
+                                                @onclick="() => ConfirmCancelApplication(app)">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
                                                     <circle cx="12" cy="12" r="10"></circle>
                                                     <line x1="15" y1="9" x2="9" y2="15"></line>
                                                     <line x1="9" y1="9" x2="15" y2="15"></line>
@@ -262,17 +292,19 @@
                                         }
                                         @if (!canEdit && !canCancel)
                                         {
-                                            <span style="color: #6b7280; font-size: 12px; font-style: italic;">Under review - no changes allowed</span>
+                                            <span style="color: #6B6B6B; font-size: 12px; font-style: italic;">Under review - no changes
+                                                allowed</span>
                                         }
                                     </div>
                                 </div>
-                                
+
                                 <!-- Progress indicator -->
-                                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-                                    <div style="font-size: 11px; color: #6b7280; margin-bottom: 8px;">Application Progress</div>
+                                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #E2E2DC;">
+                                    <div style="font-size: 11px; color: #6B6B6B; margin-bottom: 8px;">Application Progress</div>
                                     <div style="display: flex; align-items: center; gap: 4px;">
                                         @{
-                                            var stages = new[] { "Submitted", "Teller Review", "Accountant", "Finance Manager", "Approved" };
+                                            var stages = new[] { "Submitted", "Teller Review", "Accountant", "Finance Manager",
+                                                        "Approved" };
                                             var currentStage = GetCurrentStage(app.Status);
                                         }
                                         @for (int i = 0; i < stages.Length; i++)
@@ -280,8 +312,12 @@
                                             var isCompleted = i < currentStage;
                                             var isCurrent = i == currentStage;
                                             <div style="flex: 1; text-align: center;">
-                                                <div style="height: 4px; background: @(isCompleted ? "#059669" : (isCurrent ? "#fbbf24" : "#e5e7eb")); border-radius: 2px; margin-bottom: 4px;"></div>
-                                                <div style="font-size: 9px; color: @(isCompleted ? "#059669" : (isCurrent ? "#f59e0b" : "#9ca3af"));">@stages[i]</div>
+                                                <div
+                                                    style="height: 4px; background: @(isCompleted ? "#5F6F52" : (isCurrent ? "#8B5A2B" : "#E2E2DC")); border-radius: 2px; margin-bottom: 4px;">
+                                                </div>
+                                                <div
+                                                    style="font-size: 9px; color: @(isCompleted ? "#5F6F52" : (isCurrent ? "#f59e0b" : "#9ca3af"));">
+                                                    @stages[i]</div>
                                             </div>
                                             @if (i < stages.Length - 1)
                                             {
@@ -300,10 +336,12 @@
         <!-- Cancelled/Rejected Applications History -->
         @if (cancelledApplications != null && cancelledApplications.Any())
         {
-            <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
-                <div style="background: linear-gradient(135deg, #6b7280, #4b5563); color: white; padding: 20px 24px;">
+            <div
+                style="background: #FFFFFF; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
+                <div style="background: #6B6B6B; color: #FFFFFF; padding: 20px 24px;">
                     <h4 style="margin: 0; font-weight: 600; font-size: 18px;">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px; vertical-align: middle;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            style="margin-right: 8px; vertical-align: middle;">
                             <path d="M3 6h18"></path>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                         </svg>
@@ -317,44 +355,58 @@
                         @foreach (var app in cancelledApplications)
                         {
                             var isCancelled = app.Status == "CANCELLED";
-                            var statusColor = isCancelled ? "#6b7280" : "#dc2626";
-                            var statusBg = isCancelled ? "#f3f4f6" : "#fee2e2";
+                            var statusColor = isCancelled ? "#6B6B6B" : "#9B3A3A";
+                            var statusBg = isCancelled ? "#F7F7F4" : "rgba(155, 58, 58, 0.1)";
                             var statusLabel = isCancelled ? "Cancelled" : "Rejected";
-                            
-                            <div style="background: #f9fafb; border-radius: 10px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid @statusColor;">
-                                <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 12px;">
+
+                            <div
+                                style="background: #F7F7F4; border-radius: 10px; padding: 16px; border: 1px solid #E2E2DC; border-left: 4px solid @statusColor;">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 12px;">
                                     <div style="flex: 1; min-width: 200px;">
                                         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                                            <span style="background: #e5e7eb; color: #4b5563; padding: 4px 12px; border-radius: 16px; font-weight: 600; font-size: 12px;">
+                                            <span
+                                                style="background: #E2E2DC; color: #2B2B2B; padding: 4px 12px; border-radius: 10px; font-weight: 600; font-size: 12px;">
                                                 @app.ApplicationNumber
                                             </span>
-                                            <span style="background: @statusBg; color: @statusColor; padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 600;">
+                                            <span
+                                                style="background: @statusBg; color: @statusColor; padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 600;">
                                                 @statusLabel
                                             </span>
                                         </div>
-                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+                                        <div
+                                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
                                             <div>
-                                                <div style="font-size: 10px; color: #9ca3af; text-transform: uppercase;">Loan Type</div>
+                                                <div style="font-size: 10px; color: #9ca3af; text-transform: uppercase;">Loan Type
+                                                </div>
                                                 <div style="font-size: 14px; font-weight: 600; color: #4b5563;">@app.LoanType</div>
                                             </div>
                                             <div>
-                                                <div style="font-size: 10px; color: #9ca3af; text-transform: uppercase;">Amount</div>
-                                                <div style="font-size: 14px; font-weight: 600; color: #6b7280;">₱@app.RequestedAmount.ToString("N2")</div>
+                                                <div style="font-size: 10px; color: #9ca3af; text-transform: uppercase;">Amount
+                                                </div>
+                                                <div style="font-size: 14px; font-weight: 600; color: #6B6B6B;">
+                                                    ₱@app.RequestedAmount.ToString("N2")</div>
                                             </div>
                                             <div>
-                                                <div style="font-size: 10px; color: #9ca3af; text-transform: uppercase;">Applied</div>
-                                                <div style="font-size: 14px; color: #6b7280;">@app.ApplicationDate.ToString("MMM dd, yyyy")</div>
+                                                <div style="font-size: 10px; color: #9ca3af; text-transform: uppercase;">Applied
+                                                </div>
+                                                <div style="font-size: 14px; color: #6B6B6B;">@app.ApplicationDate.ToString("MMM dd, yyyy")</div>
                                             </div>
                                             <div>
-                                                <div style="font-size: 10px; color: #9ca3af; text-transform: uppercase;">@(isCancelled ? "Cancelled" : "Rejected")</div>
-                                                <div style="font-size: 14px; color: #6b7280;">@(app.RejectedAt?.ToString("MMM dd, yyyy") ?? "N/A")</div>
+                                                <div style="font-size: 10px; color: #9ca3af; text-transform: uppercase;">
+                                                    @(isCancelled ? "Cancelled" : "Rejected")</div>
+                                                <div style="font-size: 14px; color: #6B6B6B;">@(app.RejectedAt?.ToString("MMM dd, yyyy") ?? "N/A")</div>
                                             </div>
                                         </div>
                                         @if (!string.IsNullOrEmpty(app.RejectionReason))
                                         {
-                                            <div style="margin-top: 10px; padding: 10px; background: @(isCancelled ? "#f3f4f6" : "#fef2f2"); border-radius: 6px;">
-                                                <div style="font-size: 10px; color: @(isCancelled ? "#6b7280" : "#991b1b"); text-transform: uppercase; margin-bottom: 4px;">Reason</div>
-                                                <div style="font-size: 13px; color: @(isCancelled ? "#4b5563" : "#dc2626");">@app.RejectionReason</div>
+                                            <div
+                                                style="margin-top: 10px; padding: 10px; background: @(isCancelled ? "#F7F7F4" : "rgba(155, 58, 58, 0.1)"); border-radius: 6px;">
+                                                <div
+                                                    style="font-size: 10px; color: @(isCancelled ? "#6B6B6B" : "#9B3A3A"); text-transform: uppercase; margin-bottom: 4px;">
+                                                    Reason</div>
+                                                <div style="font-size: 13px; color: @(isCancelled ? "#2B2B2B" : "#9B3A3A");">
+                                                    @app.RejectionReason</div>
                                             </div>
                                         }
                                     </div>
@@ -367,30 +419,36 @@
         }
 
         <!-- Active Loans Table -->
-        <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
-            <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 20px 24px;">
+        <div
+            style="background: #FFFFFF; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
+            <div style="background: #2F3E2A; color: #FFFFFF; padding: 20px 24px;">
                 <h4 style="margin: 0; font-weight: 600; font-size: 18px;">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px; vertical-align: middle;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        style="margin-right: 8px; vertical-align: middle;">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                         <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
                     My Active Loans
                 </h4>
-                <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">Manage your loan payments and track progress</p>
+                <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 13px;">Manage your loan payments and track progress
+                </p>
             </div>
 
             <div style="padding: 24px;">
                 @if (isLoading)
                 {
                     <div style="text-align: center; padding: 60px;">
-                        <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-                        <p style="margin-top: 16px; color: #6b7280; font-size: 15px;">Loading your loans...</p>
+                        <div
+                            style="width: 48px; height: 48px; border: 4px solid #E2E2DC; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+                        </div>
+                        <p style="margin-top: 16px; color: #6B6B6B; font-size: 15px;">Loading your loans...</p>
                     </div>
                 }
                 else if (!activeLoans.Any())
                 {
-                    <div style="text-align: center; padding: 80px 20px; background: linear-gradient(135deg, #f9fafb, #f3f4f6); border-radius: 16px;">
-                        <div style="width: 80px; height: 80px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    <div style="text-align: center; padding: 80px 20px; background: #F7F7F4; border-radius: 14px;">
+                        <div
+                            style="width: 80px; height: 80px; background: #E2E2DC; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
                             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5">
                                 <rect x="2" y="7" width="20" height="14" rx="2"></rect>
                             </svg>
@@ -398,7 +456,7 @@
                         <h5 style="color: #4b5563; margin-top: 20px; font-size: 18px; font-weight: 600;">No Active Loans</h5>
                         <p style="color: #9ca3af; font-size: 14px; margin-top: 8px;">Apply for a loan to get started.</p>
                         <button @onclick="ShowLoanApplication"
-                                style="margin-top: 20px; background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
+                            style="margin-top: 20px; background: #5F6F52; color: #FFFFFF; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(95, 111, 82, 0.3);">
                             Apply Now
                         </button>
                     </div>
@@ -409,23 +467,41 @@
                         <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
                             <thead>
                                 <tr style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
-                                    <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Loan ID</th>
-                                    <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Type</th>
-                                    <th style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Principal</th>
-                                    <th style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Outstanding</th>
-                                    <th style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Monthly</th>
-                                    <th style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Next Due</th>
-                                    <th style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Progress</th>
-                                    <th style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Action</th>
+                                    <th
+                                        style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">
+                                        Loan ID</th>
+                                    <th
+                                        style="padding: 14px 16px; text-align: left; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">
+                                        Type</th>
+                                    <th
+                                        style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">
+                                        Principal</th>
+                                    <th
+                                        style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">
+                                        Outstanding</th>
+                                    <th
+                                        style="padding: 14px 16px; text-align: right; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">
+                                        Monthly</th>
+                                    <th
+                                        style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">
+                                        Next Due</th>
+                                    <th
+                                        style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">
+                                        Progress</th>
+                                    <th
+                                        style="padding: 14px 16px; text-align: center; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">
+                                        Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var loan in activeLoans)
                                 {
-                                    var progressPercent = loan.Principal > 0 ? ((loan.Principal - loan.Outstanding) / loan.Principal * 100) : 0;
+                                    var progressPercent = loan.Principal > 0 ? ((loan.Principal - loan.Outstanding) / loan.Principal
+                                    * 100) : 0;
                                     <tr style="border-bottom: 1px solid #f1f5f9; transition: all 0.2s;">
                                         <td style="padding: 16px;">
-                                            <span style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; display: inline-block;">
+                                            <span
+                                                style="background: rgba(95, 111, 82, 0.2); color: #2F3E2A; padding: 6px 14px; border-radius: 10px; font-weight: 600; font-size: 13px; display: inline-block;">
                                                 @loan.Id
                                             </span>
                                         </td>
@@ -434,34 +510,43 @@
                                             <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Active</div>
                                         </td>
                                         <td style="padding: 16px; text-align: right;">
-                                            <span style="font-weight: 700; color: #1e293b; font-size: 15px;">₱@loan.Principal.ToString("N2")</span>
+                                            <span
+                                                style="font-weight: 600; color: #2B2B2B; font-size: 15px;">₱@loan.Principal.ToString("N2")</span>
                                         </td>
                                         <td style="padding: 16px; text-align: right;">
-                                            <span style="font-weight: 700; color: #dc2626; font-size: 15px;">₱@loan.Outstanding.ToString("N2")</span>
+                                            <span
+                                                style="font-weight: 600; color: #9B3A3A; font-size: 15px;">₱@loan.Outstanding.ToString("N2")</span>
                                         </td>
                                         <td style="padding: 16px; text-align: right; color: #475569; font-weight: 500;">
                                             ₱@loan.MonthlyPayment.ToString("N2")
                                         </td>
                                         <td style="padding: 16px; text-align: center;">
-                                            <span style="color: @(loan.NextDue < DateTime.Now ? "#dc2626" : "#f59e0b"); font-weight: 600;">
+                                            <span
+                                                style="color: @(loan.NextDue < DateTime.Now ? "#9B3A3A" : "#8B5A2B"); font-weight: 600;">
                                                 @loan.NextDue.ToString("MMM dd, yyyy")
                                             </span>
                                         </td>
                                         <td style="padding: 16px;">
                                             <div style="min-width: 100px;">
                                                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                                    <span style="font-size: 11px; color: #6b7280;">Paid</span>
-                                                    <span style="font-size: 11px; font-weight: 600; color: #059669;">@progressPercent.ToString("F0")%</span>
+                                                    <span style="font-size: 11px; color: #6B6B6B;">Paid</span>
+                                                    <span
+                                                        style="font-size: 11px; font-weight: 600; color: #5F6F52;">@progressPercent.ToString("F0")%</span>
                                                 </div>
-                                                <div style="height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden;">
-                                                    <div style="height: 100%; background: linear-gradient(135deg, #059669, #10b981); width: @progressPercent.ToString("F0")%;"></div>
+                                                <div
+                                                    style="height: 6px; background: #E2E2DC; border-radius: 3px; overflow: hidden;">
+                                                    <div
+                                                        style="height: 100%; background: #5F6F52; width: @progressPercent.ToString("F0")%;">
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td style="padding: 16px; text-align: center;">
-                                            <button style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25); transition: all 0.2s;"
-                                                    @onclick="() => OpenPaymentModal(loan)">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
+                                            <button
+                                                style="background: #5F6F52; color: #FFFFFF; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; box-shadow: 0 2px 8px rgba(95, 111, 82, 0.25); transition: all 0.2s;"
+                                                @onclick="() => OpenPaymentModal(loan)">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
                                                     <rect x="2" y="6" width="20" height="12" rx="2"></rect>
                                                     <path d="M2 10h20"></path>
                                                 </svg>
@@ -480,9 +565,9 @@
     else
     {
         <!-- Tab 1: Transaction History -->
-        <div style="background: white; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 24px;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h2 style="font-size: 20px; font-weight: 600; color: #2B2B2B; margin-bottom: 24px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5F6F52" stroke-width="2"
                     style="vertical-align: middle; margin-right: 8px;">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
@@ -494,17 +579,16 @@
             {
                 <div style="text-align: center; padding: 40px;">
                     <div
-                        style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+                        style="width: 48px; height: 48px; border: 4px solid #E2E2DC; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
                     </div>
-                    <p style="margin-top: 16px; color: #6b7280;">Loading transaction history...</p>
+                    <p style="margin-top: 16px; color: #6B6B6B;">Loading transaction history...</p>
                 </div>
             }
             else if (!transactionHistory.Any())
             {
-                <div
-                    style="text-align: center; padding: 60px; background: linear-gradient(135deg, #f9fafb, #f3f4f6); border-radius: 16px;">
+                <div style="text-align: center; padding: 60px; background: #F7F7F4; border-radius: 14px;">
                     <div
-                        style="width: 80px; height: 80px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                        style="width: 80px; height: 80px; background: #E2E2DC; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5">
                             <circle cx="12" cy="12" r="10"></circle>
                             <polyline points="12 6 12 12 16 14"></polyline>
@@ -520,30 +604,30 @@
                 <div
                     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px;">
                     <div
-                        style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 12px; padding: 16px; border: 1px solid #bfdbfe;">
-                        <span style="font-size: 12px; color: #1e40af; font-weight: 600;">Total Applications</span>
-                        <div style="font-size: 28px; font-weight: 700; color: #1e40af;">
+                        style="background: linear-gradient(135deg, #F0F2EC, #DDE6D5); border-radius: 10px; padding: 16px; border: 1px solid #BCC9A6;">
+                        <span style="font-size: 12px; color: #5F6F52; font-weight: 600;">Total Applications</span>
+                        <div style="font-size: 28px; font-weight: 600; color: #2F3E2A;">
                             @transactionHistory.Count(t => t.TransactionType == "APPLICATION")
                         </div>
                     </div>
                     <div
-                        style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 16px; border: 1px solid #bbf7d0;">
-                        <span style="font-size: 12px; color: #166534; font-weight: 600;">Approved</span>
-                        <div style="font-size: 28px; font-weight: 700; color: #166534;">
+                        style="background: linear-gradient(135deg, #F0F2EC, #DDE6D5); border-radius: 10px; padding: 16px; border: 1px solid #BCC9A6;">
+                        <span style="font-size: 12px; color: #4F6F52; font-weight: 600;">Approved</span>
+                        <div style="font-size: 28px; font-weight: 600; color: #4F6F52;">
                             @transactionHistory.Count(t => t.TransactionType == "FM_APPROVAL" || t.TransactionType == "RELEASE")
                         </div>
                     </div>
                     <div
-                        style="background: linear-gradient(135deg, #fefce8, #fef9c3); border-radius: 12px; padding: 16px; border: 1px solid #fde047;">
-                        <span style="font-size: 12px; color: #92400e; font-weight: 600;">Payments Made</span>
-                        <div style="font-size: 28px; font-weight: 700; color: #92400e;">
+                        style="background: linear-gradient(135deg, #F0F2EC, #DDE6D5); border-radius: 10px; padding: 16px; border: 1px solid #BCC9A6;">
+                        <span style="font-size: 12px; color: #8B5A2B; font-weight: 600;">Payments Made</span>
+                        <div style="font-size: 28px; font-weight: 600; color: #8B5A2B;">
                             @transactionHistory.Count(t => t.TransactionType == "PAYMENT" || t.TransactionType ==
                             "FULL_PAYMENT")
                 </div>
             </div>
-            <div style="background: linear-gradient(135deg, #059669, #10b981); border-radius: 12px; padding: 16px;">
-                <span style="font-size: 12px; color: white; font-weight: 600;">Total Paid</span>
-                <div style="font-size: 28px; font-weight: 700; color: white;">
+            <div style="background: #5F6F52; border-radius: 10px; padding: 16px;">
+                <span style="font-size: 12px; color: #FFFFFF; font-weight: 600;">Total Paid</span>
+                <div style="font-size: 28px; font-weight: 600; color: #FFFFFF;">
                     ₱@transactionHistory.Where(t => t.TransactionType == "PAYMENT" || t.TransactionType ==
                                         "FULL_PAYMENT").Sum(t => t.Amount).ToString("N0")
                 </div>
@@ -556,7 +640,7 @@
                     {
                         var (icon, color, bgColor) = GetTransactionStyle(transaction.TransactionType);
                         <div
-                            style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left: 4px solid @color;">
+                            style="background: #FFFFFF; border-radius: 10px; padding: 16px; border: 1px solid #E2E2DC; border-left: 4px solid @color;">
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                                 <div style="display: flex; align-items: center; gap: 16px;">
@@ -565,37 +649,38 @@
                                         @icon
                                     </div>
                                     <div>
-                                        <h4 style="font-size: 15px; font-weight: 700; color: #1f2937; margin: 0 0 4px 0;">
+                                        <h4 style="font-size: 15px; font-weight: 600; color: #2B2B2B; margin: 0 0 4px 0;">
                                             @GetTransactionTitle(transaction.TransactionType)
                                         </h4>
-                                        <p style="font-size: 13px; color: #6b7280; margin: 0;">@transaction.Description</p>
+                                        <p style="font-size: 13px; color: #6B6B6B; margin: 0;">@transaction.Description</p>
                                         <p style="font-size: 12px; color: #9ca3af; margin: 4px 0 0;">
                                             @transaction.TransactionDate.ToString("MMMM dd, yyyy hh:mm tt")
                                         </p>
                                     </div>
                                 </div>
                                 <div style="text-align: right;">
-                                    <div style="font-size: 18px; font-weight: 700; color: @color;">
+                                    <div style="font-size: 18px; font-weight: 600; color: @color;">
                                         @(IsDebit(transaction.TransactionType) ? "-" : "+")₱@transaction.Amount.ToString("N2")
                                     </div>
                                     @if (transaction.PenaltyAmount > 0)
                                     {
-                                        <div style="font-size: 12px; color: #dc2626;">
+                                        <div style="font-size: 12px; color: #9B3A3A;">
                                             Penalty: ₱@transaction.PenaltyAmount?.ToString("N2")
                                         </div>
                                     }
                                     @if (!string.IsNullOrWhiteSpace(transaction.Status))
                                     {
                                         <span
-                                            style="background: @GetStatusBg(transaction.Status); color: @GetStatusColor(transaction.Status); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block; margin-top: 4px;">
+                                            style="background: @GetStatusBg(transaction.Status); color: @GetStatusColor(transaction.Status); padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; display: inline-block; margin-top: 4px;">
                                             @transaction.Status
                                         </span>
                                     }
                                     @if (transaction.TransactionType == "PAYMENT" || transaction.TransactionType == "FULL_PAYMENT" || transaction.TransactionType == "RELEASE")
                                     {
-                                        <button @onclick="() => DownloadInvoice(transaction)" 
-                                                style="display: inline-flex; align-items: center; gap: 4px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #059669; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 8px;">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <button @onclick="() => DownloadInvoice(transaction)"
+                                            style="display: inline-flex; align-items: center; gap: 4px; background: #F0F2EC; border: 1px solid #BCC9A6; color: #5F6F52; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 8px;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                stroke-width="2">
                                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                                 <polyline points="7 10 12 15 17 10"></polyline>
                                                 <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -616,13 +701,12 @@
 <!-- Loan Application Modal -->
 @if (showApplicationModal)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
         @onclick="CloseApplication">
-        <div style="background: white; border-radius: 20px; max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
+        <div style="background: #FFFFFF; border-radius: 14px; max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
             @onclick:stopPropagation>
-            <div
-                style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px 28px; border-radius: 20px 20px 0 0;">
-                <h4 style="margin: 0; font-weight: 700; font-size: 22px;">Apply for @(selectedProduct?.Name ?? "Loan")</h4>
+            <div style="background: #2F3E2A; color: #FFFFFF; padding: 24px 28px; border-radius: 14px 14px 0 0;">
+                <h4 style="margin: 0; font-weight: 600; font-size: 22px;">Apply for @(selectedProduct?.Name ?? "Loan")</h4>
                 <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">Complete all sections for faster processing</p>
             </div>
 
@@ -630,31 +714,37 @@
                 @if (selectedProduct != null)
                 {
                     <div
-                        style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; border: 1px solid #bbf7d0;">
+                        style="background: #F0F2EC; border-radius: 10px; padding: 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; border: 1px solid #BCC9A6;">
                         <div
-                            style="width: 56px; height: 56px; background: linear-gradient(135deg, #059669, #10b981); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            style="width: 56px; height: 56px; background: #5F6F52; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2">
                                 <rect x="2" y="7" width="20" height="14" rx="2"></rect>
                             </svg>
                         </div>
                         <div>
-                            <div style="font-weight: 600; color: #1f2937;">@selectedProduct.Name</div>
-                            <div style="font-size: 14px; color: #6b7280;">@selectedProduct.Description</div>
-                            <div style="font-size: 13px; color: #059669; font-weight: 600; margin-top: 4px;">Interest Rate: @selectedProduct.InterestRate%</div>
+                            <div style="font-weight: 600; color: #2B2B2B;">@selectedProduct.Name</div>
+                            <div style="font-size: 14px; color: #6B6B6B;">@selectedProduct.Description</div>
+                            <div style="font-size: 13px; color: #5F6F52; font-weight: 600; margin-top: 4px;">Interest Rate:
+                                @selectedProduct.InterestRate%</div>
                         </div>
                     </div>
                 }
 
                 <!-- Section 1: Basic Loan Information -->
                 <div style="margin-bottom: 24px;">
-                    <h5 style="font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                        <span style="width: 24px; height: 24px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">1</span>
+                    <h5
+                        style="font-size: 15px; font-weight: 600; color: #2B2B2B; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span
+                            style="width: 24px; height: 24px; background: #5F6F52; color: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">1</span>
                         Loan Details
                     </h5>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan Type <span style="color: #ef4444;">*</span></label>
-                            <select @bind="applicationLoanType" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                            <label
+                                style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Loan
+                                Type <span style="color: #9B3A3A;">*</span></label>
+                            <select @bind="applicationLoanType"
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #FFFFFF;">
                                 <option value="">Select Type</option>
                                 <option value="Personal">Personal Loan</option>
                                 <option value="Home">Home Loan</option>
@@ -665,19 +755,28 @@
                             </select>
                         </div>
                         <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan Category</label>
-                            <select @bind="applicationLoanCategory" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                            <label
+                                style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Loan
+                                Category</label>
+                            <select @bind="applicationLoanCategory"
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #FFFFFF;">
                                 <option value="Unsecured">Unsecured (No Collateral)</option>
                                 <option value="Secured">Secured (With Collateral)</option>
                             </select>
                         </div>
                         <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan Amount <span style="color: #ef4444;">*</span></label>
-                            <input type="number" @bind="applicationAmount" placeholder="Enter amount" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                            <label
+                                style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Loan
+                                Amount <span style="color: #9B3A3A;">*</span></label>
+                            <input type="number" @bind="applicationAmount" placeholder="Enter amount"
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                         </div>
                         <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Loan Term <span style="color: #ef4444;">*</span></label>
-                            <select @bind="applicationTerm" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                            <label
+                                style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Loan
+                                Term <span style="color: #9B3A3A;">*</span></label>
+                            <select @bind="applicationTerm"
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #FFFFFF;">
                                 <option value="6">6 months</option>
                                 <option value="12">12 months</option>
                                 <option value="24">24 months</option>
@@ -688,8 +787,11 @@
                         </div>
                     </div>
                     <div style="margin-top: 16px;">
-                        <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Purpose Category</label>
-                        <select @bind="applicationPurposeCategory" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                        <label
+                            style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Purpose
+                            Category</label>
+                        <select @bind="applicationPurposeCategory"
+                            style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #FFFFFF;">
                             <option value="">Select Purpose</option>
                             <option value="Medical">Medical/Healthcare</option>
                             <option value="Education">Education/Tuition</option>
@@ -704,38 +806,53 @@
                         </select>
                     </div>
                     <div style="margin-top: 16px;">
-                        <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Detailed Purpose <span style="color: #ef4444;">*</span></label>
-                        <textarea @bind="applicationPurpose" rows="2" placeholder="Describe in detail how you will use the loan" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; resize: vertical;"></textarea>
+                        <label
+                            style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Detailed
+                            Purpose <span style="color: #9B3A3A;">*</span></label>
+                        <textarea @bind="applicationPurpose" rows="2"
+                            placeholder="Describe in detail how you will use the loan"
+                            style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px; resize: vertical;"></textarea>
                     </div>
                 </div>
 
                 <!-- Section 2: Employment & Financial Information (Required) -->
                 <div style="margin-bottom: 24px;">
-                    <h5 style="font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                        <span style="width: 24px; height: 24px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">2</span>
-                        Personal & Employment Information <span style="font-size: 11px; color: #059669; font-weight: normal;">(Auto-filled from registration)</span>
+                    <h5
+                        style="font-size: 15px; font-weight: 600; color: #2B2B2B; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span
+                            style="width: 24px; height: 24px; background: #5F6F52; color: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">2</span>
+                        Personal & Employment Information <span
+                            style="font-size: 11px; color: #5F6F52; font-weight: normal;">(Auto-filled from
+                            registration)</span>
                     </h5>
-                    
+
                     <!-- Address Display (Auto-fetched) -->
                     <div style="margin-bottom: 16px;">
-                        <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Registered Address</label>
-                        <div style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: #f9fafb; min-height: 44px;">
+                        <label
+                            style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Registered
+                            Address</label>
+                        <div
+                            style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #F7F7F4; min-height: 44px;">
                             @if (!string.IsNullOrEmpty(applicantAddress))
                             {
-                                <span style="color: #1f2937;">@applicantAddress</span>
+                                <span style="color: #2B2B2B;">@applicantAddress</span>
                             }
                             else
                             {
-                                <span style="color: #9ca3af; font-style: italic;">Address will be auto-fetched from your registration...</span>
+                                <span style="color: #9ca3af; font-style: italic;">Address will be auto-fetched from your
+                                    registration...</span>
                             }
                         </div>
                     </div>
-                    
+
                     <!-- Employment Status and Monthly Income (Required) -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                         <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Employment Status <span style="color: #ef4444;">*</span></label>
-                            <select @bind="employmentStatus" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                            <label
+                                style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Employment
+                                Status <span style="color: #9B3A3A;">*</span></label>
+                            <select @bind="employmentStatus"
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #FFFFFF;">
                                 <option value="">Select Employment Status</option>
                                 <option value="Employed">Employed</option>
                                 <option value="Self-Employed">Self-Employed</option>
@@ -748,20 +865,29 @@
                             </select>
                         </div>
                         <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Monthly Gross Income <span style="color: #ef4444;">*</span></label>
-                            <input type="number" @bind="monthlyIncome" placeholder="Enter monthly income" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                            <label
+                                style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Monthly
+                                Gross Income <span style="color: #9B3A3A;">*</span></label>
+                            <input type="number" @bind="monthlyIncome" placeholder="Enter monthly income"
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                         </div>
                     </div>
 
                     <!-- Additional Financial Info -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Existing Debts (Monthly)</label>
-                            <input type="number" @bind="existingDebtsMonthly" placeholder="Total monthly debt payments" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                            <label
+                                style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Existing
+                                Debts (Monthly)</label>
+                            <input type="number" @bind="existingDebtsMonthly" placeholder="Total monthly debt payments"
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                         </div>
                         <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Other Income (Monthly)</label>
-                            <input type="number" @bind="otherIncomeMonthly" placeholder="Rental, business, etc." style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                            <label
+                                style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Other
+                                Income (Monthly)</label>
+                            <input type="number" @bind="otherIncomeMonthly" placeholder="Rental, business, etc."
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                         </div>
                     </div>
                 </div>
@@ -769,15 +895,21 @@
                 <!-- Section 3: Collateral Information (if Secured) -->
                 @if (applicationLoanCategory == "Secured")
                 {
-                    <div style="margin-bottom: 24px; background: #f0fdf4; border-radius: 12px; padding: 20px; border: 1px solid #bbf7d0;">
-                        <h5 style="font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                            <span style="width: 24px; height: 24px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">3</span>
+                    <div
+                        style="margin-bottom: 24px; background: #F0F2EC; border-radius: 10px; padding: 20px; border: 1px solid #BCC9A6;">
+                        <h5
+                            style="font-size: 15px; font-weight: 600; color: #2B2B2B; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <span
+                                style="width: 24px; height: 24px; background: #5F6F52; color: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">3</span>
                             Collateral Information
                         </h5>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                             <div>
-                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Collateral Type <span style="color: #ef4444;">*</span></label>
-                                <select @bind="collateralType" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                                <label
+                                    style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Collateral
+                                    Type <span style="color: #9B3A3A;">*</span></label>
+                                <select @bind="collateralType"
+                                    style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #FFFFFF;">
                                     <option value="">Select Type</option>
                                     <option value="Real Estate">Real Estate/Property</option>
                                     <option value="Vehicle">Vehicle</option>
@@ -789,13 +921,20 @@
                                 </select>
                             </div>
                             <div>
-                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Estimated Value</label>
-                                <input type="number" @bind="collateralEstimatedValue" placeholder="Enter estimated value" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                                <label
+                                    style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Estimated
+                                    Value</label>
+                                <input type="number" @bind="collateralEstimatedValue" placeholder="Enter estimated value"
+                                    style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                             </div>
                         </div>
                         <div style="margin-top: 16px;">
-                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Collateral Description</label>
-                            <textarea @bind="collateralDescription" rows="2" placeholder="Describe the collateral (e.g., property address, vehicle model, etc.)" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; resize: vertical;"></textarea>
+                            <label
+                                style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Collateral
+                                Description</label>
+                            <textarea @bind="collateralDescription" rows="2"
+                                placeholder="Describe the collateral (e.g., property address, vehicle model, etc.)"
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px; resize: vertical;"></textarea>
                         </div>
                     </div>
                 }
@@ -803,26 +942,35 @@
                 <!-- Section 4: Co-Borrower/Guarantor (Optional) -->
                 <div style="margin-bottom: 24px;">
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                        <h5 style="font-size: 15px; font-weight: 700; color: #1f2937; margin: 0; display: flex; align-items: center; gap: 8px;">
-                            <span style="width: 24px; height: 24px; background: #6b7280; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">@(applicationLoanCategory == "Secured" ? "4" : "3")</span>
+                        <h5
+                            style="font-size: 15px; font-weight: 600; color: #2B2B2B; margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <span
+                                style="width: 24px; height: 24px; background: #6B6B6B; color: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">@(applicationLoanCategory
+                                                            == "Secured" ? "4" : "3")</span>
                             Co-Borrower / Guarantor
                         </h5>
-                        <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6b7280; cursor: pointer;">
+                        <label
+                            style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6B6B6B; cursor: pointer;">
                             <input type="checkbox" @bind="hasCoBorrower" style="width: 16px; height: 16px;" />
                             Add a co-borrower/guarantor
                         </label>
                     </div>
                     @if (hasCoBorrower)
                     {
-                        <div style="background: #eff6ff; border-radius: 12px; padding: 20px; border: 1px solid #bfdbfe;">
+                        <div style="background: #F0F2EC; border-radius: 10px; padding: 20px; border: 1px solid #BCC9A6;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                                 <div>
-                                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Full Name <span style="color: #ef4444;">*</span></label>
-                                    <input type="text" @bind="coBorrowerName" placeholder="Enter full name" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                                    <label
+                                        style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Full
+                                        Name <span style="color: #9B3A3A;">*</span></label>
+                                    <input type="text" @bind="coBorrowerName" placeholder="Enter full name"
+                                        style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                                 </div>
                                 <div>
-                                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Relationship</label>
-                                    <select @bind="coBorrowerRelationship" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white;">
+                                    <label
+                                        style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Relationship</label>
+                                    <select @bind="coBorrowerRelationship"
+                                        style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #FFFFFF;">
                                         <option value="">Select...</option>
                                         <option value="Spouse">Spouse</option>
                                         <option value="Parent">Parent</option>
@@ -833,17 +981,25 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Contact Number</label>
-                                    <input type="tel" @bind="coBorrowerContact" placeholder="09XXXXXXXXX" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                                    <label
+                                        style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Contact
+                                        Number</label>
+                                    <input type="tel" @bind="coBorrowerContact" placeholder="09XXXXXXXXX"
+                                        style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                                 </div>
                                 <div>
-                                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Monthly Income</label>
-                                    <input type="number" @bind="coBorrowerIncome" placeholder="Enter monthly income" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                                    <label
+                                        style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Monthly
+                                        Income</label>
+                                    <input type="number" @bind="coBorrowerIncome" placeholder="Enter monthly income"
+                                        style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                                 </div>
                             </div>
                             <div style="margin-top: 16px;">
-                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Address</label>
-                                <input type="text" @bind="coBorrowerAddress" placeholder="Enter complete address" style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;" />
+                                <label
+                                    style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Address</label>
+                                <input type="text" @bind="coBorrowerAddress" placeholder="Enter complete address"
+                                    style="width: 100%; padding: 12px 14px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                             </div>
                         </div>
                     }
@@ -851,78 +1007,110 @@
 
                 <!-- Section 5: Document Submission Checklist -->
                 <div style="margin-bottom: 24px;">
-                    <h5 style="font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                        <span style="width: 24px; height: 24px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">@(applicationLoanCategory == "Secured" ? (hasCoBorrower ? "5" : "4") : (hasCoBorrower ? "4" : "3"))</span>
+                    <h5
+                        style="font-size: 15px; font-weight: 600; color: #2B2B2B; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span
+                            style="width: 24px; height: 24px; background: #5F6F52; color: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">@(applicationLoanCategory
+                                                    == "Secured" ? (hasCoBorrower ? "5" : "4") : (hasCoBorrower ? "4" : "3"))</span>
                         Document Submission
                     </h5>
-                    <div style="background: #fef3c7; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #fde68a;">
-                        <p style="margin: 0; font-size: 13px; color: #92400e;"><strong>⚠️ Important:</strong> Please confirm which documents you will submit. All checked documents must be provided to the Teller within 3 business days.</p>
+                    <div
+                        style="background: rgba(139, 90, 43, 0.1); border-radius: 10px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(139, 90, 43, 0.3);">
+                        <p style="margin: 0; font-size: 13px; color: #8B5A2B;"><strong>⚠️ Important:</strong> Please confirm
+                            which documents you will submit. All checked documents must be provided to the Teller within 3
+                            business days.</p>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docBankStatement ? "#d1fae5" : "#f9fafb"); border: 1px solid @(docBankStatement ? "#059669" : "#e5e7eb"); border-radius: 8px; cursor: pointer;">
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docBankStatement ? "rgba(95, 111, 82, 0.2)" : "#F7F7F4"); border: 1px solid @(docBankStatement ? "#5F6F52" : "#E2E2DC"); border-radius: 10px; cursor: pointer;">
                             <input type="checkbox" @bind="docBankStatement" style="width: 18px; height: 18px;" />
-                            <span style="font-size: 14px; color: #374151;">Bank Statements (3 months)</span>
+                            <span style="font-size: 14px; color: #2B2B2B;">Bank Statements (3 months)</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docPayslips ? "#d1fae5" : "#f9fafb"); border: 1px solid @(docPayslips ? "#059669" : "#e5e7eb"); border-radius: 8px; cursor: pointer;">
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docPayslips ? "rgba(95, 111, 82, 0.2)" : "#F7F7F4"); border: 1px solid @(docPayslips ? "#5F6F52" : "#E2E2DC"); border-radius: 10px; cursor: pointer;">
                             <input type="checkbox" @bind="docPayslips" style="width: 18px; height: 18px;" />
-                            <span style="font-size: 14px; color: #374151;">Latest Payslips (2 months)</span>
+                            <span style="font-size: 14px; color: #2B2B2B;">Latest Payslips (2 months)</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docITR ? "#d1fae5" : "#f9fafb"); border: 1px solid @(docITR ? "#059669" : "#e5e7eb"); border-radius: 8px; cursor: pointer;">
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docITR ? "rgba(95, 111, 82, 0.2)" : "#F7F7F4"); border: 1px solid @(docITR ? "#5F6F52" : "#E2E2DC"); border-radius: 10px; cursor: pointer;">
                             <input type="checkbox" @bind="docITR" style="width: 18px; height: 18px;" />
-                            <span style="font-size: 14px; color: #374151;">Income Tax Return (ITR)</span>
+                            <span style="font-size: 14px; color: #2B2B2B;">Income Tax Return (ITR)</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docCOE ? "#d1fae5" : "#f9fafb"); border: 1px solid @(docCOE ? "#059669" : "#e5e7eb"); border-radius: 8px; cursor: pointer;">
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docCOE ? "rgba(95, 111, 82, 0.2)" : "#F7F7F4"); border: 1px solid @(docCOE ? "#5F6F52" : "#E2E2DC"); border-radius: 10px; cursor: pointer;">
                             <input type="checkbox" @bind="docCOE" style="width: 18px; height: 18px;" />
-                            <span style="font-size: 14px; color: #374151;">Certificate of Employment</span>
+                            <span style="font-size: 14px; color: #2B2B2B;">Certificate of Employment</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docValidID ? "#d1fae5" : "#f9fafb"); border: 1px solid @(docValidID ? "#059669" : "#e5e7eb"); border-radius: 8px; cursor: pointer;">
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docValidID ? "rgba(95, 111, 82, 0.2)" : "#F7F7F4"); border: 1px solid @(docValidID ? "#5F6F52" : "#E2E2DC"); border-radius: 10px; cursor: pointer;">
                             <input type="checkbox" @bind="docValidID" style="width: 18px; height: 18px;" />
-                            <span style="font-size: 14px; color: #374151;">Valid Government ID</span>
+                            <span style="font-size: 14px; color: #2B2B2B;">Valid Government ID</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docProofOfBilling ? "#d1fae5" : "#f9fafb"); border: 1px solid @(docProofOfBilling ? "#059669" : "#e5e7eb"); border-radius: 8px; cursor: pointer;">
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; padding: 12px; background: @(docProofOfBilling ? "rgba(95, 111, 82, 0.2)" : "#F7F7F4"); border: 1px solid @(docProofOfBilling ? "#5F6F52" : "#E2E2DC"); border-radius: 10px; cursor: pointer;">
                             <input type="checkbox" @bind="docProofOfBilling" style="width: 18px; height: 18px;" />
-                            <span style="font-size: 14px; color: #374151;">Proof of Billing Address</span>
+                            <span style="font-size: 14px; color: #2B2B2B;">Proof of Billing Address</span>
                         </label>
                     </div>
                 </div>
 
                 <!-- Section 6: Terms and Legal Acknowledgment -->
                 <div style="margin-bottom: 24px;">
-                    <h5 style="font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                        <span style="width: 24px; height: 24px; background: #dc2626; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">!</span>
+                    <h5
+                        style="font-size: 15px; font-weight: 600; color: #2B2B2B; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span
+                            style="width: 24px; height: 24px; background: #9B3A3A; color: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">!</span>
                         Terms & Legal Acknowledgment
                     </h5>
-                    <div style="background: #fef2f2; border: 2px solid #fecaca; border-radius: 12px; padding: 20px;">
+                    <div
+                        style="background: rgba(155, 58, 58, 0.1); border: 2px solid rgba(155, 58, 58, 0.3); border-radius: 10px; padding: 20px;">
                         <div style="margin-bottom: 16px;">
-                            <h6 style="margin: 0 0 8px 0; color: #991b1b; font-size: 14px; font-weight: 700;">📋 LOAN TERMS & CONDITIONS</h6>
-                            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #7f1d1d; line-height: 1.6;">
-                                <li><strong>Interest Rate:</strong> As per selected loan type (Personal: 12.5%, Home: 8.5%, Auto: 9.5%)</li>
+                            <h6 style="margin: 0 0 8px 0; color: #9B3A3A; font-size: 14px; font-weight: 600;">📋 LOAN TERMS
+                                & CONDITIONS</h6>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #6B6B6B; line-height: 1.6;">
+                                <li><strong>Interest Rate:</strong> As per selected loan type (Personal: 12.5%, Home: 8.5%,
+                                    Auto: 9.5%)</li>
                                 <li><strong>Grace Period:</strong> 5 days after due date before penalty applies</li>
                                 <li><strong>Late Payment Penalty:</strong> 0.05% per day of outstanding balance</li>
                                 <li><strong>Prepayment:</strong> Allowed without penalty after 6 months</li>
                             </ul>
                         </div>
-                        <div style="margin-bottom: 16px; padding: 16px; background: #fee2e2; border-radius: 8px;">
-                            <h6 style="margin: 0 0 8px 0; color: #991b1b; font-size: 14px; font-weight: 700;">⚠️ LEGAL CONSEQUENCES FOR NON-PAYMENT</h6>
-                            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #7f1d1d; line-height: 1.6;">
+                        <div
+                            style="margin-bottom: 16px; padding: 16px; background: rgba(155, 58, 58, 0.15); border-radius: 10px;">
+                            <h6 style="margin: 0 0 8px 0; color: #9B3A3A; font-size: 14px; font-weight: 600;">⚠️ LEGAL
+                                CONSEQUENCES FOR NON-PAYMENT</h6>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #6B6B6B; line-height: 1.6;">
                                 <li><strong>30 Days Overdue:</strong> Formal demand letter and credit report notation</li>
                                 <li><strong>60 Days Overdue:</strong> Legal action may be initiated; lawyer fees apply</li>
-                                <li><strong>90 Days Overdue:</strong> Account referred to collection agency; possible police report for fraud if applicable</li>
-                                <li><strong>Collateral:</strong> For secured loans, collateral may be foreclosed/repossessed</li>
+                                <li><strong>90 Days Overdue:</strong> Account referred to collection agency; possible police
+                                    report for fraud if applicable</li>
+                                <li><strong>Collateral:</strong> For secured loans, collateral may be foreclosed/repossessed
+                                </li>
                             </ul>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 12px;">
                             <label style="display: flex; align-items: start; gap: 10px; cursor: pointer;">
-                                <input type="checkbox" @bind="acknowledgeTerms" style="width: 18px; height: 18px; margin-top: 2px;" />
-                                <span style="font-size: 13px; color: #374151;">I have read and agree to the <strong>Loan Terms and Conditions</strong> including interest rates, fees, and payment schedule.</span>
+                                <input type="checkbox" @bind="acknowledgeTerms"
+                                    style="width: 18px; height: 18px; margin-top: 2px;" />
+                                <span style="font-size: 13px; color: #2B2B2B;">I have read and agree to the <strong>Loan
+                                        Terms and Conditions</strong> including interest rates, fees, and payment
+                                    schedule.</span>
                             </label>
                             <label style="display: flex; align-items: start; gap: 10px; cursor: pointer;">
-                                <input type="checkbox" @bind="acknowledgeLegalAction" style="width: 18px; height: 18px; margin-top: 2px;" />
-                                <span style="font-size: 13px; color: #374151;">I understand that <strong>failure to pay may result in legal action</strong>, including but not limited to demand letters, collection agency referral, court proceedings, and possible police report for fraud.</span>
+                                <input type="checkbox" @bind="acknowledgeLegalAction"
+                                    style="width: 18px; height: 18px; margin-top: 2px;" />
+                                <span style="font-size: 13px; color: #2B2B2B;">I understand that <strong>failure to pay may
+                                        result in legal action</strong>, including but not limited to demand letters,
+                                    collection agency referral, court proceedings, and possible police report for
+                                    fraud.</span>
                             </label>
                             <label style="display: flex; align-items: start; gap: 10px; cursor: pointer;">
-                                <input type="checkbox" @bind="acknowledgeInfoAccuracy" style="width: 18px; height: 18px; margin-top: 2px;" />
-                                <span style="font-size: 13px; color: #374151;">I certify that all information provided in this application is <strong>true, accurate, and complete</strong>. I understand that providing false information may result in application rejection and potential legal consequences.</span>
+                                <input type="checkbox" @bind="acknowledgeInfoAccuracy"
+                                    style="width: 18px; height: 18px; margin-top: 2px;" />
+                                <span style="font-size: 13px; color: #2B2B2B;">I certify that all information provided in
+                                    this application is <strong>true, accurate, and complete</strong>. I understand that
+                                    providing false information may result in application rejection and potential legal
+                                    consequences.</span>
                             </label>
                         </div>
                     </div>
@@ -931,18 +1119,19 @@
                 <!-- Validation Messages -->
                 @if (!string.IsNullOrEmpty(applicationValidationError))
                 {
-                    <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;">
-                        <p style="margin: 0; color: #991b1b; font-size: 14px;">@applicationValidationError</p>
+                    <div
+                        style="background: rgba(155, 58, 58, 0.1); border-left: 4px solid #9B3A3A; padding: 12px 16px; border-radius: 10px; margin-bottom: 16px;">
+                        <p style="margin: 0; color: #9B3A3A; font-size: 14px;">@applicationValidationError</p>
                     </div>
                 }
 
                 <div style="display: flex; gap: 12px;">
                     <button @onclick="CloseApplication"
-                        style="flex: 1; padding: 14px; background: #f1f5f9; border: none; border-radius: 10px; color: #475569; font-size: 15px; font-weight: 600; cursor: pointer;">
+                        style="flex: 1; padding: 14px; background: #F7F7F4; border: none; border-radius: 10px; color: #6B6B6B; font-size: 15px; font-weight: 600; cursor: pointer;">
                         Cancel
                     </button>
                     <button @onclick="SubmitApplication" disabled="@(isSubmitting || !CanSubmitApplication())"
-                        style="flex: 1; padding: 14px; background: linear-gradient(135deg, #059669, #10b981); border: none; border-radius: 10px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; opacity: @((isSubmitting || !CanSubmitApplication()) ? "0.6" : "1");">
+                        style="flex: 1; padding: 14px; background: #5F6F52; border: none; border-radius: 10px; color: #FFFFFF; font-size: 15px; font-weight: 600; cursor: pointer; opacity: @((isSubmitting || !CanSubmitApplication()) ? "0.6" : "1");">
                         @(isSubmitting ? "Submitting..." : "Submit Application")
                     </button>
                 </div>
@@ -954,33 +1143,32 @@
 <!-- Payment Modal -->
 @if (showPaymentModal && selectedLoanForPayment != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
         @onclick="ClosePaymentModal">
-        <div style="background: white; border-radius: 20px; max-width: 500px; width: 95%; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
+        <div style="background: #FFFFFF; border-radius: 14px; max-width: 500px; width: 95%; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
             @onclick:stopPropagation>
-            <div
-                style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 24px 28px; border-radius: 20px 20px 0 0;">
-                <h4 style="margin: 0; font-weight: 700; font-size: 20px;">💰 Make Loan Payment</h4>
+            <div style="background: #2F3E2A; color: #FFFFFF; padding: 24px 28px; border-radius: 14px 14px 0 0;">
+                <h4 style="margin: 0; font-weight: 600; font-size: 20px;">💰 Make Loan Payment</h4>
                 <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">@selectedLoanForPayment.Type - Loan
                     #@selectedLoanForPayment.Id</p>
             </div>
 
             <div style="padding: 28px;">
                 <div
-                    style="background: linear-gradient(135deg, #fef2f2, #fee2e2); padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #fecaca;">
+                    style="background: rgba(155, 58, 58, 0.1); padding: 20px; border-radius: 10px; margin-bottom: 24px; border: 1px solid rgba(155, 58, 58, 0.2);">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div>
                             <span
-                                style="font-size: 12px; color: #dc2626; text-transform: uppercase; font-weight: 600;">Outstanding
+                                style="font-size: 12px; color: #9B3A3A; text-transform: uppercase; font-weight: 600;">Outstanding
                                 Balance</span>
-                            <p style="margin: 4px 0 0 0; font-weight: 700; color: #991b1b; font-size: 22px;">
+                            <p style="margin: 4px 0 0 0; font-weight: 600; color: #9B3A3A; font-size: 22px;">
                                 ₱@selectedLoanForPayment.Outstanding.ToString("N2")</p>
                         </div>
                         <div>
                             <span
-                                style="font-size: 12px; color: #dc2626; text-transform: uppercase; font-weight: 600;">Monthly
+                                style="font-size: 12px; color: #9B3A3A; text-transform: uppercase; font-weight: 600;">Monthly
                                 Due</span>
-                            <p style="margin: 4px 0 0 0; font-weight: 600; color: #991b1b; font-size: 18px;">
+                            <p style="margin: 4px 0 0 0; font-weight: 600; color: #9B3A3A; font-size: 18px;">
                                 ₱@selectedLoanForPayment.MonthlyPayment.ToString("N2")</p>
                         </div>
                     </div>
@@ -988,29 +1176,29 @@
 
                 <div style="margin-bottom: 20px;">
                     <label
-                        style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Payment
-                        Amount <span style="color: #ef4444;">*</span></label>
+                        style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Payment
+                        Amount <span style="color: #9B3A3A;">*</span></label>
                     <input type="number" step="0.01" @bind="paymentAmountInput" placeholder="0.00"
-                        style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 18px; font-weight: 600;">
+                        style="width: 100%; padding: 14px 16px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 18px; font-weight: 600;">
                     <div style="display: flex; gap: 8px; margin-top: 8px;">
                         <button @onclick="() => paymentAmountInput = selectedLoanForPayment.MonthlyPayment"
-                            style="flex: 1; padding: 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; color: #059669; font-size: 12px; cursor: pointer;">
+                            style="flex: 1; padding: 8px; background: #F0F2EC; border: 1px solid #BCC9A6; border-radius: 6px; color: #5F6F52; font-size: 12px; cursor: pointer;">
                             Monthly
                         </button>
                         <button @onclick="() => paymentAmountInput = selectedLoanForPayment.Outstanding"
-                            style="flex: 1; padding: 8px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #dc2626; font-size: 12px; cursor: pointer;">
+                            style="flex: 1; padding: 8px; background: rgba(155, 58, 58, 0.1); border: 1px solid rgba(155, 58, 58, 0.3); border-radius: 6px; color: #9B3A3A; font-size: 12px; cursor: pointer;">
                             Full Balance
                         </button>
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 12px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                <div style="display: flex; gap: 12px; padding-top: 16px; border-top: 1px solid #E2E2DC;">
                     <button @onclick="ClosePaymentModal"
-                        style="flex: 1; padding: 14px; background: #f1f5f9; border: none; border-radius: 10px; color: #475569; font-weight: 600; cursor: pointer;">
+                        style="flex: 1; padding: 14px; background: #F7F7F4; border: none; border-radius: 10px; color: #6B6B6B; font-weight: 600; cursor: pointer;">
                         Cancel
                     </button>
                     <button @onclick="SubmitPayment" disabled="@isSubmitting"
-                        style="flex: 1; padding: 14px; background: linear-gradient(135deg, #059669, #10b981); border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; opacity: @(isSubmitting ? "0.6" : "1");">
+                        style="flex: 1; padding: 14px; background: #5F6F52; border: none; border-radius: 10px; color: #FFFFFF; font-weight: 600; cursor: pointer; opacity: @(isSubmitting ? "0.6" : "1");">
                         @(isSubmitting ? "Processing..." : "✓ Confirm Payment")
                     </button>
                 </div>
@@ -1022,42 +1210,50 @@
 <!-- Edit Application Modal -->
 @if (showEditApplicationModal && selectedApplicationForEdit != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
         @onclick="CloseEditApplicationModal">
-        <div style="background: white; border-radius: 20px; max-width: 600px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
+        <div style="background: #FFFFFF; border-radius: 14px; max-width: 600px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
             @onclick:stopPropagation>
-            <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 24px 28px; border-radius: 20px 20px 0 0;">
-                <h4 style="margin: 0; font-weight: 700; font-size: 20px;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+            <div style="background: #5F6F52; color: #FFFFFF; padding: 24px 28px; border-radius: 14px 14px 0 0;">
+                <h4 style="margin: 0; font-weight: 600; font-size: 20px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        style="vertical-align: middle; margin-right: 8px;">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                     Edit Application
                 </h4>
-                <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">@selectedApplicationForEdit.ApplicationNumber - @selectedApplicationForEdit.LoanType Loan</p>
+                <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">@selectedApplicationForEdit.ApplicationNumber -
+                    @selectedApplicationForEdit.LoanType Loan</p>
             </div>
 
             <div style="padding: 28px;">
-                <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <div
+                    style="background: rgba(139, 90, 43, 0.1); border: 1px solid rgba(139, 90, 43, 0.3); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
                     <div style="display: flex; gap: 12px; align-items: center;">
                         <span style="font-size: 20px;">⚠️</span>
                         <div>
-                            <div style="font-size: 13px; font-weight: 600; color: #92400e;">Note</div>
-                            <div style="font-size: 12px; color: #b45309;">You can only edit applications that are still in the initial review stage.</div>
+                            <div style="font-size: 13px; font-weight: 600; color: #8B5A2B;">Note</div>
+                            <div style="font-size: 12px; color: #8B5A2B;">You can only edit applications that are still in
+                                the initial review stage.</div>
                         </div>
                     </div>
                 </div>
 
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Requested Amount <span style="color: #ef4444;">*</span></label>
+                    <label
+                        style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Requested
+                        Amount <span style="color: #9B3A3A;">*</span></label>
                     <input type="number" @bind="editApplicationAmount" placeholder="Enter amount"
-                        style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px;" />
+                        style="width: 100%; padding: 14px 16px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 15px;" />
                 </div>
 
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Employment Status</label>
+                    <label
+                        style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Employment
+                        Status</label>
                     <select @bind="editEmploymentStatus"
-                        style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; background: white;">
+                        style="width: 100%; padding: 14px 16px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 15px; background: #FFFFFF;">
                         <option value="">Select Status</option>
                         <option value="Employed">Employed</option>
                         <option value="Self-Employed">Self-Employed</option>
@@ -1066,24 +1262,27 @@
                 </div>
 
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Monthly Income</label>
+                    <label
+                        style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Monthly
+                        Income</label>
                     <input type="number" @bind="editMonthlyIncome" placeholder="Enter monthly income"
-                        style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px;" />
+                        style="width: 100%; padding: 14px 16px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 15px;" />
                 </div>
 
                 <div style="margin-bottom: 24px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Purpose</label>
+                    <label
+                        style="display: block; font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Purpose</label>
                     <textarea @bind="editApplicationPurpose" rows="3" placeholder="State the purpose of the loan"
-                        style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; resize: vertical;"></textarea>
+                        style="width: 100%; padding: 14px 16px; border: 2px solid #E2E2DC; border-radius: 10px; font-size: 15px; resize: vertical;"></textarea>
                 </div>
 
                 <div style="display: flex; gap: 12px;">
                     <button @onclick="CloseEditApplicationModal"
-                        style="flex: 1; padding: 14px; background: #f1f5f9; border: none; border-radius: 10px; color: #475569; font-size: 15px; font-weight: 600; cursor: pointer;">
+                        style="flex: 1; padding: 14px; background: #F7F7F4; border: none; border-radius: 10px; color: #6B6B6B; font-size: 15px; font-weight: 600; cursor: pointer;">
                         Cancel
                     </button>
                     <button @onclick="SubmitEditApplication" disabled="@isSubmitting"
-                        style="flex: 1; padding: 14px; background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; border-radius: 10px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; opacity: @(isSubmitting ? "0.6" : "1");">
+                        style="flex: 1; padding: 14px; background: #5F6F52; border: none; border-radius: 10px; color: #FFFFFF; font-size: 15px; font-weight: 600; cursor: pointer; opacity: @(isSubmitting ? "0.6" : "1");">
                         @(isSubmitting ? "Saving..." : "Save Changes")
                     </button>
                 </div>
@@ -1095,13 +1294,14 @@
 <!-- Cancel Application Confirmation Modal -->
 @if (showCancelConfirmModal && selectedApplicationForCancel != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);"
         @onclick="CloseCancelConfirmModal">
-        <div style="background: white; border-radius: 20px; max-width: 450px; width: 95%; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
+        <div style="background: #FFFFFF; border-radius: 14px; max-width: 450px; width: 95%; box-shadow: 0 25px 60px rgba(0,0,0,0.3);"
             @onclick:stopPropagation>
-            <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 24px 28px; border-radius: 20px 20px 0 0;">
-                <h4 style="margin: 0; font-weight: 700; font-size: 20px;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+            <div style="background: #9B3A3A; color: #FFFFFF; padding: 24px 28px; border-radius: 14px 14px 0 0;">
+                <h4 style="margin: 0; font-weight: 600; font-size: 20px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        style="vertical-align: middle; margin-right: 8px;">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="15" y1="9" x2="9" y2="15"></line>
                         <line x1="9" y1="9" x2="15" y2="15"></line>
@@ -1112,43 +1312,47 @@
 
             <div style="padding: 28px;">
                 <div style="text-align: center; margin-bottom: 24px;">
-                    <div style="width: 72px; height: 72px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 36px;">
+                    <div
+                        style="width: 72px; height: 72px; background: rgba(155, 58, 58, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 36px;">
                         ⚠️
                     </div>
-                    <h5 style="margin: 0 0 8px 0; font-size: 18px; color: #1f2937;">Are you sure?</h5>
-                    <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                    <h5 style="margin: 0 0 8px 0; font-size: 18px; color: #2B2B2B;">Are you sure?</h5>
+                    <p style="margin: 0; color: #6B6B6B; font-size: 14px;">
                         You are about to cancel application <strong>@selectedApplicationForCancel.ApplicationNumber</strong>
                     </p>
                 </div>
 
-                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                <div
+                    style="background: rgba(155, 58, 58, 0.1); border: 1px solid rgba(155, 58, 58, 0.2); border-radius: 10px; padding: 16px; margin-bottom: 24px;">
                     <div style="display: grid; gap: 8px; font-size: 14px;">
                         <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #6b7280;">Loan Type:</span>
-                            <span style="font-weight: 600; color: #1f2937;">@selectedApplicationForCancel.LoanType</span>
+                            <span style="color: #6B6B6B;">Loan Type:</span>
+                            <span style="font-weight: 600; color: #2B2B2B;">@selectedApplicationForCancel.LoanType</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #6b7280;">Amount:</span>
-                            <span style="font-weight: 600; color: #dc2626;">₱@selectedApplicationForCancel.RequestedAmount.ToString("N2")</span>
+                            <span style="color: #6B6B6B;">Amount:</span>
+                            <span
+                                style="font-weight: 600; color: #9B3A3A;">₱@selectedApplicationForCancel.RequestedAmount.ToString("N2")</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #6b7280;">Applied:</span>
-                            <span style="font-weight: 500; color: #1f2937;">@selectedApplicationForCancel.ApplicationDate.ToString("MMM dd, yyyy")</span>
+                            <span style="color: #6B6B6B;">Applied:</span>
+                            <span
+                                style="font-weight: 500; color: #2B2B2B;">@selectedApplicationForCancel.ApplicationDate.ToString("MMM dd, yyyy")</span>
                         </div>
                     </div>
                 </div>
 
-                <p style="font-size: 13px; color: #dc2626; text-align: center; margin-bottom: 20px;">
+                <p style="font-size: 13px; color: #9B3A3A; text-align: center; margin-bottom: 20px;">
                     This action cannot be undone. The application will be permanently cancelled.
                 </p>
 
                 <div style="display: flex; gap: 12px;">
                     <button @onclick="CloseCancelConfirmModal"
-                        style="flex: 1; padding: 14px; background: #f1f5f9; border: none; border-radius: 10px; color: #475569; font-size: 15px; font-weight: 600; cursor: pointer;">
+                        style="flex: 1; padding: 14px; background: #F7F7F4; border: none; border-radius: 10px; color: #6B6B6B; font-size: 15px; font-weight: 600; cursor: pointer;">
                         Keep Application
                     </button>
                     <button @onclick="ConfirmCancelApplicationAction" disabled="@isSubmitting"
-                        style="flex: 1; padding: 14px; background: linear-gradient(135deg, #dc2626, #b91c1c); border: none; border-radius: 10px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; opacity: @(isSubmitting ? "0.6" : "1");">
+                        style="flex: 1; padding: 14px; background: #9B3A3A; border: none; border-radius: 10px; color: #FFFFFF; font-size: 15px; font-weight: 600; cursor: pointer; opacity: @(isSubmitting ? "0.6" : "1");">
                         @(isSubmitting ? "Cancelling..." : "Yes, Cancel It")
                     </button>
                 </div>
@@ -1173,7 +1377,7 @@
     select:focus,
     textarea:focus {
         outline: none;
-        border-color: #059669 !important;
+        border-color: #5F6F52 !important;
         box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
     }
 
@@ -1216,7 +1420,7 @@
 
     // Pending applications list
     private List<LoanApplication> pendingApplications = new();
-    
+
     // Cancelled/Rejected applications history
     private List<LoanApplication> cancelledApplications = new();
 
@@ -1228,18 +1432,18 @@
     private string employmentStatus = "";
     private decimal monthlyIncome = 0;
     private string applicantAddress = ""; // Auto-fetched from user registration
-    
+
     // Enhanced application fields
     private string applicationLoanCategory = "Unsecured";
     private string applicationPurposeCategory = "";
     private decimal existingDebtsMonthly = 0;
     private decimal otherIncomeMonthly = 0;
-    
+
     // Collateral fields
     private string collateralType = "";
     private decimal collateralEstimatedValue = 0;
     private string collateralDescription = "";
-    
+
     // Co-borrower fields
     private bool hasCoBorrower = false;
     private string coBorrowerName = "";
@@ -1247,7 +1451,7 @@
     private string coBorrowerContact = "";
     private decimal coBorrowerIncome = 0;
     private string coBorrowerAddress = "";
-    
+
     // Document submission flags
     private bool docBankStatement = false;
     private bool docPayslips = false;
@@ -1255,12 +1459,12 @@
     private bool docCOE = false;
     private bool docValidID = false;
     private bool docProofOfBilling = false;
-    
+
     // Legal acknowledgments
     private bool acknowledgeTerms = false;
     private bool acknowledgeLegalAction = false;
     private bool acknowledgeInfoAccuracy = false;
-    
+
     private string applicationValidationError = "";
 
     // Edit application form fields
@@ -1439,7 +1643,7 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
                     applicantAddress = userData.PermanentAddress;
                 else if (!string.IsNullOrEmpty(userData.PresentAddress))
                     applicantAddress = userData.PresentAddress;
-                    
+
                 // Pre-fill employment and income data from user's registration info
                 if (!string.IsNullOrEmpty(userData.EmploymentStatus))
                     employmentStatus = userData.EmploymentStatus;
@@ -1447,7 +1651,7 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
                     monthlyIncome = userData.MonthlyGrossIncome.Value;
                 if (userData.OtherIncomeAmount.HasValue && userData.OtherIncomeAmount.Value > 0)
                     otherIncomeMonthly = userData.OtherIncomeAmount.Value;
-                    
+
                 await InvokeAsync(StateHasChanged);
             }
         }
@@ -1468,7 +1672,7 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
         employmentStatus = "";
         monthlyIncome = 0;
         applicantAddress = ""; // Reset address
-        // Reset enhanced fields
+                               // Reset enhanced fields
         applicationLoanCategory = "Unsecured";
         applicationPurposeCategory = "";
         existingDebtsMonthly = 0;
@@ -1506,10 +1710,10 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
     private async Task SubmitApplication()
     {
         applicationValidationError = "";
-        
+
         // Validate required fields
         if (string.IsNullOrWhiteSpace(applicationLoanType) || applicationAmount <= 0 ||
-            string.IsNullOrWhiteSpace(applicationPurpose))
+        string.IsNullOrWhiteSpace(applicationPurpose))
         {
             applicationValidationError = "Please fill all required fields (Loan Type, Amount, and Purpose)";
             ShowAlert("Please fill all required fields", true);
@@ -1574,41 +1778,41 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
 
             var submittedBy = AuthService.CurrentUser ?? "customer";
             var application = await LoanProcessService.SubmitEnhancedApplicationAsync(
-                accountId: account.AccountId,
-                loanType: applicationLoanType,
-                requestedAmount: applicationAmount,
-                requestedTermMonths: applicationTerm,
-                purpose: applicationPurpose,
-                purposeCategory: applicationPurposeCategory,
-                loanCategory: applicationLoanCategory,
-                employmentStatus: employmentStatus,
-                monthlyIncome: monthlyIncome,
-                existingDebtsTotal: existingDebtsMonthly,
-                otherIncome: otherIncomeMonthly,
-                // Collateral
-                hasCollateral: applicationLoanCategory == "Secured",
-                collateralType: collateralType,
-                collateralValue: collateralEstimatedValue,
-                collateralDescription: collateralDescription,
-                // Co-borrower
-                hasCoBorrower: hasCoBorrower,
-                coBorrowerName: coBorrowerName,
-                coBorrowerRelationship: coBorrowerRelationship,
-                coBorrowerContact: coBorrowerContact,
-                coBorrowerIncome: coBorrowerIncome,
-                coBorrowerAddress: coBorrowerAddress,
-                // Documents
-                bankStatementSubmitted: docBankStatement,
-                payslipsSubmitted: docPayslips,
-                itrSubmitted: docITR,
-                coeSubmitted: docCOE,
-                validIdSubmitted: docValidID,
-                proofOfBillingSubmitted: docProofOfBilling,
-                // Acknowledgments
-                acknowledgedTerms: acknowledgeTerms,
-                acknowledgedLegalAction: acknowledgeLegalAction,
-                acknowledgedInfoAccuracy: acknowledgeInfoAccuracy,
-                submittedBy: submittedBy
+            accountId: account.AccountId,
+            loanType: applicationLoanType,
+            requestedAmount: applicationAmount,
+            requestedTermMonths: applicationTerm,
+            purpose: applicationPurpose,
+            purposeCategory: applicationPurposeCategory,
+            loanCategory: applicationLoanCategory,
+            employmentStatus: employmentStatus,
+            monthlyIncome: monthlyIncome,
+            existingDebtsTotal: existingDebtsMonthly,
+            otherIncome: otherIncomeMonthly,
+            // Collateral
+            hasCollateral: applicationLoanCategory == "Secured",
+            collateralType: collateralType,
+            collateralValue: collateralEstimatedValue,
+            collateralDescription: collateralDescription,
+            // Co-borrower
+            hasCoBorrower: hasCoBorrower,
+            coBorrowerName: coBorrowerName,
+            coBorrowerRelationship: coBorrowerRelationship,
+            coBorrowerContact: coBorrowerContact,
+            coBorrowerIncome: coBorrowerIncome,
+            coBorrowerAddress: coBorrowerAddress,
+            // Documents
+            bankStatementSubmitted: docBankStatement,
+            payslipsSubmitted: docPayslips,
+            itrSubmitted: docITR,
+            coeSubmitted: docCOE,
+            validIdSubmitted: docValidID,
+            proofOfBillingSubmitted: docProofOfBilling,
+            // Acknowledgments
+            acknowledgedTerms: acknowledgeTerms,
+            acknowledgedLegalAction: acknowledgeLegalAction,
+            acknowledgedInfoAccuracy: acknowledgeInfoAccuracy,
+            submittedBy: submittedBy
             );
 
             ShowAlert($"✓ Loan application {application.ApplicationNumber} submitted successfully! Waiting for approval.");
@@ -1667,12 +1871,12 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
             }
 
             var (success, message) = await LoanProcessService.UpdateApplicationAsync(
-                applicationId: selectedApplicationForEdit.ApplicationId,
-                accountId: account.AccountId,
-                newAmount: editApplicationAmount,
-                newPurpose: editApplicationPurpose,
-                newEmploymentStatus: editEmploymentStatus,
-                newMonthlyIncome: editMonthlyIncome
+            applicationId: selectedApplicationForEdit.ApplicationId,
+            accountId: account.AccountId,
+            newAmount: editApplicationAmount,
+            newPurpose: editApplicationPurpose,
+            newEmploymentStatus: editEmploymentStatus,
+            newMonthlyIncome: editMonthlyIncome
             );
 
             if (success)
@@ -1724,8 +1928,8 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
             }
 
             var (success, message) = await LoanProcessService.CancelApplicationAsync(
-                applicationId: selectedApplicationForCancel.ApplicationId,
-                accountId: account.AccountId
+            applicationId: selectedApplicationForCancel.ApplicationId,
+            accountId: account.AccountId
             );
 
             if (success)
@@ -1769,10 +1973,10 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
             "VERIFIED" => ("Verified", "#dbeafe", "#1e40af"),
             "ENCODED" or "PENDING_ACCOUNTANT_REVIEW" => ("Under Assessment", "#e0e7ff", "#3730a3"),
             "ASSESSED" or "PENDING_FINANCEMANAGER_APPROVAL" => ("Awaiting Approval", "#fef9c3", "#854d0e"),
-            "APPROVED" or "APPROVED_READY_FOR_RELEASE" => ("Approved", "#dcfce7", "#166534"),
-            "REJECTED" or "REJECTED_TELLER" or "REJECTED_FINANCEMANAGER" => ("Rejected", "#fee2e2", "#991b1b"),
-            "CANCELLED" => ("Cancelled", "#f3f4f6", "#374151"),
-            _ => ("Processing", "#f3f4f6", "#6b7280")
+            "APPROVED" or "APPROVED_READY_FOR_RELEASE" => ("Approved", "rgba(95, 111, 82, 0.2)", "#4F6F52"),
+            "REJECTED" or "REJECTED_TELLER" or "REJECTED_FINANCEMANAGER" => ("Rejected", "rgba(155, 58, 58, 0.1)", "#9B3A3A"),
+            "CANCELLED" => ("Cancelled", "#F7F7F4", "#2B2B2B"),
+            _ => ("Processing", "#F7F7F4", "#6B6B6B")
         };
     }
 
@@ -1824,7 +2028,7 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
             if (account == null) return;
 
             var loanId = int.Parse(selectedLoanForPayment.Id);
-            
+
             // Get the next pending schedule
             var schedule = await LoanPaymentService.GetNextPendingScheduleAsync(loanId);
             if (schedule == null)
@@ -1835,12 +2039,12 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
 
             // Process the payment
             await LoanProcessService.ProcessPaymentAsync(
-                loanId: loanId,
-                scheduleId: schedule.ScheduleId,
-                paymentAmount: paymentAmountInput,
-                paymentMethod: "Cash",
-                processedBy: AuthService.CurrentUser ?? "Customer"
-            );
+            loanId: loanId,
+            scheduleId: schedule.ScheduleId,
+            paymentAmount: paymentAmountInput,
+            paymentMethod: "Cash",
+            processedBy: AuthService.CurrentUser ?? "Customer"
+                        );
 
             ShowAlert($"✓ Payment of ₱{paymentAmountInput:N2} processed successfully!");
             await LoadCustomerLoans();
@@ -1861,14 +2065,14 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
     private (string Icon, string Color, string BgColor) GetTransactionStyle(string type) => type switch
     {
         "APPLICATION" => ("📝", "#3b82f6", "#dbeafe"),
-        "TELLER_REVIEW" => ("👀", "#8b5cf6", "#ede9fe"),
+        "TELLER_REVIEW" => ("👀", "#8B5A2B", "#F0F2EC"),
         "ACCOUNTANT_ASSESSMENT" => ("📊", "#f59e0b", "#fef3c7"),
-        "FM_APPROVAL" => ("✅", "#22c55e", "#dcfce7"),
-        "FM_DECLINE" => ("❌", "#ef4444", "#fee2e2"),
-        "RELEASE" => ("💰", "#10b981", "#d1fae5"),
-        "PAYMENT" => ("💵", "#059669", "#d1fae5"),
-        "FULL_PAYMENT" => ("🎉", "#22c55e", "#dcfce7"),
-        _ => ("📄", "#6b7280", "#f3f4f6")
+        "FM_APPROVAL" => ("✅", "#22c55e", "#DDE6D5"),
+        "FM_DECLINE" => ("❌", "#9B3A3A", "rgba(155, 58, 58, 0.1)"),
+        "RELEASE" => ("💰", "#5F6F52", "#D4E6D4"),
+        "PAYMENT" => ("💵", "#5F6F52", "#D4E6D4"),
+        "FULL_PAYMENT" => ("🎉", "#22c55e", "#DDE6D5"),
+        _ => ("📄", "#6B6B6B", "#F7F7F4")
     };
 
     private string GetTransactionTitle(string type) => type switch
@@ -1888,20 +2092,20 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
 
     private string GetStatusBg(string status) => status switch
     {
-        "APPROVED" or "COMPLETED" or "RELEASED" => "#dcfce7",
-        "DECLINED" or "REJECTED" => "#fee2e2",
-        "PENDING" => "#fef3c7",
-        "ACTIVE" => "#dbeafe",
-        _ => "#f3f4f6"
+        "APPROVED" or "COMPLETED" or "RELEASED" => "rgba(95, 111, 82, 0.2)",
+        "DECLINED" or "REJECTED" => "rgba(155, 58, 58, 0.1)",
+        "PENDING" => "#F0F2EC",
+        "ACTIVE" => "#F0F2EC",
+        _ => "#F7F7F4"
     };
 
     private string GetStatusColor(string status) => status switch
     {
-        "APPROVED" or "COMPLETED" or "RELEASED" => "#166534",
-        "DECLINED" or "REJECTED" => "#dc2626",
-        "PENDING" => "#92400e",
-        "ACTIVE" => "#1e40af",
-        _ => "#374151"
+        "APPROVED" or "COMPLETED" or "RELEASED" => "#4F6F52",
+        "DECLINED" or "REJECTED" => "#9B3A3A",
+        "PENDING" => "#8B5A2B",
+        "ACTIVE" => "#5F6F52",
+        _ => "#2B2B2B"
     };
 
     private async Task DownloadInvoice(LoanTransactionHistory transaction)
@@ -1910,11 +2114,11 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
         {
             var customer = AuthService.CurrentUser ?? "Customer";
             var html = GenerateInvoiceHtml(transaction, customer);
-            
+
             var bytes = System.Text.Encoding.UTF8.GetBytes(html);
             var base64 = Convert.ToBase64String(bytes);
             var fileName = $"Invoice_{transaction.TransactionType}_{transaction.TransactionDate:yyyyMMdd_HHmmss}.html";
-            
+
             await JS.InvokeVoidAsync("eval", $@"
                 var link = document.createElement('a');
                 link.href = 'data:text/html;base64,{base64}';
@@ -1944,46 +2148,54 @@ new() { Name = "Education Loan", Description = "Invest in your future", MaxAmoun
         if (transaction.PenaltyAmount > 0)
         {
             var penaltyAmt = transaction.PenaltyAmount?.ToString("N2") ?? "0.00";
-            penaltySection = "<div class=\"row\"><span class=\"label\">Penalty Amount</span><span class=\"value\" style=\"color: #dc2626;\">₱" + penaltyAmt + "</span></div>";
+            penaltySection = "<div class=\"row\"><span class=\"label\">Penalty Amount</span><span class=\"value\" style=\"color: #9B3A3A;\">₱" + penaltyAmt + "</span></div>";
         }
-        
+
         var sb = new System.Text.StringBuilder();
         sb.AppendLine("<!DOCTYPE html>");
         sb.AppendLine("<html><head><meta charset=\"utf-8\"><title>Invoice - " + invoiceNumber + "</title>");
         sb.AppendLine("<style>");
         sb.AppendLine("body { font-family: Arial, sans-serif; margin: 0; padding: 40px; background: #f8fafc; }");
-        sb.AppendLine(".invoice { max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }");
-        sb.AppendLine(".header { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 30px; text-align: center; }");
+        sb.AppendLine(".invoice { max-width: 600px; margin: 0 auto; background: #FFFFFF; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }");
+        sb.AppendLine(".header { background: #5F6F52; color: white; padding: 30px; text-align: center; }");
         sb.AppendLine(".header h1 { margin: 0; font-size: 24px; }");
         sb.AppendLine(".header p { margin: 8px 0 0; opacity: 0.9; }");
         sb.AppendLine(".content { padding: 30px; }");
-        sb.AppendLine(".row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb; }");
+        sb.AppendLine(".row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #E2E2DC; }");
         sb.AppendLine(".row:last-child { border-bottom: none; }");
-        sb.AppendLine(".label { color: #6b7280; font-size: 14px; }");
-        sb.AppendLine(".value { font-weight: 600; color: #1f2937; }");
-        sb.AppendLine(".total-row { background: #f0fdf4; margin: 20px -30px; padding: 20px 30px; border-top: 2px solid #10b981; }");
-        sb.AppendLine(".total-label { font-size: 18px; font-weight: 700; color: #065f46; }");
-        sb.AppendLine(".total-value { font-size: 24px; font-weight: 700; color: #059669; }");
-        sb.AppendLine(".footer { text-align: center; padding: 20px 30px; background: #f8fafc; font-size: 12px; color: #6b7280; }");
-        sb.AppendLine(".status { display: inline-block; padding: 4px 12px; background: #dcfce7; color: #166534; border-radius: 12px; font-size: 12px; font-weight: 600; }");
+        sb.AppendLine(".label { color: #6B6B6B; font-size: 14px; }");
+        sb.AppendLine(".value { font-weight: 600; color: #2B2B2B; }");
+        sb.AppendLine(".total-row { background: #F0F2EC; margin: 20px -30px; padding: 20px 30px; border-top: 2px solid #5F6F52; }");
+        sb.AppendLine(".total-label { font-size: 18px; font-weight: 600; color: #2F3E2A; }");
+        sb.AppendLine(".total-value { font-size: 24px; font-weight: 600; color: #5F6F52; }");
+        sb.AppendLine(".footer { text-align: center; padding: 20px 30px; background: #F7F7F4; font-size: 12px; color: #6B6B6B; }");
+        sb.AppendLine(".status { display: inline-block; padding: 4px 12px; background: rgba(95, 111, 82, 0.2); color: #4F6F52; border-radius: 10px; font-size: 12px; font-weight: 600; }");
         sb.AppendLine("@media print { body { background: white; padding: 0; } .invoice { box-shadow: none; } }");
         sb.AppendLine("</style></head><body>");
         sb.AppendLine("<div class=\"invoice\">");
         sb.AppendLine("<div class=\"header\"><h1>FinanceBank</h1><p>Official Transaction Invoice</p></div>");
         sb.AppendLine("<div class=\"content\">");
-        sb.AppendLine("<div class=\"row\"><span class=\"label\">Invoice Number</span><span class=\"value\">" + invoiceNumber + "</span></div>");
-        sb.AppendLine("<div class=\"row\"><span class=\"label\">Transaction Type</span><span class=\"value\">" + transactionTitle + "</span></div>");
-        sb.AppendLine("<div class=\"row\"><span class=\"label\">Customer Name</span><span class=\"value\">" + customerName + "</span></div>");
-        sb.AppendLine("<div class=\"row\"><span class=\"label\">Loan Number</span><span class=\"value\">" + loanNum + "</span></div>");
-        sb.AppendLine("<div class=\"row\"><span class=\"label\">Transaction Date</span><span class=\"value\">" + txnDate + "</span></div>");
-        sb.AppendLine("<div class=\"row\"><span class=\"label\">Status</span><span class=\"status\">" + txnStatus + "</span></div>");
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Invoice Number</span><span class=\"value\">" + invoiceNumber +
+        "</span></div>");
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Transaction Type</span><span class=\"value\">" +
+        transactionTitle + "</span></div>");
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Customer Name</span><span class=\"value\">" + customerName +
+        "</span></div>");
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Loan Number</span><span class=\"value\">" + loanNum +
+        "</span></div>");
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Transaction Date</span><span class=\"value\">" + txnDate +
+        "</span></div>");
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Status</span><span class=\"status\">" + txnStatus +
+        "</span></div>");
         sb.AppendLine(penaltySection);
-        sb.AppendLine("<div class=\"row\"><span class=\"label\">Description</span><span class=\"value\">" + txnDesc + "</span></div>");
-        sb.AppendLine("<div class=\"row total-row\"><span class=\"total-label\">Amount</span><span class=\"total-value\">₱" + txnAmount + "</span></div>");
+        sb.AppendLine("<div class=\"row\"><span class=\"label\">Description</span><span class=\"value\">" + txnDesc +
+        "</span></div>");
+        sb.AppendLine("<div class=\"row total-row\"><span class=\"total-label\">Amount</span><span class=\"total-value\">₱" +
+        txnAmount + "</span></div>");
         sb.AppendLine("</div>");
         sb.AppendLine("<div class=\"footer\"><p>Thank you for banking with FinanceBank!</p><p>This is an official electronic invoice - Generated on " + genDate + "</p></div>");
         sb.AppendLine("</div></body></html>");
-        
+
         return sb.ToString();
     }
 

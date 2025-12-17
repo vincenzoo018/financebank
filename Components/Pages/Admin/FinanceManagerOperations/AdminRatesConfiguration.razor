@@ -9,7 +9,7 @@
 
 <div class="page-container" style="padding: 24px;">
     <!-- Page Header -->
-    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 16px;">
                 <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
@@ -29,26 +29,26 @@
     </div>
 
     <!-- Admin Notice -->
-    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div style="background: linear-gradient(135deg, #E5D9B6 0%, #D4C9A8 100%); border: 1px solid #8B5A2B; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <span style="font-size: 24px;">🔐</span>
             <div>
-                <p style="font-weight: 600; color: #92400e; margin: 0;">Administrative Access Mode</p>
-                <p style="font-size: 13px; color: #a16207; margin: 4px 0 0 0;">Rate changes require justification and are logged for audit. Admin: @(AuthService.FullName ?? "Admin")</p>
+                <p style="font-weight: 600; color: #6B4423; margin: 0;">Administrative Access Mode</p>
+                <p style="font-size: 13px; color: #8B5A2B; margin: 4px 0 0 0;">Rate changes require justification and are logged for audit. Admin: @(AuthService.FullName ?? "Admin")</p>
             </div>
         </div>
     </div>
 
     <!-- Savings Interest Rates -->
     <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
-        <div style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 20px 24px;">
+        <div style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; padding: 20px 24px;">
             <h3 style="font-size: 18px; font-weight: 600; margin: 0;">💰 Savings Interest Rates</h3>
         </div>
         <div style="padding: 24px;">
             @if (isLoading)
             {
                 <div style="display: flex; justify-content: center; padding: 60px;">
-                    <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <div style="width: 48px; height: 48px; border: 4px solid #E2E2DC; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                 </div>
             }
             else
@@ -69,12 +69,12 @@
                             <tr style="border-bottom: 1px solid #e5e7eb;">
                                 <td style="padding: 16px; font-size: 14px; color: #1e293b; font-weight: 500;">@rate.AccountType</td>
                                 <td style="padding: 16px; text-align: center;">
-                                    <span style="font-size: 18px; font-weight: 700; color: #059669;">@rate.InterestRate.ToString("N2")%</span>
+                                    <span style="font-size: 18px; font-weight: 700; color: #5F6F52;">@rate.InterestRate.ToString("N2")%</span>
                                 </td>
                                 <td style="padding: 16px; font-size: 14px; color: #64748b; text-align: center;">₱@rate.MinBalance.ToString("N0")</td>
                                 <td style="padding: 16px; font-size: 14px; color: #64748b; text-align: center;">@rate.LastUpdated.ToString("MMM dd, yyyy")</td>
                                 <td style="padding: 16px; text-align: center;">
-                                    <button @onclick="() => ShowEditSavingsRate(rate)" style="padding: 6px 16px; background: #059669; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                    <button @onclick="() => ShowEditSavingsRate(rate)" style="padding: 6px 16px; background: #5F6F52; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
                                         Edit
                                     </button>
                                 </td>
@@ -88,14 +88,14 @@
 
     <!-- Loan Interest Rates -->
     <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
-        <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 20px 24px;">
+        <div style="background: linear-gradient(135deg, #6B7B5E, #2F3E2A); color: white; padding: 20px 24px;">
             <h3 style="font-size: 18px; font-weight: 600; margin: 0;">💳 Loan Interest Rates</h3>
         </div>
         <div style="padding: 24px;">
             @if (isLoading)
             {
                 <div style="display: flex; justify-content: center; padding: 60px;">
-                    <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <div style="width: 48px; height: 48px; border: 4px solid #E2E2DC; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                 </div>
             }
             else
@@ -117,13 +117,13 @@
                             <tr style="border-bottom: 1px solid #e5e7eb;">
                                 <td style="padding: 16px; font-size: 14px; color: #1e293b; font-weight: 500;">@rate.LoanType</td>
                                 <td style="padding: 16px; text-align: center;">
-                                    <span style="font-size: 18px; font-weight: 700; color: #3b82f6;">@rate.InterestRate.ToString("N2")%</span>
+                                    <span style="font-size: 18px; font-weight: 700; color: #6B7B5E;">@rate.InterestRate.ToString("N2")%</span>
                                 </td>
                                 <td style="padding: 16px; font-size: 14px; color: #64748b; text-align: center;">₱@rate.MinAmount.ToString("N0")</td>
                                 <td style="padding: 16px; font-size: 14px; color: #64748b; text-align: center;">₱@rate.MaxAmount.ToString("N0")</td>
                                 <td style="padding: 16px; font-size: 14px; color: #64748b; text-align: center;">@rate.MinTerm - @rate.MaxTerm</td>
                                 <td style="padding: 16px; text-align: center;">
-                                    <button @onclick="() => ShowEditLoanRate(rate)" style="padding: 6px 16px; background: #059669; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                    <button @onclick="() => ShowEditLoanRate(rate)" style="padding: 6px 16px; background: #5F6F52; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
                                         Edit
                                     </button>
                                 </td>
@@ -137,17 +137,17 @@
 
     <!-- Fee Configuration -->
     <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
-        <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 20px 24px;">
+        <div style="background: linear-gradient(135deg, #8B5A2B, #6B4423); color: white; padding: 20px 24px;">
             <h3 style="font-size: 18px; font-weight: 600; margin: 0;">📋 Fee Configuration</h3>
         </div>
         <div style="padding: 24px;">
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
                 @foreach (var fee in feeConfigs)
                 {
-                    <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px;">
+                    <div style="border: 1px solid #E2E2DC; border-radius: 12px; padding: 20px;">
                         <p style="font-size: 12px; color: #64748b; font-weight: 600; margin: 0;">@fee.FeeName</p>
-                        <p style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 8px 0;">₱@fee.Amount.ToString("N2")</p>
-                        <button @onclick="() => ShowEditFee(fee)" style="padding: 6px 12px; background: #f3f4f6; color: #374151; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 8px;">
+                        <p style="font-size: 24px; font-weight: 700; color: #2B2B2B; margin: 8px 0;">₱@fee.Amount.ToString("N2")</p>
+                        <button @onclick="() => ShowEditFee(fee)" style="padding: 6px 12px; background: #F7F7F4; color: #2B2B2B; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 8px;">
                             Edit Fee
                         </button>
                     </div>
@@ -164,7 +164,7 @@
         <div style="background: white; border-radius: 16px; padding: 32px; width: 500px; max-width: 90%;">
             <h3 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 24px 0;">💰 Edit Savings Rate</h3>
             
-            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+            <div style="background: #F0F2EC; border: 1px solid #A9B388; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
                 <p style="font-size: 14px; color: #166534; margin: 0;"><strong>@selectedSavingsRate.AccountType</strong></p>
                 <p style="font-size: 14px; color: #166534; margin: 4px 0 0 0;">Current Rate: @selectedSavingsRate.InterestRate.ToString("N2")%</p>
             </div>
@@ -180,11 +180,11 @@
             </div>
 
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                <button @onclick="CloseModals" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                <button @onclick="CloseModals" style="padding: 12px 24px; background: #F7F7F4; color: #2B2B2B; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
                     Cancel
                 </button>
                 <button @onclick="SaveSavingsRate" disabled="@(string.IsNullOrWhiteSpace(actionReason) || isProcessing)"
-                        style="padding: 12px 24px; background: #059669; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(string.IsNullOrWhiteSpace(actionReason) ? "opacity: 0.5;" : "")">
+                        style="padding: 12px 24px; background: #5F6F52; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(string.IsNullOrWhiteSpace(actionReason) ? "opacity: 0.5;" : "")">
                     @(isProcessing ? "Saving..." : "Update Rate")
                 </button>
             </div>
@@ -199,9 +199,9 @@
         <div style="background: white; border-radius: 16px; padding: 32px; width: 500px; max-width: 90%;">
             <h3 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 24px 0;">💳 Edit Loan Rate</h3>
             
-            <div style="background: #dbeafe; border: 1px solid #93c5fd; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-                <p style="font-size: 14px; color: #1e40af; margin: 0;"><strong>@selectedLoanRate.LoanType</strong></p>
-                <p style="font-size: 14px; color: #1e40af; margin: 4px 0 0 0;">Current Rate: @selectedLoanRate.InterestRate.ToString("N2")%</p>
+            <div style="background: #F0F2EC; border: 1px solid #A9B388; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <p style="font-size: 14px; color: #5F6F52; margin: 0;"><strong>@selectedLoanRate.LoanType</strong></p>
+                <p style="font-size: 14px; color: #5F6F52; margin: 4px 0 0 0;">Current Rate: @selectedLoanRate.InterestRate.ToString("N2")%</p>
             </div>
 
             <div style="margin-bottom: 16px;">
@@ -215,11 +215,11 @@
             </div>
 
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                <button @onclick="CloseModals" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                <button @onclick="CloseModals" style="padding: 12px 24px; background: #F7F7F4; color: #2B2B2B; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
                     Cancel
                 </button>
                 <button @onclick="SaveLoanRate" disabled="@(string.IsNullOrWhiteSpace(actionReason) || isProcessing)"
-                        style="padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(string.IsNullOrWhiteSpace(actionReason) ? "opacity: 0.5;" : "")">
+                        style="padding: 12px 24px; background: #5F6F52; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; @(string.IsNullOrWhiteSpace(actionReason) ? "opacity: 0.5;" : "")">
                     @(isProcessing ? "Saving..." : "Update Rate")
                 </button>
             </div>
@@ -234,9 +234,9 @@
         <div style="background: white; border-radius: 16px; padding: 32px; width: 500px; max-width: 90%;">
             <h3 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 24px 0;">📋 Edit Fee</h3>
             
-            <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-                <p style="font-size: 14px; color: #92400e; margin: 0;"><strong>@selectedFee.FeeName</strong></p>
-                <p style="font-size: 14px; color: #92400e; margin: 4px 0 0 0;">Current Amount: ₱@selectedFee.Amount.ToString("N2")</p>
+            <div style="background: #E5D9B6; border: 1px solid #8B5A2B; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <p style="font-size: 14px; color: #6B4423; margin: 0;"><strong>@selectedFee.FeeName</strong></p>
+                <p style="font-size: 14px; color: #6B4423; margin: 4px 0 0 0;">Current Amount: ₱@selectedFee.Amount.ToString("N2")</p>
             </div>
 
             <div style="margin-bottom: 16px;">

@@ -11,121 +11,151 @@
 @inject PasswordHashingService PasswordHasher
 
 <!-- Header Title Card -->
-<div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.15)); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; padding: 32px; margin-bottom: 32px; color: #991b1b;">
+<div style="background: #9B3A3A; border-radius: 14px; padding: 32px; margin-bottom: 24px; color: #FFFFFF;">
     <div style="display: flex; align-items: center; gap: 16px;">
-        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
         <div>
-            <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Process Withdrawals</h1>
-            <p style="margin: 4px 0 0; opacity: 0.7; font-size: 14px;">Record customer cash withdrawals</p>
+            <h1 style="font-size: 24px; font-weight: 600; margin: 0;">Process Withdrawals</h1>
+            <p style="margin: 4px 0 0; opacity: 0.9; font-size: 14px;">Record customer cash withdrawals</p>
         </div>
     </div>
 </div>
 
 <!-- Withdrawal Form -->
-<div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid #e5e7eb; margin-bottom: 32px;">
-    <h3 style="margin: 0 0 24px; font-size: 18px; font-weight: 700; color: #1f2937;">New Withdrawal Transaction</h3>
-    
+<div
+    style="background: #FFFFFF; border-radius: 14px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 24px;">
+    <h3 style="margin: 0 0 24px; font-size: 16px; font-weight: 600; color: #2B2B2B;">New Withdrawal Transaction</h3>
+
     <form @onsubmit="ShowConfirmation" @onsubmit:preventDefault>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
             <!-- Account Number -->
             <div>
-                <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Account Number *</label>
-                <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
-                       @bind="accountNumber" @oninput="OnAccountNumberChanged" placeholder="Enter account number..." />
-                @if (showError && string.IsNullOrEmpty(accountNumber)) 
-                { 
-                    <span style="color: #dc2626; font-size: 12px;">Required</span> 
+                <label
+                    style="font-size: 14px; font-weight: 500; display: block; margin-bottom: 8px; color: #2B2B2B;">Account
+                    Number *</label>
+                <input type="text"
+                    style="width: 100%; padding: 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #FFFFFF; color: #2B2B2B;"
+                    @bind="accountNumber" @oninput="OnAccountNumberChanged" placeholder="Enter account number..." />
+                @if (showError && string.IsNullOrEmpty(accountNumber))
+                {
+                    <span style="color: #9B3A3A; font-size: 12px;">Required</span>
                 }
             </div>
 
             <!-- Customer Name -->
             <div>
-                <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Customer Name</label>
-                <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #f9fafb;" 
-                       @bind="customerName" placeholder="Auto-filled" readonly />
+                <label
+                    style="font-size: 14px; font-weight: 500; display: block; margin-bottom: 8px; color: #2B2B2B;">Customer
+                    Name</label>
+                <input type="text"
+                    style="width: 100%; padding: 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #F7F7F4; color: #2B2B2B;"
+                    @bind="customerName" placeholder="Auto-filled" readonly />
             </div>
 
             <!-- Available Balance -->
             <div>
-                <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Available Balance</label>
-                <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #f9fafb;" 
-                       @bind="availableBalance" placeholder="₱0.00" readonly />
+                <label
+                    style="font-size: 14px; font-weight: 500; display: block; margin-bottom: 8px; color: #2B2B2B;">Available
+                    Balance</label>
+                <input type="text"
+                    style="width: 100%; padding: 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #F7F7F4; color: #2B2B2B;"
+                    @bind="availableBalance" placeholder="₱0.00" readonly />
             </div>
 
             <!-- Withdrawal Amount -->
             <div>
-                <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Withdrawal Amount (₱) *</label>
-                <input type="number" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" 
-                       @bind="withdrawalAmount" @bind:event="oninput" placeholder="0.00" step="0.01" />
-                @if (showError && withdrawalAmount <= 0) 
-                { 
-                    <span style="color: #dc2626; font-size: 12px;">Amount must be greater than 0</span> 
+                <label
+                    style="font-size: 14px; font-weight: 500; display: block; margin-bottom: 8px; color: #2B2B2B;">Withdrawal
+                    Amount (₱) *</label>
+                <input type="number"
+                    style="width: 100%; padding: 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #FFFFFF; color: #2B2B2B;"
+                    @bind="withdrawalAmount" @bind:event="oninput" placeholder="0.00" step="0.01" />
+                @if (showError && withdrawalAmount <= 0)
+                {
+                    <span style="color: #9B3A3A; font-size: 12px;">Amount must be greater than 0</span>
                 }
                 @if (withdrawalAmount > 0 && currentAccountBalance > 0 && withdrawalAmount > currentAccountBalance)
                 {
-                    <span style="color: #dc2626; font-size: 12px; display: block; margin-top: 4px;">⚠️ Insufficient balance. Available: ₱@currentAccountBalance.ToString("N2")</span>
+                    <span style="color: #9B3A3A; font-size: 12px; display: block; margin-top: 4px;">⚠️ Insufficient balance.
+                        Available: ₱@currentAccountBalance.ToString("N2")</span>
                 }
             </div>
 
             <!-- Withdrawal Method -->
             <div>
-                <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Withdrawal Method *</label>
-                <select style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" @bind="withdrawalMethod">
+                <label
+                    style="font-size: 14px; font-weight: 500; display: block; margin-bottom: 8px; color: #2B2B2B;">Withdrawal
+                    Method *</label>
+                <select
+                    style="width: 100%; padding: 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: #FFFFFF; color: #2B2B2B;"
+                    @bind="withdrawalMethod">
                     <option value="">Select method...</option>
                     <option value="OTC">Over-the-Counter (OTC)</option>
                     <option value="ATM">ATM Withdrawal</option>
                     <option value="BankTransfer">Bank Transfer</option>
                 </select>
-                @if (showError && string.IsNullOrEmpty(withdrawalMethod)) 
-                { 
-                    <span style="color: #dc2626; font-size: 12px;">Required</span> 
+                @if (showError && string.IsNullOrEmpty(withdrawalMethod))
+                {
+                    <span style="color: #9B3A3A; font-size: 12px;">Required</span>
                 }
             </div>
 
             <!-- Reference Number -->
             <div>
-                <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Reference Number</label>
-                <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #fef2f2; color: #991b1b; font-weight: 600;" 
-                       value="@referenceNumber" readonly placeholder="Auto-generated" />
-                <span style="color: #dc2626; font-size: 11px; display: block; margin-top: 4px;">✓ Auto-generated reference number</span>
+                <label
+                    style="font-size: 14px; font-weight: 500; display: block; margin-bottom: 8px; color: #2B2B2B;">Reference
+                    Number</label>
+                <input type="text"
+                    style="width: 100%; padding: 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px; background: rgba(155, 58, 58, 0.1); color: #9B3A3A; font-weight: 600;"
+                    value="@referenceNumber" readonly placeholder="Auto-generated" />
+                <span style="color: #9B3A3A; font-size: 11px; display: block; margin-top: 4px;">✓ Auto-generated
+                    reference number</span>
             </div>
 
             <!-- Notes -->
             <div style="grid-column: 1 / -1;">
-                <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Notes</label>
-                <textarea style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 80px;" 
-                          @bind="notes" placeholder="Additional notes..."></textarea>
+                <label
+                    style="font-size: 14px; font-weight: 500; display: block; margin-bottom: 8px; color: #2B2B2B;">Notes</label>
+                <textarea
+                    style="width: 100%; padding: 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 80px; background: #FFFFFF; color: #2B2B2B;"
+                    @bind="notes" placeholder="Additional notes..."></textarea>
             </div>
 
             <!-- Password Verification (Inline) - Only show after amount entered -->
             @if (withdrawalAmount > 0 && !string.IsNullOrEmpty(accountNumber) && !passwordVerified)
             {
-                <div style="grid-column: 1 / -1; background: #fef3c7; border: 2px solid #f59e0b; border-radius: 12px; padding: 20px; margin-top: 20px;">
+                <div
+                    style="grid-column: 1 / -1; background: #E5D9B6; border: 2px solid #8B5A2B; border-radius: 14px; padding: 20px; margin-top: 20px;">
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        <svg width="24" height="24" fill="none" stroke="#8B5A2B" stroke-width="2">
+                            <path
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                         <div>
-                            <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #92400e;">Step 1: Customer Verification Required</h4>
-                            <p style="margin: 4px 0 0; font-size: 13px; color: #92400e;">Customer must enter their <strong>LOGIN PASSWORD</strong> (not PIN) to authorize this withdrawal</p>
+                            <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: #8B5A2B;">Step 1: Customer
+                                Verification Required</h4>
+                            <p style="margin: 4px 0 0; font-size: 13px; color: #8B5A2B;">Customer must enter their
+                                <strong>LOGIN PASSWORD</strong> (not PIN) to authorize this withdrawal</p>
                         </div>
                     </div>
 
-                    <div style="background: white; border-radius: 8px; padding: 16px;">
-                        <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px; color: #1f2937;">Customer Login Password * <span style="font-weight: 400; color: #6b7280;">(The password customer uses to log in)</span></label>
-                        <input type="password" 
-                               style="width: 100%; padding: 12px; border: 2px solid #f59e0b; border-radius: 8px; font-size: 14px; font-family: monospace;" 
-                               @bind="customerPassword" 
-                               @onkeyup="HandlePasswordKeyUp"
-                               placeholder="Enter customer's login password..."
-                               autofocus="autofocus" />
-                        
+                    <div style="background: #FFFFFF; border-radius: 10px; padding: 16px;">
+                        <label
+                            style="font-size: 14px; font-weight: 500; display: block; margin-bottom: 8px; color: #2B2B2B;">Customer
+                            Login Password * <span style="font-weight: 400; color: #6B6B6B;">(The password customer uses to
+                                log in)</span></label>
+                        <input type="password"
+                            style="width: 100%; padding: 12px; border: 2px solid #8B5A2B; border-radius: 10px; font-size: 14px; font-family: monospace;"
+                            @bind="customerPassword" @onkeyup="HandlePasswordKeyUp"
+                            placeholder="Enter customer's login password..." autofocus="autofocus" />
+
                         @if (!string.IsNullOrEmpty(passwordError))
                         {
-                            <div style="color: #dc2626; font-size: 12px; margin-top: 8px;">
+                            <div style="color: #9B3A3A; font-size: 12px; margin-top: 8px;">
                                 ❌ @passwordError
                                 @if (passwordAttempts > 0)
                                 {
@@ -135,22 +165,21 @@
                         }
 
                         <div style="display: flex; gap: 12px; margin-top: 12px;">
-                            <button type="button" 
-                                    style="flex: 1; padding: 10px; background: #f3f4f6; color: #374151; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;" 
-                                    @onclick="CancelPasswordVerification">
+                            <button type="button"
+                                style="flex: 1; padding: 10px; background: #A9B388; color: #2F3E2A; border-radius: 10px; border: none; font-weight: 500; cursor: pointer;"
+                                @onclick="CancelPasswordVerification">
                                 Cancel
                             </button>
-                            <button type="button" 
-                                    style="flex: 1; padding: 10px; background: #f59e0b; color: white; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; disabled: @(passwordAttempts >= 5)" 
-                                    @onclick="VerifyPassword"
-                                    disabled="@(passwordAttempts >= 5)">
+                            <button type="button"
+                                style="flex: 1; padding: 10px; background: #8B5A2B; color: white; border-radius: 10px; border: none; font-weight: 500; cursor: pointer; disabled: @(passwordAttempts >= 5)"
+                                @onclick="VerifyPassword" disabled="@(passwordAttempts >= 5)">
                                 Verify Password
                             </button>
                         </div>
 
                         @if (passwordAttempts >= 5)
                         {
-                            <div style="color: #dc2626; font-size: 13px; margin-top: 12px; font-weight: 600;">
+                            <div style="color: #9B3A3A; font-size: 13px; margin-top: 12px; font-weight: 600;">
                                 ⛔ Maximum password attempts exceeded. Please try again later.
                             </div>
                         }
@@ -161,29 +190,33 @@
             <!-- Teller PIN Verification - Only show after customer password is verified -->
             @if (passwordVerified && !tellerPinVerified)
             {
-                <div style="grid-column: 1 / -1; background: #dbeafe; border: 2px solid #3b82f6; border-radius: 12px; padding: 20px; margin-top: 20px;">
+                <div
+                    style="grid-column: 1 / -1; background: rgba(79, 111, 82, 0.1); border: 2px solid #5F6F52; border-radius: 14px; padding: 20px; margin-top: 20px;">
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        <svg width="24" height="24" fill="none" stroke="#5F6F52" stroke-width="2">
+                            <path
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                         <div>
-                            <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #1e40af;">Step 2: Teller Authorization Required</h4>
-                            <p style="margin: 4px 0 0; font-size: 13px; color: #1e40af;">Teller (@AuthService.CurrentUser) - Enter YOUR 4-digit PIN to authorize this withdrawal</p>
+                            <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: #2F3E2A;">Step 2: Teller
+                                Authorization Required</h4>
+                            <p style="margin: 4px 0 0; font-size: 13px; color: #2F3E2A;">Teller (@AuthService.CurrentUser) -
+                                Enter YOUR 4-digit PIN to authorize this withdrawal</p>
                         </div>
                     </div>
 
-                    <div style="background: white; border-radius: 8px; padding: 16px;">
-                        <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px; color: #1f2937;">Your Teller PIN * <span style="font-weight: 400; color: #6b7280;">(4 digits set during your account creation)</span></label>
-                        <input type="password" 
-                               style="width: 100%; padding: 12px; border: 2px solid #3b82f6; border-radius: 8px; font-size: 18px; letter-spacing: 8px; text-align: center;" 
-                               @bind="tellerPin" 
-                               @onkeyup="HandleTellerPinKeyUp"
-                               placeholder="●●●●"
-                               maxlength="4" />
-                        
+                    <div style="background: #FFFFFF; border-radius: 10px; padding: 16px;">
+                        <label
+                            style="font-size: 14px; font-weight: 500; display: block; margin-bottom: 8px; color: #2B2B2B;">Your
+                            Teller PIN * <span style="font-weight: 400; color: #6B6B6B;">(4 digits set during your account
+                                creation)</span></label>
+                        <input type="password"
+                            style="width: 100%; padding: 12px; border: 2px solid #5F6F52; border-radius: 10px; font-size: 18px; letter-spacing: 8px; text-align: center;"
+                            @bind="tellerPin" @onkeyup="HandleTellerPinKeyUp" placeholder="●●●●" maxlength="4" />
+
                         @if (!string.IsNullOrEmpty(tellerPinError))
                         {
-                            <div style="color: #dc2626; font-size: 12px; margin-top: 8px;">
+                            <div style="color: #9B3A3A; font-size: 12px; margin-top: 8px;">
                                 ❌ @tellerPinError
                                 @if (tellerPinAttempts > 0)
                                 {
@@ -193,22 +226,21 @@
                         }
 
                         <div style="display: flex; gap: 12px; margin-top: 12px;">
-                            <button type="button" 
-                                    style="flex: 1; padding: 10px; background: #f3f4f6; color: #374151; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;" 
-                                    @onclick="CancelTellerPinVerification">
+                            <button type="button"
+                                style="flex: 1; padding: 10px; background: #A9B388; color: #2F3E2A; border-radius: 10px; border: none; font-weight: 500; cursor: pointer;"
+                                @onclick="CancelTellerPinVerification">
                                 Cancel
                             </button>
-                            <button type="button" 
-                                    style="flex: 1; padding: 10px; background: #3b82f6; color: white; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;" 
-                                    @onclick="VerifyTellerPin"
-                                    disabled="@(tellerPinAttempts >= 5)">
+                            <button type="button"
+                                style="flex: 1; padding: 10px; background: #5F6F52; color: white; border-radius: 10px; border: none; font-weight: 500; cursor: pointer;"
+                                @onclick="VerifyTellerPin" disabled="@(tellerPinAttempts >= 5)">
                                 Verify PIN
                             </button>
                         </div>
 
                         @if (tellerPinAttempts >= 5)
                         {
-                            <div style="color: #dc2626; font-size: 13px; margin-top: 12px; font-weight: 600;">
+                            <div style="color: #9B3A3A; font-size: 13px; margin-top: 12px; font-weight: 600;">
                                 ⛔ Maximum PIN attempts exceeded. Please contact your supervisor.
                             </div>
                         }
@@ -220,20 +252,24 @@
         <!-- Messages -->
         @if (!string.IsNullOrEmpty(errorMessage))
         {
-            <div style="padding: 16px; background: #fee2e2; border-radius: 8px; color: #991b1b; margin-bottom: 20px; font-size: 14px;">
+            <div
+                style="padding: 16px; background: rgba(155, 58, 58, 0.1); border-radius: 10px; color: #9B3A3A; margin-bottom: 20px; font-size: 14px;">
                 <strong>Error:</strong> @errorMessage
             </div>
         }
 
         @if (!string.IsNullOrEmpty(successMessage))
         {
-            <div style="padding: 16px; background: #d1fae5; border-radius: 8px; color: #065f46; margin-bottom: 20px; font-size: 14px;">
+            <div
+                style="padding: 16px; background: rgba(79, 111, 82, 0.1); border-radius: 10px; color: #4F6F52; margin-bottom: 20px; font-size: 14px;">
                 <strong>Success:</strong> @successMessage
                 @if (!string.IsNullOrEmpty(lastReceiptNumber))
                 {
                     <div style="margin-top: 12px; font-size: 13px;">
                         Receipt #: <strong>@lastReceiptNumber</strong>
-                        <button type="button" @onclick="PrintReceipt" style="margin-left: 12px; background: #dc2626; color: white; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">Print Receipt</button>
+                        <button type="button" @onclick="PrintReceipt"
+                            style="margin-left: 12px; background: #9B3A3A; color: white; padding: 6px 12px; border-radius: 10px; border: none; cursor: pointer; font-weight: 500;">Print
+                            Receipt</button>
                     </div>
                 }
             </div>
@@ -241,55 +277,87 @@
 
         <!-- Buttons -->
         <div style="display: flex; gap: 12px; justify-content: flex-end;">
-            <button type="button" style="background: #f3f4f6; color: #374151; padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;" @onclick="ResetForm">
+            <button type="button"
+                style="background: #A9B388; color: #2F3E2A; padding: 12px 24px; border-radius: 10px; border: none; font-weight: 500; cursor: pointer;"
+                @onclick="ResetForm">
                 Reset
             </button>
-            <button type="submit" 
-                    style="background: linear-gradient(135deg, #dc2626, #991b1b); color: white; padding: 12px 32px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;" 
-                    disabled="@(isLoading || !passwordVerified || !tellerPinVerified || passwordAttempts >= 5 || tellerPinAttempts >= 5)">
-                @if (isLoading) { <span>Processing...</span> } 
-                else if (passwordAttempts >= 5 || tellerPinAttempts >= 5) { <span>❌ Locked - Too Many Attempts</span> }
-                else if (!passwordVerified && withdrawalAmount > 0) { <span>⚠️ Verify Customer Password First</span> }
-                else if (passwordVerified && !tellerPinVerified) { <span>⚠️ Verify Teller PIN</span> }
-                else { <span>Process Withdrawal</span> }
+            <button type="submit"
+                style="background: #9B3A3A; color: white; padding: 12px 32px; border-radius: 10px; border: none; font-weight: 500; cursor: pointer;"
+                disabled="@(isLoading || !passwordVerified || !tellerPinVerified || passwordAttempts >= 5 || tellerPinAttempts >= 5)">
+                @if (isLoading)
+                {
+                    <span>Processing...</span>
+                }
+                else if (passwordAttempts >= 5 || tellerPinAttempts >= 5)
+                {
+
+                    <span>❌ Locked - Too Many Attempts</span>
+                }
+                else if (!passwordVerified && withdrawalAmount > 0)
+                {
+
+                    <span>⚠️ Verify Customer Password First</span>
+                }
+                else if (passwordVerified && !tellerPinVerified)
+                {
+
+                    <span>⚠️ Verify Teller PIN</span>
+                }
+                else
+                {
+
+                    <span>Process Withdrawal</span>
+                }
             </button>
         </div>
     </form>
 </div>
 
 <!-- Real-Time Transactions Table -->
-<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
-    <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1f2937;">Today's Withdrawals (Real-Time)</h3>
-    
+<div style="background: #FFFFFF; border-radius: 14px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+    <h3 style="margin: 0 0 20px; font-size: 16px; font-weight: 600; color: #2B2B2B;">Today's Withdrawals (Real-Time)
+    </h3>
+
     @if (todayTransactions.Any())
     {
         <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr style="border-bottom: 2px solid #e5e7eb; background: #f9fafb;">
-                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">ACCOUNT #</th>
-                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">CUSTOMER</th>
-                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">AMOUNT</th>
-                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">METHOD</th>
-                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">TIME</th>
-                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280;">STATUS</th>
-                        <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 700; color: #6b7280;">ACTION</th>
+                    <tr style="border-bottom: 2px solid #E2E2DC; background: #F7F7F4;">
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                            ACCOUNT #</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                            CUSTOMER</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                            AMOUNT</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                            METHOD</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">TIME
+                        </th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                            STATUS</th>
+                        <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: #6B6B6B;">
+                            ACTION</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var transaction in todayTransactions)
                     {
-                        <tr style="border-bottom: 1px solid #e5e7eb; hover:background: #f9fafb;">
-                            <td style="padding: 16px; font-weight: 600;">@transaction.AccountNumber</td>
-                            <td style="padding: 16px;">@transaction.CustomerName</td>
-                            <td style="padding: 16px; font-weight: 600; color: #dc2626;">₱@transaction.Amount.ToString("N2")</td>
-                            <td style="padding: 16px; font-size: 12px;">@transaction.Method</td>
-                            <td style="padding: 16px; font-size: 12px; color: #6b7280;">@transaction.Time.ToString("hh:mm tt")</td>
-                            <td style="padding: 16px;"><span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">Completed</span></td>
+                        <tr style="border-bottom: 1px solid #E2E2DC;">
+                            <td style="padding: 16px; font-weight: 500; color: #2B2B2B;">@transaction.AccountNumber</td>
+                            <td style="padding: 16px; color: #2B2B2B;">@transaction.CustomerName</td>
+                            <td style="padding: 16px; font-weight: 600; color: #9B3A3A;">₱@transaction.Amount.ToString("N2")
+                            </td>
+                            <td style="padding: 16px; font-size: 12px; color: #6B6B6B;">@transaction.Method</td>
+                            <td style="padding: 16px; font-size: 12px; color: #6B6B6B;">@transaction.Time.ToString("hh:mm tt")
+                            </td>
+                            <td style="padding: 16px;"><span
+                                    style="padding: 4px 12px; background: rgba(79, 111, 82, 0.1); color: #4F6F52; border-radius: 10px; font-size: 12px; font-weight: 500;">Completed</span>
+                            </td>
                             <td style="padding: 16px; text-align: center;">
-                                <button type="button" 
-                                        @onclick="@(() => ViewInvoice(transaction))"
-                                        style="background: #dc2626; color: white; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 12px;">
+                                <button type="button" @onclick="@(() => ViewInvoice(transaction))"
+                                    style="background: #9B3A3A; color: white; padding: 6px 12px; border-radius: 10px; border: none; cursor: pointer; font-weight: 500; font-size: 12px;">
                                     📄 Invoice
                                 </button>
                             </td>
@@ -301,7 +369,7 @@
     }
     else
     {
-        <div style="padding: 32px; text-align: center; color: #6b7280;">
+        <div style="padding: 32px; text-align: center; color: #6B6B6B;">
             <p style="margin: 0; font-size: 14px;">No withdrawals recorded today yet.</p>
         </div>
     }
@@ -311,85 +379,92 @@
 @if (showInvoiceModal && selectedTransaction != null)
 {
     var trans = selectedTransaction;
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" @onclick="CloseInvoiceModal">
-        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);" @onclick:stopPropagation>
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+        @onclick="CloseInvoiceModal">
+        <div style="background: #FFFFFF; border-radius: 16px; padding: 24px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.2);"
+            @onclick:stopPropagation>
             <!-- Modal Header -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 2px solid #e5e7eb; padding-bottom: 16px;">
-                <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #1f2937;">Withdrawal Invoice</h2>
-                <button type="button" @onclick="CloseInvoiceModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">✕</button>
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 2px solid #E2E2DC; padding-bottom: 16px;">
+                <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: #2B2B2B;">Withdrawal Invoice</h2>
+                <button type="button" @onclick="CloseInvoiceModal"
+                    style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6B6B6B;">✕</button>
             </div>
 
             <!-- Invoice Content -->
             <div style="font-size: 14px; line-height: 1.8;">
                 <!-- Header -->
                 <div style="text-align: center; margin-bottom: 24px;">
-                    <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 700; color: #dc2626;">WITHDRAWAL INVOICE</h3>
-                    <p style="margin: 0; color: #6b7280; font-size: 12px;">FinanceBank System</p>
+                    <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #9B3A3A;">WITHDRAWAL INVOICE</h3>
+                    <p style="margin: 0; color: #6B6B6B; font-size: 12px;">FinanceBank System</p>
                 </div>
 
                 <!-- Customer Info -->
-                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="background: #F7F7F4; padding: 16px; border-radius: 10px; margin-bottom: 20px;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div>
-                            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px; font-weight: 600;">ACCOUNT NUMBER</p>
-                            <p style="margin: 0; font-weight: 600; color: #1f2937;">@trans.AccountNumber</p>
+                            <p style="margin: 0 0 4px; color: #6B6B6B; font-size: 12px; font-weight: 500;">ACCOUNT NUMBER
+                            </p>
+                            <p style="margin: 0; font-weight: 500; color: #2B2B2B;">@trans.AccountNumber</p>
                         </div>
                         <div>
-                            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px; font-weight: 600;">CUSTOMER NAME</p>
-                            <p style="margin: 0; font-weight: 600; color: #1f2937;">@trans.CustomerName</p>
+                            <p style="margin: 0 0 4px; color: #6B6B6B; font-size: 12px; font-weight: 500;">CUSTOMER NAME</p>
+                            <p style="margin: 0; font-weight: 500; color: #2B2B2B;">@trans.CustomerName</p>
                         </div>
                         <div>
-                            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px; font-weight: 600;">DATE & TIME</p>
-                            <p style="margin: 0; color: #1f2937;">@trans.Time.ToString("yyyy-MM-dd HH:mm:ss")</p>
+                            <p style="margin: 0 0 4px; color: #6B6B6B; font-size: 12px; font-weight: 500;">DATE & TIME</p>
+                            <p style="margin: 0; color: #2B2B2B;">@trans.Time.ToString("yyyy-MM-dd HH:mm:ss")</p>
                         </div>
                         <div>
-                            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px; font-weight: 600;">WITHDRAWAL METHOD</p>
-                            <p style="margin: 0; color: #1f2937;">@trans.Method</p>
+                            <p style="margin: 0 0 4px; color: #6B6B6B; font-size: 12px; font-weight: 500;">WITHDRAWAL METHOD
+                            </p>
+                            <p style="margin: 0; color: #2B2B2B;">@trans.Method</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Transaction Details -->
-                <div style="background: #fef2f2; padding: 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #dc2626;">
-                    <p style="margin: 0 0 12px; color: #6b7280; font-size: 12px; font-weight: 600;">TRANSACTION DETAILS</p>
+                <div
+                    style="background: rgba(155, 58, 58, 0.1); padding: 16px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #9B3A3A;">
+                    <p style="margin: 0 0 12px; color: #6B6B6B; font-size: 12px; font-weight: 500;">TRANSACTION DETAILS</p>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div>
-                            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">Withdrawal Amount</p>
-                            <p style="margin: 0; font-size: 18px; font-weight: 700; color: #dc2626;">₱@trans.Amount.ToString("N2")</p>
+                            <p style="margin: 0 0 4px; color: #6B6B6B; font-size: 12px;">Withdrawal Amount</p>
+                            <p style="margin: 0; font-size: 18px; font-weight: 600; color: #9B3A3A;">
+                                ₱@trans.Amount.ToString("N2")</p>
                         </div>
                         <div>
-                            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">Status</p>
-                            <p style="margin: 0; font-weight: 600; color: #065f46;">✓ Completed</p>
+                            <p style="margin: 0 0 4px; color: #6B6B6B; font-size: 12px;">Status</p>
+                            <p style="margin: 0; font-weight: 500; color: #4F6F52;">✓ Completed</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Processing Info -->
-                <div style="background: #f3f4f6; padding: 16px; border-radius: 8px;">
-                    <p style="margin: 0 0 12px; color: #6b7280; font-size: 12px; font-weight: 600;">PROCESSING INFORMATION</p>
+                <div style="background: #F7F7F4; padding: 16px; border-radius: 10px;">
+                    <p style="margin: 0 0 12px; color: #6B6B6B; font-size: 12px; font-weight: 500;">PROCESSING INFORMATION
+                    </p>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div>
-                            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">Processed By</p>
-                            <p style="margin: 0; color: #1f2937;">@AuthService.CurrentUser</p>
+                            <p style="margin: 0 0 4px; color: #6B6B6B; font-size: 12px;">Processed By</p>
+                            <p style="margin: 0; color: #2B2B2B;">@AuthService.CurrentUser</p>
                         </div>
                         <div>
-                            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">Reference</p>
-                            <p style="margin: 0; color: #1f2937;">@trans.Reference</p>
+                            <p style="margin: 0 0 4px; color: #6B6B6B; font-size: 12px;">Reference</p>
+                            <p style="margin: 0; color: #2B2B2B;">@trans.Reference</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Modal Buttons -->
-            <div style="display: flex; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-                <button type="button" 
-                        @onclick="PrintInvoice"
-                        style="flex: 1; background: #dc2626; color: white; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
+            <div style="display: flex; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #E2E2DC;">
+                <button type="button" @onclick="PrintInvoice"
+                    style="flex: 1; background: #9B3A3A; color: white; padding: 12px; border-radius: 10px; border: none; font-weight: 500; cursor: pointer;">
                     Print Invoice
                 </button>
-                <button type="button" 
-                        @onclick="CloseInvoiceModal"
-                        style="flex: 1; background: #f3f4f6; color: #374151; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
+                <button type="button" @onclick="CloseInvoiceModal"
+                    style="flex: 1; background: #A9B388; color: #2F3E2A; padding: 12px; border-radius: 10px; border: none; font-weight: 500; cursor: pointer;">
                     Close
                 </button>
             </div>
@@ -400,52 +475,57 @@
 <!-- Customer Security PIN Modal (for unlocking account after malicious attempt detection) -->
 @if (showCustomerPinModal)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1002;">
-        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
+    <div
+        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1002;">
+        <div
+            style="background: #FFFFFF; border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; box-shadow: 0 25px 60px rgba(0,0,0,0.2);">
             <!-- Modal Header -->
             <div style="text-align: center; margin-bottom: 24px;">
-                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #dc2626, #ef4444); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                <div
+                    style="width: 64px; height: 64px; background: #9B3A3A; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        <path
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                 </div>
-                <h3 style="font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">Account Security Alert</h3>
-                <p style="font-size: 14px; color: #6b7280; line-height: 1.5;">
-                    Customer account has been locked due to multiple failed password attempts. 
-                    Customer must enter their <strong>4-digit security PIN</strong> to unlock the account and continue the transaction.
+                <h3 style="font-size: 20px; font-weight: 600; color: #2B2B2B; margin-bottom: 8px;">Account Security Alert
+                </h3>
+                <p style="font-size: 14px; color: #6B6B6B; line-height: 1.5;">
+                    Customer account has been locked due to multiple failed password attempts.
+                    Customer must enter their <strong>4-digit security PIN</strong> to unlock the account and continue the
+                    transaction.
                 </p>
-                <p style="font-size: 13px; color: #dc2626; margin-top: 8px; font-weight: 600;">
+                <p style="font-size: 13px; color: #9B3A3A; margin-top: 8px; font-weight: 500;">
                     ⚠️ This has been flagged as a potential malicious attempt.
                 </p>
             </div>
 
             <!-- Customer Info -->
-            <div style="background: #f3f4f6; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="background: #F7F7F4; padding: 12px; border-radius: 10px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="color: #6b7280; font-size: 13px;">Customer:</span>
-                    <span style="font-weight: 600; color: #1f2937;">@customerName</span>
+                    <span style="color: #6B6B6B; font-size: 13px;">Customer:</span>
+                    <span style="font-weight: 500; color: #2B2B2B;">@customerName</span>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: #6b7280; font-size: 13px;">Account:</span>
-                    <span style="font-weight: 600; color: #1f2937;">@accountNumber</span>
+                    <span style="color: #6B6B6B; font-size: 13px;">Account:</span>
+                    <span style="font-weight: 500; color: #2B2B2B;">@accountNumber</span>
                 </div>
             </div>
 
             <!-- PIN Input -->
             <div style="margin-bottom: 20px;">
-                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Customer Security PIN (4 digits)</label>
+                <label
+                    style="display: block; font-size: 13px; font-weight: 500; color: #2B2B2B; margin-bottom: 8px;">Customer
+                    Security PIN (4 digits)</label>
                 <div style="display: flex; gap: 12px; justify-content: center;">
                     @for (int i = 0; i < 4; i++)
                     {
                         var index = i;
-                        <input type="password" 
-                               maxlength="1" 
-                               @bind="customerPinDigits[index]"
-                               @oninput="(e) => HandleCustomerPinInput(e, index)"
-                               id="customer-pin-@index"
-                               style="width: 56px; height: 56px; text-align: center; font-size: 24px; font-weight: 700; border: 2px solid #e5e7eb; border-radius: 12px; outline: none; transition: all 0.2s;"
-                               onfocus="this.style.borderColor='#dc2626'; this.style.boxShadow='0 0 0 3px rgba(220,38,38,0.1)';"
-                               onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';" />
+                        <input type="password" maxlength="1" @bind="customerPinDigits[index]"
+                            @oninput="(e) => HandleCustomerPinInput(e, index)" id="customer-pin-@index"
+                            style="width: 56px; height: 56px; text-align: center; font-size: 24px; font-weight: 600; border: 1px solid #E2E2DC; border-radius: 10px; outline: none; transition: all 0.2s;"
+                            onfocus="this.style.borderColor='#9B3A3A'; this.style.boxShadow='0 0 0 3px rgba(155,58,58,0.1)';"
+                            onblur="this.style.borderColor='#E2E2DC'; this.style.boxShadow='none';" />
                     }
                 </div>
             </div>
@@ -453,7 +533,8 @@
             <!-- Error Message -->
             @if (!string.IsNullOrEmpty(customerPinError))
             {
-                <div style="padding: 12px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px; margin-bottom: 16px;">
+                <div
+                    style="padding: 12px; background: rgba(155, 58, 58, 0.1); border: 1px solid rgba(155, 58, 58, 0.3); border-radius: 10px; color: #9B3A3A; font-size: 13px; margin-bottom: 16px;">
                     @customerPinError
                 </div>
             }
@@ -461,20 +542,20 @@
             <!-- Success Message -->
             @if (!string.IsNullOrEmpty(customerPinSuccess))
             {
-                <div style="padding: 12px; background: #d1fae5; border: 1px solid #a7f3d0; border-radius: 8px; color: #065f46; font-size: 13px; margin-bottom: 16px;">
+                <div
+                    style="padding: 12px; background: rgba(79, 111, 82, 0.1); border: 1px solid rgba(79, 111, 82, 0.3); border-radius: 10px; color: #4F6F52; font-size: 13px; margin-bottom: 16px;">
                     @customerPinSuccess
                 </div>
             }
 
             <!-- Modal Buttons -->
             <div style="display: flex; gap: 12px;">
-                <button @onclick="CloseCustomerPinModal" 
-                        style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: #374151; cursor: pointer;">
+                <button @onclick="CloseCustomerPinModal"
+                    style="flex: 1; padding: 12px; background: #A9B388; border: none; border-radius: 10px; font-size: 14px; font-weight: 500; color: #2F3E2A; cursor: pointer;">
                     Cancel Transaction
                 </button>
-                <button @onclick="VerifyCustomerSecurityPin" 
-                        disabled="@isCustomerPinLoading"
-                        style="flex: 1; padding: 12px; background: linear-gradient(135deg, #dc2626, #ef4444); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: white; cursor: pointer;">
+                <button @onclick="VerifyCustomerSecurityPin" disabled="@isCustomerPinLoading"
+                    style="flex: 1; padding: 12px; background: #9B3A3A; border: none; border-radius: 10px; font-size: 14px; font-weight: 500; color: white; cursor: pointer;">
                     @if (isCustomerPinLoading)
                     {
                         <span>Verifying...</span>
@@ -487,7 +568,7 @@
             </div>
 
             <!-- Note -->
-            <p style="font-size: 11px; color: #6b7280; text-align: center; margin-top: 16px;">
+            <p style="font-size: 11px; color: #6B6B6B; text-align: center; margin-top: 16px;">
                 Note: No password reset will occur. Only account unlock for this transaction.
             </p>
         </div>
@@ -497,59 +578,72 @@
 <!-- Confirmation Modal -->
 @if (showConfirmationModal)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001;">
-        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 450px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+    <div
+        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1001;">
+        <div
+            style="background: #FFFFFF; border-radius: 16px; padding: 24px; max-width: 450px; width: 90%; box-shadow: 0 25px 60px rgba(0,0,0,0.2);">
             <!-- Warning Icon -->
             <div style="text-align: center; margin-bottom: 20px;">
-                <div style="width: 64px; height: 64px; background: #fef3c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                    <svg width="32" height="32" fill="none" stroke="#f59e0b" stroke-width="2">
-                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                <div
+                    style="width: 64px; height: 64px; background: #E5D9B6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    <svg width="32" height="32" fill="none" stroke="#8B5A2B" stroke-width="2">
+                        <path
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                 </div>
             </div>
 
-            <h2 style="margin: 0 0 16px; font-size: 20px; font-weight: 700; color: #1f2937; text-align: center;">Confirm Withdrawal</h2>
-            <p style="margin: 0 0 24px; color: #6b7280; text-align: center; font-size: 14px;">Are you sure you want to process this withdrawal?</p>
+            <h2 style="margin: 0 0 16px; font-size: 20px; font-weight: 600; color: #2B2B2B; text-align: center;">Confirm
+                Withdrawal</h2>
+            <p style="margin: 0 0 24px; color: #6B6B6B; text-align: center; font-size: 14px;">Are you sure you want to
+                process this withdrawal?</p>
 
             <!-- Transaction Summary -->
-            <div style="background: #fef2f2; border: 1px solid #fca5a5; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+            <div
+                style="background: rgba(155, 58, 58, 0.1); border: 1px solid rgba(155, 58, 58, 0.3); border-radius: 14px; padding: 16px; margin-bottom: 24px;">
                 <div style="display: grid; gap: 12px;">
                     <div style="display: flex; justify-content: space-between;">
-                        <span style="color: #6b7280; font-size: 13px;">Account:</span>
-                        <span style="font-weight: 600; color: #1f2937;">@accountNumber</span>
+                        <span style="color: #6B6B6B; font-size: 13px;">Account:</span>
+                        <span style="font-weight: 500; color: #2B2B2B;">@accountNumber</span>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
-                        <span style="color: #6b7280; font-size: 13px;">Customer:</span>
-                        <span style="font-weight: 600; color: #1f2937;">@customerName</span>
+                        <span style="color: #6B6B6B; font-size: 13px;">Customer:</span>
+                        <span style="font-weight: 500; color: #2B2B2B;">@customerName</span>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
-                        <span style="color: #6b7280; font-size: 13px;">Available Balance:</span>
-                        <span style="font-weight: 600; color: #1f2937;">@availableBalance</span>
+                        <span style="color: #6B6B6B; font-size: 13px;">Available Balance:</span>
+                        <span style="font-weight: 500; color: #2B2B2B;">@availableBalance</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px dashed #fca5a5;">
-                        <span style="color: #6b7280; font-size: 13px;">Withdrawal Amount:</span>
-                        <span style="font-weight: 700; color: #dc2626; font-size: 18px;">₱@withdrawalAmount.ToString("N2")</span>
+                    <div
+                        style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px dashed rgba(155, 58, 58, 0.3);">
+                        <span style="color: #6B6B6B; font-size: 13px;">Withdrawal Amount:</span>
+                        <span
+                            style="font-weight: 600; color: #9B3A3A; font-size: 18px;">₱@withdrawalAmount.ToString("N2")</span>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
-                        <span style="color: #6b7280; font-size: 13px;">Method:</span>
-                        <span style="font-weight: 600; color: #1f2937;">@withdrawalMethod</span>
+                        <span style="color: #6B6B6B; font-size: 13px;">Method:</span>
+                        <span style="font-weight: 500; color: #2B2B2B;">@withdrawalMethod</span>
                     </div>
                 </div>
             </div>
 
             <!-- Buttons -->
             <div style="display: flex; gap: 12px;">
-                <button type="button" 
-                        @onclick="CancelConfirmation"
-                        style="flex: 1; padding: 12px; background: #f3f4f6; color: #374151; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
+                <button type="button" @onclick="CancelConfirmation"
+                    style="flex: 1; padding: 12px; background: #A9B388; color: #2F3E2A; border-radius: 10px; border: none; font-weight: 500; cursor: pointer;">
                     Cancel
                 </button>
-                <button type="button" 
-                        @onclick="HandleWithdrawal"
-                        disabled="@isLoading"
-                        style="flex: 1; padding: 12px; background: linear-gradient(135deg, #dc2626, #991b1b); color: white; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
-                    @if (isLoading) { <span>Processing...</span> }
-                    else { <span>✓ Yes, Process Withdrawal</span> }
+                <button type="button" @onclick="HandleWithdrawal" disabled="@isLoading"
+                    style="flex: 1; padding: 12px; background: #9B3A3A; color: white; border-radius: 10px; border: none; font-weight: 500; cursor: pointer;">
+                    @if (isLoading)
+                    {
+                        <span>Processing...</span>
+                    }
+                    else
+                    {
+
+                        <span>✓ Yes, Process Withdrawal</span>
+                    }
                 </button>
             </div>
         </div>
@@ -634,7 +728,7 @@
             return;
 
         var (success, account, message) = await TellerBankingService.GetAccountByNumberAsync(accountNumber);
-        
+
         if (success && account != null)
         {
             customerName = account.Customer?.FullName ?? "";
@@ -642,7 +736,7 @@
             currentCustomerId = account.Customer?.UserId ?? 0;
             currentAccountBalance = account.Balance;
             availableBalance = $"₱{account.Balance:N2}";
-            
+
             // Check if customer account is locked
             if (currentCustomerId > 0)
             {
@@ -653,7 +747,7 @@
                     showCustomerPinModal = true;
                 }
             }
-            
+
             StateHasChanged();
         }
         else
@@ -686,7 +780,8 @@
 
         try
         {
-            var (success, message, customerId) = await TellerBankingService.VerifyCustomerPasswordAsync(accountNumber, customerPassword);
+            var (success, message, customerId) = await TellerBankingService.VerifyCustomerPasswordAsync(accountNumber,
+            customerPassword);
 
             if (success)
             {
@@ -694,31 +789,32 @@
                 passwordError = "";
                 customerPassword = "";
                 successMessage = "✓ Customer password verified. Now enter your teller PIN.";
-                
+
                 // Reset failed attempts for the customer on successful verification
                 if (currentCustomerId > 0)
                 {
                     await AuthService.ResetFailedAttemptsAsync(currentCustomerId);
                 }
-                
+
                 await InvokeAsync(StateHasChanged);
             }
             else
             {
                 passwordAttempts++;
-                
+
                 // Log failed attempt to AuthService for tracking
                 if (currentCustomerId > 0)
                 {
                     await AuthService.LogTellerTransactionFailedPasswordAsync(
-                        currentCustomerId, 
-                        customerName, 
-                        AuthService.CurrentUser ?? "Unknown Teller", 
-                        "Withdrawal"
-                    );
-                    
+                    currentCustomerId,
+                    customerName,
+                    AuthService.CurrentUser ?? "Unknown Teller",
+                    "Withdrawal"
+                                        );
+
                     // Check if account is now locked (5 attempts)
-                    var (isLocked, lockType, reason) = await AuthService.IsAccountLockedAsync(accountNumber.Contains("@") ? accountNumber : customerUsername);
+                    var (isLocked, lockType, reason) = await AuthService.IsAccountLockedAsync(accountNumber.Contains("@") ? accountNumber :
+                    customerUsername);
                     if (isLocked)
                     {
                         passwordError = $"Account locked ({lockType}) due to multiple failed attempts. {reason ?? "Customer must verify security PIN."}";
@@ -727,7 +823,7 @@
                         return;
                     }
                 }
-                
+
                 passwordError = $"Invalid password. {5 - passwordAttempts} attempts remaining.";
                 customerPassword = "";
                 await InvokeAsync(StateHasChanged);
@@ -796,7 +892,7 @@
             // Get the current teller's user record (case-insensitive)
             using var context = await DbContextFactory.CreateDbContextAsync();
             var currentUsername = AuthService.CurrentUser?.Trim();
-            
+
             if (string.IsNullOrEmpty(currentUsername))
             {
                 tellerPinError = "No user logged in. Please log in again.";
@@ -805,7 +901,7 @@
             }
 
             var tellerUser = await context.Users
-                .FirstOrDefaultAsync(u => u.Username.ToLower() == currentUsername.ToLower());
+            .FirstOrDefaultAsync(u => u.Username.ToLower() == currentUsername.ToLower());
 
             if (tellerUser == null)
             {
@@ -873,17 +969,17 @@
         {
             var transactions = await TellerBankingService.GetTodayTransactionsAsync();
             todayTransactions = transactions
-                .Where(t => t.Type == "Withdrawal")
-                .Select(t => new TransactionRecord
-                {
-                    AccountNumber = t.AccountNumber,
-                    CustomerName = t.CustomerName,
-                    Amount = t.Amount,
-                    Method = t.Type,
-                    Time = t.Time,
-                    Reference = "REF-" + t.Time.Ticks.ToString().Substring(0, 8)
-                })
-                .ToList();
+            .Where(t => t.Type == "Withdrawal")
+            .Select(t => new TransactionRecord
+            {
+                AccountNumber = t.AccountNumber,
+                CustomerName = t.CustomerName,
+                Amount = t.Amount,
+                Method = t.Type,
+                Time = t.Time,
+                Reference = "REF-" + t.Time.Ticks.ToString().Substring(0, 8)
+            })
+            .ToList();
         }
         catch (Exception ex)
         {
@@ -915,15 +1011,15 @@
                   FinanceBank System                   
 ========================================================
 
-Date & Time:       {trans.Time:yyyy-MM-dd HH:mm:ss}
-Reference:         {trans.Reference}
+Date & Time: {trans.Time:yyyy-MM-dd HH:mm:ss}
+Reference: {trans.Reference}
 
 ========================================================
                   CUSTOMER INFORMATION                
 ========================================================
 
-Account Number:    {trans.AccountNumber}
-Customer Name:     {trans.CustomerName}
+Account Number: {trans.AccountNumber}
+Customer Name: {trans.CustomerName}
 
 ========================================================
                   TRANSACTION DETAILS                 
@@ -931,14 +1027,14 @@ Customer Name:     {trans.CustomerName}
 
 Withdrawal Amount: ₱{trans.Amount:N2}
 Withdrawal Method: {trans.Method}
-Status:            COMPLETED
+Status: COMPLETED
 
 ========================================================
                 PROCESSING INFORMATION               
 ========================================================
 
-Processed By:      {AuthService.CurrentUser}
-Date:              {DateTime.Now:yyyy-MM-dd HH:mm:ss}
+Processed By: {AuthService.CurrentUser}
+Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
 
 ========================================================
 Thank you for banking with us!
@@ -1037,18 +1133,18 @@ Please keep this invoice for your records.
         try
         {
             var (success, message, transaction, receiptNumber) = await TellerBankingService.ProcessWithdrawalAsync(
-                accountNumber,
-                withdrawalAmount,
-                withdrawalMethod,
-                referenceNumber,
-                notes
+            accountNumber,
+            withdrawalAmount,
+            withdrawalMethod,
+            referenceNumber,
+            notes
             );
 
             if (success)
             {
                 lastReceiptNumber = receiptNumber;
                 successMessage = message;
-                
+
                 // Add to real-time transactions list
                 todayTransactions.Insert(0, new TransactionRecord
                 {
@@ -1059,7 +1155,7 @@ Please keep this invoice for your records.
                     Time = DateTime.Now,
                     Reference = referenceNumber
                 });
-                
+
                 await Task.Delay(2000);
                 ResetForm();
             }
@@ -1089,21 +1185,21 @@ Please keep this invoice for your records.
                   BFAS Banking System                  
 ========================================================
 
-Receipt Number:    {lastReceiptNumber}
-Date & Time:       {DateTime.Now:yyyy-MM-dd HH:mm:ss}
+Receipt Number: {lastReceiptNumber}
+Date & Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
 
-Account Number:    {accountNumber}
-Customer Name:     {customerName}
+Account Number: {accountNumber}
+Customer Name: {customerName}
 Available Balance: {availableBalance}
 
 Withdrawal Amount: ₱{withdrawalAmount:N2}
 Withdrawal Method: {withdrawalMethod}
-Reference:         {referenceNumber}
+Reference: {referenceNumber}
 
-Notes:             {notes}
+Notes: {notes}
 
-Processed By:      {AuthService.CurrentUser}
-Status:            COMPLETED
+Processed By: {AuthService.CurrentUser}
+Status: COMPLETED
 
 ========================================================
 Thank you for banking with us!
@@ -1143,26 +1239,26 @@ Please keep this receipt for your records.
         errorMessage = "";
         successMessage = "";
         lastReceiptNumber = "";
-        
+
         // Reset password verification
         customerPassword = "";
         passwordError = "";
         passwordAttempts = 0;
         passwordVerified = false;
-        
+
         // Reset customer PIN modal
         showCustomerPinModal = false;
         customerPinDigits = new string[4] { "", "", "", "" };
         customerPinError = "";
         customerPinSuccess = "";
         isCustomerPinLoading = false;
-        
+
         // Reset teller PIN verification
         tellerPin = "";
         tellerPinError = "";
         tellerPinAttempts = 0;
         tellerPinVerified = false;
-        
+
         // Generate new reference number
         GenerateReferenceNumber();
     }
@@ -1207,13 +1303,13 @@ Please keep this receipt for your records.
             {
                 // Then unlock the account
                 var (unlockSuccess, unlockMessage) = await AuthService.UnlockAccountWithPinAsync(customerUsername);
-                
+
                 if (unlockSuccess)
                 {
                     customerPinSuccess = "Account unlocked successfully! Customer can now verify their password.";
                     passwordAttempts = 0;
                     passwordError = "";
-                    
+
                     await Task.Delay(1500);
                     CloseCustomerPinModal();
                 }

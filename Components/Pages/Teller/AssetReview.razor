@@ -12,21 +12,24 @@
 
 <div class="sidebar-content">
     <div class="card">
-        <div class="card-header" style="background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; padding: 20px;">
-            <h4 style="margin: 0; font-weight: 600;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px; vertical-align: middle;">
+        <div class="card-header" style="background: #2F3E2A; color: white; padding: 20px;">
+            <h4 style="margin: 0; font-weight: 500;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="margin-right: 8px; vertical-align: middle;">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                     <polyline points="9 22 9 12 15 12 15 22"></polyline>
                 </svg>
                 Asset Application Review
             </h4>
-            <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Review asset purchase/loan applications and verify documents</p>
+            <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Review asset purchase/loan applications and
+                verify documents</p>
         </div>
 
         <div class="card-body" style="padding: 24px;">
             @if (!string.IsNullOrEmpty(successMessage))
             {
-                <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 16px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                <div
+                    style="background: #D4E6D4; border: 1px solid #A9B388; color: #2F3E2A; padding: 16px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                         <polyline points="22 4 12 14.01 9 11.01"></polyline>
@@ -37,23 +40,24 @@
 
             @if (!string.IsNullOrEmpty(errorMessage))
             {
-                <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <div
+                    style="background: #F5E6E6; border: 1px solid #C4A5A5; color: #9B3A3A; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
                     @errorMessage
                 </div>
             }
 
             <!-- Status Filter Tabs -->
             <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
-                <button @onclick="() => SetFilter(Filters.Pending)" 
-                    style="padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; background: @(currentFilter == Filters.Pending ? "#3b82f6" : "#f3f4f6"); color: @(currentFilter == Filters.Pending ? "white" : "#6b7280");">
+                <button @onclick="() => SetFilter(Filters.Pending)"
+                    style="padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: 500; background: @(currentFilter == Filters.Pending ? "#2F3E2A" : "#F7F7F4"); color: @(currentFilter == Filters.Pending ? "white" : "#6B6B6B");">
                     📋 Pending Review (@pendingCount)
                 </button>
-                <button @onclick="() => SetFilter(Filters.Verified)" 
-                    style="padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; background: @(currentFilter == Filters.Verified ? "#059669" : "#f3f4f6"); color: @(currentFilter == Filters.Verified ? "white" : "#6b7280");">
+                <button @onclick="() => SetFilter(Filters.Verified)"
+                    style="padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: 500; background: @(currentFilter == Filters.Verified ? "#2F3E2A" : "#F7F7F4"); color: @(currentFilter == Filters.Verified ? "white" : "#6B6B6B");">
                     ✅ Verified (@verifiedCount)
                 </button>
-                <button @onclick="() => SetFilter(Filters.Approved)" 
-                    style="padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; background: @(currentFilter == Filters.Approved ? "#f59e0b" : "#f3f4f6"); color: @(currentFilter == Filters.Approved ? "white" : "#6b7280");">
+                <button @onclick="() => SetFilter(Filters.Approved)"
+                    style="padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: 500; background: @(currentFilter == Filters.Approved ? "#C49A3A" : "#F7F7F4"); color: @(currentFilter == Filters.Approved ? "white" : "#6B6B6B");">
                     🎯 Ready for Release (@approvedCount)
                 </button>
             </div>
@@ -61,19 +65,22 @@
             @if (isLoading)
             {
                 <div style="text-align: center; padding: 40px;">
-                    <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-                    <p style="margin-top: 16px; color: #6b7280;">Loading applications...</p>
+                    <div
+                        style="width: 40px; height: 40px; border: 3px solid #E2E2DC; border-top-color: #2F3E2A; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;">
+                    </div>
+                    <p style="margin-top: 16px; color: #6B6B6B;">Loading applications...</p>
                 </div>
             }
             else if (filteredApplications == null || filteredApplications.Count == 0)
             {
-                <div style="text-align: center; padding: 60px 20px; background: #f9fafb; border-radius: 12px;">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin: 0 auto;">
+                <div style="text-align: center; padding: 60px 20px; background: #F7F7F4; border-radius: 14px;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#E2E2DC" stroke-width="1.5"
+                        style="margin: 0 auto;">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
                     </svg>
-                    <h5 style="color: #6b7280; margin-top: 16px;">No Applications Found</h5>
-                    <p style="color: #9ca3af; font-size: 14px;">There are no asset applications in this status.</p>
+                    <h5 style="color: #6B6B6B; margin-top: 16px;">No Applications Found</h5>
+                    <p style="color: #6B6B6B; font-size: 14px;">There are no asset applications in this status.</p>
                 </div>
             }
             else
@@ -81,66 +88,76 @@
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
-                            <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
-                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Application #</th>
-                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Customer</th>
-                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Asset</th>
-                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Type</th>
-                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Amount</th>
-                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151;">Status</th>
-                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151;">Actions</th>
+                            <tr style="background: #F7F7F4; border-bottom: 2px solid #E2E2DC;">
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #2B2B2B;">Application #
+                                </th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #2B2B2B;">Customer</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #2B2B2B;">Asset</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #2B2B2B;">Type</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 500; color: #2B2B2B;">Amount</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 500; color: #2B2B2B;">Status</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 500; color: #2B2B2B;">Actions
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var app in filteredApplications)
                             {
-                                <tr style="border-bottom: 1px solid #e5e7eb; transition: background 0.2s;" class="table-row-hover">
+                                <tr style="border-bottom: 1px solid #E2E2DC; transition: background 0.2s;"
+                                    class="table-row-hover">
                                     <td style="padding: 16px 12px;">
-                                        <span style="background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 13px;">
+                                        <span
+                                            style="background: rgba(79, 111, 82, 0.15); color: #4F6F52; padding: 4px 12px; border-radius: 10px; font-weight: 500; font-size: 13px;">
                                             @app.ApplicationNumber
                                         </span>
                                     </td>
                                     <td style="padding: 16px 12px;">
-                                        <div style="font-weight: 500; color: #1f2937;">@app.CustomerName</div>
-                                        <div style="font-size: 12px; color: #6b7280;">@app.CustomerEmail</div>
+                                        <div style="font-weight: 500; color: #2B2B2B;">@app.CustomerName</div>
+                                        <div style="font-size: 12px; color: #6B6B6B;">@app.CustomerEmail</div>
                                     </td>
                                     <td style="padding: 16px 12px;">
-                                        <div style="font-weight: 500; color: #374151;">@(app.Asset?.AssetName ?? "N/A")</div>
-                                        <div style="font-size: 12px; color: #6b7280;">@(app.Asset?.AssetType ?? "")</div>
+                                        <div style="font-weight: 500; color: #2B2B2B;">@(app.Asset?.AssetName ?? "N/A")</div>
+                                        <div style="font-size: 12px; color: #6B6B6B;">@(app.Asset?.AssetType ?? "")</div>
                                     </td>
                                     <td style="padding: 16px 12px;">
-                                        <span style="background: @(app.PurchaseType == "Cash" ? "#fef3c7" : "#dbeafe"); color: @(app.PurchaseType == "Cash" ? "#92400e" : "#1e40af"); padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                        <span
+                                            style="background: @(app.PurchaseType == "Cash" ? "rgba(196, 154, 58, 0.15)" : "rgba(79, 111, 82, 0.15)"); color: @(app.PurchaseType == "Cash" ? "#C49A3A" : "#4F6F52"); padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 500;">
                                             @(app.PurchaseType == "Cash" ? "💰 Cash" : "💳 Loan")
                                         </span>
                                     </td>
-                                    <td style="padding: 16px 12px; text-align: right; font-weight: 600; color: #059669;">₱@app.AssetPrice.ToString("N2")</td>
+                                    <td style="padding: 16px 12px; text-align: right; font-weight: 500; color: #4F6F52;">
+                                        ₱@app.AssetPrice.ToString("N2")</td>
                                     <td style="padding: 16px 12px; text-align: center;">
                                         @{
                                             var (statusBg, statusColor, statusText) = GetStatusStyle(app.Status);
                                         }
-                                        <span style="background: @statusBg; color: @statusColor; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                                        <span
+                                            style="background: @statusBg; color: @statusColor; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
                                             @statusText
                                         </span>
                                     </td>
                                     <td style="padding: 16px 12px; text-align: center;">
                                         @if (app.Status == "SUBMITTED")
                                         {
-                                            <button style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;"
-                                                    @onclick="() => OpenReviewModal(app)">
+                                            <button
+                                                style="background: #2F3E2A; color: white; border: none; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 500;"
+                                                @onclick="() => OpenReviewModal(app)">
                                                 Review
                                             </button>
                                         }
                                         else if (app.Status == "APPROVED")
                                         {
-                                            <button style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;"
-                                                    @onclick="() => OpenReleaseModal(app)">
+                                            <button
+                                                style="background: #2F3E2A; color: white; border: none; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 500;"
+                                                @onclick="() => OpenReleaseModal(app)">
                                                 Release
                                             </button>
                                         }
                                         else
                                         {
-                                            <button style="background: #6b7280; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 12px;"
-                                                    @onclick="() => ViewDetails(app)">
+                                            <button
+                                                style="background: #6B6B6B; color: white; border: none; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 500; font-size: 12px;"
+                                                @onclick="() => ViewDetails(app)">
                                                 View
                                             </button>
                                         }
@@ -158,20 +175,23 @@
 <!-- Review Modal -->
 @if (showReviewModal && selectedApplication != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;">
-        <div style="background: white; border-radius: 16px; width: 100%; max-width: 1100px; max-height: 90vh; overflow-y: auto;">
+    <div
+        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;">
+        <div
+            style="background: #FFFFFF; border-radius: 16px; width: 100%; max-width: 1100px; max-height: 90vh; overflow-y: auto;">
             <!-- Modal Header -->
-            <div style="background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; padding: 20px; border-radius: 16px 16px 0 0;">
+            <div style="background: #2F3E2A; color: white; padding: 20px; border-radius: 16px 16px 0 0;">
                 <h4 style="margin: 0;">📋 Review Asset Application</h4>
-                <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Application #: @selectedApplication.ApplicationNumber</p>
+                <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Application #:
+                    @selectedApplication.ApplicationNumber</p>
             </div>
 
             <div style="padding: 24px;">
                 <!-- Asset Image Slideshow -->
                 @if (selectedApplication.Asset?.Images != null && selectedApplication.Asset.Images.Any())
                 {
-                    <div style="margin-bottom: 24px; background: #f3f4f6; border-radius: 12px; padding: 16px;">
-                        <h5 style="margin: 0 0 12px 0; color: #374151; font-weight: 700;">🖼️ Asset Images</h5>
+                    <div style="margin-bottom: 24px; background: #F7F7F4; border-radius: 14px; padding: 16px;">
+                        <h5 style="margin: 0 0 12px 0; color: #2B2B2B; font-weight: 600;">🖼️ Asset Images</h5>
                         <div style="position: relative;">
                             <div style="display: flex; align-items: center; justify-content: center; min-height: 250px;">
                                 @{
@@ -180,28 +200,30 @@
                                 }
                                 @if (currentImage != null && currentImage.ImageData != null)
                                 {
-                                    <img src="data:@currentImage.ContentType;base64,@Convert.ToBase64String(currentImage.ImageData)" 
-                                         style="max-width: 100%; max-height: 250px; border-radius: 8px; object-fit: contain;" />
+                                    <img src="data:@currentImage.ContentType;base64,@Convert.ToBase64String(currentImage.ImageData)"
+                                        style="max-width: 100%; max-height: 250px; border-radius: 8px; object-fit: contain;" />
                                 }
                                 else
                                 {
-                                    <div style="text-align: center; color: #6b7280;">No image available</div>
+                                    <div style="text-align: center; color: #6B6B6B;">No image available</div>
                                 }
                             </div>
                             @if (images.Count > 1)
                             {
-                                <button @onclick="PrevImage" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px;">
+                                <button @onclick="PrevImage"
+                                    style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(47, 62, 42, 0.6); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px;">
                                     ◀
                                 </button>
-                                <button @onclick="NextImage" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px;">
+                                <button @onclick="NextImage"
+                                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(47, 62, 42, 0.6); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px;">
                                     ▶
                                 </button>
                                 <div style="text-align: center; margin-top: 12px;">
                                     @for (int i = 0; i < images.Count; i++)
                                     {
                                         var idx = i;
-                                        <span @onclick="() => SetImageIndex(idx)" 
-                                              style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 4px; cursor: pointer; background: @(currentImageIndex == idx ? "#3b82f6" : "#d1d5db");"></span>
+                                        <span @onclick="() => SetImageIndex(idx)"
+                                            style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 4px; cursor: pointer; background: @(currentImageIndex == idx ? "#2F3E2A" : "#E2E2DC");"></span>
                                     }
                                 </div>
                             }
@@ -212,30 +234,40 @@
                 <!-- Application Info Grid -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
                     <!-- Customer Info -->
-                    <div style="background: #f9fafb; border-radius: 12px; padding: 16px;">
-                        <h5 style="margin: 0 0 12px 0; color: #374151; font-weight: 700;">👤 Customer Information</h5>
+                    <div style="background: #F7F7F4; border-radius: 14px; padding: 16px;">
+                        <h5 style="margin: 0 0 12px 0; color: #2B2B2B; font-weight: 600;">👤 Customer Information</h5>
                         <div style="display: grid; gap: 8px; font-size: 14px;">
-                            <div><span style="color: #6b7280;">Name:</span> <strong>@selectedApplication.CustomerName</strong></div>
-                            <div><span style="color: #6b7280;">Email:</span> @selectedApplication.CustomerEmail</div>
-                            <div><span style="color: #6b7280;">Phone:</span> @selectedApplication.CustomerPhone</div>
-                            <div><span style="color: #6b7280;">Address:</span> @selectedApplication.CustomerAddress</div>
-                            <div><span style="color: #6b7280;">Employment:</span> @selectedApplication.EmploymentStatus</div>
-                            <div><span style="color: #6b7280;">Monthly Income:</span> <strong style="color: #059669;">₱@(selectedApplication.MonthlyIncome?.ToString("N2") ?? "N/A")</strong></div>
+                            <div><span style="color: #6B6B6B;">Name:</span>
+                                <strong>@selectedApplication.CustomerName</strong></div>
+                            <div><span style="color: #6B6B6B;">Email:</span> @selectedApplication.CustomerEmail</div>
+                            <div><span style="color: #6B6B6B;">Phone:</span> @selectedApplication.CustomerPhone</div>
+                            <div><span style="color: #6B6B6B;">Address:</span> @selectedApplication.CustomerAddress</div>
+                            <div><span style="color: #6B6B6B;">Employment:</span> @selectedApplication.EmploymentStatus
+                            </div>
+                            <div><span style="color: #6B6B6B;">Monthly Income:</span> <strong
+                                    style="color: #4F6F52;">₱@(selectedApplication.MonthlyIncome?.ToString("N2") ??
+                                                                    "N/A")</strong></div>
                         </div>
                     </div>
 
                     <!-- Asset & Financial Info -->
-                    <div style="background: #f0fdf4; border-radius: 12px; padding: 16px; border: 1px solid #bbf7d0;">
-                        <h5 style="margin: 0 0 12px 0; color: #059669; font-weight: 700;">💰 Financial Summary</h5>
+                    <div
+                        style="background: rgba(79, 111, 82, 0.15); border-radius: 14px; padding: 16px; border: 1px solid rgba(79, 111, 82, 0.3);">
+                        <h5 style="margin: 0 0 12px 0; color: #4F6F52; font-weight: 600;">💰 Financial Summary</h5>
                         <div style="display: grid; gap: 8px; font-size: 14px;">
-                            <div><span style="color: #6b7280;">Asset:</span> <strong>@(selectedApplication.Asset?.AssetName ?? "N/A")</strong></div>
-                            <div><span style="color: #6b7280;">Type:</span> @selectedApplication.PurchaseType</div>
-                            <div><span style="color: #6b7280;">Total Price:</span> <strong style="color: #059669;">₱@selectedApplication.AssetPrice.ToString("N2")</strong></div>
-                            <div><span style="color: #6b7280;">Down Payment:</span> ₱@selectedApplication.DownPaymentAmount.ToString("N2")</div>
+                            <div><span style="color: #6B6B6B;">Asset:</span> <strong>@(selectedApplication.Asset?.AssetName
+                                                                    ?? "N/A")</strong></div>
+                            <div><span style="color: #6B6B6B;">Type:</span> @selectedApplication.PurchaseType</div>
+                            <div><span style="color: #6B6B6B;">Total Price:</span> <strong
+                                    style="color: #4F6F52;">₱@selectedApplication.AssetPrice.ToString("N2")</strong></div>
+                            <div><span style="color: #6B6B6B;">Down Payment:</span>
+                                ₱@selectedApplication.DownPaymentAmount.ToString("N2")</div>
                             @if (selectedApplication.PurchaseType == "Loan")
                             {
-                                <div><span style="color: #6b7280;">Loan Amount:</span> ₱@selectedApplication.LoanAmount.ToString("N2")</div>
-                                <div><span style="color: #6b7280;">Monthly Payment:</span> <strong>₱@selectedApplication.MonthlyPayment.ToString("N2")</strong></div>
+                                <div><span style="color: #6b7280;">Loan Amount:</span>
+                                    ₱@selectedApplication.LoanAmount.ToString("N2")</div>
+                                <div><span style="color: #6b7280;">Monthly Payment:</span>
+                                    <strong>₱@selectedApplication.MonthlyPayment.ToString("N2")</strong></div>
                                 <div><span style="color: #6b7280;">Term:</span> @selectedApplication.TermMonths months</div>
                             }
                         </div>
@@ -243,176 +275,211 @@
                 </div>
 
                 <!-- Document Verification Checklist -->
-                <div style="background: #eff6ff; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #bfdbfe;">
-                    <h5 style="margin: 0 0 16px 0; color: #3b82f6; font-weight: 700;">📄 Document Verification Checklist</h5>
-                    <p style="color: #6b7280; font-size: 13px; margin-bottom: 16px;">Verify that the customer has submitted the following required documents:</p>
-                    
+                <div
+                    style="background: rgba(79, 111, 82, 0.15); border-radius: 14px; padding: 20px; margin-bottom: 24px; border: 1px solid rgba(79, 111, 82, 0.3);">
+                    <h5 style="margin: 0 0 16px 0; color: #4F6F52; font-weight: 600;">📄 Document Verification Checklist
+                    </h5>
+                    <p style="color: #6B6B6B; font-size: 13px; margin-bottom: 16px;">Verify that the customer has submitted
+                        the following required documents:</p>
+
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         @if (selectedApplication.ValidIdRequired)
                         {
-                            <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
-                                <input type="checkbox" @bind="verifyValidId" style="width: 18px; height: 18px; accent-color: #3b82f6;" />
+                            <label
+                                style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #FFFFFF; border-radius: 10px; cursor: pointer;">
+                                <input type="checkbox" @bind="verifyValidId"
+                                    style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                                 <span>Valid Government ID ✅</span>
                             </label>
                         }
                         @if (selectedApplication.ProofOfIncomeRequired)
                         {
-                            <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
-                                <input type="checkbox" @bind="verifyProofOfIncome" style="width: 18px; height: 18px; accent-color: #3b82f6;" />
+                            <label
+                                style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #FFFFFF; border-radius: 10px; cursor: pointer;">
+                                <input type="checkbox" @bind="verifyProofOfIncome"
+                                    style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                                 <span>Proof of Income 📄</span>
                             </label>
                         }
                         @if (selectedApplication.ProofOfBillingRequired)
                         {
-                            <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
-                                <input type="checkbox" @bind="verifyProofOfBilling" style="width: 18px; height: 18px; accent-color: #3b82f6;" />
+                            <label
+                                style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #FFFFFF; border-radius: 10px; cursor: pointer;">
+                                <input type="checkbox" @bind="verifyProofOfBilling"
+                                    style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                                 <span>Proof of Billing 📬</span>
                             </label>
                         }
                         @if (selectedApplication.BankStatementRequired)
                         {
-                            <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
-                                <input type="checkbox" @bind="verifyBankStatement" style="width: 18px; height: 18px; accent-color: #3b82f6;" />
+                            <label
+                                style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #FFFFFF; border-radius: 10px; cursor: pointer;">
+                                <input type="checkbox" @bind="verifyBankStatement"
+                                    style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                                 <span>Bank Statement 🏦</span>
                             </label>
                         }
                         @if (selectedApplication.COERequired)
                         {
-                            <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
-                                <input type="checkbox" @bind="verifyCOE" style="width: 18px; height: 18px; accent-color: #3b82f6;" />
+                            <label
+                                style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #FFFFFF; border-radius: 10px; cursor: pointer;">
+                                <input type="checkbox" @bind="verifyCOE"
+                                    style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                                 <span>Certificate of Employment 📋</span>
                             </label>
                         }
                         @if (selectedApplication.BusinessPermitRequired)
                         {
-                            <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
-                                <input type="checkbox" @bind="verifyBusinessPermit" style="width: 18px; height: 18px; accent-color: #3b82f6;" />
+                            <label
+                                style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #FFFFFF; border-radius: 10px; cursor: pointer;">
+                                <input type="checkbox" @bind="verifyBusinessPermit"
+                                    style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                                 <span>Business Permit 🏪</span>
                             </label>
                         }
                         @if (selectedApplication.TitleDeedRequired)
                         {
-                            <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
-                                <input type="checkbox" @bind="verifyTitleDeed" style="width: 18px; height: 18px; accent-color: #3b82f6;" />
+                            <label
+                                style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #FFFFFF; border-radius: 10px; cursor: pointer;">
+                                <input type="checkbox" @bind="verifyTitleDeed"
+                                    style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                                 <span>Title Deed 🏠</span>
                             </label>
                         }
                         @if (selectedApplication.TaxDeclarationRequired)
                         {
-                            <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
-                                <input type="checkbox" @bind="verifyTaxDeclaration" style="width: 18px; height: 18px; accent-color: #3b82f6;" />
+                            <label
+                                style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #FFFFFF; border-radius: 10px; cursor: pointer;">
+                                <input type="checkbox" @bind="verifyTaxDeclaration"
+                                    style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                                 <span>Tax Declaration 📑</span>
                             </label>
                         }
                         @if (selectedApplication.ORCRRequired)
                         {
-                            <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
-                                <input type="checkbox" @bind="verifyORCR" style="width: 18px; height: 18px; accent-color: #3b82f6;" />
+                            <label
+                                style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #FFFFFF; border-radius: 10px; cursor: pointer;">
+                                <input type="checkbox" @bind="verifyORCR"
+                                    style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                                 <span>OR/CR 🚗</span>
                             </label>
                         }
                     </div>
 
                     <!-- Additional verification checkboxes -->
-                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #bfdbfe;">
-                        <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer; margin-bottom: 8px;">
-                            <input type="checkbox" @bind="verifyAddress" style="width: 18px; height: 18px; accent-color: #3b82f6;" />
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(79, 111, 82, 0.3);">
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #FFFFFF; border-radius: 10px; cursor: pointer; margin-bottom: 8px;">
+                            <input type="checkbox" @bind="verifyAddress"
+                                style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                             <span>Address Verified 📍</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
-                            <input type="checkbox" @bind="verifyEmployment" style="width: 18px; height: 18px; accent-color: #3b82f6;" />
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #FFFFFF; border-radius: 10px; cursor: pointer;">
+                            <input type="checkbox" @bind="verifyEmployment"
+                                style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                             <span>Employment Verified 💼</span>
                         </label>
                     </div>
                 </div>
 
                 <!-- Document Upload Section -->
-                <div style="background: #fef3c7; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #fcd34d;">
-                    <h5 style="margin: 0 0 16px 0; color: #92400e; font-weight: 700;">📤 Upload Customer Documents</h5>
-                    <p style="color: #92400e; font-size: 13px; margin-bottom: 16px;">Upload scanned copies of customer's submitted documents:</p>
-                    
+                <div
+                    style="background: rgba(196, 154, 58, 0.15); border-radius: 14px; padding: 20px; margin-bottom: 24px; border: 1px solid rgba(196, 154, 58, 0.3);">
+                    <h5 style="margin: 0 0 16px 0; color: #C49A3A; font-weight: 600;">📤 Upload Customer Documents</h5>
+                    <p style="color: #C49A3A; font-size: 13px; margin-bottom: 16px;">Upload scanned copies of customer's
+                        submitted documents:</p>
+
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         @if (selectedApplication.ValidIdRequired)
                         {
-                            <div style="background: white; padding: 12px; border-radius: 8px;">
-                                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">Valid ID</label>
-                                <InputFile OnChange="@(e => OnDocumentUpload(e, "ValidId"))" accept="image/*,.pdf" 
+                            <div style="background: #FFFFFF; padding: 12px; border-radius: 10px;">
+                                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px;">Valid
+                                    ID</label>
+                                <InputFile OnChange="@(e => OnDocumentUpload(e, "ValidId"))" accept="image/*,.pdf"
                                     style="font-size: 12px; width: 100%;" />
                                 @if (uploadedDocuments.ContainsKey("ValidId"))
                                 {
-                                    <span style="color: #059669; font-size: 11px;">✅ Uploaded</span>
+                                    <span style="color: #4F6F52; font-size: 11px;">✅ Uploaded</span>
                                 }
                             </div>
                         }
                         @if (selectedApplication.ProofOfIncomeRequired)
                         {
-                            <div style="background: white; padding: 12px; border-radius: 8px;">
-                                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">Proof of Income</label>
-                                <InputFile OnChange="@(e => OnDocumentUpload(e, "ProofOfIncome"))" accept="image/*,.pdf" 
+                            <div style="background: #FFFFFF; padding: 12px; border-radius: 10px;">
+                                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px;">Proof of
+                                    Income</label>
+                                <InputFile OnChange="@(e => OnDocumentUpload(e, "ProofOfIncome"))" accept="image/*,.pdf"
                                     style="font-size: 12px; width: 100%;" />
                                 @if (uploadedDocuments.ContainsKey("ProofOfIncome"))
                                 {
-                                    <span style="color: #059669; font-size: 11px;">✅ Uploaded</span>
+                                    <span style="color: #4F6F52; font-size: 11px;">✅ Uploaded</span>
                                 }
                             </div>
                         }
                         @if (selectedApplication.ProofOfBillingRequired)
                         {
-                            <div style="background: white; padding: 12px; border-radius: 8px;">
-                                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">Proof of Billing</label>
-                                <InputFile OnChange="@(e => OnDocumentUpload(e, "ProofOfBilling"))" accept="image/*,.pdf" 
+                            <div style="background: #FFFFFF; padding: 12px; border-radius: 10px;">
+                                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px;">Proof of
+                                    Billing</label>
+                                <InputFile OnChange="@(e => OnDocumentUpload(e, "ProofOfBilling"))" accept="image/*,.pdf"
                                     style="font-size: 12px; width: 100%;" />
                                 @if (uploadedDocuments.ContainsKey("ProofOfBilling"))
                                 {
-                                    <span style="color: #059669; font-size: 11px;">✅ Uploaded</span>
+                                    <span style="color: #4F6F52; font-size: 11px;">✅ Uploaded</span>
                                 }
                             </div>
                         }
                         @if (selectedApplication.BankStatementRequired)
                         {
-                            <div style="background: white; padding: 12px; border-radius: 8px;">
-                                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">Bank Statement</label>
-                                <InputFile OnChange="@(e => OnDocumentUpload(e, "BankStatement"))" accept="image/*,.pdf" 
+                            <div style="background: #FFFFFF; padding: 12px; border-radius: 10px;">
+                                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px;">Bank
+                                    Statement</label>
+                                <InputFile OnChange="@(e => OnDocumentUpload(e, "BankStatement"))" accept="image/*,.pdf"
                                     style="font-size: 12px; width: 100%;" />
                                 @if (uploadedDocuments.ContainsKey("BankStatement"))
                                 {
-                                    <span style="color: #059669; font-size: 11px;">✅ Uploaded</span>
+                                    <span style="color: #4F6F52; font-size: 11px;">✅ Uploaded</span>
                                 }
                             </div>
                         }
                         @if (selectedApplication.COERequired)
                         {
-                            <div style="background: white; padding: 12px; border-radius: 8px;">
-                                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">Certificate of Employment</label>
-                                <InputFile OnChange="@(e => OnDocumentUpload(e, "COE"))" accept="image/*,.pdf" 
+                            <div style="background: #FFFFFF; padding: 12px; border-radius: 10px;">
+                                <label
+                                    style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px;">Certificate
+                                    of Employment</label>
+                                <InputFile OnChange="@(e => OnDocumentUpload(e, "COE"))" accept="image/*,.pdf"
                                     style="font-size: 12px; width: 100%;" />
                                 @if (uploadedDocuments.ContainsKey("COE"))
                                 {
-                                    <span style="color: #059669; font-size: 11px;">✅ Uploaded</span>
+                                    <span style="color: #4F6F52; font-size: 11px;">✅ Uploaded</span>
                                 }
                             </div>
                         }
                         @if (selectedApplication.TitleDeedRequired)
                         {
-                            <div style="background: white; padding: 12px; border-radius: 8px;">
-                                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">Title Deed</label>
-                                <InputFile OnChange="@(e => OnDocumentUpload(e, "TitleDeed"))" accept="image/*,.pdf" 
+                            <div style="background: #FFFFFF; padding: 12px; border-radius: 10px;">
+                                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px;">Title
+                                    Deed</label>
+                                <InputFile OnChange="@(e => OnDocumentUpload(e, "TitleDeed"))" accept="image/*,.pdf"
                                     style="font-size: 12px; width: 100%;" />
                                 @if (uploadedDocuments.ContainsKey("TitleDeed"))
                                 {
-                                    <span style="color: #059669; font-size: 11px;">✅ Uploaded</span>
+                                    <span style="color: #4F6F52; font-size: 11px;">✅ Uploaded</span>
                                 }
                             </div>
                         }
                         @if (selectedApplication.ORCRRequired)
                         {
-                            <div style="background: white; padding: 12px; border-radius: 8px;">
-                                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">OR/CR</label>
-                                <InputFile OnChange="@(e => OnDocumentUpload(e, "ORCR"))" accept="image/*,.pdf" 
+                            <div style="background: #FFFFFF; padding: 12px; border-radius: 10px;">
+                                <label
+                                    style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px;">OR/CR</label>
+                                <InputFile OnChange="@(e => OnDocumentUpload(e, "ORCR"))" accept="image/*,.pdf"
                                     style="font-size: 12px; width: 100%;" />
                                 @if (uploadedDocuments.ContainsKey("ORCR"))
                                 {
-                                    <span style="color: #059669; font-size: 11px;">✅ Uploaded</span>
+                                    <span style="color: #4F6F52; font-size: 11px;">✅ Uploaded</span>
                                 }
                             </div>
                         }
@@ -421,21 +488,24 @@
 
                 <!-- Teller Remarks -->
                 <div style="margin-bottom: 24px;">
-                    <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 700;">📝 Teller Remarks</label>
-                    <textarea @bind="tellerRemarks" rows="3" placeholder="Enter your review notes and observations..." 
-                        style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; resize: vertical;"></textarea>
+                    <label style="display: block; margin-bottom: 8px; color: #2B2B2B; font-weight: 600;">📝 Teller
+                        Remarks</label>
+                    <textarea @bind="tellerRemarks" rows="3" placeholder="Enter your review notes and observations..."
+                        style="width: 100%; padding: 12px; border: 2px solid #E2E2DC; border-radius: 10px; resize: vertical;"></textarea>
                 </div>
 
                 <!-- Action Buttons -->
                 <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                    <button @onclick="CloseModal" style="background: white; border: 2px solid #e5e7eb; color: #374151; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <button @onclick="CloseModal"
+                        style="background: #FFFFFF; border: 2px solid #E2E2DC; color: #2B2B2B; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 500;">
                         Cancel
                     </button>
-                    <button @onclick="RejectApplication" style="background: #dc2626; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <button @onclick="RejectApplication"
+                        style="background: #9B3A3A; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 500;">
                         ❌ Reject
                     </button>
-                    <button @onclick="VerifyAndForward" disabled="@isProcessing" 
-                        style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <button @onclick="VerifyAndForward" disabled="@isProcessing"
+                        style="background: #2F3E2A; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 500;">
                         @(isProcessing ? "Processing..." : "✅ Verify & Forward to Accountant")
                     </button>
                 </div>
@@ -447,57 +517,76 @@
 <!-- Release Modal -->
 @if (showReleaseModal && selectedApplication != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;">
-        <div style="background: white; border-radius: 16px; width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto;">
-            <div style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 20px; border-radius: 16px 16px 0 0;">
+    <div
+        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;">
+        <div
+            style="background: #FFFFFF; border-radius: 16px; width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div style="background: #2F3E2A; color: white; padding: 20px; border-radius: 16px 16px 0 0;">
                 <h4 style="margin: 0;">🎉 Release Asset & Generate Contract</h4>
-                <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Complete the asset release process with contract generation</p>
+                <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Complete the asset release process with
+                    contract generation</p>
             </div>
 
             <div style="padding: 24px;">
                 <!-- Summary -->
-                <div style="background: #f0fdf4; border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 2px solid #bbf7d0;">
-                    <h5 style="margin: 0 0 12px 0; color: #059669;">📋 Release Summary</h5>
+                <div
+                    style="background: rgba(79, 111, 82, 0.15); border-radius: 14px; padding: 16px; margin-bottom: 24px; border: 2px solid rgba(79, 111, 82, 0.3);">
+                    <h5 style="margin: 0 0 12px 0; color: #4F6F52;">📋 Release Summary</h5>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
-                        <div><span style="color: #6b7280;">Customer:</span> <strong>@selectedApplication.CustomerName</strong></div>
-                        <div><span style="color: #6b7280;">Asset:</span> <strong>@(selectedApplication.Asset?.AssetName ?? "N/A")</strong></div>
-                        <div><span style="color: #6b7280;">Total Amount:</span> <strong style="color: #059669;">₱@selectedApplication.AssetPrice.ToString("N2")</strong></div>
-                        <div><span style="color: #6b7280;">Payment Type:</span> @selectedApplication.PurchaseType</div>
+                        <div><span style="color: #6B6B6B;">Customer:</span>
+                            <strong>@selectedApplication.CustomerName</strong></div>
+                        <div><span style="color: #6B6B6B;">Asset:</span> <strong>@(selectedApplication.Asset?.AssetName ??
+                                                            "N/A")</strong></div>
+                        <div><span style="color: #6B6B6B;">Total Amount:</span> <strong
+                                style="color: #4F6F52;">₱@selectedApplication.AssetPrice.ToString("N2")</strong></div>
+                        <div><span style="color: #6B6B6B;">Payment Type:</span> @selectedApplication.PurchaseType</div>
                         @if (selectedApplication.PurchaseType == "Loan")
                         {
-                            <div><span style="color: #6b7280;">Down Payment:</span> ₱@selectedApplication.DownPaymentAmount.ToString("N2")</div>
-                            <div><span style="color: #6b7280;">Loan Amount:</span> ₱@selectedApplication.LoanAmount.ToString("N2")</div>
-                            <div><span style="color: #6b7280;">Monthly Payment:</span> <strong>₱@selectedApplication.MonthlyPayment.ToString("N2")</strong></div>
-                            <div><span style="color: #6b7280;">Term:</span> @selectedApplication.TermMonths months</div>
+                            <div><span style="color: #6B6B6B;">Down Payment:</span>
+                                ₱@selectedApplication.DownPaymentAmount.ToString("N2")</div>
+                            <div><span style="color: #6B6B6B;">Loan Amount:</span>
+                                ₱@selectedApplication.LoanAmount.ToString("N2")</div>
+                            <div><span style="color: #6B6B6B;">Monthly Payment:</span>
+                                <strong>₱@selectedApplication.MonthlyPayment.ToString("N2")</strong></div>
+                            <div><span style="color: #6B6B6B;">Term:</span> @selectedApplication.TermMonths months</div>
                         }
                     </div>
                 </div>
 
                 <!-- Contract Information -->
-                <div style="background: #eff6ff; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #bfdbfe;">
-                    <h5 style="margin: 0 0 16px 0; color: #3b82f6;">📄 Contract Information</h5>
+                <div
+                    style="background: rgba(79, 111, 82, 0.15); border-radius: 14px; padding: 20px; margin-bottom: 24px; border: 1px solid rgba(79, 111, 82, 0.3);">
+                    <h5 style="margin: 0 0 16px 0; color: #4F6F52;">📄 Contract Information</h5>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div>
-                            <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600; font-size: 14px;">Contract Number</label>
-                            <input @bind="contractNumber" type="text" placeholder="Auto-generated" 
-                                style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;" />
+                            <label
+                                style="display: block; margin-bottom: 8px; color: #2B2B2B; font-weight: 500; font-size: 14px;">Contract
+                                Number</label>
+                            <input @bind="contractNumber" type="text" placeholder="Auto-generated"
+                                style="width: 100%; padding: 10px; border: 2px solid #E2E2DC; border-radius: 10px;" />
                         </div>
                         <div>
-                            <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600; font-size: 14px;">Deed of Sale #</label>
-                            <input @bind="deedOfSaleNumber" type="text" placeholder="Enter deed of sale number" 
-                                style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;" />
+                            <label
+                                style="display: block; margin-bottom: 8px; color: #2B2B2B; font-weight: 500; font-size: 14px;">Deed
+                                of Sale #</label>
+                            <input @bind="deedOfSaleNumber" type="text" placeholder="Enter deed of sale number"
+                                style="width: 100%; padding: 10px; border: 2px solid #E2E2DC; border-radius: 10px;" />
                         </div>
                         @if (selectedApplication.Asset?.AssetType == "Vehicle")
                         {
                             <div>
-                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600; font-size: 14px;">OR Number</label>
-                                <input @bind="orNumber" type="text" placeholder="Official Receipt #" 
-                                    style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;" />
+                                <label
+                                    style="display: block; margin-bottom: 8px; color: #2B2B2B; font-weight: 500; font-size: 14px;">OR
+                                    Number</label>
+                                <input @bind="orNumber" type="text" placeholder="Official Receipt #"
+                                    style="width: 100%; padding: 10px; border: 2px solid #E2E2DC; border-radius: 10px;" />
                             </div>
                             <div>
-                                <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600; font-size: 14px;">CR Number</label>
-                                <input @bind="crNumber" type="text" placeholder="Certificate of Registration #" 
-                                    style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;" />
+                                <label
+                                    style="display: block; margin-bottom: 8px; color: #2B2B2B; font-weight: 500; font-size: 14px;">CR
+                                    Number</label>
+                                <input @bind="crNumber" type="text" placeholder="Certificate of Registration #"
+                                    style="width: 100%; padding: 10px; border: 2px solid #E2E2DC; border-radius: 10px;" />
                             </div>
                         }
                     </div>
@@ -506,49 +595,57 @@
                 @if (selectedApplication.PurchaseType == "Loan")
                 {
                     <!-- Account Linking for Loan Payments -->
-                    <div style="background: #fef3c7; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #fcd34d;">
-                        <h5 style="margin: 0 0 16px 0; color: #92400e;">🏦 Link Customer Account for Monthly Payments (Required)</h5>
-                        <p style="color: #92400e; font-size: 13px; margin-bottom: 12px;">Search for customer's bank account to link with loan payments</p>
-                        
+                    <div
+                        style="background: rgba(196, 154, 58, 0.15); border-radius: 14px; padding: 20px; margin-bottom: 24px; border: 1px solid rgba(196, 154, 58, 0.3);">
+                        <h5 style="margin: 0 0 16px 0; color: #C49A3A;">🏦 Link Customer Account for Monthly Payments (Required)
+                        </h5>
+                        <p style="color: #C49A3A; font-size: 13px; margin-bottom: 12px;">Search for customer's bank account to
+                            link with loan payments</p>
+
                         <!-- Search by Account Number -->
                         <div style="display: flex; gap: 12px; margin-bottom: 12px;">
-                            <input @bind="searchAccountNumber" type="text" placeholder="Enter Account Number to search" 
-                                style="flex: 1; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;" />
-                            <button @onclick="SearchAccountByNumber" type="button" 
-                                style="background: #f59e0b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            <input @bind="searchAccountNumber" type="text" placeholder="Enter Account Number to search"
+                                style="flex: 1; padding: 10px; border: 2px solid #E2E2DC; border-radius: 10px;" />
+                            <button @onclick="SearchAccountByNumber" type="button"
+                                style="background: #C49A3A; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 500;">
                                 🔍 Search
                             </button>
                         </div>
-                        
+
                         @if (foundAccount != null)
                         {
-                            <div style="background: #d1fae5; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-                                <div style="font-weight: 700; color: #065f46;">✅ Account Found</div>
-                                <div style="font-size: 14px; color: #065f46;">
+                            <div
+                                style="background: rgba(79, 111, 82, 0.15); padding: 12px; border-radius: 10px; margin-bottom: 12px;">
+                                <div style="font-weight: 600; color: #4F6F52;">✅ Account Found</div>
+                                <div style="font-size: 14px; color: #4F6F52;">
                                     <strong>Name:</strong> @foundAccount.Customer?.FullName |
                                     <strong>Account #:</strong> @foundAccount.AccountNumber |
                                     <strong>Account ID:</strong> @foundAccount.AccountId
                                 </div>
-                                <button @onclick="UseFoundAccount" type="button" 
-                                    style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; margin-top: 8px;">
+                                <button @onclick="UseFoundAccount" type="button"
+                                    style="background: #2F3E2A; color: white; border: none; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 500; margin-top: 8px;">
                                     Use This Account
                                 </button>
                             </div>
                         }
                         else if (!string.IsNullOrEmpty(accountSearchError))
                         {
-                            <div style="background: #fee2e2; padding: 12px; border-radius: 8px; margin-bottom: 12px; color: #991b1b;">
+                            <div
+                                style="background: rgba(155, 58, 58, 0.15); padding: 12px; border-radius: 10px; margin-bottom: 12px; color: #9B3A3A;">
                                 ❌ @accountSearchError
                             </div>
                         }
-                        
+
                         <div>
-                            <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600; font-size: 14px;">Customer Account ID *</label>
-                            <input @bind="linkedAccountId" type="number" placeholder="Enter customer account ID" 
-                                style="width: 100%; padding: 10px; border: 2px solid @(linkedAccountId.HasValue && linkedAccountId > 0 ? "#059669" : "#dc2626"); border-radius: 8px;" />
+                            <label
+                                style="display: block; margin-bottom: 8px; color: #2B2B2B; font-weight: 500; font-size: 14px;">Customer
+                                Account ID *</label>
+                            <input @bind="linkedAccountId" type="number" placeholder="Enter customer account ID"
+                                style="width: 100%; padding: 10px; border: 2px solid @(linkedAccountId.HasValue && linkedAccountId > 0 ? "#4F6F52" : "#9B3A3A"); border-radius: 10px;" />
                             @if (!linkedAccountId.HasValue || linkedAccountId <= 0)
                             {
-                                <span style="color: #dc2626; font-size: 12px;">⚠️ Required - Loan payments won't appear without this</span>
+                                <span style="color: #9B3A3A; font-size: 12px;">⚠️ Required - Loan payments won't appear without
+                                    this</span>
                             }
                         </div>
                     </div>
@@ -556,37 +653,43 @@
 
                 <!-- Remarks -->
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 700;">📝 Release Remarks</label>
+                    <label style="display: block; margin-bottom: 8px; color: #2B2B2B; font-weight: 600;">📝 Release
+                        Remarks</label>
                     <textarea @bind="releaseRemarks" rows="3" placeholder="Enter release notes..."
-                        style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;"></textarea>
+                        style="width: 100%; padding: 12px; border: 2px solid #E2E2DC; border-radius: 10px;"></textarea>
                 </div>
 
                 <!-- Checklist -->
-                <div style="background: #f3f4f6; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-                    <h5 style="margin: 0 0 12px 0; color: #374151;">✅ Release Checklist</h5>
+                <div style="background: #F7F7F4; border-radius: 14px; padding: 16px; margin-bottom: 24px;">
+                    <h5 style="margin: 0 0 12px 0; color: #2B2B2B;">✅ Release Checklist</h5>
                     <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
-                        <input type="checkbox" @bind="confirmDownPayment" style="width: 18px; height: 18px; accent-color: #059669;" />
+                        <input type="checkbox" @bind="confirmDownPayment"
+                            style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                         <span>Down payment / Full payment received</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
-                        <input type="checkbox" @bind="confirmContractSigned" style="width: 18px; height: 18px; accent-color: #059669;" />
+                        <input type="checkbox" @bind="confirmContractSigned"
+                            style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                         <span>Contract signed by customer</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                        <input type="checkbox" @bind="confirmDocumentsComplete" style="width: 18px; height: 18px; accent-color: #059669;" />
+                        <input type="checkbox" @bind="confirmDocumentsComplete"
+                            style="width: 18px; height: 18px; accent-color: #2F3E2A;" />
                         <span>All documents complete and verified</span>
                     </label>
                 </div>
 
                 <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                    <button @onclick="CloseModal" style="background: white; border: 2px solid #e5e7eb; color: #374151; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <button @onclick="CloseModal"
+                        style="background: #FFFFFF; border: 2px solid #E2E2DC; color: #2B2B2B; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 500;">
                         Cancel
                     </button>
-                    <button @onclick="GenerateContract" style="background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <button @onclick="GenerateContract"
+                        style="background: #A9B388; color: #2F3E2A; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 500;">
                         📄 Preview Contract
                     </button>
                     <button @onclick="ReleaseAsset" disabled="@(!CanRelease || isProcessing)"
-                        style="background: @(CanRelease ? "linear-gradient(135deg, #059669, #10b981)" : "#9ca3af"); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: @(CanRelease ? "pointer" : "not-allowed"); font-weight: 600;">
+                        style="background: @(CanRelease ? "#2F3E2A" : "#6B6B6B"); color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: @(CanRelease ? "pointer" : "not-allowed"); font-weight: 500;">
                         @(isProcessing ? "Processing..." : "🎉 Complete Release & Generate Contract")
                     </button>
                 </div>
@@ -598,9 +701,11 @@
 <!-- View Details Modal -->
 @if (showDetailsModal && selectedApplication != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;">
-        <div style="background: white; border-radius: 16px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto;">
-            <div style="background: linear-gradient(135deg, #6b7280, #9ca3af); color: white; padding: 20px; border-radius: 16px 16px 0 0;">
+    <div
+        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;">
+        <div
+            style="background: #FFFFFF; border-radius: 16px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <div style="background: #6B6B6B; color: white; padding: 20px; border-radius: 16px 16px 0 0;">
                 <h4 style="margin: 0;">📋 Application Details</h4>
                 <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">@selectedApplication.ApplicationNumber</p>
             </div>
@@ -608,16 +713,16 @@
             <div style="padding: 24px;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                     <div>
-                        <h5 style="color: #374151; margin: 0 0 12px 0;">Customer Info</h5>
-                        <div style="font-size: 14px; color: #6b7280;">
+                        <h5 style="color: #2B2B2B; margin: 0 0 12px 0;">Customer Info</h5>
+                        <div style="font-size: 14px; color: #6B6B6B;">
                             <p><strong>Name:</strong> @selectedApplication.CustomerName</p>
                             <p><strong>Email:</strong> @selectedApplication.CustomerEmail</p>
                             <p><strong>Status:</strong> @selectedApplication.Status</p>
                         </div>
                     </div>
                     <div>
-                        <h5 style="color: #374151; margin: 0 0 12px 0;">Workflow</h5>
-                        <div style="font-size: 14px; color: #6b7280;">
+                        <h5 style="color: #2B2B2B; margin: 0 0 12px 0;">Workflow</h5>
+                        <div style="font-size: 14px; color: #6B6B6B;">
                             <p><strong>Submitted:</strong> @selectedApplication.SubmittedAt.ToString("MMM dd, yyyy")</p>
                             @if (selectedApplication.TellerReviewedAt.HasValue)
                             {
@@ -637,13 +742,14 @@
 
                 @if (!string.IsNullOrEmpty(selectedApplication.TellerRemarks))
                 {
-                    <div style="margin-top: 16px; padding: 12px; background: #f9fafb; border-radius: 8px;">
+                    <div style="margin-top: 16px; padding: 12px; background: #F7F7F4; border-radius: 10px;">
                         <strong>Teller Remarks:</strong> @selectedApplication.TellerRemarks
                     </div>
                 }
 
                 <div style="margin-top: 24px; text-align: right;">
-                    <button @onclick="CloseModal" style="background: #374151; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <button @onclick="CloseModal"
+                        style="background: #2B2B2B; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 500;">
                         Close
                     </button>
                 </div>
@@ -654,10 +760,13 @@
 
 <style>
     @@keyframes spin {
-        to { transform: rotate(360deg); }
+        to {
+            transform: rotate(360deg);
+        }
     }
+
     .table-row-hover:hover {
-        background: #f9fafb;
+        background: #F7F7F4;
     }
 </style>
 
@@ -708,7 +817,7 @@
     private string orNumber = "";
     private string crNumber = "";
     private int? linkedAccountId = null;
-    
+
     // Account search for linking
     private string searchAccountNumber = "";
     private CustomerAccount? foundAccount = null;
@@ -732,9 +841,9 @@
         {
             using var db = await DbContextFactory.CreateDbContextAsync();
             allApplications = await db.AssetApplications
-                .Include(a => a.Asset)
-                .OrderByDescending(a => a.SubmittedAt)
-                .ToListAsync();
+            .Include(a => a.Asset)
+            .OrderByDescending(a => a.SubmittedAt)
+            .ToListAsync();
             ApplyFilter();
         }
         catch (Exception ex)
@@ -971,20 +1080,20 @@
     {
         foundAccount = null;
         accountSearchError = "";
-        
+
         if (string.IsNullOrWhiteSpace(searchAccountNumber))
         {
             accountSearchError = "Please enter an account number to search";
             return;
         }
-        
+
         try
         {
             using var db = await DbContextFactory.CreateDbContextAsync();
             foundAccount = await db.CustomerAccounts
-                .Include(a => a.Customer)
-                .FirstOrDefaultAsync(a => a.AccountNumber == searchAccountNumber);
-            
+            .Include(a => a.Customer)
+            .FirstOrDefaultAsync(a => a.AccountNumber == searchAccountNumber);
+
             if (foundAccount == null)
             {
                 accountSearchError = $"No account found with number: {searchAccountNumber}";
@@ -1015,7 +1124,7 @@
         try
         {
             var currentUser = AuthService.CurrentUser;
-            
+
             // Generate contract number if not provided
             if (string.IsNullOrEmpty(contractNumber))
             {
@@ -1040,15 +1149,15 @@
                 isProcessing = false;
                 return;
             }
-            
+
             // Use the enhanced method with GL posting
             var (success, message, loanId) = await AssetService.ReleaseAssetWithGLPostingAsync(
-                selectedApplication.ApplicationId,
-                releaseRemarks,
-                currentUser ?? "Teller",
-                deedOfSaleNumber: deedOfSaleNumber,
-                orNumber: orNumber,
-                crNumber: crNumber);
+            selectedApplication.ApplicationId,
+            releaseRemarks,
+            currentUser ?? "Teller",
+            deedOfSaleNumber: deedOfSaleNumber,
+            orNumber: orNumber,
+            crNumber: crNumber);
 
             if (success)
             {
@@ -1080,13 +1189,13 @@
     {
         return status switch
         {
-            "SUBMITTED" => ("#fef3c7", "#92400e", "Pending Review"),
-            "VERIFIED" => ("#dbeafe", "#1e40af", "Verified"),
-            "ASSESSED" => ("#e0e7ff", "#4338ca", "Assessed"),
-            "APPROVED" => ("#d1fae5", "#065f46", "Approved"),
-            "RELEASED" => ("#f0fdf4", "#059669", "Released"),
-            "REJECTED" => ("#fee2e2", "#991b1b", "Rejected"),
-            _ => ("#f3f4f6", "#6b7280", status)
+            "SUBMITTED" => ("rgba(196, 154, 58, 0.15)", "#C49A3A", "Pending Review"),
+            "VERIFIED" => ("rgba(79, 111, 82, 0.15)", "#4F6F52", "Verified"),
+            "ASSESSED" => ("rgba(79, 111, 82, 0.15)", "#4F6F52", "Assessed"),
+            "APPROVED" => ("rgba(79, 111, 82, 0.15)", "#4F6F52", "Approved"),
+            "RELEASED" => ("rgba(95, 122, 106, 0.15)", "#5F7A6A", "Released"),
+            "REJECTED" => ("rgba(155, 58, 58, 0.15)", "#9B3A3A", "Rejected"),
+            _ => ("rgba(107, 107, 107, 0.15)", "#6B6B6B", status)
         };
     }
 }

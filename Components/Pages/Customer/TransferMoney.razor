@@ -16,7 +16,7 @@
     @if (isOffline)
     {
         <div
-            style="background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 12px; padding: 16px; margin-bottom: 24px; color: white; display: flex; align-items: center; gap: 12px;">
+            style="background: #9B3A3A; border-radius: 12px; padding: 16px; margin-bottom: 24px; color: #FFFFFF; display: flex; align-items: center; gap: 12px;">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -31,7 +31,7 @@
 
     <!-- Header -->
     <div
-        style="background: linear-gradient(135deg, #0891b2, #0e7490); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        style="background: #2F3E2A; border-radius: 14px; padding: 24px; margin-bottom: 24px; color: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div
                 style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
@@ -40,12 +40,12 @@
                 </svg>
             </div>
             <div>
-                <h1 style="font-size: 24px; font-weight: 700; margin: 0;">Send Money</h1>
+                <h1 style="font-size: 24px; font-weight: 600; margin: 0;">Send Money</h1>
                 <p style="margin: 4px 0 0; opacity: 0.9; font-size: 14px;">Transfer funds to another account</p>
             </div>
             <div style="margin-left: auto; text-align: right;">
                 <button type="button" @onclick="ShowHistory"
-                    style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                    style="background: rgba(255,255,255,0.2); border: none; color: #FFFFFF; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 3h18v18H3z" />
                         <path d="M3 9h18" />
@@ -61,26 +61,26 @@
         @* Single column layout for better fit *@
         
         <!-- Transfer Form -->
-        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
             <form>
                 <!-- From Account - Authenticated User -->
                 <div style="margin-bottom: 24px;">
-                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">From Account
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #2B2B2B;">From Account
                     </h3>
                     @if (senderAccount != null)
                     {
-                        <div style="border: 2px solid #059669; border-radius: 12px; padding: 16px; background: #f0fdf4;">
-                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">FINSYS Savings Account</div>
-                            <div style="font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">
+                        <div style="border: 2px solid #5F6F52; border-radius: 12px; padding: 16px; background: #F0F2EC;">
+                            <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 8px;">FINSYS Savings Account</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #2B2B2B; margin-bottom: 4px;">
                                 @MaskAccountNumber(senderAccount.AccountNumber)</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #059669;">
+                            <div style="font-size: 18px; font-weight: 600; color: #5F6F52;">
                                 ₱@senderAccount.Balance.ToString("N2")</div>
                         </div>
                     }
                     else
                     {
                         <div
-                            style="border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; background: #f9fafb; color: #6b7280;">
+                            style="border: 2px solid #E2E2DC; border-radius: 12px; padding: 16px; background: #F7F7F4; color: #6B6B6B;">
                             Loading account information...
                         </div>
                     }
@@ -88,12 +88,12 @@
 
                 <!-- To Account - Recipient Lookup -->
                 <div style="margin-bottom: 24px;">
-                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">To Account</h3>
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #2B2B2B;">To Account</h3>
                     <div class="form-group" style="margin-bottom: 16px;">
                         <label class="form-label" style="font-size: 12px; font-weight: 600;">Account Number *</label>
                         <input type="text" class="form-control" @bind="recipientAccount" @bind:event="oninput"
                             placeholder="Enter account number"
-                            style="font-size: 14px; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;"
+                            style="font-size: 14px; padding: 12px; border: 2px solid #E2E2DC; border-radius: 10px;"
                             @onchange="LookupRecipient" />
                     </div>
 
@@ -102,22 +102,22 @@
                         @if (recipientFound)
                         {
                             <div
-                                style="border: 2px solid #10b981; border-radius: 12px; padding: 14px; background: #f0fdf4; margin-bottom: 16px;">
+                                style="border: 2px solid #5F6F52; border-radius: 12px; padding: 14px; background: #F0F2EC; margin-bottom: 16px;">
                                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                    <span style="color: #10b981; font-weight: 600;">[OK]</span>
-                                    <span style="font-size: 12px; color: #6b7280;">Recipient Found</span>
+                                    <span style="color: #5F6F52; font-weight: 600;">[OK]</span>
+                                    <span style="font-size: 12px; color: #6B6B6B;">Recipient Found</span>
                                 </div>
-                                <div style="font-size: 14px; font-weight: 600; color: #1f2937;">@recipientName</div>
-                                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">@recipientAccount</div>
+                                <div style="font-size: 14px; font-weight: 600; color: #2B2B2B;">@recipientName</div>
+                                <div style="font-size: 12px; color: #6B6B6B; margin-top: 4px;">@recipientAccount</div>
                             </div>
                         }
                         else if (recipientSearched)
                         {
                             <div
-                                style="border: 2px solid #dc2626; border-radius: 12px; padding: 14px; background: #fef2f2; margin-bottom: 16px;">
+                                style="border: 2px solid #9B3A3A; border-radius: 12px; padding: 14px; background: rgba(155, 58, 58, 0.1); margin-bottom: 16px;">
                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="color: #dc2626; font-weight: 600;">[X]</span>
-                                    <span style="font-size: 12px; color: #991b1b;">Account not found. Please check the account
+                                    <span style="color: #9B3A3A; font-weight: 600;">[X]</span>
+                                    <span style="font-size: 12px; color: #9B3A3A;">Account not found. Please check the account
                                         number.</span>
                                 </div>
                             </div>
@@ -127,19 +127,19 @@
 
                 <!-- Amount -->
                 <div style="margin-bottom: 24px;">
-                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Amount</h3>
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #2B2B2B;">Amount</h3>
                     <div class="form-group">
                         <input type="number" class="form-control" @bind="amount" @bind:event="oninput"
                             placeholder="0.00"
-                            style="font-size: 20px; font-weight: 600; padding: 14px; text-align: center; color: #0891b2; border: 2px solid #e5e7eb; border-radius: 8px;" />
-                        <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #6b7280;">
+                            style="font-size: 20px; font-weight: 600; padding: 14px; text-align: center; color: #5F6F52; border: 2px solid #E2E2DC; border-radius: 10px;" />
+                        <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #6B6B6B;">
                             Transfer Fee: <span style="font-weight: 600;">₱15.00</span> | Total: <span
-                                style="font-weight: 600; color: #dc2626;">₱@((amount + 15).ToString("N2"))</span>
+                                style="font-weight: 600; color: #9B3A3A;">₱@((amount + 15).ToString("N2"))</span>
                         </div>
                         @if (amount > 0 && senderAccount != null && (amount + 15) > senderAccount.Balance)
                         {
                             <div
-                                style="text-align: center; margin-top: 8px; font-size: 12px; color: #dc2626; font-weight: 600;">
+                                style="text-align: center; margin-top: 8px; font-size: 12px; color: #9B3A3A; font-weight: 600;">
                                 ⚠️ Insufficient balance. Available: ₱@senderAccount.Balance.ToString("N2")
                             </div>
                         }
@@ -148,20 +148,20 @@
 
                 <!-- Purpose -->
                 <div style="margin-bottom: 32px;">
-                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">Purpose</h3>
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #2B2B2B;">Purpose</h3>
                     <textarea class="form-control" @bind="purpose" placeholder="Optional message or purpose" rows="3"
-                        style="resize: vertical; font-size: 14px; border: 2px solid #e5e7eb; border-radius: 8px; padding: 12px;"></textarea>
+                        style="resize: vertical; font-size: 14px; border: 2px solid #E2E2DC; border-radius: 10px; padding: 12px;"></textarea>
                 </div>
 
                 <!-- Action Buttons -->
                 <div style="display: flex; gap: 12px;">
                     <button type="button" @onclick="ClearForm"
-                        style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        style="flex: 1; padding: 14px; background: #F7F7F4; border: none; border-radius: 10px; color: #2B2B2B; font-size: 14px; font-weight: 600; cursor: pointer;">
                         Clear
                     </button>
                     <button type="button" @onclick="ShowConfirmation"
                         disabled="@(!recipientFound || amount <= 0 || senderAccount == null || (amount + 15) > senderAccount.Balance)"
-                        style="flex: 2; padding: 14px; background: @(recipientFound && amount > 0 && senderAccount != null && (amount + 15) <= senderAccount.Balance ? "linear-gradient(135deg, #059669, #047857)" : "#d1d5db"); border: none; border-radius: 12px; color: white; font-size: 14px; font-weight: 600; cursor: @(recipientFound && amount > 0 && senderAccount != null && (amount + 15) <= senderAccount.Balance ? "pointer" : "not-allowed");">
+                        style="flex: 2; padding: 14px; background: @(recipientFound && amount > 0 && senderAccount != null && (amount + 15) <= senderAccount.Balance ? "#2F3E2A" : "#E2E2DC"); border: none; border-radius: 10px; color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: @(recipientFound && amount > 0 && senderAccount != null && (amount + 15) <= senderAccount.Balance ? "pointer" : "not-allowed");">
                         Send Money →
                     </button>
                 </div>
@@ -169,11 +169,11 @@
         </div>
 
         <!-- Recent Transfers Section - Below the form -->
-        <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <h3 style="font-size: 16px; font-weight: 600; color: #1f2937;">Recent Transfers</h3>
+                <h3 style="font-size: 16px; font-weight: 600; color: #2B2B2B;">Recent Transfers</h3>
                 <button type="button" @onclick="ShowHistory"
-                    style="font-size: 14px; color: #3b82f6; background: none; border: none; cursor: pointer; font-weight: 500;">View
+                    style="font-size: 14px; color: #5F6F52; background: none; border: none; cursor: pointer; font-weight: 500;">View
                     All</button>
             </div>
 
@@ -182,7 +182,7 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
                     @foreach (var transfer in recentTransfers.Take(3))
                     {
-                        <div style="padding: 14px; border-radius: 8px; border: 1px solid #e5e7eb; transition: all 0.2s;">
+                        <div style="padding: 14px; border-radius: 10px; border: 1px solid #E2E2DC; transition: all 0.2s;">
                             <div
                                 style="display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
@@ -195,26 +195,26 @@
                                     </div>
                                     <div style="min-width: 0; overflow: hidden;">
                                         <div
-                                            style="font-weight: 600; font-size: 13px; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            style="font-weight: 600; font-size: 13px; color: #2B2B2B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                             @transfer.RecipientName</div>
-                                        <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">
+                                        <div style="font-size: 11px; color: #6B6B6B; margin-top: 2px;">
                                             @transfer.Date.ToString("MMM dd, yyyy")</div>
                                     </div>
                                 </div>
                                 <div style="text-align: right; flex-shrink: 0;">
-                                    <div style="font-weight: 700; font-size: 13px; color: #dc2626;">
+                                    <div style="font-weight: 600; font-size: 13px; color: #9B3A3A;">
                                         -₱@transfer.Amount.ToString("N2")</div>
                                     <span
-                                        style="padding: 2px 6px; background: @(transfer.Status == "Completed" ? "#d1fae5" : "#fef3c7"); color: @(transfer.Status == "Completed" ? "#065f46" : "#92400e"); border-radius: 4px; font-weight: 500; font-size: 10px;">@transfer.Status</span>
+                                        style="padding: 2px 6px; background: @(transfer.Status == "Completed" ? "rgba(95, 111, 82, 0.2)" : "#fef3c7"); color: @(transfer.Status == "Completed" ? "#4F6F52" : "#92400e"); border-radius: 4px; font-weight: 500; font-size: 10px;">@transfer.Status</span>
                                 </div>
                             </div>
                             <div style="display: flex; gap: 8px;">
                                 <button type="button" @onclick="() => ViewTransferDetails(transfer)"
-                                    style="flex: 1; padding: 6px 10px; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 6px; color: #0369a1; font-weight: 500; cursor: pointer; font-size: 11px;">
+                                    style="flex: 1; padding: 6px 10px; background: #F7F7F4; border: 1px solid #5F6F52; border-radius: 10px; color: #5F6F52; font-weight: 500; cursor: pointer; font-size: 11px;">
                                     Details
                                 </button>
                                 <button type="button" @onclick="() => RepeatTransfer(transfer)"
-                                    style="flex: 1; padding: 6px 10px; background: #f0fdf4; border: 1px solid #10b981; border-radius: 6px; color: #065f46; font-weight: 500; cursor: pointer; font-size: 11px;">
+                                    style="flex: 1; padding: 6px 10px; background: #F0F2EC; border: 1px solid #5F6F52; border-radius: 10px; color: #2F3E2A; font-weight: 500; cursor: pointer; font-size: 11px;">
                                     Repeat
                                 </button>
                             </div>
@@ -224,7 +224,7 @@
             }
             else
             {
-                <div style="text-align: center; padding: 24px; color: #6b7280;">
+                <div style="text-align: center; padding: 24px; color: #6B6B6B;">
                     <p style="font-size: 14px;">No transfers yet</p>
                 </div>
             }
@@ -234,58 +234,58 @@
 
 <style>
     .transfer-item:hover {
-        background: #f9fafb;
-        border-color: #3b82f6;
+        background: #F7F7F4;
+        border-color: #5F6F52;
     }
 </style>
 
 <!-- Confirmation Modal -->
 @if (showConfirmationModal)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
         @onclick="CancelTransfer">
-        <div style="background: white; border-radius: 20px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
             @onclick:stopPropagation="true">
             <div style="text-align: center; margin-bottom: 28px;">
                 <div
-                    style="width: 60px; height: 60px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px;">
+                    style="width: 60px; height: 60px; background: linear-gradient(135deg, #F0F2EC, #DDE6D5); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px;">
                     💳
                 </div>
-                <h2 style="font-size: 22px; font-weight: 700; color: #1f2937; margin: 0;">Confirm Transfer</h2>
-                <p style="font-size: 14px; color: #6b7280; margin: 8px 0 0;">Please review the details below</p>
+                <h2 style="font-size: 22px; font-weight: 600; color: #2B2B2B; margin: 0;">Confirm Transfer</h2>
+                <p style="font-size: 14px; color: #6B6B6B; margin: 8px 0 0;">Please review the details below</p>
             </div>
 
             <!-- Transfer Details -->
-            <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+            <div style="background: #F7F7F4; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
                 <div
-                    style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
-                    <span style="font-size: 13px; color: #6b7280;">From Account</span>
-                    <span style="font-size: 13px; font-weight: 600; color: #1f2937;">@(senderAccount != null ?
+                    style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #E2E2DC;">
+                    <span style="font-size: 13px; color: #6B6B6B;">From Account</span>
+                    <span style="font-size: 13px; font-weight: 600; color: #2B2B2B;">@(senderAccount != null ?
                                             MaskAccountNumber(senderAccount.AccountNumber) : "")</span>
                 </div>
                 <div
-                    style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
-                    <span style="font-size: 13px; color: #6b7280;">To Account</span>
-                    <span style="font-size: 13px; font-weight: 600; color: #1f2937;">@recipientAccount</span>
+                    style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #E2E2DC;">
+                    <span style="font-size: 13px; color: #6B6B6B;">To Account</span>
+                    <span style="font-size: 13px; font-weight: 600; color: #2B2B2B;">@recipientAccount</span>
                 </div>
                 <div
-                    style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
-                    <span style="font-size: 13px; color: #6b7280;">Recipient Name</span>
-                    <span style="font-size: 13px; font-weight: 600; color: #1f2937;">@recipientName</span>
+                    style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #E2E2DC;">
+                    <span style="font-size: 13px; color: #6B6B6B;">Recipient Name</span>
+                    <span style="font-size: 13px; font-weight: 600; color: #2B2B2B;">@recipientName</span>
                 </div>
                 <div
-                    style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
-                    <span style="font-size: 13px; color: #6b7280;">Amount</span>
-                    <span style="font-size: 16px; font-weight: 700; color: #dc2626;">-₱@amount.ToString("N2")</span>
+                    style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #E2E2DC;">
+                    <span style="font-size: 13px; color: #6B6B6B;">Amount</span>
+                    <span style="font-size: 16px; font-weight: 600; color: #9B3A3A;">-₱@amount.ToString("N2")</span>
                 </div>
                 <div
-                    style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
-                    <span style="font-size: 13px; color: #6b7280;">Transfer Fee</span>
-                    <span style="font-size: 13px; font-weight: 600; color: #1f2937;">₱15.00</span>
+                    style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #E2E2DC;">
+                    <span style="font-size: 13px; color: #6B6B6B;">Transfer Fee</span>
+                    <span style="font-size: 13px; font-weight: 600; color: #2B2B2B;">₱15.00</span>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="font-size: 13px; color: #6b7280; font-weight: 600;">Total Debit</span>
-                    <span style="font-size: 16px; font-weight: 700; color: #dc2626;">-₱@((amount +
+                    <span style="font-size: 13px; color: #6B6B6B; font-weight: 600;">Total Debit</span>
+                    <span style="font-size: 16px; font-weight: 600; color: #9B3A3A;">-₱@((amount +
                                             15).ToString("N2"))</span>
                 </div>
             </div>
@@ -294,11 +294,11 @@
             @if (!string.IsNullOrEmpty(transferMessage))
             {
                 <div
-                    style="border-radius: 12px; padding: 16px; margin-bottom: 24px; background: @(transferSuccess ? "#d1fae5" : "#fef2f2"); border: 1px solid @(transferSuccess ? "#6ee7b7" : "#fecaca");">
+                    style="border-radius: 12px; padding: 16px; margin-bottom: 24px; background: @(transferSuccess ? "rgba(95, 111, 82, 0.2)" : "rgba(155, 58, 58, 0.1)"); border: 1px solid @(transferSuccess ? "#A9B388" : "#9B3A3A");">
                     <div style="display: flex; gap: 12px; align-items: center;">
                         <span style="font-size: 20px;">@(transferSuccess ? "✓" : "✗")</span>
                         <div>
-                            <div style="font-size: 13px; font-weight: 600; color: @(transferSuccess ? "#065f46" : "#991b1b");">
+                            <div style="font-size: 13px; font-weight: 600; color: @(transferSuccess ? "#4F6F52" : "#9B3A3A");">
                                 @transferMessage</div>
                         </div>
                     </div>
@@ -319,22 +319,22 @@
                         </div>
                     </div>
                     <input type="password" @bind="securityPin" placeholder="Enter 4-digit PIN" maxlength="4"
-                        style="width: 100%; padding: 12px; border: 2px solid #fcd34d; border-radius: 8px; font-size: 16px; letter-spacing: 4px; text-align: center;" />
+                        style="width: 100%; padding: 12px; border: 2px solid #fcd34d; border-radius: 10px; font-size: 16px; letter-spacing: 4px; text-align: center;" />
                     @if (!string.IsNullOrEmpty(pinError))
                     {
-                        <div style="color: #dc2626; font-size: 12px; margin-top: 8px;">@pinError</div>
+                        <div style="color: #9B3A3A; font-size: 12px; margin-top: 8px;">@pinError</div>
                     }
                 </div>
             }
             else
             {
                 <div
-                    style="background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                    style="background: rgba(95, 111, 82, 0.2); border: 1px solid #A9B388; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
                     <div style="display: flex; gap: 12px; align-items: center;">
                         <span style="font-size: 20px;">✓</span>
                         <div>
-                            <div style="font-size: 13px; font-weight: 600; color: #065f46;">Security Verified</div>
-                            <div style="font-size: 12px; color: #059669;">Your PIN has been verified</div>
+                            <div style="font-size: 13px; font-weight: 600; color: #4F6F52;">Security Verified</div>
+                            <div style="font-size: 12px; color: #5F6F52;">Your PIN has been verified</div>
                         </div>
                     </div>
                 </div>
@@ -343,20 +343,20 @@
             <!-- Action Buttons -->
             <div style="display: flex; gap: 12px;">
                 <button type="button" @onclick="CancelTransfer"
-                    style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 12px; color: #374151; font-size: 14px; font-weight: 600; cursor: pointer;">
+                    style="flex: 1; padding: 14px; background: #F7F7F4; border: none; border-radius: 10px; color: #2B2B2B; font-size: 14px; font-weight: 600; cursor: pointer;">
                     Cancel
                 </button>
                 @if (!securityVerified)
                 {
                     <button type="button" @onclick="VerifyPin" disabled="@(securityPin.Length != 4)"
-                        style="flex: 1; padding: 14px; background: @(securityPin.Length == 4 ? "linear-gradient(135deg, #059669, #047857)" : "#d1d5db"); border: none; border-radius: 12px; color: white; font-size: 14px; font-weight: 600; cursor: @(securityPin.Length == 4 ? "pointer" : "not-allowed");">
+                        style="flex: 1; padding: 14px; background: @(securityPin.Length == 4 ? "#2F3E2A" : "#E2E2DC"); border: none; border-radius: 10px; color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: @(securityPin.Length == 4 ? "pointer" : "not-allowed");">
                         Verify PIN
                     </button>
                 }
                 else
                 {
                     <button type="button" @onclick="ProcessTransfer" disabled="@isProcessing"
-                        style="flex: 1; padding: 14px; background: @(isProcessing ? "#d1d5db" : "linear-gradient(135deg, #059669, #047857)"); border: none; border-radius: 12px; color: white; font-size: 14px; font-weight: 600; cursor: @(isProcessing ? "not-allowed" : "pointer");">
+                        style="flex: 1; padding: 14px; background: @(isProcessing ? "#E2E2DC" : "#2F3E2A"); border: none; border-radius: 10px; color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: @(isProcessing ? "not-allowed" : "pointer");">
                         @(isProcessing ? "Processing..." : "Confirm Transfer")
                     </button>
                 }
@@ -368,45 +368,45 @@
 <!-- Transaction History Modal -->
 @if (showHistoryModal)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
         @onclick="CloseHistory">
-        <div style="background: white; border-radius: 16px; padding: 28px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 28px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
             @onclick:stopPropagation="true">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h2 style="font-size: 20px; font-weight: 700; color: #1f2937;">Transfer History</h2>
+                <h2 style="font-size: 20px; font-weight: 600; color: #2B2B2B;">Transfer History</h2>
                 <button @onclick="CloseHistory"
-                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280;">&times;</button>
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6B6B6B;">&times;</button>
             </div>
 
             <div style="space-y: 12px;">
                 @foreach (var transfer in recentTransfers)
                 {
-                    <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 12px;">
+                    <div style="border: 1px solid #E2E2DC; border-radius: 12px; padding: 14px; margin-bottom: 12px;">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div style="flex: 1;">
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                     <div
-                                        style="width: 32px; height: 32px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0891b2"
+                                        style="width: 32px; height: 32px; background: rgba(95, 111, 82, 0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6F52"
                                             stroke-width="2">
                                             <path d="M5 12h14M12 5l7 7-7 7" />
                                         </svg>
                                     </div>
                                     <div>
-                                        <div style="font-weight: 600; font-size: 14px; color: #1f2937;">@transfer.RecipientName
+                                        <div style="font-weight: 600; font-size: 14px; color: #2B2B2B;">@transfer.RecipientName
                                         </div>
-                                        <div style="font-size: 12px; color: #6b7280;">@transfer.AccountNumber</div>
+                                        <div style="font-size: 12px; color: #6B6B6B;">@transfer.AccountNumber</div>
                                     </div>
                                 </div>
-                                <div style="font-size: 13px; color: #6b7280;">@transfer.Purpose</div>
+                                <div style="font-size: 13px; color: #6B6B6B;">@transfer.Purpose</div>
                                 <div style="font-size: 11px; color: #9ca3af; margin-top: 4px;">@transfer.Date.ToString("MMM dd, yyyy hh:mm tt")</div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-weight: 700; font-size: 16px; color: #dc2626;">
+                                <div style="font-weight: 600; font-size: 16px; color: #9B3A3A;">
                                     -₱@transfer.Amount.ToString("N2")</div>
                                 <div style="font-size: 11px; margin-top: 4px;">
                                     <span
-                                        style="padding: 4px 8px; background: @(transfer.Status == "Completed" ? "#d1fae5" : "#fef3c7"); color: @(transfer.Status == "Completed" ? "#065f46" : "#92400e"); border-radius: 4px; font-weight: 500; font-size: 11px;">@transfer.Status</span>
+                                        style="padding: 4px 8px; background: @(transfer.Status == "Completed" ? "rgba(95, 111, 82, 0.2)" : "#fef3c7"); color: @(transfer.Status == "Completed" ? "#4F6F52" : "#92400e"); border-radius: 4px; font-weight: 500; font-size: 11px;">@transfer.Status</span>
                                 </div>
                             </div>
                         </div>
@@ -420,18 +420,17 @@
 <!-- Transfer Invoice Modal -->
 @if (showInvoiceModal && lastInvoice != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
         @onclick="CloseInvoice">
-        <div style="background: white; border-radius: 20px; padding: 0; max-width: 420px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.35); overflow: hidden;"
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 0; max-width: 420px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.35); overflow: hidden;"
             @onclick:stopPropagation="true">
             <!-- Invoice Header -->
-            <div
-                style="background: linear-gradient(135deg, #059669, #047857); padding: 24px; text-align: center; color: white;">
+            <div style="background: #2F3E2A; padding: 24px; text-align: center; color: #FFFFFF;">
                 <div
                     style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 32px;">
                     ✓
                 </div>
-                <h2 style="font-size: 22px; font-weight: 700; margin: 0 0 4px 0;">Transfer Successful!</h2>
+                <h2 style="font-size: 22px; font-weight: 600; margin: 0 0 4px 0;">Transfer Successful!</h2>
                 <p style="font-size: 14px; opacity: 0.9; margin: 0;">Your money has been sent</p>
             </div>
 
@@ -439,54 +438,55 @@
             <div style="padding: 24px;">
                 <!-- Amount -->
                 <div style="text-align: center; margin-bottom: 24px;">
-                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Amount Sent</div>
-                    <div style="font-size: 36px; font-weight: 800; color: #dc2626;">-₱@lastInvoice.Amount.ToString("N2")
+                    <div style="font-size: 14px; color: #6B6B6B; margin-bottom: 4px;">Amount Sent</div>
+                    <div style="font-size: 36px; font-weight: 600; color: #9B3A3A;">-₱@lastInvoice.Amount.ToString("N2")
                     </div>
                 </div>
 
                 <!-- Transaction Details -->
-                <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                <div style="background: #F7F7F4; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
                     <div
-                        style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
-                        <span style="font-size: 13px; color: #6b7280;">Transaction ID</span>
+                        style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #E2E2DC;">
+                        <span style="font-size: 13px; color: #6B6B6B;">Transaction ID</span>
                         <span
-                            style="font-size: 13px; font-weight: 600; color: #1f2937; font-family: monospace;">@lastInvoice.TransactionId</span>
+                            style="font-size: 13px; font-weight: 600; color: #2B2B2B; font-family: monospace;">@lastInvoice.TransactionId</span>
                     </div>
                     <div
-                        style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
-                        <span style="font-size: 13px; color: #6b7280;">Date & Time</span>
-                        <span style="font-size: 13px; font-weight: 600; color: #1f2937;">@lastInvoice.Date.ToString("MMM dd, yyyy hh:mm tt")</span>
+                        style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #E2E2DC;">
+                        <span style="font-size: 13px; color: #6B6B6B;">Date & Time</span>
+                        <span style="font-size: 13px; font-weight: 600; color: #2B2B2B;">@lastInvoice.Date.ToString("MMM dd, yyyy hh:mm tt")</span>
                     </div>
                     <div
-                        style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
-                        <span style="font-size: 13px; color: #6b7280;">Status</span>
+                        style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #E2E2DC;">
+                        <span style="font-size: 13px; color: #6B6B6B;">Status</span>
                         <span
-                            style="font-size: 13px; font-weight: 600; padding: 2px 8px; background: #d1fae5; color: #065f46; border-radius: 4px;">@lastInvoice.Status</span>
+                            style="font-size: 13px; font-weight: 600; padding: 2px 8px; background: rgba(95, 111, 82, 0.2); color: #4F6F52; border-radius: 4px;">@lastInvoice.Status</span>
                     </div>
                 </div>
 
                 <!-- From/To Details -->
                 <div style="margin-bottom: 16px;">
                     <div
-                        style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 12px; margin-bottom: 8px;">
-                        <div style="font-size: 11px; color: #991b1b; font-weight: 600; margin-bottom: 4px;">FROM (YOUR
+                        style="background: rgba(155, 58, 58, 0.1); border: 1px solid #9B3A3A; border-radius: 10px; padding: 12px; margin-bottom: 8px;">
+                        <div style="font-size: 11px; color: #9B3A3A; font-weight: 600; margin-bottom: 4px;">FROM (YOUR
                             ACCOUNT)</div>
-                        <div style="font-weight: 600; color: #1f2937;">@lastInvoice.SenderName</div>
-                        <div style="font-size: 12px; color: #6b7280; font-family: monospace;">@lastInvoice.SenderAccount
+                        <div style="font-weight: 600; color: #2B2B2B;">@lastInvoice.SenderName</div>
+                        <div style="font-size: 12px; color: #6B6B6B; font-family: monospace;">@lastInvoice.SenderAccount
                         </div>
                     </div>
                     <div style="text-align: center; margin: -4px 0;">
-                        <span style="display: inline-block; background: white; padding: 4px;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+                        <span style="display: inline-block; background: #FFFFFF; padding: 4px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B6B6B" stroke-width="2">
                                 <path d="M12 5v14M5 12l7 7 7-7" />
                             </svg>
                         </span>
                     </div>
-                    <div style="background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 10px; padding: 12px;">
-                        <div style="font-size: 11px; color: #065f46; font-weight: 600; margin-bottom: 4px;">TO (RECIPIENT)
+                    <div
+                        style="background: rgba(95, 111, 82, 0.2); border: 1px solid #A9B388; border-radius: 10px; padding: 12px;">
+                        <div style="font-size: 11px; color: #4F6F52; font-weight: 600; margin-bottom: 4px;">TO (RECIPIENT)
                         </div>
-                        <div style="font-weight: 600; color: #1f2937;">@lastInvoice.RecipientName</div>
-                        <div style="font-size: 12px; color: #6b7280; font-family: monospace;">@lastInvoice.RecipientAccount
+                        <div style="font-weight: 600; color: #2B2B2B;">@lastInvoice.RecipientName</div>
+                        <div style="font-size: 12px; color: #6B6B6B; font-family: monospace;">@lastInvoice.RecipientAccount
                         </div>
                     </div>
                 </div>
@@ -494,38 +494,38 @@
                 <!-- Purpose -->
                 @if (!string.IsNullOrEmpty(lastInvoice.Purpose))
                 {
-                    <div style="background: #f3f4f6; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
-                        <div style="font-size: 11px; color: #6b7280; font-weight: 600; margin-bottom: 4px;">PURPOSE/MESSAGE
+                    <div style="background: #F7F7F4; border-radius: 10px; padding: 12px; margin-bottom: 16px;">
+                        <div style="font-size: 11px; color: #6B6B6B; font-weight: 600; margin-bottom: 4px;">PURPOSE/MESSAGE
                         </div>
-                        <div style="font-size: 14px; color: #374151;">@lastInvoice.Purpose</div>
+                        <div style="font-size: 14px; color: #2B2B2B;">@lastInvoice.Purpose</div>
                     </div>
                 }
 
                 <!-- Balance Summary -->
                 <div
-                    style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1px solid #86efac; border-radius: 10px; padding: 12px; margin-bottom: 20px;">
+                    style="background: rgba(95, 111, 82, 0.2); border: 1px solid #A9B388; border-radius: 10px; padding: 12px; margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="font-size: 12px; color: #6b7280;">Balance Before</span>
+                        <span style="font-size: 12px; color: #6B6B6B;">Balance Before</span>
                         <span
-                            style="font-size: 13px; font-weight: 600; color: #374151;">₱@lastInvoice.BalanceBefore.ToString("N2")</span>
+                            style="font-size: 13px; font-weight: 600; color: #2B2B2B;">₱@lastInvoice.BalanceBefore.ToString("N2")</span>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
-                        <span style="font-size: 12px; color: #065f46; font-weight: 600;">New Balance</span>
+                        <span style="font-size: 12px; color: #4F6F52; font-weight: 600;">New Balance</span>
                         <span
-                            style="font-size: 15px; font-weight: 700; color: #059669;">₱@lastInvoice.BalanceAfter.ToString("N2")</span>
+                            style="font-size: 15px; font-weight: 600; color: #5F6F52;">₱@lastInvoice.BalanceAfter.ToString("N2")</span>
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
                 <div style="display: flex; gap: 12px;">
                     <button @onclick="CloseInvoice"
-                        style="flex: 1; padding: 14px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer;">
+                        style="flex: 1; padding: 14px; background: #2F3E2A; color: #FFFFFF; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;">
                         Done
                     </button>
                 </div>
 
                 <!-- Footer Note -->
-                <div style="text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                <div style="text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid #E2E2DC;">
                     <div style="font-size: 11px; color: #9ca3af;">
                         📧 A copy of this receipt has been saved to your transaction history
                     </div>

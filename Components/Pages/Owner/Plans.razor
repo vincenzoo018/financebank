@@ -132,7 +132,8 @@
                     </div>
                     <div class="form-group">
                         <label>Features (one per line)</label>
-                        <textarea @bind="featuresText" rows="5" placeholder="Core System&#10;Teller Operations&#10;Loan Management"></textarea>
+                        <textarea @bind="featuresText" rows="5"
+                            placeholder="Core System&#10;Teller Operations&#10;Loan Management"></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -165,7 +166,9 @@
 </div>
 
 <style>
-    .plans-page { padding: 0; }
+    .plans-page {
+        padding: 0;
+    }
 
     .page-header {
         display: flex;
@@ -176,14 +179,14 @@
 
     .header-left h2 {
         font-size: 24px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
         margin: 0;
     }
 
     .header-left .subtitle {
         font-size: 14px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .btn {
@@ -191,16 +194,27 @@
         align-items: center;
         gap: 8px;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
         border: none;
         transition: all 0.2s;
     }
 
-    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
-    .btn-secondary { background: #f3f4f6; color: #374151; }
-    .btn-sm { padding: 8px 16px; font-size: 13px; }
+    .btn-primary {
+        background: #2F3E2A;
+        color: #FFFFFF;
+    }
+
+    .btn-secondary {
+        background: #F7F7F4;
+        color: #2B2B2B;
+    }
+
+    .btn-sm {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
 
     .plans-grid {
         display: grid;
@@ -209,10 +223,10 @@
     }
 
     .plan-card {
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
         padding: 24px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         border: 2px solid transparent;
         position: relative;
         transition: all 0.3s;
@@ -220,12 +234,12 @@
 
     .plan-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     }
 
     .plan-card.popular {
-        border-color: #6366f1;
-        background: linear-gradient(180deg, #f5f3ff 0%, #ffffff 100%);
+        border-color: #5F6F52;
+        background: linear-gradient(180deg, rgba(79, 111, 82, 0.08) 0%, #FFFFFF 100%);
     }
 
     .popular-badge {
@@ -233,10 +247,10 @@
         top: -12px;
         left: 50%;
         transform: translateX(-50%);
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: white;
+        background: #2F3E2A;
+        color: #FFFFFF;
         padding: 6px 16px;
-        border-radius: 20px;
+        border-radius: 10px;
         font-size: 12px;
         font-weight: 600;
     }
@@ -249,22 +263,22 @@
 
     .plan-header h3 {
         font-size: 22px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
         margin: 0 0 8px 0;
     }
 
     .plan-desc {
         font-size: 14px;
-        color: #6b7280;
+        color: #6B6B6B;
         margin: 0;
     }
 
     .plan-pricing {
         text-align: center;
         padding: 20px 0;
-        border-top: 1px solid #f3f4f6;
-        border-bottom: 1px solid #f3f4f6;
+        border-top: 1px solid #E2E2DC;
+        border-bottom: 1px solid #E2E2DC;
         margin-bottom: 20px;
     }
 
@@ -277,18 +291,18 @@
 
     .price {
         font-size: 36px;
-        font-weight: 800;
-        color: #6366f1;
+        font-weight: 600;
+        color: #5F6F52;
     }
 
     .period {
         font-size: 16px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .yearly-price {
         font-size: 13px;
-        color: #9ca3af;
+        color: #6B6B6B;
         margin-top: 4px;
     }
 
@@ -299,7 +313,7 @@
     .plan-features h4 {
         font-size: 13px;
         font-weight: 600;
-        color: #374151;
+        color: #2B2B2B;
         margin: 0 0 12px 0;
     }
 
@@ -321,8 +335,8 @@
         gap: 12px;
         margin-bottom: 20px;
         padding: 16px;
-        background: #f9fafb;
-        border-radius: 12px;
+        background: #F7F7F4;
+        border-radius: 10px;
     }
 
     .limit-item {
@@ -330,7 +344,7 @@
         align-items: center;
         gap: 6px;
         font-size: 13px;
-        color: #374151;
+        color: #2B2B2B;
     }
 
     .plan-stats {
@@ -339,7 +353,7 @@
         gap: 12px;
         margin-bottom: 16px;
         padding-top: 16px;
-        border-top: 1px solid #f3f4f6;
+        border-top: 1px solid #E2E2DC;
     }
 
     .plan-stats .stat {
@@ -349,13 +363,13 @@
     .plan-stats .stat-value {
         display: block;
         font-size: 20px;
-        font-weight: 700;
-        color: #6366f1;
+        font-weight: 600;
+        color: #5F6F52;
     }
 
     .plan-stats .stat-label {
         font-size: 11px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .plan-actions {
@@ -370,8 +384,11 @@
     /* Modal */
     .modal-overlay {
         position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.5);
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(47, 62, 42, 0.6);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -379,42 +396,49 @@
     }
 
     .modal-content {
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
         width: 90%;
         max-width: 600px;
         max-height: 90vh;
         overflow: auto;
     }
 
-    .modal-content.large { max-width: 700px; }
+    .modal-content.large {
+        max-width: 700px;
+    }
 
     .modal-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 20px 24px;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #E2E2DC;
     }
 
-    .modal-header h3 { margin: 0; font-size: 18px; }
+    .modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+    }
 
     .close-btn {
         background: none;
         border: none;
         font-size: 20px;
         cursor: pointer;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
-    .modal-body { padding: 24px; }
+    .modal-body {
+        padding: 24px;
+    }
 
     .modal-footer {
         display: flex;
         justify-content: flex-end;
         gap: 12px;
         padding: 16px 24px;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid #E2E2DC;
     }
 
     .form-row {
@@ -431,7 +455,7 @@
         display: block;
         font-size: 13px;
         font-weight: 500;
-        color: #374151;
+        color: #2B2B2B;
         margin-bottom: 6px;
     }
 
@@ -440,8 +464,8 @@
     .form-group textarea {
         width: 100%;
         padding: 10px 12px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
     }
 
@@ -478,62 +502,62 @@
     {
         await Task.Delay(100);
         plans = new List<PlanData>
-        {
-            new PlanData { 
-                PlanId = 1, 
-                PlanCode = "BASIC", 
-                PlanName = "Basic Plan", 
-                Description = "Essential features for small cooperatives",
-                MonthlyPrice = 2999,
-                YearlyPrice = 29990,
-                SetupFee = 5000,
-                MaxUsers = 5,
-                MaxBranches = 1,
-                MaxStorageGB = 5,
-                Features = "Core System,Teller Operations,Savings Accounts,Basic Reports",
-                SupportLevel = "Email",
-                IsActive = true,
-                IsPopular = false,
-                ActiveSubscribers = 3,
-                MonthlyRevenue = 8997
+{
+new PlanData {
+PlanId = 1,
+PlanCode = "BASIC",
+PlanName = "Basic Plan",
+Description = "Essential features for small cooperatives",
+MonthlyPrice = 2999,
+YearlyPrice = 29990,
+SetupFee = 5000,
+MaxUsers = 5,
+MaxBranches = 1,
+MaxStorageGB = 5,
+Features = "Core System,Teller Operations,Savings Accounts,Basic Reports",
+SupportLevel = "Email",
+IsActive = true,
+IsPopular = false,
+ActiveSubscribers = 3,
+MonthlyRevenue = 8997
             },
-            new PlanData { 
-                PlanId = 2, 
-                PlanCode = "PRO", 
-                PlanName = "Professional Plan", 
-                Description = "Complete solution for growing cooperatives",
-                MonthlyPrice = 5999,
-                YearlyPrice = 59990,
-                SetupFee = 10000,
-                MaxUsers = 15,
-                MaxBranches = 3,
-                MaxStorageGB = 25,
-                Features = "All Basic Features,Loan Management,General Ledger,Advanced Reports,Audit Trail",
-                SupportLevel = "Priority Email",
-                IsActive = true,
-                IsPopular = true,
-                ActiveSubscribers = 5,
-                MonthlyRevenue = 29995
+new PlanData {
+PlanId = 2,
+PlanCode = "PRO",
+PlanName = "Professional Plan",
+Description = "Complete solution for growing cooperatives",
+MonthlyPrice = 5999,
+YearlyPrice = 59990,
+SetupFee = 10000,
+MaxUsers = 15,
+MaxBranches = 3,
+MaxStorageGB = 25,
+Features = "All Basic Features,Loan Management,General Ledger,Advanced Reports,Audit Trail",
+SupportLevel = "Priority Email",
+IsActive = true,
+IsPopular = true,
+ActiveSubscribers = 5,
+MonthlyRevenue = 29995
             },
-            new PlanData { 
-                PlanId = 3, 
-                PlanCode = "ENTERPRISE", 
-                PlanName = "Enterprise Plan", 
-                Description = "Full-featured solution for large organizations",
-                MonthlyPrice = 9999,
-                YearlyPrice = 99990,
-                SetupFee = 20000,
-                MaxUsers = 50,
-                MaxBranches = 10,
-                MaxStorageGB = 100,
-                Features = "All Pro Features,Multi-Branch Support,Custom Reports,API Access,Dedicated Support,Custom Integrations",
-                SupportLevel = "24/7 Phone & Email",
-                IsActive = true,
-                IsPopular = false,
-                ActiveSubscribers = 2,
-                MonthlyRevenue = 19998
+new PlanData {
+PlanId = 3,
+PlanCode = "ENTERPRISE",
+PlanName = "Enterprise Plan",
+Description = "Full-featured solution for large organizations",
+MonthlyPrice = 9999,
+YearlyPrice = 99990,
+SetupFee = 20000,
+MaxUsers = 50,
+MaxBranches = 10,
+MaxStorageGB = 100,
+Features = "All Pro Features,Multi-Branch Support,Custom Reports,API Access,Dedicated Support,Custom Integrations",
+SupportLevel = "24/7 Phone & Email",
+IsActive = true,
+IsPopular = false,
+ActiveSubscribers = 2,
+MonthlyRevenue = 19998
             }
-        };
+};
     }
 
     private void ShowAddPlan()
@@ -576,7 +600,7 @@
     private void SavePlan()
     {
         editPlan.Features = featuresText.Replace("\n", ",").Replace("\r", "");
-        
+
         if (isEditing)
         {
             var existing = plans.FirstOrDefault(p => p.PlanId == editPlan.PlanId);

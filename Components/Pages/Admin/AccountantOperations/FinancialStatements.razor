@@ -9,7 +9,7 @@
 @inject IDbContextFactory<BFASDbContext> DbFactory
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
@@ -29,12 +29,12 @@
 </div>
 
 <!-- Admin Notice -->
-<div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #E5D9B6 0%, #D8CCA6 100%); border: 1px solid #C4B896; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 12px;">
         <span style="font-size: 24px;">🔐</span>
         <div>
-            <p style="font-weight: 600; color: #92400e; margin: 0;">Administrative Access Mode</p>
-            <p style="font-size: 13px; color: #a16207; margin: 4px 0 0 0;">All report views are logged for audit purposes.</p>
+            <p style="font-weight: 600; color: #6B4423; margin: 0;">Administrative Access Mode</p>
+            <p style="font-size: 13px; color: #8B5A2B; margin: 4px 0 0 0;">All report views are logged for audit purposes.</p>
         </div>
     </div>
 </div>
@@ -61,7 +61,7 @@
             </select>
         </div>
         <div>
-            <button class="btn" style="width: 100%; background: #059669; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600;" @onclick="GenerateReport" disabled="@isLoading">
+            <button class="btn" style="width: 100%; background: #5F6F52; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600;" @onclick="GenerateReport" disabled="@isLoading">
                 @(isLoading ? "⏳ Generating..." : "📊 Generate Report")
             </button>
         </div>
@@ -73,7 +73,7 @@
     @if (isLoading)
     {
         <div style="padding: 60px; text-align: center;">
-            <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            <div style="width: 40px; height: 40px; border: 3px solid #E2E2DC; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
             <p style="color: #6b7280; margin-top: 16px;">Generating report...</p>
         </div>
     }
@@ -93,7 +93,7 @@
                 <p style="color: #6b7280; margin-bottom: 20px;">Period: @periodStart.ToString("MMM dd, yyyy") - @periodEnd.ToString("MMM dd, yyyy")</p>
                 
                 <div style="display: grid; gap: 16px;">
-                    <div style="background: #f0fdf4; border-radius: 12px; padding: 20px;">
+                    <div style="background: #F0F2EC; border-radius: 12px; padding: 20px;">
                         <h4 style="color: #166534; margin: 0 0 12px 0;">Revenue</h4>
                         <div style="display: flex; justify-content: space-between; padding: 8px 0;">
                             <span>Interest Income</span>
@@ -174,7 +174,7 @@
                         </div>
                     </div>
 
-                    <div style="background: #f0fdf4; border-radius: 12px; padding: 20px;">
+                    <div style="background: #F0F2EC; border-radius: 12px; padding: 20px;">
                         <h4 style="color: #166534; margin: 0 0 12px 0;">Equity</h4>
                         <div style="display: flex; justify-content: space-between; padding: 8px 0;">
                             <span>Total Equity</span>
@@ -194,7 +194,7 @@
                     </div>
                     <div style="background: #f9fafb; border-radius: 12px; padding: 20px; text-align: center;">
                         <p style="color: #6b7280; margin: 0;">Active Loans</p>
-                        <p style="font-size: 24px; font-weight: 700; color: #10b981; margin: 8px 0 0 0;">@loanPortfolio.ActiveLoans</p>
+                        <p style="font-size: 24px; font-weight: 700; color: #5F6F52; margin: 8px 0 0 0;">@loanPortfolio.ActiveLoans</p>
                     </div>
                     <div style="background: #f9fafb; border-radius: 12px; padding: 20px; text-align: center;">
                         <p style="color: #6b7280; margin: 0;">Total Disbursed</p>
@@ -219,7 +219,7 @@
                         <p style="color: #991b1b; margin: 0;">Total Liabilities</p>
                         <p style="font-size: 24px; font-weight: 700; color: #991b1b; margin: 8px 0 0 0;">₱@dashboardMetrics.TotalLiabilities.ToString("N0")</p>
                     </div>
-                    <div style="background: #f0fdf4; border-radius: 12px; padding: 20px; text-align: center;">
+                    <div style="background: #F0F2EC; border-radius: 12px; padding: 20px; text-align: center;">
                         <p style="color: #166534; margin: 0;">Monthly Net Income</p>
                         <p style="font-size: 24px; font-weight: 700; color: #166534; margin: 8px 0 0 0;">₱@dashboardMetrics.CurrentMonthNetIncome.ToString("N0")</p>
                     </div>

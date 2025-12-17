@@ -61,7 +61,8 @@
     <div class="tickets-list">
         @foreach (var ticket in FilteredTickets)
         {
-            <div class="ticket-card @(ticket.Status == "Open" ? "unread" : "") @(ticket.Priority == "High" ? "high-priority" : "")">
+            <div
+                class="ticket-card @(ticket.Status == "Open" ? "unread" : "") @(ticket.Priority == "High" ? "high-priority" : "")">
                 <div class="ticket-left">
                     <div class="ticket-avatar" style="background: @GetAvatarColor(ticket.ClientName);">
                         @ticket.ClientName[0]
@@ -110,7 +111,8 @@
                         <h3>#@selectedTicket.TicketId - @selectedTicket.Subject</h3>
                         <div class="modal-badges">
                             <span class="badge priority-@selectedTicket.Priority.ToLower()">@selectedTicket.Priority</span>
-                            <span class="badge status-@selectedTicket.Status.ToLower().Replace(" ", "-")">@selectedTicket.Status</span>
+                            <span
+                                class="badge status-@selectedTicket.Status.ToLower().Replace(" ", "-")">@selectedTicket.Status</span>
                         </div>
                     </div>
                     <button class="close-btn" @onclick="CloseModal">✕</button>
@@ -135,12 +137,14 @@
                         @foreach (var message in ticketMessages)
                         {
                             <div class="message @(message.IsOwner ? "owner" : "client")">
-                                <div class="message-avatar" style="background: @(message.IsOwner ? "#6366f1" : GetAvatarColor(selectedTicket.ClientName));">
+                                <div class="message-avatar"
+                                    style="background: @(message.IsOwner ? "#5F6F52" : GetAvatarColor(selectedTicket.ClientName));">
                                     @(message.IsOwner ? "S" : selectedTicket.ClientName[0])
                                 </div>
                                 <div class="message-content">
                                     <div class="message-header">
-                                        <span class="sender">@(message.IsOwner ? "Support Team" : selectedTicket.ClientName)</span>
+                                        <span class="sender">@(message.IsOwner ? "Support Team" :
+                                                                                selectedTicket.ClientName)</span>
                                         <span class="time">@message.Timestamp.ToString("MMM dd, h:mm tt")</span>
                                     </div>
                                     <p>@message.Text</p>
@@ -168,7 +172,9 @@
 </div>
 
 <style>
-    .tickets-page { padding: 0; }
+    .tickets-page {
+        padding: 0;
+    }
 
     .page-header {
         display: flex;
@@ -177,17 +183,29 @@
         margin-bottom: 24px;
     }
 
-    .header-left h2 { font-size: 24px; font-weight: 700; color: #1f2937; margin: 0; }
-    .header-left .subtitle { font-size: 14px; color: #6b7280; }
+    .header-left h2 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #2B2B2B;
+        margin: 0;
+    }
 
-    .header-right { display: flex; gap: 12px; }
+    .header-left .subtitle {
+        font-size: 14px;
+        color: #6B6B6B;
+    }
+
+    .header-right {
+        display: flex;
+        gap: 12px;
+    }
 
     .filter-select {
         padding: 10px 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
-        background: white;
+        background: #FFFFFF;
     }
 
     .stats-row {
@@ -198,25 +216,51 @@
     }
 
     .stat-card {
-        background: white;
-        border-radius: 12px;
+        background: #FFFFFF;
+        border-radius: 14px;
         padding: 20px;
         display: flex;
         align-items: center;
         gap: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         border-left: 4px solid transparent;
     }
 
-    .stat-card.orange { border-color: #f59e0b; }
-    .stat-card.blue { border-color: #3b82f6; }
-    .stat-card.red { border-color: #ef4444; }
-    .stat-card.green { border-color: #10b981; }
+    .stat-card.orange {
+        border-color: #C49A3A;
+    }
 
-    .stat-icon { font-size: 28px; }
-    .stat-info { display: flex; flex-direction: column; }
-    .stat-value { font-size: 24px; font-weight: 700; color: #1f2937; }
-    .stat-label { font-size: 13px; color: #6b7280; }
+    .stat-card.blue {
+        border-color: #5F7A6A;
+    }
+
+    .stat-card.red {
+        border-color: #9B3A3A;
+    }
+
+    .stat-card.green {
+        border-color: #4F6F52;
+    }
+
+    .stat-icon {
+        font-size: 28px;
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: #2B2B2B;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #6B6B6B;
+    }
 
     .tickets-list {
         display: flex;
@@ -228,24 +272,24 @@
         display: flex;
         gap: 16px;
         align-items: flex-start;
-        background: white;
-        border-radius: 12px;
+        background: #FFFFFF;
+        border-radius: 14px;
         padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         transition: all 0.2s;
     }
 
     .ticket-card:hover {
-        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     }
 
     .ticket-card.unread {
-        border-left: 4px solid #6366f1;
-        background: #fafafa;
+        border-left: 4px solid #5F6F52;
+        background: #F7F7F4;
     }
 
     .ticket-card.high-priority {
-        border-left: 4px solid #ef4444;
+        border-left: 4px solid #9B3A3A;
     }
 
     .ticket-avatar {
@@ -260,7 +304,9 @@
         font-size: 18px;
     }
 
-    .ticket-main { flex: 1; }
+    .ticket-main {
+        flex: 1;
+    }
 
     .ticket-header-row {
         display: flex;
@@ -273,26 +319,55 @@
         margin: 0;
         font-size: 15px;
         font-weight: 600;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
-    .ticket-badges { display: flex; gap: 8px; }
+    .ticket-badges {
+        display: flex;
+        gap: 8px;
+    }
 
     .badge {
         font-size: 11px;
         padding: 4px 10px;
-        border-radius: 20px;
+        border-radius: 10px;
         font-weight: 500;
     }
 
-    .badge.priority-high { background: #fee2e2; color: #dc2626; }
-    .badge.priority-medium { background: #fef3c7; color: #92400e; }
-    .badge.priority-low { background: #dbeafe; color: #1d4ed8; }
+    .badge.priority-high {
+        background: rgba(155, 58, 58, 0.1);
+        color: #9B3A3A;
+    }
 
-    .badge.status-open { background: #dbeafe; color: #1d4ed8; }
-    .badge.status-in-progress { background: #fef3c7; color: #92400e; }
-    .badge.status-resolved { background: #d1fae5; color: #059669; }
-    .badge.status-closed { background: #e5e7eb; color: #4b5563; }
+    .badge.priority-medium {
+        background: rgba(196, 154, 58, 0.15);
+        color: #C49A3A;
+    }
+
+    .badge.priority-low {
+        background: rgba(95, 122, 106, 0.15);
+        color: #5F7A6A;
+    }
+
+    .badge.status-open {
+        background: rgba(95, 122, 106, 0.15);
+        color: #5F7A6A;
+    }
+
+    .badge.status-in-progress {
+        background: rgba(196, 154, 58, 0.15);
+        color: #C49A3A;
+    }
+
+    .badge.status-resolved {
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+    }
+
+    .badge.status-closed {
+        background: #E2E2DC;
+        color: #2B2B2B;
+    }
 
     .ticket-message {
         font-size: 14px;
@@ -306,12 +381,21 @@
         align-items: center;
         gap: 8px;
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
-    .separator { color: #d1d5db; }
-    .client-name { font-weight: 500; color: #374151; }
-    .replies { color: #6366f1; }
+    .separator {
+        color: #E2E2DC;
+    }
+
+    .client-name {
+        font-weight: 500;
+        color: #2B2B2B;
+    }
+
+    .replies {
+        color: #5F6F52;
+    }
 
     .ticket-actions {
         display: flex;
@@ -325,22 +409,36 @@
         justify-content: center;
         gap: 8px;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
         border: none;
         transition: all 0.2s;
     }
 
-    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
-    .btn-secondary { background: #f3f4f6; color: #374151; }
-    .btn-sm { padding: 8px 16px; font-size: 13px; }
+    .btn-primary {
+        background: #2F3E2A;
+        color: #FFFFFF;
+    }
+
+    .btn-secondary {
+        background: #F7F7F4;
+        color: #2B2B2B;
+    }
+
+    .btn-sm {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
 
     /* Modal */
     .modal-overlay {
         position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.5);
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(47, 62, 42, 0.6);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -348,32 +446,51 @@
     }
 
     .modal-content {
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
         width: 90%;
         max-width: 700px;
         max-height: 90vh;
         overflow: auto;
     }
 
-    .modal-content.large { max-width: 800px; }
+    .modal-content.large {
+        max-width: 800px;
+    }
 
     .modal-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         padding: 20px 24px;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #E2E2DC;
     }
 
-    .modal-header h3 { margin: 0 0 8px 0; font-size: 18px; }
-    .modal-badges { display: flex; gap: 8px; }
-    .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280; }
-    .modal-body { padding: 24px; }
+    .modal-header h3 {
+        margin: 0 0 8px 0;
+        font-size: 18px;
+    }
+
+    .modal-badges {
+        display: flex;
+        gap: 8px;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #6B6B6B;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
 
     .ticket-info {
-        background: #f9fafb;
-        border-radius: 8px;
+        background: #F7F7F4;
+        border-radius: 10px;
         padding: 16px;
         margin-bottom: 20px;
         display: grid;
@@ -386,16 +503,25 @@
         flex-direction: column;
     }
 
-    .info-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
-    .info-value { font-size: 14px; font-weight: 500; color: #1f2937; }
+    .info-label {
+        font-size: 12px;
+        color: #6B6B6B;
+        margin-bottom: 4px;
+    }
+
+    .info-value {
+        font-size: 14px;
+        font-weight: 500;
+        color: #2B2B2B;
+    }
 
     .conversation {
         max-height: 300px;
         overflow-y: auto;
         margin-bottom: 20px;
         padding: 12px;
-        background: #f9fafb;
-        border-radius: 12px;
+        background: #F7F7F4;
+        border-radius: 14px;
     }
 
     .message {
@@ -404,9 +530,13 @@
         margin-bottom: 16px;
     }
 
-    .message:last-child { margin-bottom: 0; }
+    .message:last-child {
+        margin-bottom: 0;
+    }
 
-    .message.owner { flex-direction: row-reverse; }
+    .message.owner {
+        flex-direction: row-reverse;
+    }
 
     .message-avatar {
         width: 36px;
@@ -422,16 +552,16 @@
     }
 
     .message-content {
-        background: white;
-        border-radius: 12px;
+        background: #FFFFFF;
+        border-radius: 14px;
         padding: 12px 16px;
         max-width: 70%;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
     .message.owner .message-content {
-        background: #6366f1;
-        color: white;
+        background: #5F6F52;
+        color: #FFFFFF;
     }
 
     .message-header {
@@ -458,15 +588,15 @@
     }
 
     .reply-section {
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid #E2E2DC;
         padding-top: 20px;
     }
 
     .reply-section textarea {
         width: 100%;
         padding: 12px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
         resize: vertical;
     }
@@ -480,8 +610,8 @@
 
     .reply-actions select {
         padding: 10px 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
     }
 </style>
@@ -497,10 +627,10 @@
     private string newStatus = "";
 
     private IEnumerable<TicketData> FilteredTickets => tickets
-        .Where(t => string.IsNullOrEmpty(statusFilter) || t.Status == statusFilter)
-        .Where(t => string.IsNullOrEmpty(priorityFilter) || t.Priority == priorityFilter)
-        .OrderByDescending(t => t.Priority == "High")
-        .ThenByDescending(t => t.LastUpdated);
+    .Where(t => string.IsNullOrEmpty(statusFilter) || t.Status == statusFilter)
+    .Where(t => string.IsNullOrEmpty(priorityFilter) || t.Priority == priorityFilter)
+    .OrderByDescending(t => t.Priority == "High")
+    .ThenByDescending(t => t.LastUpdated);
 
     protected override async Task OnInitializedAsync()
     {
@@ -511,80 +641,80 @@
     {
         await Task.Delay(100);
         tickets = new List<TicketData>
-        {
-            new TicketData {
-                TicketId = 1001,
-                ClientName = "FineBank Corporation",
-                Subject = "Unable to generate trial balance report",
-                Category = "Reports",
-                Priority = "High",
-                Status = "Open",
-                LastMessage = "When I try to generate the trial balance report for March 2025, the system shows an error message. This is urgent as we need it for our audit.",
-                CreatedDate = DateTime.Now.AddDays(-1),
-                LastUpdated = DateTime.Now.AddHours(-2),
-                Replies = 0
+{
+new TicketData {
+TicketId = 1001,
+ClientName = "FineBank Corporation",
+Subject = "Unable to generate trial balance report",
+Category = "Reports",
+Priority = "High",
+Status = "Open",
+LastMessage = "When I try to generate the trial balance report for March 2025, the system shows an error message. This is urgent as we need it for our audit.",
+CreatedDate = DateTime.Now.AddDays(-1),
+LastUpdated = DateTime.Now.AddHours(-2),
+Replies = 0
             },
-            new TicketData {
-                TicketId = 1002,
-                ClientName = "Metro Credit Union",
-                Subject = "Request for additional user accounts",
-                Category = "Account",
-                Priority = "Medium",
-                Status = "In Progress",
-                LastMessage = "We need to add 5 more user accounts for our new branch. Please advise on the pricing.",
-                CreatedDate = DateTime.Now.AddDays(-3),
-                LastUpdated = DateTime.Now.AddDays(-1),
-                Replies = 2
+new TicketData {
+TicketId = 1002,
+ClientName = "Metro Credit Union",
+Subject = "Request for additional user accounts",
+Category = "Account",
+Priority = "Medium",
+Status = "In Progress",
+LastMessage = "We need to add 5 more user accounts for our new branch. Please advise on the pricing.",
+CreatedDate = DateTime.Now.AddDays(-3),
+LastUpdated = DateTime.Now.AddDays(-1),
+Replies = 2
             },
-            new TicketData {
-                TicketId = 1003,
-                ClientName = "Demo Company Ltd",
-                Subject = "How to set up automatic loan interest computation",
-                Category = "Loans",
-                Priority = "Low",
-                Status = "Resolved",
-                LastMessage = "Thank you for the detailed guide! Everything is working now.",
-                CreatedDate = DateTime.Now.AddDays(-5),
-                LastUpdated = DateTime.Now.AddDays(-3),
-                Replies = 4
+new TicketData {
+TicketId = 1003,
+ClientName = "Demo Company Ltd",
+Subject = "How to set up automatic loan interest computation",
+Category = "Loans",
+Priority = "Low",
+Status = "Resolved",
+LastMessage = "Thank you for the detailed guide! Everything is working now.",
+CreatedDate = DateTime.Now.AddDays(-5),
+LastUpdated = DateTime.Now.AddDays(-3),
+Replies = 4
             },
-            new TicketData {
-                TicketId = 1004,
-                ClientName = "Valley Savings Cooperative",
-                Subject = "System running slow during peak hours",
-                Category = "Performance",
-                Priority = "High",
-                Status = "In Progress",
-                LastMessage = "The system becomes very slow between 9-11 AM when most transactions happen. Our tellers are complaining.",
-                CreatedDate = DateTime.Now.AddDays(-2),
-                LastUpdated = DateTime.Now.AddHours(-6),
-                Replies = 3
+new TicketData {
+TicketId = 1004,
+ClientName = "Valley Savings Cooperative",
+Subject = "System running slow during peak hours",
+Category = "Performance",
+Priority = "High",
+Status = "In Progress",
+LastMessage = "The system becomes very slow between 9-11 AM when most transactions happen. Our tellers are complaining.",
+CreatedDate = DateTime.Now.AddDays(-2),
+LastUpdated = DateTime.Now.AddHours(-6),
+Replies = 3
             },
-            new TicketData {
-                TicketId = 1005,
-                ClientName = "FineBank Corporation",
-                Subject = "Feature request: Export data to Excel",
-                Category = "Feature Request",
-                Priority = "Low",
-                Status = "Open",
-                LastMessage = "It would be great if we could export all transaction data to Excel format for our accountants.",
-                CreatedDate = DateTime.Now.AddDays(-4),
-                LastUpdated = DateTime.Now.AddDays(-4),
-                Replies = 0
+new TicketData {
+TicketId = 1005,
+ClientName = "FineBank Corporation",
+Subject = "Feature request: Export data to Excel",
+Category = "Feature Request",
+Priority = "Low",
+Status = "Open",
+LastMessage = "It would be great if we could export all transaction data to Excel format for our accountants.",
+CreatedDate = DateTime.Now.AddDays(-4),
+LastUpdated = DateTime.Now.AddDays(-4),
+Replies = 0
             },
-            new TicketData {
-                TicketId = 1006,
-                ClientName = "Green Finance Coop",
-                Subject = "Billing inquiry for last month",
-                Category = "Billing",
-                Priority = "Medium",
-                Status = "Closed",
-                LastMessage = "Issue resolved. Thank you for your quick response!",
-                CreatedDate = DateTime.Now.AddDays(-10),
-                LastUpdated = DateTime.Now.AddDays(-7),
-                Replies = 5
+new TicketData {
+TicketId = 1006,
+ClientName = "Green Finance Coop",
+Subject = "Billing inquiry for last month",
+Category = "Billing",
+Priority = "Medium",
+Status = "Closed",
+LastMessage = "Issue resolved. Thank you for your quick response!",
+CreatedDate = DateTime.Now.AddDays(-10),
+LastUpdated = DateTime.Now.AddDays(-7),
+Replies = 5
             }
-        };
+};
     }
 
     private void ViewTicket(TicketData ticket)
@@ -597,17 +727,18 @@
     private void LoadMessages()
     {
         ticketMessages = new List<MessageData>
-        {
-            new MessageData {
-                Text = selectedTicket.LastMessage,
-                Timestamp = selectedTicket.CreatedDate,
-                IsOwner = false
+{
+new MessageData {
+Text = selectedTicket.LastMessage,
+Timestamp = selectedTicket.CreatedDate,
+IsOwner = false
             }
-        };
+};
 
         if (selectedTicket.Replies > 0)
         {
-            ticketMessages.Add(new MessageData {
+            ticketMessages.Add(new MessageData
+            {
                 Text = "Thank you for reaching out. We are looking into this issue and will get back to you shortly.",
                 Timestamp = selectedTicket.CreatedDate.AddHours(2),
                 IsOwner = true
@@ -616,7 +747,8 @@
 
         if (selectedTicket.Replies > 1)
         {
-            ticketMessages.Add(new MessageData {
+            ticketMessages.Add(new MessageData
+            {
                 Text = "Do you have any updates on this?",
                 Timestamp = selectedTicket.CreatedDate.AddDays(1),
                 IsOwner = false
@@ -625,7 +757,8 @@
 
         if (selectedTicket.Replies > 2)
         {
-            ticketMessages.Add(new MessageData {
+            ticketMessages.Add(new MessageData
+            {
                 Text = "We've identified the issue and are working on a fix. It should be resolved within 24 hours.",
                 Timestamp = selectedTicket.LastUpdated,
                 IsOwner = true
@@ -644,14 +777,15 @@
     {
         if (!string.IsNullOrWhiteSpace(replyText))
         {
-            ticketMessages.Add(new MessageData {
+            ticketMessages.Add(new MessageData
+            {
                 Text = replyText,
                 Timestamp = DateTime.Now,
                 IsOwner = true
             });
             selectedTicket.Replies++;
             selectedTicket.LastUpdated = DateTime.Now;
-            
+
             if (!string.IsNullOrEmpty(newStatus))
             {
                 selectedTicket.Status = newStatus;
@@ -673,7 +807,7 @@
 
     private string GetAvatarColor(string name)
     {
-        var colors = new[] { "#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899" };
+        var colors = new[] { "#5F6F52", "#2F3E2A", "#C49A3A", "#9B3A3A", "#5F7A6A", "#4F6F52" };
         var index = Math.Abs(name.GetHashCode()) % colors.Length;
         return colors[index];
     }

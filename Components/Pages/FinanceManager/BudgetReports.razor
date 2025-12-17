@@ -10,7 +10,7 @@
 
 <div style="padding: 24px; max-width: 1400px; margin: 0 auto;">
     <!-- Page Header -->
-    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+    <div style="background: linear-gradient(135deg, #5F6F52 0%, #2F3E2A 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
@@ -87,7 +87,7 @@
 
     <div style="display: flex; gap: 12px;">
         <button @onclick="GenerateReport" disabled="@isGenerating"
-            style="padding: 12px 24px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            style="padding: 12px 24px; background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
             @if (isGenerating)
             {
                 <div class="spinner"></div>
@@ -108,7 +108,7 @@
 @if (!string.IsNullOrEmpty(successMessage))
 {
     <div
-        style="background: #d1fae5; border: 2px solid #6ee7b7; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #047857;">
+        style="background: #D4E6D4; border: 2px solid #A9B388; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #2F3E2A;">
         ✅ @successMessage
     </div>
 }
@@ -119,7 +119,7 @@
     <div
         style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px;">
         <div
-            style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
+            style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
             <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Budget vs Actual Report</h2>
             <span style="font-size: 14px; opacity: 0.9;">@GetPeriodLabel()</span>
         </div>
@@ -127,30 +127,30 @@
         <div style="padding: 24px;">
             <!-- Summary Cards -->
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
-                <div style="background: #f0fdf4; border-radius: 12px; padding: 16px; text-align: center;">
-                    <div style="font-size: 12px; color: #047857; font-weight: 600; margin-bottom: 4px;">Total Allocated
+                <div style="background: #F0F2EC; border-radius: 12px; padding: 16px; text-align: center;">
+                    <div style="font-size: 12px; color: #2F3E2A; font-weight: 600; margin-bottom: 4px;">Total Allocated
                     </div>
-                    <div style="font-size: 20px; font-weight: 700; color: #047857;">₱@reportBudgets.Sum(b =>
+                    <div style="font-size: 20px; font-weight: 700; color: #2F3E2A;">₱@reportBudgets.Sum(b =>
                                             b.AllocatedAmount).ToString("N2")</div>
             </div>
-            <div style="background: #dbeafe; border-radius: 12px; padding: 16px; text-align: center;">
-                <div style="font-size: 12px; color: #1e40af; font-weight: 600; margin-bottom: 4px;">Total Spent</div>
-                <div style="font-size: 20px; font-weight: 700; color: #1e40af;">₱@reportBudgets.Sum(b =>
+            <div style="background: #E8F0E8; border-radius: 12px; padding: 16px; text-align: center;">
+                <div style="font-size: 12px; color: #5F6F52; font-weight: 600; margin-bottom: 4px;">Total Spent</div>
+                <div style="font-size: 20px; font-weight: 700; color: #5F6F52;">₱@reportBudgets.Sum(b =>
                                         b.SpentAmount).ToString("N2")</div>
             </div>
-            <div style="background: #fef3c7; border-radius: 12px; padding: 16px; text-align: center;">
+            <div style="background: #F5EFE0; border-radius: 12px; padding: 16px; text-align: center;">
                 <div style="font-size: 12px; color: #92400e; font-weight: 600; margin-bottom: 4px;">Total Remaining
                 </div>
                 <div style="font-size: 20px; font-weight: 700; color: #92400e;">₱@reportBudgets.Sum(b =>
                                         b.RemainingAmount).ToString("N2")</div>
             </div>
             <div
-                style="background: @(overallUtilization > 100 ? "#fee2e2" : "#f0fdf4"); border-radius: 12px; padding: 16px; text-align: center;">
+                style="background: @(overallUtilization > 100 ? "#F5E6E6" : "#F0F2EC"); border-radius: 12px; padding: 16px; text-align: center;">
                 <div
-                    style="font-size: 12px; color: @(overallUtilization > 100 ? "#dc2626" : "#047857"); font-weight: 600; margin-bottom: 4px;">
+                    style="font-size: 12px; color: @(overallUtilization > 100 ? "#9B3A3A" : "#2F3E2A"); font-weight: 600; margin-bottom: 4px;">
                     Utilization</div>
                 <div
-                    style="font-size: 20px; font-weight: 700; color: @(overallUtilization > 100 ? "#dc2626" : "#047857");">
+                    style="font-size: 20px; font-weight: 700; color: @(overallUtilization > 100 ? "#9B3A3A" : "#2F3E2A");">
                     @overallUtilization.ToString("N1")%</div>
             </div>
         </div>
@@ -191,29 +191,29 @@
                                 <td style="padding: 12px; font-weight: 500;">@budget.BudgetName</td>
                                 <td style="padding: 12px;">@budget.Department</td>
                                 <td style="padding: 12px; text-align: right;">₱@budget.AllocatedAmount.ToString("N2")</td>
-                                <td style="padding: 12px; text-align: right; color: @(isOverBudget ? "#dc2626" : "#111");">
+                                <td style="padding: 12px; text-align: right; color: @(isOverBudget ? "#9B3A3A" : "#111");">
                                     ₱@budget.SpentAmount.ToString("N2")</td>
                                 <td
-                                    style="padding: 12px; text-align: right; color: @(variance >= 0 ? "#047857" : "#dc2626"); font-weight: 600;">
+                                    style="padding: 12px; text-align: right; color: @(variance >= 0 ? "#2F3E2A" : "#9B3A3A"); font-weight: 600;">
                                     @(variance >= 0 ? "+" : "")₱@variance.ToString("N2")
                                 </td>
                                 <td style="padding: 12px; text-align: center;">
                                     @if (isOverBudget)
                                     {
                                         <span
-                                            style="padding: 4px 12px; background: #fee2e2; color: #dc2626; border-radius: 20px; font-size: 12px; font-weight: 600;">Over
+                                            style="padding: 4px 12px; background: #F5E6E6; color: #9B3A3A; border-radius: 20px; font-size: 12px; font-weight: 600;">Over
                                             Budget</span>
                                     }
                                     else if (utilization > 80)
                                     {
                                         <span
-                                            style="padding: 4px 12px; background: #fef3c7; color: #92400e; border-radius: 20px; font-size: 12px; font-weight: 600;">At
+                                            style="padding: 4px 12px; background: #F5EFE0; color: #8B5A2B; border-radius: 20px; font-size: 12px; font-weight: 600;">At
                                             Risk</span>
                                     }
                                     else
                                     {
                                         <span
-                                            style="padding: 4px 12px; background: #d1fae5; color: #047857; border-radius: 20px; font-size: 12px; font-weight: 600;">On
+                                            style="padding: 4px 12px; background: #D4E6D4; color: #2F3E2A; border-radius: 20px; font-size: 12px; font-weight: 600;">On
                                             Track</span>
                                     }
                                 </td>
@@ -242,7 +242,7 @@
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <div style="flex: 1; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden;">
                                     <div
-                                        style="width: @(Math.Min(deptUtil, 100))%; height: 100%; background: @(deptUtil > 100 ? "#dc2626" : "#10b981");">
+                                        style="width: @(Math.Min(deptUtil, 100))%; height: 100%; background: @(deptUtil > 100 ? "#9B3A3A" : "#5F6F52");">
                                     </div>
                                 </div>
                                 <span style="font-size: 12px; font-weight: 600;">@deptUtil.ToString("N0")%</span>
@@ -261,29 +261,29 @@
 
     <div style="display: grid; gap: 12px;">
         <div
-            style="display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: #f0fdf4; border-radius: 12px;">
+            style="display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: #F0F2EC; border-radius: 12px;">
             <span style="font-size: 20px;">💡</span>
             <div>
-                <div style="font-weight: 600; color: #047857; margin-bottom: 4px;">Budget Variance Analysis</div>
-                <div style="font-size: 13px; color: #065f46;">Review budgets with utilization above 80% to prevent
+                <div style="font-weight: 600; color: #2F3E2A; margin-bottom: 4px;">Budget Variance Analysis</div>
+                <div style="font-size: 13px; color: #2F3E2A;">Review budgets with utilization above 80% to prevent
                     overspending before month-end.</div>
             </div>
         </div>
         <div
-            style="display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: #dbeafe; border-radius: 12px;">
+            style="display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: #E8F0E8; border-radius: 12px;">
             <span style="font-size: 20px;">📊</span>
             <div>
-                <div style="font-weight: 600; color: #1e40af; margin-bottom: 4px;">Export Options</div>
-                <div style="font-size: 13px; color: #1e3a8a;">PDF format is ideal for presentations. CSV/Excel format is
+                <div style="font-weight: 600; color: #5F6F52; margin-bottom: 4px;">Export Options</div>
+                <div style="font-size: 13px; color: #2F3E2A;">PDF format is ideal for presentations. CSV/Excel format is
                     best for further data analysis.</div>
             </div>
         </div>
         <div
-            style="display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: #fef3c7; border-radius: 12px;">
+            style="display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: #F5EFE0; border-radius: 12px;">
             <span style="font-size: 20px;">🔔</span>
             <div>
-                <div style="font-weight: 600; color: #92400e; margin-bottom: 4px;">Regular Monitoring</div>
-                <div style="font-size: 13px; color: #78350f;">Generate weekly reports to catch budget issues early and
+                <div style="font-weight: 600; color: #8B5A2B; margin-bottom: 4px;">Regular Monitoring</div>
+                <div style="font-size: 13px; color: #6B5A2B;">Generate weekly reports to catch budget issues early and
                     make timely adjustments.</div>
             </div>
         </div>
@@ -464,24 +464,24 @@
         sb.Append("<!DOCTYPE html><html><head><meta charset='utf-8'><title>Budget Report</title>");
         sb.Append("<style>");
         sb.Append("body{font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:40px;background:#fff;color:#111;}");
-        sb.Append(".header{text-align:center;margin-bottom:40px;padding-bottom:20px;border-bottom:3px solid #f59e0b;}");
+        sb.Append(".header{text-align:center;margin-bottom:40px;padding-bottom:20px;border-bottom:3px solid #5F6F52;}");
         sb.Append(".header h1{color:#d97706;margin:0 0 8px 0;font-size:28px;}");
         sb.Append(".header p{color:#6b7280;margin:0;font-size:14px;}");
         sb.Append(".summary{display:flex;justify-content:space-around;margin-bottom:40px;}");
         sb.Append(".summary-card{text-align:center;padding:20px;background:#f9fafb;border-radius:12px;min-width:150px;}");
         sb.Append(".summary-card .label{font-size:12px;color:#6b7280;margin-bottom:4px;}");
         sb.Append(".summary-card .value{font-size:24px;font-weight:700;}");
-        sb.Append(".green{color:#047857;}.blue{color:#1e40af;}.orange{color:#d97706;}.red{color:#dc2626;}");
+        sb.Append(".green{color:#2F3E2A;}.blue{color:#5F6F52;}.orange{color:#8B5A2B;}.red{color:#9B3A3A;}");
         sb.Append("table{width:100%;border-collapse:collapse;margin-top:20px;}");
-        sb.Append("th{background:#f59e0b;color:white;padding:12px;text-align:left;font-size:12px;}");
+        sb.Append("th{background:#5F6F52;color:white;padding:12px;text-align:left;font-size:12px;}");
         sb.Append("td{padding:10px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;}");
         sb.Append("tr:nth-child(even){background:#f9fafb;}");
         sb.Append(".right{text-align:right;}.center{text-align:center;}");
         sb.Append(".footer{margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;text-align:center;color:#6b7280;font-size:12px;}");
         sb.Append(".status{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}");
-        sb.Append(".on-track{background:#d1fae5;color:#047857;}");
-        sb.Append(".at-risk{background:#fef3c7;color:#92400e;}");
-        sb.Append(".over{background:#fee2e2;color:#dc2626;}");
+        sb.Append(".on-track{background:#D4E6D4;color:#2F3E2A;}");
+        sb.Append(".at-risk{background:#F5EFE0;color:#8B5A2B;}");
+        sb.Append(".over{background:#F5E6E6;color:#9B3A3A;}");
         sb.Append("</style></head><body>");
 
         sb.Append("<div class='header'>");
@@ -515,8 +515,8 @@
             var isOverBudget = variance < 0;
             var statusClass = isOverBudget ? "over" : utilization > 80 ? "at-risk" : "on-track";
             var statusText = isOverBudget ? "Over Budget" : utilization > 80 ? "At Risk" : "On Track";
-            var spentColor = isOverBudget ? "#dc2626" : "#111";
-            var varianceColor = variance >= 0 ? "#047857" : "#dc2626";
+            var spentColor = isOverBudget ? "#9B3A3A" : "#111";
+            var varianceColor = variance >= 0 ? "#2F3E2A" : "#9B3A3A";
             var varianceSign = variance >= 0 ? "+" : "";
 
             sb.Append("<tr>");

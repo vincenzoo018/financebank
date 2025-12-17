@@ -9,50 +9,50 @@
 <div style="padding: 24px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <div>
-            <h2 style="margin: 0; color: #1f2937; font-weight: 700; font-size: 28px;">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" style="vertical-align: middle; margin-right: 10px;">
+            <h2 style="margin: 0; color: #2B2B2B; font-weight: 700; font-size: 28px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5F6F52" stroke-width="2" style="vertical-align: middle; margin-right: 10px;">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
                 </svg>
                 Asset Purchase Applications
             </h2>
-            <p style="color: #6b7280; margin: 8px 0 0 0;">Review and manage customer asset purchase applications</p>
+            <p style="color: #6B6B6B; margin: 8px 0 0 0;">Review and manage customer asset purchase applications</p>
         </div>
     </div>
 
     @if (!string.IsNullOrEmpty(successMessage))
     {
-        <div style="background: #d1fae5; border-left: 4px solid #059669; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-            <span style="color: #065f46;">@successMessage</span>
+        <div style="background: #D4E6D4; border-left: 4px solid #5F6F52; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+            <span style="color: #2F3E2A;">@successMessage</span>
         </div>
     }
 
     @if (!string.IsNullOrEmpty(errorMessage))
     {
-        <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-            <span style="color: #991b1b;">@errorMessage</span>
+        <div style="background: #FDEDED; border-left: 4px solid #9B3A3A; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+            <span style="color: #7B2A2A;">@errorMessage</span>
         </div>
     }
 
     <!-- Status Tabs -->
     <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <button @onclick="() => LoadApplications(null)" style="background: @(statusFilter == null ? "#3b82f6" : "#f3f4f6"); color: @(statusFilter == null ? "white" : "#374151"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            <button @onclick="() => LoadApplications(null)" style="background: @(statusFilter == null ? "#5F6F52" : "#F7F7F4"); color: @(statusFilter == null ? "white" : "#2B2B2B"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
                 All (@allApplications?.Count ?? 0)
             </button>
-            <button @onclick="FilterBySubmitted" style="background: @(statusFilter == "SUBMITTED" ? "#f59e0b" : "#f3f4f6"); color: @(statusFilter == "SUBMITTED" ? "white" : "#374151"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            <button @onclick="FilterBySubmitted" style="background: @(statusFilter == "SUBMITTED" ? "#8B5A2B" : "#F7F7F4"); color: @(statusFilter == "SUBMITTED" ? "white" : "#2B2B2B"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
                 Submitted
             </button>
-            <button @onclick="FilterByVerified" style="background: @(statusFilter == "VERIFIED" ? "#3b82f6" : "#f3f4f6"); color: @(statusFilter == "VERIFIED" ? "white" : "#374151"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            <button @onclick="FilterByVerified" style="background: @(statusFilter == "VERIFIED" ? "#5F6F52" : "#F7F7F4"); color: @(statusFilter == "VERIFIED" ? "white" : "#2B2B2B"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
                 Verified
             </button>
-            <button @onclick="FilterByAssessed" style="background: @(statusFilter == "ASSESSED" ? "#8b5cf6" : "#f3f4f6"); color: @(statusFilter == "ASSESSED" ? "white" : "#374151"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            <button @onclick="FilterByAssessed" style="background: @(statusFilter == "ASSESSED" ? "#A9B388" : "#F7F7F4"); color: @(statusFilter == "ASSESSED" ? "white" : "#2B2B2B"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
                 Assessed
             </button>
-            <button @onclick="FilterByApproved" style="background: @(statusFilter == "APPROVED" ? "#059669" : "#f3f4f6"); color: @(statusFilter == "APPROVED" ? "white" : "#374151"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            <button @onclick="FilterByApproved" style="background: @(statusFilter == "APPROVED" ? "#5F6F52" : "#F7F7F4"); color: @(statusFilter == "APPROVED" ? "white" : "#2B2B2B"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
                 Approved
             </button>
-            <button @onclick="FilterByReleased" style="background: @(statusFilter == "RELEASED" ? "#10b981" : "#f3f4f6"); color: @(statusFilter == "RELEASED" ? "white" : "#374151"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            <button @onclick="FilterByReleased" style="background: @(statusFilter == "RELEASED" ? "#5F6F52" : "#F7F7F4"); color: @(statusFilter == "RELEASED" ? "white" : "#2B2B2B"); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
                 Released
             </button>
         </div>
@@ -61,8 +61,8 @@
     @if (isLoading)
     {
         <div style="text-align: center; padding: 60px;">
-            <div style="display: inline-block; width: 50px; height: 50px; border: 5px solid #f3f4f6; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <p style="margin-top: 16px; color: #6b7280;">Loading applications...</p>
+            <div style="display: inline-block; width: 50px; height: 50px; border: 5px solid #F7F7F4; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <p style="margin-top: 16px; color: #6B6B6B;">Loading applications...</p>
         </div>
     }
     else if (applications == null || !applications.Any())
@@ -71,54 +71,54 @@
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="2" style="margin: 0 auto 16px;">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
             </svg>
-            <h3 style="color: #9ca3af; margin: 0;">No applications found</h3>
+            <h3 style="color: #9B9B9B; margin: 0;">No applications found</h3>
         </div>
     }
     else
     {
         <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
             <table style="width: 100%; border-collapse: collapse;">
-                <thead style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                <thead style="background: #FAFAF8; border-bottom: 2px solid #E2E2DC;">
                     <tr>
-                        <th style="padding: 16px; text-align: left; color: #374151; font-weight: 600;">Application #</th>
-                        <th style="padding: 16px; text-align: left; color: #374151; font-weight: 600;">Customer</th>
-                        <th style="padding: 16px; text-align: left; color: #374151; font-weight: 600;">Asset</th>
-                        <th style="padding: 16px; text-align: left; color: #374151; font-weight: 600;">Type</th>
-                        <th style="padding: 16px; text-align: right; color: #374151; font-weight: 600;">Amount</th>
-                        <th style="padding: 16px; text-align: center; color: #374151; font-weight: 600;">Status</th>
-                        <th style="padding: 16px; text-align: center; color: #374151; font-weight: 600;">Date</th>
-                        <th style="padding: 16px; text-align: center; color: #374151; font-weight: 600;">Actions</th>
+                        <th style="padding: 16px; text-align: left; color: #2B2B2B; font-weight: 600;">Application #</th>
+                        <th style="padding: 16px; text-align: left; color: #2B2B2B; font-weight: 600;">Customer</th>
+                        <th style="padding: 16px; text-align: left; color: #2B2B2B; font-weight: 600;">Asset</th>
+                        <th style="padding: 16px; text-align: left; color: #2B2B2B; font-weight: 600;">Type</th>
+                        <th style="padding: 16px; text-align: right; color: #2B2B2B; font-weight: 600;">Amount</th>
+                        <th style="padding: 16px; text-align: center; color: #2B2B2B; font-weight: 600;">Status</th>
+                        <th style="padding: 16px; text-align: center; color: #2B2B2B; font-weight: 600;">Date</th>
+                        <th style="padding: 16px; text-align: center; color: #2B2B2B; font-weight: 600;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var app in applications)
                     {
-                        <tr style="border-bottom: 1px solid #e5e7eb;">
-                            <td style="padding: 16px; color: #1f2937; font-weight: 600;">@app.ApplicationNumber</td>
+                        <tr style="border-bottom: 1px solid #E2E2DC;">
+                            <td style="padding: 16px; color: #2B2B2B; font-weight: 600;">@app.ApplicationNumber</td>
                             <td style="padding: 16px;">
-                                <div style="font-weight: 600; color: #1f2937;">@app.CustomerName</div>
-                                <div style="font-size: 12px; color: #6b7280;">@app.CustomerEmail</div>
+                                <div style="font-weight: 600; color: #2B2B2B;">@app.CustomerName</div>
+                                <div style="font-size: 12px; color: #6B6B6B;">@app.CustomerEmail</div>
                             </td>
                             <td style="padding: 16px;">
-                                <div style="font-weight: 600; color: #1f2937;">@app.Asset?.AssetName</div>
-                                <div style="font-size: 12px; color: #6b7280;">@app.Asset?.AssetType</div>
+                                <div style="font-weight: 600; color: #2B2B2B;">@app.Asset?.AssetName</div>
+                                <div style="font-size: 12px; color: #6B6B6B;">@app.Asset?.AssetType</div>
                             </td>
                             <td style="padding: 16px;">
-                                <span style="background: @(app.PurchaseType == "Loan" ? "#dbeafe" : "#d1fae5"); color: @(app.PurchaseType == "Loan" ? "#1e40af" : "#065f46"); padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                                <span style="background: @(app.PurchaseType == "Loan" ? "#E8F0E8" : "#D4E6D4"); color: @(app.PurchaseType == "Loan" ? "#2F3E2A" : "#2F3E2A"); padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
                                     @app.PurchaseType
                                 </span>
                             </td>
-                            <td style="padding: 16px; text-align: right; font-weight: 600; color: #1f2937;">₱@app.AssetPrice.ToString("N2")</td>
+                            <td style="padding: 16px; text-align: right; font-weight: 600; color: #2B2B2B;">₱@app.AssetPrice.ToString("N2")</td>
                             <td style="padding: 16px; text-align: center;">
                                 <span style="background: @GetStatusColor(app.Status); color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
                                     @app.Status
                                 </span>
                             </td>
-                            <td style="padding: 16px; text-align: center; color: #6b7280; font-size: 14px;">
+                            <td style="padding: 16px; text-align: center; color: #6B6B6B; font-size: 14px;">
                                 @app.SubmittedAt.ToString("MMM dd, yyyy")
                             </td>
                             <td style="padding: 16px; text-align: center;">
-                                <button @onclick="() => ViewApplicationDetails(app)" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                                <button @onclick="() => ViewApplicationDetails(app)" style="background: #5F6F52; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
                                     View Details
                                 </button>
                             </td>
@@ -135,7 +135,7 @@
 {
     <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; overflow-y: auto; padding: 20px;">
         <div style="background: white; border-radius: 16px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto;">
-            <div style="background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; padding: 24px; border-radius: 16px 16px 0 0;">
+            <div style="background: linear-gradient(135deg, #5F6F52, #6B7B5E); color: white; padding: 24px; border-radius: 16px 16px 0 0;">
                 <h3 style="margin: 0; font-size: 24px; font-weight: 700;">Application Details</h3>
                 <p style="margin: 8px 0 0 0; opacity: 0.9;">@selectedApplication.ApplicationNumber</p>
             </div>
@@ -143,28 +143,28 @@
             <div style="padding: 24px;">
                 <!-- Customer Information -->
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin: 0 0 16px 0; color: #1f2937; font-weight: 700;">Customer Information</h4>
-                    <div style="background: #f9fafb; border-radius: 8px; padding: 16px;">
+                    <h4 style="margin: 0 0 16px 0; color: #2B2B2B; font-weight: 700;">Customer Information</h4>
+                    <div style="background: #FAFAF8; border-radius: 8px; padding: 16px;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             <div>
-                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Name</div>
-                                <div style="font-weight: 600; color: #1f2937;">@selectedApplication.CustomerName</div>
+                                <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Name</div>
+                                <div style="font-weight: 600; color: #2B2B2B;">@selectedApplication.CustomerName</div>
                             </div>
                             <div>
-                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Email</div>
-                                <div style="font-weight: 600; color: #1f2937;">@selectedApplication.CustomerEmail</div>
+                                <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Email</div>
+                                <div style="font-weight: 600; color: #2B2B2B;">@selectedApplication.CustomerEmail</div>
                             </div>
                             <div>
-                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Phone</div>
-                                <div style="font-weight: 600; color: #1f2937;">@selectedApplication.CustomerPhone</div>
+                                <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Phone</div>
+                                <div style="font-weight: 600; color: #2B2B2B;">@selectedApplication.CustomerPhone</div>
                             </div>
                             <div>
-                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Employment</div>
-                                <div style="font-weight: 600; color: #1f2937;">@selectedApplication.EmploymentStatus</div>
+                                <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Employment</div>
+                                <div style="font-weight: 600; color: #2B2B2B;">@selectedApplication.EmploymentStatus</div>
                             </div>
                             <div>
-                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Monthly Income</div>
-                                <div style="font-weight: 600; color: #059669;">₱@selectedApplication.MonthlyIncome?.ToString("N2")</div>
+                                <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Monthly Income</div>
+                                <div style="font-weight: 600; color: #5F6F52;">₱@selectedApplication.MonthlyIncome?.ToString("N2")</div>
                             </div>
                         </div>
                     </div>
@@ -172,22 +172,22 @@
 
                 <!-- Asset Information -->
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin: 0 0 16px 0; color: #1f2937; font-weight: 700;">Asset Information</h4>
-                    <div style="background: #f0fdf4; border-radius: 8px; padding: 16px; border: 2px solid #bbf7d0;">
-                        <div style="font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">@selectedApplication.Asset?.AssetName</div>
-                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">@selectedApplication.Asset?.Description</div>
+                    <h4 style="margin: 0 0 16px 0; color: #2B2B2B; font-weight: 700;">Asset Information</h4>
+                    <div style="background: #F0F2EC; border-radius: 8px; padding: 16px; border: 2px solid #A9B388;">
+                        <div style="font-size: 18px; font-weight: 700; color: #2B2B2B; margin-bottom: 8px;">@selectedApplication.Asset?.AssetName</div>
+                        <div style="font-size: 14px; color: #6B6B6B; margin-bottom: 12px;">@selectedApplication.Asset?.Description</div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                             <div>
-                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Asset Price</div>
-                                <div style="font-weight: 700; color: #059669; font-size: 18px;">₱@selectedApplication.AssetPrice.ToString("N2")</div>
+                                <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Asset Price</div>
+                                <div style="font-weight: 700; color: #5F6F52; font-size: 18px;">₱@selectedApplication.AssetPrice.ToString("N2")</div>
                             </div>
                             <div>
-                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Down Payment</div>
-                                <div style="font-weight: 600; color: #1f2937;">₱@selectedApplication.DownPaymentAmount.ToString("N2")</div>
+                                <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Down Payment</div>
+                                <div style="font-weight: 600; color: #2B2B2B;">₱@selectedApplication.DownPaymentAmount.ToString("N2")</div>
                             </div>
                             <div>
-                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Loan Amount</div>
-                                <div style="font-weight: 600; color: #1f2937;">₱@selectedApplication.LoanAmount.ToString("N2")</div>
+                                <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Loan Amount</div>
+                                <div style="font-weight: 600; color: #2B2B2B;">₱@selectedApplication.LoanAmount.ToString("N2")</div>
                             </div>
                         </div>
                     </div>
@@ -197,20 +197,20 @@
                 {
                     <!-- Loan Terms -->
                     <div style="margin-bottom: 24px;">
-                        <h4 style="margin: 0 0 16px 0; color: #1f2937; font-weight: 700;">Loan Terms</h4>
-                        <div style="background: #eff6ff; border-radius: 8px; padding: 16px; border: 2px solid #bfdbfe;">
+                        <h4 style="margin: 0 0 16px 0; color: #2B2B2B; font-weight: 700;">Loan Terms</h4>
+                        <div style="background: #E8F0E8; border-radius: 8px; padding: 16px; border: 2px solid #D4E6D4;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                                 <div>
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Term</div>
-                                    <div style="font-weight: 600; color: #1f2937;">@selectedApplication.TermMonths months</div>
+                                    <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Term</div>
+                                    <div style="font-weight: 600; color: #2B2B2B;">@selectedApplication.TermMonths months</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Interest Rate</div>
-                                    <div style="font-weight: 600; color: #1f2937;">@selectedApplication.InterestRate%</div>
+                                    <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Interest Rate</div>
+                                    <div style="font-weight: 600; color: #2B2B2B;">@selectedApplication.InterestRate%</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Monthly Payment</div>
-                                    <div style="font-weight: 700; color: #3b82f6; font-size: 18px;">₱@selectedApplication.MonthlyPayment.ToString("N2")</div>
+                                    <div style="font-size: 12px; color: #6B6B6B; margin-bottom: 4px;">Monthly Payment</div>
+                                    <div style="font-weight: 700; color: #5F6F52; font-size: 18px;">₱@selectedApplication.MonthlyPayment.ToString("N2")</div>
                                 </div>
                             </div>
                         </div>
@@ -218,8 +218,8 @@
                 }
 
                 <!-- Status & Actions -->
-                <div style="background: #fef3c7; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 2px solid #fde047;">
-                    <div style="font-weight: 700; color: #92400e; margin-bottom: 12px;">Current Status: @selectedApplication.Status</div>
+                <div style="background: #FAF6EE; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 2px solid #E5D9B6;">
+                    <div style="font-weight: 700; color: #6B4423; margin-bottom: 12px;">Current Status: @selectedApplication.Status</div>
                     <div style="font-size: 14px; color: #78350f;">
                         Submitted: @selectedApplication.SubmittedAt.ToString("MMM dd, yyyy hh:mm tt")
                     </div>
@@ -253,43 +253,43 @@
                 @if (CanProcessApplication(selectedApplication.Status))
                 {
                     <div style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">Remarks (Optional)</label>
-                        <textarea @bind="remarks" rows="3" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;" placeholder="Add any notes or remarks..."></textarea>
+                        <label style="display: block; margin-bottom: 8px; color: #2B2B2B; font-weight: 600;">Remarks (Optional)</label>
+                        <textarea @bind="remarks" rows="3" style="width: 100%; padding: 12px; border: 2px solid #E2E2DC; border-radius: 8px; font-size: 14px; resize: vertical;" placeholder="Add any notes or remarks..."></textarea>
                     </div>
                 }
 
                 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                     @if (selectedApplication.Status == "SUBMITTED" || selectedApplication.Status == "PENDING_TELLER_REVIEW")
                     {
-                        <button @onclick="() => VerifyApplication(selectedApplication)" style="flex: 1; background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 150px;">
+                        <button @onclick="() => VerifyApplication(selectedApplication)" style="flex: 1; background: #5F6F52; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 150px;">
                             ✓ Verify (Teller)
                         </button>
                     }
                     @if (selectedApplication.Status == "VERIFIED" || selectedApplication.Status == "PENDING_ACCOUNTANT_REVIEW")
                     {
-                        <button @onclick="() => AssessApplication(selectedApplication)" style="flex: 1; background: #8b5cf6; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 150px;">
+                        <button @onclick="() => AssessApplication(selectedApplication)" style="flex: 1; background: #A9B388; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 150px;">
                             ✓ Assess (Accountant)
                         </button>
                     }
                     @if (selectedApplication.Status == "ASSESSED" || selectedApplication.Status == "PENDING_FINANCEMANAGER_APPROVAL")
                     {
-                        <button @onclick="() => ApproveApplication(selectedApplication)" style="flex: 1; background: #059669; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 150px;">
+                        <button @onclick="() => ApproveApplication(selectedApplication)" style="flex: 1; background: #5F6F52; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 150px;">
                             ✓ Approve (FM)
                         </button>
                     }
                     @if (selectedApplication.Status == "APPROVED" || selectedApplication.Status == "APPROVED_READY_FOR_RELEASE")
                     {
-                        <button @onclick="() => ReleaseApplication(selectedApplication)" style="flex: 1; background: #10b981; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 150px;">
+                        <button @onclick="() => ReleaseApplication(selectedApplication)" style="flex: 1; background: #5F6F52; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 150px;">
                             💰 Release Asset
                         </button>
                     }
                     @if (selectedApplication.Status != "RELEASED" && selectedApplication.Status != "CANCELLED" && selectedApplication.Status != "REJECTED")
                     {
-                        <button @onclick="() => RejectApplication(selectedApplication)" style="background: #dc2626; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 100px;">
+                        <button @onclick="() => RejectApplication(selectedApplication)" style="background: #9B3A3A; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 100px;">
                             ✕ Reject
                         </button>
                     }
-                    <button @onclick="CloseDetailsModal" style="background: #6b7280; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 100px;">
+                    <button @onclick="CloseDetailsModal" style="background: #6B6B6B; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 100px;">
                         Close
                     </button>
                 </div>
@@ -529,18 +529,18 @@
     {
         return status switch
         {
-            "SUBMITTED" => "#f59e0b",
-            "PENDING_TELLER_REVIEW" => "#f59e0b",
-            "VERIFIED" => "#3b82f6",
-            "PENDING_ACCOUNTANT_REVIEW" => "#3b82f6",
-            "ASSESSED" => "#8b5cf6",
-            "PENDING_FINANCEMANAGER_APPROVAL" => "#8b5cf6",
-            "APPROVED" => "#059669",
-            "APPROVED_READY_FOR_RELEASE" => "#059669",
-            "RELEASED" => "#10b981",
-            "REJECTED" => "#dc2626",
-            "CANCELLED" => "#6b7280",
-            _ => "#6b7280"
+            "SUBMITTED" => "#8B5A2B",
+            "PENDING_TELLER_REVIEW" => "#8B5A2B",
+            "VERIFIED" => "#5F6F52",
+            "PENDING_ACCOUNTANT_REVIEW" => "#5F6F52",
+            "ASSESSED" => "#A9B388",
+            "PENDING_FINANCEMANAGER_APPROVAL" => "#A9B388",
+            "APPROVED" => "#5F6F52",
+            "APPROVED_READY_FOR_RELEASE" => "#5F6F52",
+            "RELEASED" => "#5F6F52",
+            "REJECTED" => "#9B3A3A",
+            "CANCELLED" => "#6B6B6B",
+            _ => "#6B6B6B"
         };
     }
 

@@ -19,7 +19,8 @@
         <button class="tab @(activeTab == "payment" ? "active" : "")" @onclick='() => activeTab = "payment"'>
             💳 Payment Methods
         </button>
-        <button class="tab @(activeTab == "notifications" ? "active" : "")" @onclick='() => activeTab = "notifications"'>
+        <button class="tab @(activeTab == "notifications" ? "active" : "")"
+            @onclick='() => activeTab = "notifications"'>
             🔔 Notifications
         </button>
         <button class="tab @(activeTab == "security" ? "active" : "")" @onclick='() => activeTab = "security"'>
@@ -110,8 +111,9 @@
         {
             <div class="settings-section">
                 <h3>Payment Method Accounts</h3>
-                <p class="section-desc">Configure your payment receiving accounts. These will be shown to clients when paying invoices.</p>
-                
+                <p class="section-desc">Configure your payment receiving accounts. These will be shown to clients when
+                    paying invoices.</p>
+
                 <div class="payment-methods">
                     @foreach (var method in paymentMethods)
                     {
@@ -236,7 +238,7 @@
         {
             <div class="settings-section">
                 <h3>Security Settings</h3>
-                
+
                 <div class="security-section">
                     <h4>🔑 Change Password</h4>
                     <div class="form-grid">
@@ -305,17 +307,31 @@
 </div>
 
 <style>
-    .settings-page { padding: 0; }
+    .settings-page {
+        padding: 0;
+    }
 
-    .page-header { margin-bottom: 24px; }
-    .page-header h2 { font-size: 24px; font-weight: 700; color: #1f2937; margin: 0; }
-    .page-header .subtitle { font-size: 14px; color: #6b7280; }
+    .page-header {
+        margin-bottom: 24px;
+    }
+
+    .page-header h2 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #2B2B2B;
+        margin: 0;
+    }
+
+    .page-header .subtitle {
+        font-size: 14px;
+        color: #6B6B6B;
+    }
 
     .settings-tabs {
         display: flex;
         gap: 8px;
         margin-bottom: 24px;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #E2E2DC;
         padding-bottom: 16px;
     }
 
@@ -325,22 +341,25 @@
         background: none;
         font-size: 14px;
         font-weight: 500;
-        color: #6b7280;
+        color: #6B6B6B;
         cursor: pointer;
-        border-radius: 8px;
+        border-radius: 10px;
         transition: all 0.2s;
     }
 
-    .tab:hover { background: #f3f4f6; }
+    .tab:hover {
+        background: #F7F7F4;
+    }
+
     .tab.active {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: white;
+        background: #2F3E2A;
+        color: #FFFFFF;
     }
 
     .settings-content {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        background: #FFFFFF;
+        border-radius: 14px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
     .settings-section {
@@ -373,7 +392,7 @@
         width: 80px;
         height: 80px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        background: #2F3E2A;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -389,7 +408,7 @@
     .avatar-text {
         font-size: 32px;
         font-weight: 600;
-        color: white;
+        color: #FFFFFF;
     }
 
     .form-grid {
@@ -399,38 +418,67 @@
         margin-bottom: 20px;
     }
 
-    .form-group { display: flex; flex-direction: column; }
-    .form-group.full-width { grid-column: 1 / -1; }
-    .form-group label { font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
-    .form-group input, .form-group textarea, .form-group select {
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #2B2B2B;
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
         padding: 10px 12px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
     }
 
     .form-group input:read-only {
-        background: #f9fafb;
-        color: #6b7280;
+        background: #F7F7F4;
+        color: #6B6B6B;
     }
 
-    .form-actions { display: flex; gap: 12px; }
+    .form-actions {
+        display: flex;
+        gap: 12px;
+    }
 
     .btn {
         display: inline-flex;
         align-items: center;
         gap: 8px;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
         border: none;
         transition: all 0.2s;
     }
 
-    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
-    .btn-secondary { background: #f3f4f6; color: #374151; }
-    .btn-sm { padding: 8px 16px; font-size: 13px; }
+    .btn-primary {
+        background: #2F3E2A;
+        color: #FFFFFF;
+    }
+
+    .btn-secondary {
+        background: #F7F7F4;
+        color: #2B2B2B;
+    }
+
+    .btn-sm {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
 
     /* Payment Methods */
     .payment-methods {
@@ -444,15 +492,15 @@
         display: flex;
         gap: 16px;
         padding: 20px;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
+        border: 1px solid #E2E2DC;
+        border-radius: 14px;
         align-items: flex-start;
     }
 
     .method-icon {
         width: 48px;
         height: 48px;
-        border-radius: 12px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -460,8 +508,15 @@
         flex-shrink: 0;
     }
 
-    .method-info { flex: 1; }
-    .method-info h4 { margin: 0 0 12px 0; font-size: 16px; font-weight: 600; }
+    .method-info {
+        flex: 1;
+    }
+
+    .method-info h4 {
+        margin: 0 0 12px 0;
+        font-size: 16px;
+        font-weight: 600;
+    }
 
     .method-details {
         display: grid;
@@ -469,12 +524,25 @@
         gap: 12px;
     }
 
-    .method-details .detail { display: flex; flex-direction: column; }
-    .method-details .detail.full { grid-column: 1 / -1; }
-    .method-details .label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
-    .method-details input, .method-details textarea {
+    .method-details .detail {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .method-details .detail.full {
+        grid-column: 1 / -1;
+    }
+
+    .method-details .label {
+        font-size: 12px;
+        color: #6B6B6B;
+        margin-bottom: 4px;
+    }
+
+    .method-details input,
+    .method-details textarea {
         padding: 8px 12px;
-        border: 1px solid #e5e7eb;
+        border: 1px solid #E2E2DC;
         border-radius: 6px;
         font-size: 14px;
     }
@@ -486,7 +554,10 @@
         gap: 8px;
     }
 
-    .toggle-label { font-size: 12px; color: #6b7280; }
+    .toggle-label {
+        font-size: 12px;
+        color: #6B6B6B;
+    }
 
     .switch {
         position: relative;
@@ -494,12 +565,19 @@
         height: 24px;
     }
 
-    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
 
     .slider {
         position: absolute;
         cursor: pointer;
-        top: 0; left: 0; right: 0; bottom: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         background-color: #ccc;
         transition: .3s;
         border-radius: 24px;
@@ -512,13 +590,18 @@
         width: 18px;
         left: 3px;
         bottom: 3px;
-        background-color: white;
+        background-color: #FFFFFF;
         transition: .3s;
         border-radius: 50%;
     }
 
-    input:checked + .slider { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
-    input:checked + .slider:before { transform: translateX(20px); }
+    input:checked+.slider {
+        background: #2F3E2A;
+    }
+
+    input:checked+.slider:before {
+        transform: translateX(20px);
+    }
 
     /* Notifications */
     .notification-settings {
@@ -528,7 +611,10 @@
         margin-bottom: 20px;
     }
 
-    .notification-group h4 { margin: 0 0 12px 0; font-size: 15px; }
+    .notification-group h4 {
+        margin: 0 0 12px 0;
+        font-size: 15px;
+    }
 
     .notification-items {
         display: flex;
@@ -541,13 +627,20 @@
         align-items: center;
         gap: 12px;
         padding: 12px 16px;
-        background: #f9fafb;
-        border-radius: 8px;
+        background: #F7F7F4;
+        border-radius: 10px;
         cursor: pointer;
     }
 
-    .notification-item input[type="checkbox"] { width: 18px; height: 18px; }
-    .notification-item .text { font-size: 14px; color: #374151; }
+    .notification-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+    }
+
+    .notification-item .text {
+        font-size: 14px;
+        color: #2B2B2B;
+    }
 
     .reminder-settings {
         display: flex;
@@ -561,24 +654,36 @@
         gap: 16px;
     }
 
-    .reminder-item label { font-size: 14px; color: #374151; min-width: 200px; }
+    .reminder-item label {
+        font-size: 14px;
+        color: #2B2B2B;
+        min-width: 200px;
+    }
+
     .reminder-item select {
         padding: 8px 12px;
-        border: 1px solid #e5e7eb;
+        border: 1px solid #E2E2DC;
         border-radius: 6px;
     }
 
     /* Security */
     .security-section {
         padding: 20px;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
+        border: 1px solid #E2E2DC;
+        border-radius: 14px;
         margin-bottom: 20px;
     }
 
-    .security-section h4 { margin: 0 0 16px 0; font-size: 15px; }
+    .security-section h4 {
+        margin: 0 0 16px 0;
+        font-size: 15px;
+    }
 
-    .two-factor p { margin: 0 0 12px 0; font-size: 14px; color: #6b7280; }
+    .two-factor p {
+        margin: 0 0 12px 0;
+        font-size: 14px;
+        color: #6B6B6B;
+    }
 
     .two-factor-status {
         display: flex;
@@ -591,8 +696,13 @@
         font-weight: 500;
     }
 
-    .two-factor-status .status.enabled { color: #10b981; }
-    .two-factor-status .status.disabled { color: #f59e0b; }
+    .two-factor-status .status.enabled {
+        color: #4F6F52;
+    }
+
+    .two-factor-status .status.disabled {
+        color: #C49A3A;
+    }
 
     .login-activity {
         display: flex;
@@ -605,11 +715,13 @@
         align-items: center;
         gap: 12px;
         padding: 12px;
-        background: #f9fafb;
-        border-radius: 8px;
+        background: #F7F7F4;
+        border-radius: 10px;
     }
 
-    .activity-icon { font-size: 20px; }
+    .activity-icon {
+        font-size: 20px;
+    }
 
     .activity-info {
         flex: 1;
@@ -617,15 +729,23 @@
         flex-direction: column;
     }
 
-    .activity-info .device { font-size: 14px; font-weight: 500; color: #1f2937; }
-    .activity-info .details { font-size: 12px; color: #6b7280; }
+    .activity-info .device {
+        font-size: 14px;
+        font-weight: 500;
+        color: #2B2B2B;
+    }
+
+    .activity-info .details {
+        font-size: 12px;
+        color: #6B6B6B;
+    }
 
     .current-badge {
         font-size: 11px;
         padding: 4px 10px;
-        background: #d1fae5;
-        color: #059669;
-        border-radius: 20px;
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+        border-radius: 10px;
         font-weight: 500;
     }
 
@@ -638,17 +758,26 @@
         align-items: center;
         gap: 12px;
         padding: 16px 24px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        background: #FFFFFF;
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(47, 62, 42, 0.15);
         animation: slideIn 0.3s ease;
     }
 
-    .toast.success { border-left: 4px solid #10b981; }
+    .toast.success {
+        border-left: 4px solid #4F6F52;
+    }
 
     @@keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
     }
 </style>
 
@@ -671,7 +800,7 @@
     private async Task LoadSampleData()
     {
         await Task.Delay(100);
-        
+
         profile = new ProfileData
         {
             FullName = "System Administrator",
@@ -691,44 +820,44 @@
         };
 
         paymentMethods = new List<PaymentMethodData>
-        {
-            new PaymentMethodData {
-                Name = "GCash",
-                Icon = "📱",
-                Color = "#0d6efd",
-                AccountName = "FineBank Software Solutions",
-                AccountNumber = "0917-123-4567",
-                Instructions = "Send to the number above and upload receipt",
-                IsActive = true
+{
+new PaymentMethodData {
+Name = "GCash",
+Icon = "📱",
+Color = "#0d6efd",
+AccountName = "FineBank Software Solutions",
+AccountNumber = "0917-123-4567",
+Instructions = "Send to the number above and upload receipt",
+IsActive = true
             },
-            new PaymentMethodData {
-                Name = "PayMaya",
-                Icon = "💳",
-                Color = "#10b981",
-                AccountName = "FineBank Software Solutions",
-                AccountNumber = "0918-765-4321",
-                Instructions = "",
-                IsActive = true
+new PaymentMethodData {
+Name = "PayMaya",
+Icon = "💳",
+Color = "#5F6F52",
+AccountName = "FineBank Software Solutions",
+AccountNumber = "0918-765-4321",
+Instructions = "",
+IsActive = true
             },
-            new PaymentMethodData {
-                Name = "BDO",
-                Icon = "🏦",
-                Color = "#0066a1",
-                AccountName = "FineBank Software Solutions Inc.",
-                AccountNumber = "1234-5678-9012",
-                Instructions = "BDO Savings Account - Makati Branch",
-                IsActive = true
+new PaymentMethodData {
+Name = "BDO",
+Icon = "🏦",
+Color = "#0066a1",
+AccountName = "FineBank Software Solutions Inc.",
+AccountNumber = "1234-5678-9012",
+Instructions = "BDO Savings Account - Makati Branch",
+IsActive = true
             },
-            new PaymentMethodData {
-                Name = "BPI",
-                Icon = "🏛️",
-                Color = "#a51c30",
-                AccountName = "FineBank Software Solutions Inc.",
-                AccountNumber = "9876-5432-1098",
-                Instructions = "BPI Savings Account - BGC Branch",
-                IsActive = true
+new PaymentMethodData {
+Name = "BPI",
+Icon = "🏛️",
+Color = "#a51c30",
+AccountName = "FineBank Software Solutions Inc.",
+AccountNumber = "9876-5432-1098",
+Instructions = "BPI Savings Account - BGC Branch",
+IsActive = true
             }
-        };
+};
 
         notifications = new NotificationSettings
         {

@@ -417,7 +417,8 @@
                                     <div class="contract-title">SERVICE AGREEMENT</div>
                                     <p>This Service Agreement is entered into as of <strong>@contractStartDate.ToString("MMMM                      dd, yyyy")</strong>
                                         by and between <strong>ERP Solutions Provider</strong> ("Provider") and
-                                        <strong>@editClient.CompanyName</strong> ("Client").</p>
+                                        <strong>@editClient.CompanyName</strong> ("Client").
+                                    </p>
                                     <p><strong>1. SERVICES:</strong> Provider agrees to provide Client access to the ERP System
                                         including:
                                         @string.Join(", ", availableModules.Where(m =>
@@ -550,14 +551,14 @@
 
     .header-left h2 {
         font-size: 24px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
         margin: 0;
     }
 
     .header-left .subtitle {
         font-size: 14px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .btn {
@@ -565,7 +566,7 @@
         align-items: center;
         gap: 8px;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
         border: none;
@@ -573,18 +574,18 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: white;
+        background: #2F3E2A;
+        color: #FFFFFF;
     }
 
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        box-shadow: 0 4px 12px rgba(47, 62, 42, 0.4);
     }
 
     .btn-secondary {
-        background: #f3f4f6;
-        color: #374151;
+        background: #F7F7F4;
+        color: #2B2B2B;
     }
 
     .stats-row {
@@ -595,36 +596,36 @@
     }
 
     .stat-card {
-        background: white;
+        background: #FFFFFF;
         padding: 20px;
-        border-radius: 12px;
+        border-radius: 14px;
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        border-left: 4px solid #6366f1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        border-left: 4px solid #5F6F52;
     }
 
     .stat-card.active {
-        border-left-color: #10b981;
+        border-left-color: #5F6F52;
     }
 
     .stat-card.trial {
-        border-left-color: #f59e0b;
+        border-left-color: #C49A3A;
     }
 
     .stat-card.suspended {
-        border-left-color: #ef4444;
+        border-left-color: #9B3A3A;
     }
 
     .stat-value {
         display: block;
         font-size: 28px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
     }
 
     .stat-label {
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .filters-bar {
@@ -641,8 +642,8 @@
     .search-box input {
         width: 100%;
         padding: 12px 12px 12px 40px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
     }
 
@@ -655,17 +656,17 @@
 
     .filter-group select {
         padding: 12px 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
-        background: white;
+        background: #FFFFFF;
     }
 
     .table-card {
-        background: white;
-        border-radius: 12px;
+        background: #FFFFFF;
+        border-radius: 14px;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
     .data-table {
@@ -674,19 +675,19 @@
     }
 
     .data-table th {
-        background: #f9fafb;
+        background: #F7F7F4;
         padding: 14px 16px;
         text-align: left;
         font-size: 12px;
         font-weight: 600;
-        color: #6b7280;
+        color: #6B6B6B;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
 
     .data-table td {
         padding: 16px;
-        border-top: 1px solid #f3f4f6;
+        border-top: 1px solid #F7F7F4;
     }
 
     .clickable-row {
@@ -695,7 +696,7 @@
     }
 
     .clickable-row:hover {
-        background: #f9fafb;
+        background: #F7F7F4;
     }
 
     .client-cell {
@@ -708,8 +709,8 @@
         width: 40px;
         height: 40px;
         border-radius: 10px;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: white;
+        background: #2F3E2A;
+        color: #FFFFFF;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -724,17 +725,17 @@
 
     .client-name {
         font-weight: 600;
-        color: #1f2937;
+        color: #2B2B2B;
     }
 
     .client-email {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .plan-badge {
         padding: 4px 10px;
-        border-radius: 20px;
+        border-radius: 10px;
         font-size: 12px;
         font-weight: 500;
     }
@@ -745,8 +746,8 @@
     }
 
     .plan-badge.pro {
-        background: #fef3c7;
-        color: #d97706;
+        background: rgba(196, 154, 58, 0.15);
+        color: #C49A3A;
     }
 
     .plan-badge.enterprise {
@@ -756,33 +757,33 @@
 
     .status-badge {
         padding: 4px 10px;
-        border-radius: 20px;
+        border-radius: 10px;
         font-size: 12px;
         font-weight: 500;
     }
 
     .status-badge.active {
-        background: #d1fae5;
-        color: #059669;
+        background: #D4E6D4;
+        color: #5F6F52;
     }
 
     .status-badge.trial {
-        background: #fef3c7;
-        color: #d97706;
+        background: rgba(196, 154, 58, 0.15);
+        color: #C49A3A;
     }
 
     .status-badge.suspended {
-        background: #fee2e2;
-        color: #dc2626;
+        background: rgba(155, 58, 58, 0.1);
+        color: #9B3A3A;
     }
 
     .status-badge.cancelled {
-        background: #f3f4f6;
-        color: #6b7280;
+        background: #F7F7F4;
+        color: #6B6B6B;
     }
 
     .text-danger {
-        color: #dc2626;
+        color: #9B3A3A;
         font-weight: 600;
     }
 
@@ -794,14 +795,14 @@
     .action-btn {
         width: 32px;
         height: 32px;
-        border-radius: 8px;
+        border-radius: 10px;
         border: none;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
-        background: #f3f4f6;
+        background: #F7F7F4;
     }
 
     .action-btn:hover {
@@ -813,15 +814,15 @@
     }
 
     .action-btn.edit:hover {
-        background: #fef3c7;
+        background: rgba(196, 154, 58, 0.15);
     }
 
     .action-btn.suspend:hover {
-        background: #fee2e2;
+        background: rgba(155, 58, 58, 0.1);
     }
 
     .action-btn.activate:hover {
-        background: #d1fae5;
+        background: #D4E6D4;
     }
 
     /* Modal */
@@ -831,7 +832,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(47, 62, 42, 0.6);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -839,8 +840,8 @@
     }
 
     .modal-content {
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
         width: 90%;
         max-width: 700px;
         max-height: 90vh;
@@ -856,7 +857,7 @@
         justify-content: space-between;
         align-items: center;
         padding: 20px 24px;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #E2E2DC;
     }
 
     .modal-header h3 {
@@ -870,7 +871,7 @@
         border: none;
         font-size: 20px;
         cursor: pointer;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .modal-body {
@@ -882,7 +883,7 @@
         justify-content: flex-end;
         gap: 12px;
         padding: 16px 24px;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid #E2E2DC;
     }
 
     .form-grid {
@@ -904,15 +905,15 @@
     .form-group label {
         font-size: 13px;
         font-weight: 500;
-        color: #374151;
+        color: #2B2B2B;
     }
 
     .form-group input,
     .form-group select,
     .form-group textarea {
         padding: 10px 12px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
     }
 
@@ -920,8 +921,8 @@
     .form-group select:focus,
     .form-group textarea:focus {
         outline: none;
-        border-color: #6366f1;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        border-color: #5F6F52;
+        box-shadow: 0 0 0 3px rgba(95, 111, 82, 0.1);
     }
 
     /* Setup Steps */
@@ -931,8 +932,8 @@
         justify-content: center;
         margin-bottom: 24px;
         padding: 16px;
-        background: #f9fafb;
-        border-radius: 12px;
+        background: #F7F7F4;
+        border-radius: 14px;
     }
 
     .step {
@@ -946,8 +947,8 @@
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: #e5e7eb;
-        color: #6b7280;
+        background: #E2E2DC;
+        color: #6B6B6B;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -956,34 +957,34 @@
     }
 
     .step.active .step-num {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: white;
+        background: #2F3E2A;
+        color: #FFFFFF;
     }
 
     .step.completed .step-num {
-        background: #10b981;
+        background: #5F6F52;
         color: white;
     }
 
     .step-label {
         font-size: 11px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .step.active .step-label {
-        color: #6366f1;
+        color: #5F6F52;
         font-weight: 500;
     }
 
     .step-line {
         width: 60px;
         height: 2px;
-        background: #e5e7eb;
+        background: #E2E2DC;
         margin: 0 8px 20px;
     }
 
     .step-line.active {
-        background: linear-gradient(90deg, #10b981, #6366f1);
+        background: #5F6F52;
     }
 
     /* Module Selection */
@@ -1001,7 +1002,7 @@
     }
 
     .selection-header p {
-        color: #6b7280;
+        color: #6B6B6B;
         font-size: 14px;
         margin: 0 0 12px 0;
     }
@@ -1013,19 +1014,19 @@
 
     .quick-btn {
         padding: 6px 14px;
-        border-radius: 20px;
+        border-radius: 10px;
         border: none;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: white;
+        background: #2F3E2A;
+        color: #FFFFFF;
         font-size: 12px;
         cursor: pointer;
         transition: all 0.2s;
     }
 
     .quick-btn.outline {
-        background: white;
-        border: 1px solid #e5e7eb;
-        color: #374151;
+        background: #FFFFFF;
+        border: 1px solid #E2E2DC;
+        color: #2B2B2B;
     }
 
     .modules-grid {
@@ -1040,7 +1041,7 @@
         align-items: flex-start;
         gap: 12px;
         padding: 14px;
-        border: 2px solid #e5e7eb;
+        border: 2px solid #E2E2DC;
         border-radius: 10px;
         cursor: pointer;
         transition: all 0.2s;
@@ -1048,24 +1049,24 @@
     }
 
     .module-card:hover {
-        border-color: #6366f1;
-        background: #f5f3ff;
+        border-color: #5F6F52;
+        background: rgba(79, 111, 82, 0.15);
     }
 
     .module-card.selected {
-        border-color: #6366f1;
-        background: #f5f3ff;
+        border-color: #5F6F52;
+        background: rgba(79, 111, 82, 0.15);
     }
 
     .module-card.core {
-        background: #f0fdf4;
-        border-color: #86efac;
+        background: #F0F2EC;
+        border-color: #A9B388;
     }
 
     .module-check {
         width: 22px;
         height: 22px;
-        border: 2px solid #d1d5db;
+        border: 2px solid #E2E2DC;
         border-radius: 6px;
         display: flex;
         align-items: center;
@@ -1074,12 +1075,12 @@
     }
 
     .module-card.selected .module-check {
-        background: #6366f1;
-        border-color: #6366f1;
+        background: #5F6F52;
+        border-color: #5F6F52;
     }
 
     .checked {
-        color: white;
+        color: #FFFFFF;
         font-weight: bold;
         font-size: 12px;
     }
@@ -1098,24 +1099,24 @@
 
     .module-desc {
         font-size: 11px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .module-price {
         font-size: 12px;
         font-weight: 500;
-        color: #6366f1;
+        color: #5F6F52;
     }
 
     .module-price .included {
-        color: #10b981;
+        color: #5F6F52;
     }
 
     .core-badge {
         position: absolute;
         top: 6px;
         right: 6px;
-        background: #10b981;
+        background: #5F6F52;
         color: white;
         padding: 2px 6px;
         border-radius: 8px;
@@ -1128,12 +1129,12 @@
         justify-content: flex-end;
         gap: 24px;
         padding: 12px 16px;
-        background: #f9fafb;
-        border-radius: 8px;
+        background: #F7F7F4;
+        border-radius: 10px;
     }
 
     .selection-summary .label {
-        color: #6b7280;
+        color: #6B6B6B;
         font-size: 13px;
     }
 
@@ -1143,7 +1144,7 @@
     }
 
     .selection-summary .highlight .value {
-        color: #6366f1;
+        color: #5F6F52;
         font-size: 18px;
     }
 
@@ -1163,24 +1164,24 @@
         display: flex;
         gap: 12px;
         padding: 16px;
-        border: 2px solid #e5e7eb;
+        border: 2px solid #E2E2DC;
         border-radius: 10px;
         cursor: pointer;
         transition: all 0.2s;
     }
 
     .billing-option:hover {
-        border-color: #6366f1;
+        border-color: #5F6F52;
     }
 
     .billing-option.selected {
-        border-color: #6366f1;
-        background: #f5f3ff;
+        border-color: #5F6F52;
+        background: rgba(79, 111, 82, 0.15);
     }
 
     .option-radio {
         font-size: 18px;
-        color: #6366f1;
+        color: #5F6F52;
     }
 
     .option-content {
@@ -1194,18 +1195,18 @@
 
     .option-price {
         font-size: 18px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
     }
 
     .savings {
         font-size: 11px;
-        color: #10b981;
+        color: #5F6F52;
         font-weight: 500;
     }
 
     .pricing-breakdown {
-        background: #f9fafb;
+        background: #F7F7F4;
         border-radius: 10px;
         padding: 16px;
         margin-bottom: 20px;
@@ -1229,7 +1230,7 @@
     }
 
     .breakdown-table th {
-        background: #e5e7eb;
+        background: #E2E2DC;
         font-weight: 600;
     }
 
@@ -1239,15 +1240,15 @@
     }
 
     .breakdown-table .total {
-        background: #ede9fe;
+        background: rgba(79, 111, 82, 0.15);
         font-weight: 600;
     }
 
     .first-payment-summary {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        border-radius: 12px;
+        background: #2F3E2A;
+        border-radius: 14px;
         padding: 16px;
-        color: white;
+        color: #FFFFFF;
     }
 
     .first-payment-summary h5 {
@@ -1274,7 +1275,7 @@
     }
 
     .payment-row.discount {
-        color: #86efac;
+        color: #A9B388;
     }
 
     .payment-row.total {
@@ -1299,14 +1300,14 @@
     }
 
     .review-card {
-        background: #f9fafb;
+        background: #F7F7F4;
         border-radius: 10px;
         padding: 14px;
     }
 
     .review-card h5 {
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
         text-transform: uppercase;
         margin: 0 0 8px 0;
     }
@@ -1318,8 +1319,8 @@
 
     .contract-preview,
     .invoice-preview {
-        background: white;
-        border: 1px solid #e5e7eb;
+        background: #FFFFFF;
+        border: 1px solid #E2E2DC;
         border-radius: 10px;
         margin-bottom: 16px;
     }
@@ -1330,8 +1331,8 @@
         justify-content: space-between;
         align-items: center;
         padding: 12px 16px;
-        background: #f9fafb;
-        border-bottom: 1px solid #e5e7eb;
+        background: #F7F7F4;
+        border-bottom: 1px solid #E2E2DC;
     }
 
     .contract-header h5,
@@ -1351,7 +1352,7 @@
     .contract-title {
         text-align: center;
         font-size: 16px;
-        font-weight: 700;
+        font-weight: 600;
         margin-bottom: 16px;
     }
 
@@ -1368,14 +1369,14 @@
 
     .inv-label {
         font-size: 20px;
-        font-weight: 800;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
     }
 
     .inv-num {
         display: block;
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .invoice-to {
@@ -1384,7 +1385,7 @@
 
     .invoice-to .label {
         font-size: 10px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .invoice-items {
@@ -1397,11 +1398,11 @@
     .invoice-items td {
         padding: 8px;
         text-align: left;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #E2E2DC;
     }
 
     .invoice-items th {
-        background: #f9fafb;
+        background: #F7F7F4;
         font-size: 10px;
         text-transform: uppercase;
     }
@@ -1412,16 +1413,16 @@
     }
 
     .invoice-items .discount {
-        color: #10b981;
+        color: #5F6F52;
     }
 
     .invoice-items tfoot .total {
-        background: #ede9fe;
+        background: rgba(79, 111, 82, 0.15);
     }
 
     .invoice-footer {
         padding-top: 12px;
-        border-top: 1px dashed #e5e7eb;
+        border-top: 1px dashed #E2E2DC;
     }
 
     .invoice-footer p {
@@ -1431,8 +1432,8 @@
 
     .confirmation-check {
         padding: 12px;
-        background: #fef3c7;
-        border-radius: 8px;
+        background: rgba(196, 154, 58, 0.15);
+        border-radius: 10px;
     }
 
     .checkbox-label {
@@ -1446,7 +1447,7 @@
     .checkbox-label input {
         width: 18px;
         height: 18px;
-        accent-color: #6366f1;
+        accent-color: #5F6F52;
     }
 
     .btn-sm {
@@ -1812,15 +1813,15 @@ new ModuleItem { ModuleId = 8, ModuleName = "Audit Trail", Description = "System
         .Where(m => selectedModuleIds.Contains(m.ModuleId))
         .Select(m => "<tr><td>" + m.ModuleName + "</td><td>₱" + m.MonthlyPrice.ToString("N2") + "</td></tr>"));
         var discountRow = discountPercent > 0
-        ? "<tr><td>Discount (" + discountPercent + "%)</td><td>-₱" + GetDiscountAmount().ToString("N2") + "</td></tr>"
-        : "";
+                ? "<tr><td>Discount (" + discountPercent + "%)</td><td>-₱" + GetDiscountAmount().ToString("N2") + "</td></tr>"
+                : "";
 
         sb.Append("<!DOCTYPE html><html><head>");
         sb.Append("<title>Service Contract - " + editClient.CompanyName + "</title>");
         sb.Append("<style>");
         sb.Append("body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; }");
-        sb.Append(".header { text-align: center; border-bottom: 2px solid #059669; padding-bottom: 20px; margin-bottom: 30px; }");
-        sb.Append(".header h1 { color: #059669; margin: 0; }");
+        sb.Append(".header { text-align: center; border-bottom: 2px solid #5F6F52; padding-bottom: 20px; margin-bottom: 30px; }");
+        sb.Append(".header h1 { color: #5F6F52; margin: 0; }");
         sb.Append(".section { margin-bottom: 25px; }");
         sb.Append(".section h3 { color: #1f2937; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }");
         sb.Append("table { width: 100%; border-collapse: collapse; margin: 15px 0; }");
@@ -1887,16 +1888,16 @@ new ModuleItem { ModuleId = 8, ModuleName = "Audit Trail", Description = "System
     {
         var sb = new System.Text.StringBuilder();
         var discountRow = discountPercent > 0
-        ? "<tr><td>Discount (" + discountPercent + "%)</td><td></td><td></td><td>-₱" + GetDiscountAmount().ToString("N2") +
+                ? "<tr><td>Discount (" + discountPercent + "%)</td><td></td><td></td><td>-₱" + GetDiscountAmount().ToString("N2") +
         "</td></tr>"
-        : "";
+                : "";
 
         sb.Append("<!DOCTYPE html><html><head>");
         sb.Append("<title>Invoice - " + editClient.CompanyName + "</title>");
         sb.Append("<style>");
         sb.Append("body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; }");
-        sb.Append(".header { display: flex; justify-content: space-between; border-bottom: 2px solid #059669; padding-bottom: 20px; margin-bottom: 30px; }");
-        sb.Append(".company { font-size: 24px; font-weight: bold; color: #059669; }");
+        sb.Append(".header { display: flex; justify-content: space-between; border-bottom: 2px solid #5F6F52; padding-bottom: 20px; margin-bottom: 30px; }");
+        sb.Append(".company { font-size: 24px; font-weight: bold; color: #5F6F52; }");
         sb.Append(".invoice-no { text-align: right; }");
         sb.Append(".invoice-no h2 { color: #1f2937; margin: 0; }");
         sb.Append(".details { display: flex; justify-content: space-between; margin-bottom: 30px; }");
@@ -1906,7 +1907,7 @@ new ModuleItem { ModuleId = 8, ModuleName = "Audit Trail", Description = "System
         sb.Append("th { background: #f3f4f6; }");
         sb.Append(".totals { text-align: right; margin-top: 20px; }");
         sb.Append(".totals table { width: 300px; margin-left: auto; }");
-        sb.Append(".total-row td { font-weight: bold; font-size: 18px; color: #059669; }");
+        sb.Append(".total-row td { font-weight: bold; font-size: 18px; color: #5F6F52; }");
         sb.Append("@media print { body { padding: 20px; } }");
         sb.Append("</style></head><body>");
 

@@ -10,18 +10,18 @@
 @inject IDbContextFactory<BFASDbContext> DbContextFactory
 
 <!-- Admin Notice -->
-<div style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+<div style="background: #E8F0E8; border: 1px solid #5F6F52; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
     <div style="display: flex; align-items: flex-start; gap: 12px;">
         <span style="font-size: 20px;">ℹ️</span>
         <div>
-            <h4 style="margin: 0 0 4px; font-size: 14px; font-weight: 700; color: #1e40af;">SuperAdmin Deposit Operations Access</h4>
-            <p style="margin: 0; font-size: 13px; color: #1e40af; opacity: 0.9;">You have direct authority to process deposits without PIN verification. All admin transactions are logged with audit trail.</p>
+            <h4 style="margin: 0 0 4px; font-size: 14px; font-weight: 700; color: #2F3E2A;">SuperAdmin Deposit Operations Access</h4>
+            <p style="margin: 0; font-size: 13px; color: #2F3E2A; opacity: 0.9;">You have direct authority to process deposits without PIN verification. All admin transactions are logged with audit trail.</p>
         </div>
     </div>
 </div>
 
 <!-- Header Title Card -->
-<div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.15)); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 16px; padding: 32px; margin-bottom: 32px; color: #15803d;">
+<div style="background: linear-gradient(135deg, rgba(95, 111, 82, 0.1), rgba(47, 62, 42, 0.15)); border: 1px solid rgba(95, 111, 82, 0.3); border-radius: 16px; padding: 32px; margin-bottom: 32px; color: #5F6F52;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -34,12 +34,12 @@
 </div>
 
 <!-- Admin Reason Field -->
-<div style="background: #f0fdf4; border: 2px solid #059669; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-    <label style="font-size: 14px; font-weight: 700; display: block; margin-bottom: 8px; color: #065f46;">
+<div style="background: #F0F2EC; border: 2px solid #5F6F52; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <label style="font-size: 14px; font-weight: 700; display: block; margin-bottom: 8px; color: #2F3E2A;">
         📋 Admin Action Reason (Required)
     </label>
     <textarea @bind="adminActionReason" 
-              style="width: 100%; padding: 12px; border: 1px solid #86efac; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 60px;" 
+              style="width: 100%; padding: 12px; border: 1px solid #A9B388; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 60px;" 
               placeholder="Document why you are processing this deposit as admin (e.g., 'Teller unavailable - customer urgent deposit', 'System maintenance deposit processing')..."></textarea>
     @if (showError && string.IsNullOrWhiteSpace(adminActionReason))
     {
@@ -108,9 +108,9 @@
             <!-- Reference Number -->
             <div>
                 <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px;">Reference Number</label>
-                <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #f0fdf4; color: #065f46; font-weight: 600;" 
+                <input type="text" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #F0F2EC; color: #2F3E2A; font-weight: 600;" 
                        value="@referenceNumber" readonly placeholder="Auto-generated" />
-                <span style="color: #059669; font-size: 11px; display: block; margin-top: 4px;">✓ Auto-generated reference number (ADMIN prefix)</span>
+                <span style="color: #5F6F52; font-size: 11px; display: block; margin-top: 4px;">✓ Auto-generated reference number (ADMIN prefix)</span>
             </div>
 
             <!-- Notes -->
@@ -142,13 +142,13 @@
 
         @if (!string.IsNullOrEmpty(successMessage))
         {
-            <div style="padding: 16px; background: #d1fae5; border-radius: 8px; color: #065f46; margin-bottom: 20px; font-size: 14px;">
+            <div style="padding: 16px; background: #D4E6D4; border-radius: 8px; color: #2F3E2A; margin-bottom: 20px; font-size: 14px;">
                 <strong>Success:</strong> @successMessage
                 @if (!string.IsNullOrEmpty(lastReceiptNumber))
                 {
                     <div style="margin-top: 12px; font-size: 13px;">
                         Receipt #: <strong>@lastReceiptNumber</strong>
-                        <button type="button" @onclick="PrintReceipt" style="margin-left: 12px; background: #059669; color: white; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">Print Receipt</button>
+                        <button type="button" @onclick="PrintReceipt" style="margin-left: 12px; background: #5F6F52; color: white; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;">Print Receipt</button>
                     </div>
                 }
             </div>
@@ -160,7 +160,7 @@
                 Reset
             </button>
             <button type="submit" 
-                    style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 12px 32px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;" 
+                    style="background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; padding: 12px 32px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;" 
                     disabled="@isLoading">
                 @if (isLoading) { <span>Processing...</span> }
                 else { <span>🔐 Process Deposit (Admin)</span> }
@@ -194,14 +194,14 @@
                         <tr style="border-bottom: 1px solid #e5e7eb; hover:background: #f9fafb;">
                             <td style="padding: 16px; font-weight: 600;">@transaction.AccountNumber</td>
                             <td style="padding: 16px;">@transaction.CustomerName</td>
-                            <td style="padding: 16px; font-weight: 600; color: #059669;">₱@transaction.Amount.ToString("N2")</td>
+                            <td style="padding: 16px; font-weight: 600; color: #5F6F52;">₱@transaction.Amount.ToString("N2")</td>
                             <td style="padding: 16px; font-size: 12px;">@transaction.Method</td>
                             <td style="padding: 16px; font-size: 12px; color: #6b7280;">@transaction.Date.ToString("hh:mm tt")</td>
-                            <td style="padding: 16px;"><span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 600;">Completed</span></td>
+                            <td style="padding: 16px;"><span style="padding: 4px 12px; background: #D4E6D4; color: #2F3E2A; border-radius: 8px; font-size: 12px; font-weight: 600;">Completed</span></td>
                             <td style="padding: 16px; text-align: center;">
                                 <button type="button" 
                                         @onclick="@(() => ViewInvoice(transaction))"
-                                        style="background: #059669; color: white; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 12px;">
+                                        style="background: #5F6F52; color: white; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 12px;">
                                     📄 Invoice
                                 </button>
                             </td>
@@ -235,7 +235,7 @@
             <div style="font-size: 14px; line-height: 1.8;">
                 <!-- Header -->
                 <div style="text-align: center; margin-bottom: 24px;">
-                    <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 700; color: #059669;">ADMIN DEPOSIT INVOICE</h3>
+                    <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 700; color: #5F6F52;">ADMIN DEPOSIT INVOICE</h3>
                     <p style="margin: 0; color: #6b7280; font-size: 12px;">FinanceBank System - Admin Transaction</p>
                 </div>
 
@@ -262,16 +262,16 @@
                 </div>
 
                 <!-- Transaction Details -->
-                <div style="background: #f0fdf4; padding: 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #059669;">
+                <div style="background: #F0F2EC; padding: 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #5F6F52;">
                     <p style="margin: 0 0 12px; color: #6b7280; font-size: 12px; font-weight: 600;">TRANSACTION DETAILS</p>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div>
                             <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">Deposit Amount</p>
-                            <p style="margin: 0; font-size: 18px; font-weight: 700; color: #059669;">₱@trans.Amount.ToString("N2")</p>
+                            <p style="margin: 0; font-size: 18px; font-weight: 700; color: #5F6F52;">₱@trans.Amount.ToString("N2")</p>
                         </div>
                         <div>
                             <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">Status</p>
-                            <p style="margin: 0; font-weight: 600; color: #065f46;">✓ Completed</p>
+                            <p style="margin: 0; font-weight: 600; color: #2F3E2A;">✓ Completed</p>
                         </div>
                     </div>
                 </div>
@@ -296,7 +296,7 @@
             <div style="display: flex; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
                 <button type="button" 
                         @onclick="PrintInvoice"
-                        style="flex: 1; background: #059669; color: white; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
+                        style="flex: 1; background: #5F6F52; color: white; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
                     Print Invoice
                 </button>
                 <button type="button" 
@@ -325,7 +325,7 @@
             <p style="margin: 0 0 24px; color: #6b7280; text-align: center; font-size: 14px;">You are processing this deposit with admin authority.</p>
 
             <!-- Transaction Summary -->
-            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+            <div style="background: #F0F2EC; border: 1px solid #A9B388; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
                 <div style="display: grid; gap: 12px;">
                     <div style="display: flex; justify-content: space-between;">
                         <span style="color: #6b7280; font-size: 13px;">Account:</span>
@@ -335,9 +335,9 @@
                         <span style="color: #6b7280; font-size: 13px;">Customer:</span>
                         <span style="font-weight: 600; color: #1f2937;">@customerName</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px dashed #86efac;">
+                    <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px dashed #A9B388;">
                         <span style="color: #6b7280; font-size: 13px;">Deposit Amount:</span>
-                        <span style="font-weight: 700; color: #059669; font-size: 18px;">₱@depositAmount.ToString("N2")</span>
+                        <span style="font-weight: 700; color: #5F6F52; font-size: 18px;">₱@depositAmount.ToString("N2")</span>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
                         <span style="color: #6b7280; font-size: 13px;">Method:</span>
@@ -362,7 +362,7 @@
                 <button type="button" 
                         @onclick="HandleDeposit"
                         disabled="@isLoading"
-                        style="flex: 1; padding: 12px; background: linear-gradient(135deg, #059669, #047857); color: white; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
+                        style="flex: 1; padding: 12px; background: linear-gradient(135deg, #5F6F52, #2F3E2A); color: white; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
                     @if (isLoading) { <span>Processing...</span> }
                     else { <span>✓ Confirm Admin Deposit</span> }
                 </button>

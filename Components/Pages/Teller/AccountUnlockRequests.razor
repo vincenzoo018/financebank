@@ -7,10 +7,9 @@
 @inject IDbContextFactory<BFASDbContext> DbContextFactory
 
 <!-- Page Header -->
-<div
-    style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+<div style="background: #9B3A3A; border-radius: 14px; padding: 32px; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 10px; padding: 12px;">
             <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -18,7 +17,7 @@
             </svg>
         </div>
         <div>
-            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Account Unlock Requests</h1>
+            <h1 style="font-size: 24px; font-weight: 600; color: white; margin: 0;">Account Unlock Requests</h1>
             <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Create and manage unlock
                 requests for locked customer accounts</p>
         </div>
@@ -29,30 +28,30 @@
 <div
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
     <div
-        style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border-radius: 12px; padding: 16px; border: 2px solid #fca5a5;">
-        <div style="font-size: 11px; font-weight: 600; color: #991b1b; margin-bottom: 4px; text-transform: uppercase;">
+        style="background: rgba(155, 58, 58, 0.1); border-radius: 14px; padding: 16px; border: 1px solid rgba(155, 58, 58, 0.2);">
+        <div style="font-size: 11px; font-weight: 500; color: #9B3A3A; margin-bottom: 4px; text-transform: uppercase;">
             TOTAL REQUESTS</div>
-        <div style="font-size: 24px; font-weight: 800; color: #dc2626;">@unlockRequests.Count</div>
+        <div style="font-size: 24px; font-weight: 600; color: #9B3A3A;">@unlockRequests.Count</div>
     </div>
     <div
-        style="background: linear-gradient(135deg, #fefce8, #fef9c3); border-radius: 12px; padding: 16px; border: 2px solid #fde047;">
-        <div style="font-size: 11px; font-weight: 600; color: #a16207; margin-bottom: 4px; text-transform: uppercase;">
+        style="background: rgba(196, 154, 58, 0.1); border-radius: 14px; padding: 16px; border: 1px solid rgba(196, 154, 58, 0.2);">
+        <div style="font-size: 11px; font-weight: 500; color: #C49A3A; margin-bottom: 4px; text-transform: uppercase;">
             PENDING</div>
-        <div style="font-size: 24px; font-weight: 800; color: #ca8a04;">@unlockRequests.Count(r => r.Status ==
+        <div style="font-size: 24px; font-weight: 600; color: #C49A3A;">@unlockRequests.Count(r => r.Status ==
                         "Pending")</div>
     </div>
     <div
-        style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px; padding: 16px; border: 2px solid #6ee7b7;">
-        <div style="font-size: 11px; font-weight: 600; color: #047857; margin-bottom: 4px; text-transform: uppercase;">
+        style="background: rgba(79, 111, 82, 0.1); border-radius: 14px; padding: 16px; border: 1px solid rgba(79, 111, 82, 0.2);">
+        <div style="font-size: 11px; font-weight: 500; color: #4F6F52; margin-bottom: 4px; text-transform: uppercase;">
             APPROVED</div>
-        <div style="font-size: 24px; font-weight: 800; color: #059669;">@unlockRequests.Count(r => r.Status ==
+        <div style="font-size: 24px; font-weight: 600; color: #4F6F52;">@unlockRequests.Count(r => r.Status ==
                         "Approved")</div>
     </div>
     <div
-        style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border-radius: 12px; padding: 16px; border: 2px solid #fca5a5;">
-        <div style="font-size: 11px; font-weight: 600; color: #991b1b; margin-bottom: 4px; text-transform: uppercase;">
+        style="background: rgba(155, 58, 58, 0.1); border-radius: 14px; padding: 16px; border: 1px solid rgba(155, 58, 58, 0.2);">
+        <div style="font-size: 11px; font-weight: 500; color: #9B3A3A; margin-bottom: 4px; text-transform: uppercase;">
             REJECTED</div>
-        <div style="font-size: 24px; font-weight: 800; color: #dc2626;">@unlockRequests.Count(r => r.Status ==
+        <div style="font-size: 24px; font-weight: 600; color: #9B3A3A;">@unlockRequests.Count(r => r.Status ==
                         "Rejected")</div>
     </div>
 </div>
@@ -60,7 +59,7 @@
 <!-- Create New Request Button -->
 <div style="margin-bottom: 24px;">
     <button @onclick="OpenNewRequestModal" class="btn"
-        style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; border: none; cursor: pointer;">
+        style="background: #2F3E2A; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 500; font-size: 14px; display: flex; align-items: center; gap: 8px; border: none; cursor: pointer;">
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -71,17 +70,17 @@
 
 <!-- Filters -->
 <div
-    style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+    style="background: #FFFFFF; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
     <div style="flex: 1 1 200px;">
-        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Search</label>
+        <label style="display:block; font-size:12px; font-weight:500; color:#6B6B6B; margin-bottom:4px;">Search</label>
         <input type="text" @bind="searchQuery" @bind:event="oninput"
             placeholder="Search by customer name, account number..."
-            style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; width: 100%;" />
+            style="padding: 10px; border: 1px solid #E2E2DC; border-radius: 10px; width: 100%;" />
     </div>
     <div style="flex: 1 1 150px;">
-        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Status</label>
+        <label style="display:block; font-size:12px; font-weight:500; color:#6B6B6B; margin-bottom:4px;">Status</label>
         <select @bind="selectedStatus"
-            style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; width: 100%;">
+            style="padding: 10px; border: 1px solid #E2E2DC; border-radius: 10px; width: 100%;">
             <option value="">All Status</option>
             <option value="Pending">Pending</option>
             <option value="Approved">Approved</option>
@@ -90,24 +89,24 @@
     </div>
     <div style="flex: 0 0 auto; display:flex; gap:8px;">
         <button class="btn"
-            style="background: linear-gradient(135deg, #059669, #047857); color:white; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
+            style="background: #2F3E2A; color:white; padding:10px 18px; border-radius:10px; font-size:14px; font-weight:500;"
             @onclick="ApplyFilters">🔍 Filter</button>
         <button class="btn"
-            style="background:#e5e7eb; color:#374151; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600;"
+            style="background:#A9B388; color:#2F3E2A; padding:10px 18px; border-radius:10px; font-size:14px; font-weight:500;"
             @onclick="ResetFilters">↻ Reset</button>
     </div>
 </div>
 
 <!-- Requests Table -->
-<div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb;">
+<div style="background: #FFFFFF; border-radius: 14px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">
+        <h2 style="font-size: 18px; font-weight: 600; color: #2B2B2B; margin: 0;">
             My Submitted Requests
-            <span style="font-size: 14px; font-weight: 400; color: #6b7280;">(@GetFilteredRequests().Count()
+            <span style="font-size: 14px; font-weight: 400; color: #6B6B6B;">(@GetFilteredRequests().Count()
                 records)</span>
         </h2>
         <button @onclick="LoadData" class="btn"
-            style="background: #f3f4f6; color: #374151; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: none; cursor: pointer;">
+            style="background: #F7F7F4; color: #2B2B2B; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; border: 1px solid #E2E2DC; cursor: pointer;">
             ↻ Refresh
         </button>
     </div>
@@ -115,30 +114,30 @@
     <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
-                <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                <tr style="background: #F7F7F4; border-bottom: 2px solid #E2E2DC;">
                     <th
-                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">
+                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
                         Request ID</th>
                     <th
-                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">
+                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
                         Account</th>
                     <th
-                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">
+                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
                         Customer</th>
                     <th
-                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">
+                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
                         Lock Reason</th>
                     <th
-                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">
+                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
                         Priority</th>
                     <th
-                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">
+                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
                         Status</th>
                     <th
-                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">
+                        style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
                         Requested</th>
                     <th
-                        style="padding: 12px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">
+                        style="padding: 12px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #6B6B6B; text-transform: uppercase;">
                         Actions</th>
                 </tr>
             </thead>
@@ -147,50 +146,50 @@
                 {
                     @foreach (var request in GetFilteredRequests())
                     {
-                        <tr style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s;"
-                            onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
+                        <tr style="border-bottom: 1px solid #E2E2DC; transition: background 0.2s;"
+                            onmouseover="this.style.background='#F7F7F4'" onmouseout="this.style.background='transparent'">
                             <td style="padding: 16px;">
-                                <span style="font-weight: 600; color: #111827;">REQ-@request.RequestId.ToString("D5")</span>
+                                <span style="font-weight: 500; color: #2B2B2B;">REQ-@request.RequestId.ToString("D5")</span>
                             </td>
                             <td style="padding: 16px;">
                                 <span
-                                    style="font-weight: 600; color: #3b82f6; font-family: monospace;">@(request.CustomerUsername
+                                    style="font-weight: 500; color: #5F6F52; font-family: monospace;">@(request.CustomerUsername
                                                                 ?? "N/A")</span>
                             </td>
                             <td style="padding: 16px;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <div
-                                        style="width: 36px; height: 36px; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px;">
+                                        style="width: 36px; height: 36px; background: #9B3A3A; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 500; font-size: 12px;">
                                         @GetInitials(request.CustomerName)
                                     </div>
                                     <div>
-                                        <div style="font-weight: 600; color: #111827;">@request.CustomerName</div>
+                                        <div style="font-weight: 500; color: #2B2B2B;">@request.CustomerName</div>
                                     </div>
                                 </div>
                             </td>
                             <td style="padding: 16px;">
-                                <span style="font-size: 13px; color: #374151;">@TruncateText(request.LockReason, 30)</span>
+                                <span style="font-size: 13px; color: #6B6B6B;">@TruncateText(request.LockReason, 30)</span>
                             </td>
                             <td style="padding: 16px;">
                                 <span
-                                    style="background: @GetPriorityBackground(request.Priority); color: @GetPriorityColor(request.Priority); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                    style="background: @GetPriorityBackground(request.Priority); color: @GetPriorityColor(request.Priority); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;">
                                     @request.Priority
                                 </span>
                             </td>
                             <td style="padding: 16px;">
                                 <span
-                                    style="background: @GetStatusBackground(request.Status); color: @GetStatusColor(request.Status); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                    style="background: @GetStatusBackground(request.Status); color: @GetStatusColor(request.Status); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;">
                                     @request.Status
                                 </span>
                             </td>
                             <td style="padding: 16px;">
-                                <div style="font-size: 13px; color: #374151;">@request.RequestedAt.ToString("MMM dd, yyyy")
+                                <div style="font-size: 13px; color: #2B2B2B;">@request.RequestedAt.ToString("MMM dd, yyyy")
                                 </div>
-                                <div style="font-size: 11px; color: #9ca3af;">@request.RequestedAt.ToString("hh:mm tt")</div>
+                                <div style="font-size: 11px; color: #6B6B6B;">@request.RequestedAt.ToString("hh:mm tt")</div>
                             </td>
                             <td style="padding: 16px; text-align: center;">
                                 <button @onclick="() => OpenViewModal(request)" class="btn"
-                                    style="background: #dbeafe; color: #1e40af; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; border: none; cursor: pointer;">
+                                    style="background: rgba(79, 111, 82, 0.15); color: #4F6F52; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 500; border: none; cursor: pointer;">
                                     👁 View
                                 </button>
                             </td>
@@ -200,7 +199,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="8" style="padding: 48px; text-align: center; color: #6b7280;">
+                        <td colspan="8" style="padding: 48px; text-align: center; color: #6B6B6B;">
                             <div style="font-size: 48px; margin-bottom: 16px;">🔓</div>
                             <div style="font-size: 16px; font-weight: 500; margin-bottom: 4px;">No unlock requests found
                             </div>
@@ -217,23 +216,23 @@
 <!-- Confirmation Popup Modal -->
 @if (showConfirmationPopup)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 2000; animation: fadeIn 0.2s ease-out;"
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 2000; animation: fadeIn 0.2s ease-out;"
         @onclick="CloseConfirmationPopup">
-        <div style="background: white; border-radius: 20px; padding: 32px; max-width: 450px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.4); animation: slideUp 0.3s ease-out;"
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 450px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.4); animation: slideUp 0.3s ease-out;"
             @onclick:stopPropagation="true">
             <!-- Icon -->
             <div style="text-align: center; margin-bottom: 20px;">
                 @if (confirmationSuccess)
                 {
                     <div
-                        style="width: 80px; height: 80px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);">
+                        style="width: 80px; height: 80px; background: #4F6F52; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 8px 24px rgba(79, 111, 82, 0.4);">
                         <span style="font-size: 40px; color: white;">✓</span>
                     </div>
                 }
                 else
                 {
                     <div
-                        style="width: 80px; height: 80px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);">
+                        style="width: 80px; height: 80px; background: #9B3A3A; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 8px 24px rgba(155, 58, 58, 0.4);">
                         <span style="font-size: 40px; color: white;">!</span>
                     </div>
                 }
@@ -241,20 +240,20 @@
 
             <!-- Title -->
             <h2
-                style="font-size: 22px; font-weight: 700; color: @(confirmationSuccess ? "#065f46" : "#991b1b"); text-align: center; margin: 0 0 16px 0;">
+                style="font-size: 22px; font-weight: 600; color: @(confirmationSuccess ? "#4F6F52" : "#9B3A3A"); text-align: center; margin: 0 0 16px 0;">
                 @confirmationTitle
             </h2>
 
             <!-- Message -->
             <div
-                style="font-size: 14px; color: #4b5563; text-align: center; line-height: 1.6; margin-bottom: 24px; white-space: pre-line; background: @(confirmationSuccess ? "#f0fdf4" : "#fef2f2"); padding: 16px; border-radius: 12px;">
+                style="font-size: 14px; color: #6B6B6B; text-align: center; line-height: 1.6; margin-bottom: 24px; white-space: pre-line; background: @(confirmationSuccess ? "rgba(79, 111, 82, 0.1)" : "rgba(155, 58, 58, 0.1)"); padding: 16px; border-radius: 14px;">
                 @confirmationMessage
             </div>
 
             <!-- Button -->
             <div style="text-align: center;">
                 <button @onclick="CloseConfirmationPopup"
-                    style="padding: 14px 48px; background: linear-gradient(135deg, @(confirmationSuccess ? "#10b981, #059669" : "#3b82f6, #2563eb")); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 16px @(confirmationSuccess ? "rgba(16, 185, 129, 0.4)" : "rgba(59, 130, 246, 0.4)"); transition: all 0.2s ease;">
+                    style="padding: 14px 48px; background: #2F3E2A; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 16px rgba(47, 62, 42, 0.3); transition: all 0.2s ease;">
                     @(confirmationSuccess ? "Done" : "OK, Got It")
                 </button>
             </div>
@@ -265,35 +264,35 @@
 <!-- New Request Modal -->
 @if (showNewRequestModal)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
         @onclick="CloseNewRequestModal">
         <div style="background: white; border-radius: 16px; padding: 28px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
             @onclick:stopPropagation="true">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h2 style="font-size: 20px; font-weight: 700; color: #1f2937; margin: 0;">🔐 New Account Unlock Request</h2>
+                <h2 style="font-size: 20px; font-weight: 600; color: #2B2B2B; margin: 0;">🔐 New Account Unlock Request</h2>
                 <button @onclick="CloseNewRequestModal"
-                    style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+                    style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6B6B6B;">&times;</button>
             </div>
 
             @if (!string.IsNullOrEmpty(formMessage))
             {
                 <div
-                    style="padding: 12px; margin-bottom: 16px; border-radius: 8px; background: @(formSuccess ? "#d1fae5" : "#fee2e2"); color: @(formSuccess ? "#065f46" : "#991b1b"); font-size: 14px;">
+                    style="padding: 12px; margin-bottom: 16px; border-radius: 10px; background: @(formSuccess ? "rgba(79, 111, 82, 0.15)" : "rgba(155, 58, 58, 0.15)"); color: @(formSuccess ? "#4F6F52" : "#9B3A3A"); font-size: 14px;">
                     @formMessage
                 </div>
             }
 
             <!-- Step 1: Search by Account Number -->
-            <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-                <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin: 0 0 12px 0;">Step 1: Find Customer
+            <div style="background: #F7F7F4; border-radius: 14px; padding: 20px; margin-bottom: 20px;">
+                <h3 style="font-size: 14px; font-weight: 600; color: #2B2B2B; margin: 0 0 12px 0;">Step 1: Find Customer
                     Account</h3>
-                <p style="font-size: 13px; color: #6b7280; margin: 0 0 12px 0;">Enter the customer account number (e.g.,
+                <p style="font-size: 13px; color: #6B6B6B; margin: 0 0 12px 0;">Enter the customer account number (e.g.,
                     ACC-20251213-3043) to check if the account is locked</p>
                 <div style="display: flex; gap: 12px;">
                     <input type="text" @bind="accountNumberSearch" placeholder="Enter account number (ACC-XXXXXXXX-XXXX)..."
-                        style="flex: 1; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-family: monospace;" />
+                        style="flex: 1; padding: 10px 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px; font-family: monospace;" />
                     <button @onclick="SearchByAccountNumber" class="btn" disabled="@isSearching"
-                        style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; opacity: @(isSearching ? "0.6" : "1");">
+                        style="background: #2F3E2A; color: white; padding: 10px 20px; border-radius: 10px; font-weight: 500; border: none; cursor: pointer; opacity: @(isSearching ? "0.6" : "1");">
                         @(isSearching ? "Searching..." : "🔍 Search")
                     </button>
                 </div>
@@ -303,23 +302,23 @@
             @if (searchedAccount != null)
             {
                 <div
-                    style="background: @(isAccountLocked ? "#fef2f2" : "#f0fdf4"); border: 2px solid @(isAccountLocked ? "#fca5a5" : "#86efac"); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    style="background: @(isAccountLocked ? "rgba(155, 58, 58, 0.1)" : "rgba(79, 111, 82, 0.1)"); border: 1px solid @(isAccountLocked ? "rgba(155, 58, 58, 0.2)" : "rgba(79, 111, 82, 0.2)"); border-radius: 14px; padding: 20px; margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
                         <h3
-                            style="font-size: 14px; font-weight: 600; color: @(isAccountLocked ? "#991b1b" : "#065f46"); margin: 0;">
+                            style="font-size: 14px; font-weight: 600; color: @(isAccountLocked ? "#9B3A3A" : "#4F6F52"); margin: 0;">
                             Account Found
                         </h3>
                         @if (isAccountLocked)
                         {
                             <span
-                                style="background: #dc2626; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;">
+                                style="background: #9B3A3A; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
                                 🔒 LOCKED
                             </span>
                         }
                         else
                         {
                             <span
-                                style="background: #059669; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;">
+                                style="background: #4F6F52; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
                                 ✓ ACTIVE
                             </span>
                         }
@@ -327,59 +326,59 @@
 
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
                         <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Account Number</div>
-                            <div style="font-size: 14px; font-weight: 600; color: #3b82f6; font-family: monospace;">
+                            <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Account Number</div>
+                            <div style="font-size: 14px; font-weight: 500; color: #5F6F52; font-family: monospace;">
                                 @searchedAccount.AccountNumber</div>
                         </div>
                         <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Security Status</div>
-                            <div style="font-size: 14px; font-weight: 600; color: @(isAccountLocked ? "#dc2626" : "#059669");">
+                            <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Security Status</div>
+                            <div style="font-size: 14px; font-weight: 500; color: @(isAccountLocked ? "#9B3A3A" : "#4F6F52");">
                                 @(isAccountLocked ? "LOCKED" : "ACTIVE")</div>
                         </div>
                         <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Customer Name</div>
-                            <div style="font-size: 14px; font-weight: 600; color: #111827;">@(searchedAccount.Customer?.FullName
+                            <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Customer Name</div>
+                            <div style="font-size: 14px; font-weight: 500; color: #2B2B2B;">@(searchedAccount.Customer?.FullName
                                                         ?? searchedAccount.Customer?.Username ?? "N/A")</div>
                         </div>
                         <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Account Type</div>
-                            <div style="font-size: 14px; color: #111827;">@(searchedAccount.AccountType ?? "Savings")</div>
+                            <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Account Type</div>
+                            <div style="font-size: 14px; color: #2B2B2B;">@(searchedAccount.AccountType ?? "Savings")</div>
                         </div>
                         <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Email</div>
-                            <div style="font-size: 14px; color: #111827;">@(searchedAccount.Customer?.Email ?? "Not provided")
+                            <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Email</div>
+                            <div style="font-size: 14px; color: #2B2B2B;">@(searchedAccount.Customer?.Email ?? "Not provided")
                             </div>
                         </div>
                         <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Phone</div>
-                            <div style="font-size: 14px; color: #111827;">@(searchedAccount.Customer?.PhoneNumber ?? "Not provided")</div>
+                            <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Phone</div>
+                            <div style="font-size: 14px; color: #2B2B2B;">@(searchedAccount.Customer?.PhoneNumber ?? "Not provided")</div>
                         </div>
                         <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Balance</div>
-                            <div style="font-size: 14px; font-weight: 600; color: #111827;">
+                            <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Balance</div>
+                            <div style="font-size: 14px; font-weight: 500; color: #2B2B2B;">
                                 ₱@searchedAccount.Balance.ToString("N2")</div>
                         </div>
                         <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Created Date</div>
-                            <div style="font-size: 14px; color: #111827;">@searchedAccount.CreatedAt.ToString("MMM dd, yyyy")
+                            <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Created Date</div>
+                            <div style="font-size: 14px; color: #2B2B2B;">@searchedAccount.CreatedAt.ToString("MMM dd, yyyy")
                             </div>
                         </div>
                     </div>
 
                     @if (isAccountLocked)
                     {
-                        <div style="margin-top: 16px; padding: 12px; background: #fee2e2; border-radius: 8px;">
-                            <div style="font-size: 11px; color: #991b1b; text-transform: uppercase; margin-bottom: 4px;">Lock
+                        <div style="margin-top: 16px; padding: 12px; background: rgba(155, 58, 58, 0.1); border-radius: 10px;">
+                            <div style="font-size: 11px; color: #9B3A3A; text-transform: uppercase; margin-bottom: 4px;">Lock
                                 Information</div>
-                            <div style="font-size: 14px; color: #dc2626; font-weight: 600;">
+                            <div style="font-size: 14px; color: #9B3A3A; font-weight: 500;">
                                 @accountLockReason
                             </div>
                         </div>
                     }
                     else
                     {
-                        <div style="margin-top: 16px; padding: 12px; background: #d1fae5; border-radius: 8px;">
-                            <div style="font-size: 14px; color: #065f46;">
+                        <div style="margin-top: 16px; padding: 12px; background: rgba(79, 111, 82, 0.15); border-radius: 10px;">
+                            <div style="font-size: 14px; color: #4F6F52;">
                                 ✓ This account is <strong>NOT locked</strong>. No unlock request is needed.
                             </div>
                         </div>
@@ -390,19 +389,19 @@
                 @if (isAccountLocked)
                 {
                     <!-- Step 2: Verification & Notes -->
-                    <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-                        <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin: 0 0 16px 0;">Step 2: Verify Customer
+                    <div style="background: #F7F7F4; border-radius: 14px; padding: 20px; margin-bottom: 20px;">
+                        <h3 style="font-size: 14px; font-weight: 600; color: #2B2B2B; margin: 0 0 16px 0;">Step 2: Verify Customer
                             Identity</h3>
 
                         <div style="display: grid; gap: 16px;">
                             <!-- ID Verification -->
                             <div
-                                style="display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                style="display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border-radius: 10px; border: 1px solid #E2E2DC;">
                                 <input type="checkbox" @bind="identificationVerified" id="idVerified"
-                                    style="width: 20px; height: 20px; accent-color: #059669;" />
-                                <label for="idVerified" style="font-size: 14px; color: #374151; cursor: pointer;">
+                                    style="width: 20px; height: 20px; accent-color: #5F6F52;" />
+                                <label for="idVerified" style="font-size: 14px; color: #2B2B2B; cursor: pointer;">
                                     <strong>I have verified the customer's identity</strong>
-                                    <div style="font-size: 12px; color: #6b7280;">Customer presented a valid government-issued ID
+                                    <div style="font-size: 12px; color: #6B6B6B;">Customer presented a valid government-issued ID
                                     </div>
                                 </label>
                             </div>
@@ -412,10 +411,10 @@
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                                     <div>
                                         <label
-                                            style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">ID
+                                            style="display: block; font-size: 12px; font-weight: 500; color: #6B6B6B; margin-bottom: 6px;">ID
                                             Type</label>
                                         <select @bind="identificationType"
-                                            style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                                            style="width: 100%; padding: 10px 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;">
                                             <option value="">Select ID Type</option>
                                             <option value="Driver's License">Driver's License</option>
                                             <option value="Passport">Passport</option>
@@ -431,10 +430,10 @@
                                     </div>
                                     <div>
                                         <label
-                                            style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">ID
+                                            style="display: block; font-size: 12px; font-weight: 500; color: #6B6B6B; margin-bottom: 6px;">ID
                                             Number (Last 4 digits)</label>
                                         <input type="text" @bind="identificationNumber" maxlength="4" placeholder="XXXX"
-                                            style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                                            style="width: 100%; padding: 10px 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                                     </div>
                                 </div>
                             }
@@ -442,10 +441,10 @@
                             <!-- Priority -->
                             <div>
                                 <label
-                                    style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">Priority
+                                    style="display: block; font-size: 12px; font-weight: 500; color: #6B6B6B; margin-bottom: 6px;">Priority
                                     Level</label>
                                 <select @bind="requestPriority"
-                                    style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;">
                                     <option value="Low">Low - Can wait for normal processing</option>
                                     <option value="Normal">Normal - Standard processing time</option>
                                     <option value="High">High - Needs attention today</option>
@@ -456,29 +455,29 @@
                             <!-- Lock Reason -->
                             <div>
                                 <label
-                                    style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">Lock
+                                    style="display: block; font-size: 12px; font-weight: 500; color: #6B6B6B; margin-bottom: 6px;">Lock
                                     Reason</label>
                                 <input type="text" @bind="lockReason" placeholder="Enter the reason the account was locked..."
-                                    style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;" />
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px;" />
                             </div>
 
                             <!-- Customer Statement -->
                             <div>
                                 <label
-                                    style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">Customer's
+                                    style="display: block; font-size: 12px; font-weight: 500; color: #6B6B6B; margin-bottom: 6px;">Customer's
                                     Statement (Optional)</label>
                                 <textarea @bind="customerStatement" rows="3"
                                     placeholder="What did the customer say about why they need their account unlocked?"
-                                    style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px; resize: vertical;"></textarea>
                             </div>
 
                             <!-- Teller Notes -->
                             <div>
                                 <label
-                                    style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">Teller
+                                    style="display: block; font-size: 12px; font-weight: 500; color: #6B6B6B; margin-bottom: 6px;">Teller
                                     Notes</label>
                                 <textarea @bind="tellerNotes" rows="3" placeholder="Add any additional notes or observations..."
-                                    style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid #E2E2DC; border-radius: 10px; font-size: 14px; resize: vertical;"></textarea>
                             </div>
                         </div>
                     </div>
@@ -486,11 +485,11 @@
                     <!-- Action Buttons -->
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
                         <button @onclick="CloseNewRequestModal"
-                            style="padding: 12px 24px; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            style="padding: 12px 24px; background: #A9B388; color: #2F3E2A; border: none; border-radius: 10px; font-weight: 500; cursor: pointer;">
                             Cancel
                         </button>
                         <button @onclick="SubmitUnlockRequest" disabled="@(isSubmitting || !identificationVerified)"
-                            style="padding: 12px 24px; background: linear-gradient(135deg, #059669, #047857); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; opacity: @(isSubmitting || !identificationVerified ? "0.6" : "1");">
+                            style="padding: 12px 24px; background: #2F3E2A; color: white; border: none; border-radius: 10px; font-weight: 500; cursor: pointer; opacity: @(isSubmitting || !identificationVerified ? "0.6" : "1");">
                             @(isSubmitting ? "Submitting..." : "🚀 Forward to Admin for Unlock")
                         </button>
                     </div>
@@ -500,7 +499,7 @@
                     <!-- Close button for active accounts -->
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
                         <button @onclick="CloseNewRequestModal"
-                            style="padding: 12px 24px; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            style="padding: 12px 24px; background: #A9B388; color: #2F3E2A; border: none; border-radius: 10px; font-weight: 500; cursor: pointer;">
                             Close
                         </button>
                     </div>
@@ -513,83 +512,83 @@
 <!-- View Request Modal -->
 @if (showViewModal && viewRequest != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(47, 62, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;"
         @onclick="CloseViewModal">
         <div style="background: white; border-radius: 16px; padding: 28px; max-width: 600px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
             @onclick:stopPropagation="true">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h2 style="font-size: 20px; font-weight: 700; color: #1f2937; margin: 0;">
+                <h2 style="font-size: 20px; font-weight: 600; color: #2B2B2B; margin: 0;">
                     Request Details - REQ-@viewRequest.RequestId.ToString("D5")
                 </h2>
                 <button @onclick="CloseViewModal"
-                    style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+                    style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6B6B6B;">&times;</button>
             </div>
 
             <!-- Status Badge -->
             <div style="text-align: center; margin-bottom: 24px;">
                 <span
-                    style="background: @GetStatusBackground(viewRequest.Status); color: @GetStatusColor(viewRequest.Status); padding: 8px 24px; border-radius: 20px; font-size: 16px; font-weight: 700;">
+                    style="background: @GetStatusBackground(viewRequest.Status); color: @GetStatusColor(viewRequest.Status); padding: 8px 24px; border-radius: 20px; font-size: 16px; font-weight: 500;">
                     @viewRequest.Status.ToUpper()
                 </span>
             </div>
 
             <!-- Account Information -->
-            <div style="background: #dbeafe; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-                <h3 style="font-size: 14px; font-weight: 600; color: #1e40af; margin: 0 0 12px 0;">Account Information</h3>
+            <div style="background: rgba(79, 111, 82, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 16px;">
+                <h3 style="font-size: 14px; font-weight: 600; color: #4F6F52; margin: 0 0 12px 0;">Account Information</h3>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
                     <div>
-                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Account Number</div>
-                        <div style="font-size: 14px; font-weight: 600; color: #3b82f6; font-family: monospace;">
+                        <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Account Number</div>
+                        <div style="font-size: 14px; font-weight: 500; color: #5F6F52; font-family: monospace;">
                             @(viewRequest.CustomerUsername ?? "N/A")</div>
                     </div>
                     <div>
-                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Customer Name</div>
-                        <div style="font-size: 14px; font-weight: 600; color: #111827;">@viewRequest.CustomerName</div>
+                        <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Customer Name</div>
+                        <div style="font-size: 14px; font-weight: 500; color: #2B2B2B;">@viewRequest.CustomerName</div>
                     </div>
                     <div>
-                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Email</div>
-                        <div style="font-size: 14px; color: #111827;">@(viewRequest.CustomerEmail ?? "Not provided")</div>
+                        <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Email</div>
+                        <div style="font-size: 14px; color: #2B2B2B;">@(viewRequest.CustomerEmail ?? "Not provided")</div>
                     </div>
                     <div>
-                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Phone</div>
-                        <div style="font-size: 14px; color: #111827;">@(viewRequest.CustomerPhone ?? "Not provided")</div>
+                        <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Phone</div>
+                        <div style="font-size: 14px; color: #2B2B2B;">@(viewRequest.CustomerPhone ?? "Not provided")</div>
                     </div>
                 </div>
             </div>
 
             <!-- Request Details -->
-            <div style="background: #fef2f2; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-                <h3 style="font-size: 14px; font-weight: 600; color: #991b1b; margin: 0 0 12px 0;">Lock Information</h3>
+            <div style="background: rgba(155, 58, 58, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 16px;">
+                <h3 style="font-size: 14px; font-weight: 600; color: #9B3A3A; margin: 0 0 12px 0;">Lock Information</h3>
                 <div style="margin-bottom: 12px;">
-                    <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Lock Reason</div>
-                    <div style="font-size: 14px; font-weight: 600; color: #dc2626;">@viewRequest.LockReason</div>
+                    <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Lock Reason</div>
+                    <div style="font-size: 14px; font-weight: 500; color: #9B3A3A;">@viewRequest.LockReason</div>
                 </div>
                 @if (!string.IsNullOrEmpty(viewRequest.CustomerStatement))
                 {
                     <div style="margin-bottom: 12px;">
-                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Customer's Statement</div>
-                        <div style="font-size: 14px; color: #374151;">@viewRequest.CustomerStatement</div>
+                        <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Customer's Statement</div>
+                        <div style="font-size: 14px; color: #6B6B6B;">@viewRequest.CustomerStatement</div>
                     </div>
                 }
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
                     <div>
-                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">ID Verified</div>
+                        <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">ID Verified</div>
                         <div
-                            style="font-size: 14px; font-weight: 600; color: @(viewRequest.IdentificationVerified ? "#059669" : "#dc2626");">
+                            style="font-size: 14px; font-weight: 500; color: @(viewRequest.IdentificationVerified ? "#4F6F52" : "#9B3A3A");">
                             @(viewRequest.IdentificationVerified ? "✓ Yes" : "✗ No")
                         </div>
                     </div>
                     @if (viewRequest.IdentificationVerified)
                     {
                         <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">ID Type</div>
-                            <div style="font-size: 14px; color: #111827;">@viewRequest.IdentificationType</div>
+                            <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">ID Type</div>
+                            <div style="font-size: 14px; color: #2B2B2B;">@viewRequest.IdentificationType</div>
                         </div>
                     }
                     <div>
-                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Priority</div>
+                        <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Priority</div>
                         <span
-                            style="background: @GetPriorityBackground(viewRequest.Priority); color: @GetPriorityColor(viewRequest.Priority); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                            style="background: @GetPriorityBackground(viewRequest.Priority); color: @GetPriorityColor(viewRequest.Priority); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;">
                             @viewRequest.Priority
                         </span>
                     </div>
@@ -597,24 +596,24 @@
             </div>
 
             <!-- Teller Information -->
-            <div style="background: #f3f4f6; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-                <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin: 0 0 12px 0;">Request Submitted By</h3>
+            <div style="background: #F7F7F4; border-radius: 14px; padding: 20px; margin-bottom: 16px;">
+                <h3 style="font-size: 14px; font-weight: 600; color: #2B2B2B; margin: 0 0 12px 0;">Request Submitted By</h3>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
                     <div>
-                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Teller Name</div>
-                        <div style="font-size: 14px; font-weight: 600; color: #111827;">@viewRequest.RequestedByTellerName
+                        <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Teller Name</div>
+                        <div style="font-size: 14px; font-weight: 500; color: #2B2B2B;">@viewRequest.RequestedByTellerName
                         </div>
                     </div>
                     <div>
-                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Submitted At</div>
-                        <div style="font-size: 14px; color: #111827;">@viewRequest.RequestedAt.ToString("MMM dd, yyyy hh:mm tt")</div>
+                        <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Submitted At</div>
+                        <div style="font-size: 14px; color: #2B2B2B;">@viewRequest.RequestedAt.ToString("MMM dd, yyyy hh:mm tt")</div>
                     </div>
                 </div>
                 @if (!string.IsNullOrEmpty(viewRequest.TellerNotes))
                 {
                     <div style="margin-top: 12px;">
-                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Teller Notes</div>
-                        <div style="font-size: 14px; color: #374151;">@viewRequest.TellerNotes</div>
+                        <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Teller Notes</div>
+                        <div style="font-size: 14px; color: #6B6B6B;">@viewRequest.TellerNotes</div>
                     </div>
                 }
             </div>
@@ -623,34 +622,34 @@
             @if (viewRequest.ProcessedAt.HasValue)
             {
                 <div
-                    style="background: @(viewRequest.Status == "Approved" ? "#d1fae5" : "#fee2e2"); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                    style="background: @(viewRequest.Status == "Approved" ? "rgba(79, 111, 82, 0.15)" : "rgba(155, 58, 58, 0.15)"); border-radius: 14px; padding: 20px; margin-bottom: 16px;">
                     <h3
-                        style="font-size: 14px; font-weight: 600; color: @(viewRequest.Status == "Approved" ? "#065f46" : "#991b1b"); margin: 0 0 12px 0;">
+                        style="font-size: 14px; font-weight: 600; color: @(viewRequest.Status == "Approved" ? "#4F6F52" : "#9B3A3A"); margin: 0 0 12px 0;">
                         Admin Decision
                     </h3>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
                         <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Processed By</div>
-                            <div style="font-size: 14px; font-weight: 600; color: #111827;">@viewRequest.ProcessedByAdminName
+                            <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Processed By</div>
+                            <div style="font-size: 14px; font-weight: 500; color: #2B2B2B;">@viewRequest.ProcessedByAdminName
                             </div>
                         </div>
                         <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Processed At</div>
-                            <div style="font-size: 14px; color: #111827;">@viewRequest.ProcessedAt.Value.ToString("MMM dd, yyyy hh:mm tt")</div>
+                            <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Processed At</div>
+                            <div style="font-size: 14px; color: #2B2B2B;">@viewRequest.ProcessedAt.Value.ToString("MMM dd, yyyy hh:mm tt")</div>
                         </div>
                     </div>
                     @if (!string.IsNullOrEmpty(viewRequest.AdminNotes))
                     {
                         <div style="margin-top: 12px;">
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Admin Notes</div>
-                            <div style="font-size: 14px; color: #374151;">@viewRequest.AdminNotes</div>
+                            <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Admin Notes</div>
+                            <div style="font-size: 14px; color: #6B6B6B;">@viewRequest.AdminNotes</div>
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(viewRequest.RejectionReason))
                     {
                         <div style="margin-top: 12px;">
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Rejection Reason</div>
-                            <div style="font-size: 14px; color: #dc2626; font-weight: 600;">@viewRequest.RejectionReason</div>
+                            <div style="font-size: 11px; color: #6B6B6B; text-transform: uppercase;">Rejection Reason</div>
+                            <div style="font-size: 14px; color: #9B3A3A; font-weight: 500;">@viewRequest.RejectionReason</div>
                         </div>
                     }
                 </div>
@@ -658,7 +657,7 @@
 
             <div style="display: flex; justify-content: flex-end;">
                 <button @onclick="CloseViewModal"
-                    style="padding: 12px 24px; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    style="padding: 12px 24px; background: #A9B388; color: #2F3E2A; border: none; border-radius: 10px; font-weight: 500; cursor: pointer;">
                     Close
                 </button>
             </div>
@@ -863,8 +862,8 @@
                         isAccountLocked = true;
                         accountLockReason = lastLockEvent.LockReason ??
                         (lastLockEvent.Action == "PIN_VERIFICATION_FAILED"
-                                                        ? "Account locked due to 2 failed PIN attempts - requires Admin unlock"
-                                                        : "Account locked due to 5 failed password attempts - requires PIN or Admin unlock");
+                                                                                ? "Account locked due to 2 failed PIN attempts - requires Admin unlock"
+                                                                                : "Account locked due to 5 failed password attempts - requires PIN or Admin unlock");
                     }
                 }
 
@@ -874,7 +873,7 @@
                     isAccountLocked = true;
                     accountLockReason = isFullyLocked
                     ? "Account fully locked due to failed PIN attempts - requires Admin unlock"
-                                            : "Account locked due to failed password attempts";
+                                                                : "Account locked due to failed password attempts";
                 }
 
                 // Pre-fill lock reason
@@ -1058,35 +1057,35 @@
 
     private string GetStatusBackground(string status) => status switch
     {
-        "Pending" => "#fef3c7",
-        "Approved" => "#d1fae5",
-        "Rejected" => "#fee2e2",
-        _ => "#f3f4f6"
+        "Pending" => "rgba(196, 154, 58, 0.15)",
+        "Approved" => "rgba(79, 111, 82, 0.15)",
+        "Rejected" => "rgba(155, 58, 58, 0.15)",
+        _ => "#F7F7F4"
     };
 
     private string GetStatusColor(string status) => status switch
     {
-        "Pending" => "#92400e",
-        "Approved" => "#065f46",
-        "Rejected" => "#991b1b",
-        _ => "#4b5563"
+        "Pending" => "#C49A3A",
+        "Approved" => "#4F6F52",
+        "Rejected" => "#9B3A3A",
+        _ => "#6B6B6B"
     };
 
     private string GetPriorityBackground(string priority) => priority switch
     {
-        "Low" => "#e0e7ff",
-        "Normal" => "#dbeafe",
-        "High" => "#fef3c7",
-        "Urgent" => "#fee2e2",
-        _ => "#f3f4f6"
+        "Low" => "rgba(95, 122, 106, 0.15)",
+        "Normal" => "rgba(79, 111, 82, 0.15)",
+        "High" => "rgba(196, 154, 58, 0.15)",
+        "Urgent" => "rgba(155, 58, 58, 0.15)",
+        _ => "#F7F7F4"
     };
 
     private string GetPriorityColor(string priority) => priority switch
     {
-        "Low" => "#3730a3",
-        "Normal" => "#1e40af",
-        "High" => "#92400e",
-        "Urgent" => "#991b1b",
-        _ => "#4b5563"
+        "Low" => "#5F7A6A",
+        "Normal" => "#4F6F52",
+        "High" => "#C49A3A",
+        "Urgent" => "#9B3A3A",
+        _ => "#6B6B6B"
     };
 }

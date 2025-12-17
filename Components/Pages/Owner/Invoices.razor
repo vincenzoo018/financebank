@@ -32,7 +32,8 @@
             <span class="stat-label">Overdue</span>
         </div>
         <div class="stat-card paid">
-            <span class="stat-value">₱@invoices.Where(i => i.Status == "Paid").Sum(i => i.TotalAmount).ToString("N0")</span>
+            <span class="stat-value">₱@invoices.Where(i => i.Status == "Paid").Sum(i =>
+                                i.TotalAmount).ToString("N0")</span>
             <span class="stat-label">Collected This Month</span>
         </div>
     </div>
@@ -103,7 +104,8 @@
                                 <button class="action-btn" @onclick="() => ViewInvoice(invoice)" title="View">👁️</button>
                                 @if (invoice.Status == "Pending" || invoice.Status == "Sent")
                                 {
-                                    <button class="action-btn" @onclick="() => RecordPayment(invoice)" title="Record Payment">💳</button>
+                                    <button class="action-btn" @onclick="() => RecordPayment(invoice)"
+                                        title="Record Payment">💳</button>
                                 }
                                 <button class="action-btn" @onclick="() => PrintInvoice(invoice)" title="Print">🖨️</button>
                             </div>
@@ -172,8 +174,10 @@
                             {
                                 <tr>
                                     <td><input type="text" @bind="item.Description" placeholder="Description" /></td>
-                                    <td><input type="number" @bind="item.Quantity" min="1" style="width:60px" @bind:after="CalculateTotals" /></td>
-                                    <td><input type="number" @bind="item.UnitPrice" step="0.01" style="width:100px" @bind:after="CalculateTotals" /></td>
+                                    <td><input type="number" @bind="item.Quantity" min="1" style="width:60px"
+                                            @bind:after="CalculateTotals" /></td>
+                                    <td><input type="number" @bind="item.UnitPrice" step="0.01" style="width:100px"
+                                            @bind:after="CalculateTotals" /></td>
                                     <td>₱@item.Amount.ToString("N2")</td>
                                     <td><button class="remove-btn" @onclick="() => RemoveItem(item)">✕</button></td>
                                 </tr>
@@ -222,7 +226,8 @@
                 <div class="modal-body">
                     <div class="payment-info">
                         <p>Client: <strong>@selectedInvoice?.ClientName</strong></p>
-                        <p>Balance Due: <strong class="text-danger">₱@selectedInvoice?.BalanceDue.ToString("N2")</strong></p>
+                        <p>Balance Due: <strong class="text-danger">₱@selectedInvoice?.BalanceDue.ToString("N2")</strong>
+                        </p>
                     </div>
                     <div class="form-group">
                         <label>Payment Method</label>
@@ -285,7 +290,8 @@
                     <div class="bill-to">
                         <h4>Bill To:</h4>
                         <p><strong>@selectedInvoice.ClientName</strong></p>
-                        <p>Billing Period: @selectedInvoice.PeriodStart?.ToString("MMM dd") - @selectedInvoice.PeriodEnd?.ToString("MMM dd, yyyy")</p>
+                        <p>Billing Period: @selectedInvoice.PeriodStart?.ToString("MMM dd") -
+                            @selectedInvoice.PeriodEnd?.ToString("MMM dd, yyyy")</p>
                     </div>
 
                     <table class="invoice-items-table">
@@ -324,7 +330,9 @@
                             </tr>
                             <tr class="balance-row">
                                 <td colspan="3"><strong>Balance Due</strong></td>
-                                <td><strong class="@(selectedInvoice.BalanceDue > 0 ? "text-danger" : "text-success")">₱@selectedInvoice.BalanceDue.ToString("N2")</strong></td>
+                                <td><strong
+                                        class="@(selectedInvoice.BalanceDue > 0 ? "text-danger" : "text-success")">₱@selectedInvoice.BalanceDue.ToString("N2")</strong>
+                                </td>
                             </tr>
                         </tfoot>
                     </table>
@@ -348,7 +356,9 @@
 </div>
 
 <style>
-    .invoices-page { padding: 0; }
+    .invoices-page {
+        padding: 0;
+    }
 
     .page-header {
         display: flex;
@@ -359,14 +369,14 @@
 
     .header-left h2 {
         font-size: 24px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
         margin: 0;
     }
 
     .header-left .subtitle {
         font-size: 14px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .btn {
@@ -374,17 +384,32 @@
         align-items: center;
         gap: 8px;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
         cursor: pointer;
         border: none;
         transition: all 0.2s;
     }
 
-    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
-    .btn-secondary { background: #f3f4f6; color: #374151; }
-    .btn-success { background: #10b981; color: white; }
-    .btn-sm { padding: 8px 16px; font-size: 13px; }
+    .btn-primary {
+        background: #2F3E2A;
+        color: #FFFFFF;
+    }
+
+    .btn-secondary {
+        background: #F7F7F4;
+        color: #2B2B2B;
+    }
+
+    .btn-success {
+        background: #5F6F52;
+        color: white;
+    }
+
+    .btn-sm {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
 
     .stats-row {
         display: grid;
@@ -394,28 +419,36 @@
     }
 
     .stat-card {
-        background: white;
+        background: #FFFFFF;
         padding: 20px;
-        border-radius: 12px;
+        border-radius: 14px;
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        border-left: 4px solid #6366f1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        border-left: 4px solid #5F6F52;
     }
 
-    .stat-card.pending { border-left-color: #f59e0b; }
-    .stat-card.overdue { border-left-color: #ef4444; }
-    .stat-card.paid { border-left-color: #10b981; }
+    .stat-card.pending {
+        border-left-color: #C49A3A;
+    }
+
+    .stat-card.overdue {
+        border-left-color: #9B3A3A;
+    }
+
+    .stat-card.paid {
+        border-left-color: #4F6F52;
+    }
 
     .stat-value {
         display: block;
         font-size: 28px;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: #2B2B2B;
     }
 
     .stat-label {
         font-size: 13px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .filters-bar {
@@ -432,8 +465,8 @@
     .search-box input {
         width: 100%;
         padding: 12px 12px 12px 40px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
     }
 
     .search-icon {
@@ -445,16 +478,16 @@
 
     .filters-bar select {
         padding: 12px 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        background: white;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
+        background: #FFFFFF;
     }
 
     .table-card {
-        background: white;
-        border-radius: 12px;
+        background: #FFFFFF;
+        border-radius: 14px;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
     .data-table {
@@ -463,27 +496,33 @@
     }
 
     .data-table th {
-        background: #f9fafb;
+        background: #F7F7F4;
         padding: 14px 16px;
         text-align: left;
         font-size: 12px;
         font-weight: 600;
-        color: #6b7280;
+        color: #6B6B6B;
         text-transform: uppercase;
     }
 
     .data-table td {
         padding: 14px 16px;
-        border-top: 1px solid #f3f4f6;
+        border-top: 1px solid #F7F7F4;
     }
 
-    .text-danger { color: #dc2626; font-weight: 600; }
-    .text-success { color: #059669; }
+    .text-danger {
+        color: #9B3A3A;
+        font-weight: 600;
+    }
+
+    .text-success {
+        color: #4F6F52;
+    }
 
     .overdue-badge {
         display: inline-block;
-        background: #fee2e2;
-        color: #dc2626;
+        background: rgba(155, 58, 58, 0.1);
+        color: #9B3A3A;
         padding: 2px 6px;
         border-radius: 4px;
         font-size: 10px;
@@ -492,16 +531,35 @@
 
     .status-badge {
         padding: 4px 10px;
-        border-radius: 20px;
+        border-radius: 10px;
         font-size: 12px;
         font-weight: 500;
     }
 
-    .status-badge.pending { background: #fef3c7; color: #d97706; }
-    .status-badge.sent { background: #dbeafe; color: #1d4ed8; }
-    .status-badge.paid { background: #d1fae5; color: #059669; }
-    .status-badge.overdue { background: #fee2e2; color: #dc2626; }
-    .status-badge.cancelled { background: #f3f4f6; color: #6b7280; }
+    .status-badge.pending {
+        background: rgba(196, 154, 58, 0.15);
+        color: #C49A3A;
+    }
+
+    .status-badge.sent {
+        background: rgba(79, 111, 82, 0.15);
+        color: #5F6F52;
+    }
+
+    .status-badge.paid {
+        background: rgba(79, 111, 82, 0.15);
+        color: #4F6F52;
+    }
+
+    .status-badge.overdue {
+        background: rgba(155, 58, 58, 0.1);
+        color: #9B3A3A;
+    }
+
+    .status-badge.cancelled {
+        background: #F7F7F4;
+        color: #6B6B6B;
+    }
 
     .action-buttons {
         display: flex;
@@ -511,14 +569,14 @@
     .action-btn {
         width: 32px;
         height: 32px;
-        border-radius: 8px;
+        border-radius: 10px;
         border: none;
         cursor: pointer;
-        background: #f3f4f6;
+        background: #F7F7F4;
     }
 
     .action-btn:hover {
-        background: #e5e7eb;
+        background: #E2E2DC;
     }
 
     /* Modal styles */
@@ -528,7 +586,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(47, 62, 42, 0.6);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -536,8 +594,8 @@
     }
 
     .modal-content {
-        background: white;
-        border-radius: 16px;
+        background: #FFFFFF;
+        border-radius: 14px;
         width: 90%;
         max-width: 500px;
         max-height: 90vh;
@@ -553,27 +611,32 @@
         justify-content: space-between;
         align-items: center;
         padding: 20px 24px;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #E2E2DC;
     }
 
-    .modal-header h3 { margin: 0; font-size: 18px; }
+    .modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+    }
 
     .close-btn {
         background: none;
         border: none;
         font-size: 20px;
         cursor: pointer;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
-    .modal-body { padding: 24px; }
+    .modal-body {
+        padding: 24px;
+    }
 
     .modal-footer {
         display: flex;
         justify-content: flex-end;
         gap: 12px;
         padding: 16px 24px;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid #E2E2DC;
     }
 
     .form-row {
@@ -591,7 +654,7 @@
         display: block;
         font-size: 13px;
         font-weight: 500;
-        color: #374151;
+        color: #2B2B2B;
         margin-bottom: 6px;
     }
 
@@ -600,8 +663,8 @@
     .form-group textarea {
         width: 100%;
         padding: 10px 12px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid #E2E2DC;
+        border-radius: 10px;
         font-size: 14px;
     }
 
@@ -615,7 +678,7 @@
         text-align: left;
         padding: 8px;
         font-size: 12px;
-        color: #6b7280;
+        color: #6B6B6B;
     }
 
     .items-table td {
@@ -624,14 +687,14 @@
 
     .items-table input {
         padding: 8px;
-        border: 1px solid #e5e7eb;
+        border: 1px solid #E2E2DC;
         border-radius: 6px;
         width: 100%;
     }
 
     .remove-btn {
-        background: #fee2e2;
-        color: #dc2626;
+        background: rgba(155, 58, 58, 0.1);
+        color: #9B3A3A;
         border: none;
         border-radius: 4px;
         padding: 4px 8px;
@@ -641,7 +704,7 @@
     .totals-section {
         margin-top: 16px;
         padding-top: 16px;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid #E2E2DC;
     }
 
     .total-row {
@@ -652,16 +715,16 @@
 
     .total-row.total {
         font-size: 18px;
-        font-weight: 700;
-        color: #1f2937;
-        border-top: 2px solid #e5e7eb;
+        font-weight: 600;
+        color: #2B2B2B;
+        border-top: 2px solid #E2E2DC;
         margin-top: 8px;
         padding-top: 16px;
     }
 
     /* Invoice Preview */
     .invoice-preview {
-        background: #f9fafb;
+        background: #F7F7F4;
         padding: 32px;
     }
 
@@ -672,7 +735,7 @@
     }
 
     .company-info h2 {
-        color: #6366f1;
+        color: #2F3E2A;
         margin: 0;
     }
 
@@ -681,7 +744,7 @@
     }
 
     .invoice-info h3 {
-        color: #6366f1;
+        color: #2F3E2A;
         margin: 0;
     }
 
@@ -690,27 +753,27 @@
     }
 
     .bill-to h4 {
-        color: #6b7280;
+        color: #6B6B6B;
         margin-bottom: 8px;
     }
 
     .invoice-items-table {
         width: 100%;
-        background: white;
-        border-radius: 8px;
+        background: #FFFFFF;
+        border-radius: 10px;
         overflow: hidden;
         margin-bottom: 24px;
     }
 
     .invoice-items-table th {
-        background: #f3f4f6;
+        background: #F7F7F4;
         padding: 12px;
         text-align: left;
     }
 
     .invoice-items-table td {
         padding: 12px;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid #E2E2DC;
     }
 
     .invoice-items-table tfoot td {
@@ -718,14 +781,14 @@
     }
 
     .payment-instructions {
-        background: #eff6ff;
+        background: rgba(79, 111, 82, 0.15);
         padding: 16px;
-        border-radius: 8px;
+        border-radius: 10px;
     }
 
     .payment-instructions h4 {
         margin: 0 0 8px 0;
-        color: #1d4ed8;
+        color: #2F3E2A;
     }
 
     .payment-instructions ul {
@@ -734,9 +797,9 @@
     }
 
     .payment-info {
-        background: #f9fafb;
+        background: #F7F7F4;
         padding: 16px;
-        border-radius: 8px;
+        border-radius: 10px;
         margin-bottom: 16px;
     }
 
@@ -771,12 +834,12 @@
     private string paymentNotes = "";
 
     private IEnumerable<InvoiceData> FilteredInvoices => invoices
-        .Where(i => string.IsNullOrEmpty(searchTerm) || 
-            i.InvoiceNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-            i.ClientName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-        .Where(i => string.IsNullOrEmpty(statusFilter) || i.Status == statusFilter)
-        .Where(i => clientFilter == 0 || i.ClientId == clientFilter)
-        .OrderByDescending(i => i.InvoiceDate);
+    .Where(i => string.IsNullOrEmpty(searchTerm) ||
+    i.InvoiceNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+    i.ClientName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+    .Where(i => string.IsNullOrEmpty(statusFilter) || i.Status == statusFilter)
+    .Where(i => clientFilter == 0 || i.ClientId == clientFilter)
+    .OrderByDescending(i => i.InvoiceDate);
 
     protected override async Task OnInitializedAsync()
     {
@@ -788,21 +851,36 @@
         await Task.Delay(100);
 
         clients = new List<ClientData>
-        {
-            new ClientData { ClientId = 1, CompanyName = "FineBank Cooperative" },
-            new ClientData { ClientId = 2, CompanyName = "Demo Company Inc." },
-            new ClientData { ClientId = 3, CompanyName = "Metro Credit Union" },
-            new ClientData { ClientId = 4, CompanyName = "Rural Bank Corp" },
-        };
+{
+new ClientData { ClientId = 1, CompanyName = "FineBank Cooperative" },
+new ClientData { ClientId = 2, CompanyName = "Demo Company Inc." },
+new ClientData { ClientId = 3, CompanyName = "Metro Credit Union" },
+new ClientData { ClientId = 4, CompanyName = "Rural Bank Corp" },
+};
 
         invoices = new List<InvoiceData>
-        {
-            new InvoiceData { InvoiceId = 7, InvoiceNumber = "INV-2024-007", ClientId = 1, ClientName = "FineBank Cooperative", InvoiceDate = DateTime.Now, DueDate = DateTime.Now.AddDays(15), PeriodStart = DateTime.Now.AddMonths(-1), PeriodEnd = DateTime.Now, Subtotal = 5356.25m, Tax = 642.75m, TotalAmount = 5999, AmountPaid = 0, BalanceDue = 5999, Status = "Pending" },
-            new InvoiceData { InvoiceId = 6, InvoiceNumber = "INV-2024-006", ClientId = 1, ClientName = "FineBank Cooperative", InvoiceDate = DateTime.Now.AddMonths(-1), DueDate = DateTime.Now.AddDays(-15), PeriodStart = DateTime.Now.AddMonths(-2), PeriodEnd = DateTime.Now.AddMonths(-1), Subtotal = 5356.25m, Tax = 642.75m, TotalAmount = 5999, AmountPaid = 5999, BalanceDue = 0, Status = "Paid" },
-            new InvoiceData { InvoiceId = 5, InvoiceNumber = "INV-2024-005", ClientId = 2, ClientName = "Demo Company Inc.", InvoiceDate = DateTime.Now.AddDays(-5), DueDate = DateTime.Now.AddDays(-20), PeriodStart = DateTime.Now.AddMonths(-1), PeriodEnd = DateTime.Now, Subtotal = 2677.68m, Tax = 321.32m, TotalAmount = 2999, AmountPaid = 0, BalanceDue = 2999, Status = "Overdue" },
-            new InvoiceData { InvoiceId = 4, InvoiceNumber = "INV-2024-004", ClientId = 3, ClientName = "Metro Credit Union", InvoiceDate = DateTime.Now.AddMonths(-1), DueDate = DateTime.Now.AddDays(-15), PeriodStart = DateTime.Now.AddMonths(-2), PeriodEnd = DateTime.Now.AddMonths(-1), Subtotal = 5356.25m, Tax = 642.75m, TotalAmount = 5999, AmountPaid = 5999, BalanceDue = 0, Status = "Paid" },
-            new InvoiceData { InvoiceId = 3, InvoiceNumber = "INV-2024-003", ClientId = 1, ClientName = "FineBank Cooperative", InvoiceDate = DateTime.Now.AddMonths(-2), DueDate = DateTime.Now.AddMonths(-2).AddDays(15), PeriodStart = DateTime.Now.AddMonths(-3), PeriodEnd = DateTime.Now.AddMonths(-2), Subtotal = 5356.25m, Tax = 642.75m, TotalAmount = 5999, AmountPaid = 5999, BalanceDue = 0, Status = "Paid" },
-        };
+{
+new InvoiceData { InvoiceId = 7, InvoiceNumber = "INV-2024-007", ClientId = 1, ClientName = "FineBank Cooperative",
+InvoiceDate = DateTime.Now, DueDate = DateTime.Now.AddDays(15), PeriodStart = DateTime.Now.AddMonths(-1), PeriodEnd =
+DateTime.Now, Subtotal = 5356.25m, Tax = 642.75m, TotalAmount = 5999, AmountPaid = 0, BalanceDue = 5999, Status =
+"Pending" },
+new InvoiceData { InvoiceId = 6, InvoiceNumber = "INV-2024-006", ClientId = 1, ClientName = "FineBank Cooperative",
+InvoiceDate = DateTime.Now.AddMonths(-1), DueDate = DateTime.Now.AddDays(-15), PeriodStart = DateTime.Now.AddMonths(-2),
+PeriodEnd = DateTime.Now.AddMonths(-1), Subtotal = 5356.25m, Tax = 642.75m, TotalAmount = 5999, AmountPaid = 5999,
+BalanceDue = 0, Status = "Paid" },
+new InvoiceData { InvoiceId = 5, InvoiceNumber = "INV-2024-005", ClientId = 2, ClientName = "Demo Company Inc.",
+InvoiceDate = DateTime.Now.AddDays(-5), DueDate = DateTime.Now.AddDays(-20), PeriodStart = DateTime.Now.AddMonths(-1),
+PeriodEnd = DateTime.Now, Subtotal = 2677.68m, Tax = 321.32m, TotalAmount = 2999, AmountPaid = 0, BalanceDue = 2999,
+Status = "Overdue" },
+new InvoiceData { InvoiceId = 4, InvoiceNumber = "INV-2024-004", ClientId = 3, ClientName = "Metro Credit Union",
+InvoiceDate = DateTime.Now.AddMonths(-1), DueDate = DateTime.Now.AddDays(-15), PeriodStart = DateTime.Now.AddMonths(-2),
+PeriodEnd = DateTime.Now.AddMonths(-1), Subtotal = 5356.25m, Tax = 642.75m, TotalAmount = 5999, AmountPaid = 5999,
+BalanceDue = 0, Status = "Paid" },
+new InvoiceData { InvoiceId = 3, InvoiceNumber = "INV-2024-003", ClientId = 1, ClientName = "FineBank Cooperative",
+InvoiceDate = DateTime.Now.AddMonths(-2), DueDate = DateTime.Now.AddMonths(-2).AddDays(15), PeriodStart =
+DateTime.Now.AddMonths(-3), PeriodEnd = DateTime.Now.AddMonths(-2), Subtotal = 5356.25m, Tax = 642.75m, TotalAmount =
+5999, AmountPaid = 5999, BalanceDue = 0, Status = "Paid" },
+};
     }
 
     private void ShowCreateInvoice()
@@ -815,9 +893,9 @@
             PeriodEnd = DateTime.Today
         };
         invoiceItems = new List<InvoiceItemData>
-        {
-            new InvoiceItemData { Description = "Monthly Subscription", Quantity = 1, UnitPrice = 5999, Amount = 5999 }
-        };
+{
+new InvoiceItemData { Description = "Monthly Subscription", Quantity = 1, UnitPrice = 5999, Amount = 5999 }
+};
         CalculateTotals();
         showCreateModal = true;
     }

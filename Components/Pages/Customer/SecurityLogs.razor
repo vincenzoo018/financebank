@@ -9,16 +9,19 @@
 @inject IDbContextFactory<BFASDbContext> DbContextFactory
 
 <!-- Page Header -->
-<div style="background: linear-gradient(135deg, #dc2626, #991b1b); border-radius: 16px; padding: 32px; margin-bottom: 24px; color: white;">
+<div style="background: #2F3E2A; border-radius: 14px; padding: 32px; margin-bottom: 24px; color: #FFFFFF;">
     <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-            <svg width="28" height="28" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+        <div
+            style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <svg width="28" height="28" fill="none" stroke="#FFFFFF" stroke-width="2" viewBox="0 0 24 24"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             </svg>
         </div>
         <div>
-            <h1 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Security & Login History</h1>
-            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Monitor your account security and login activities</p>
+            <h1 style="font-size: 24px; font-weight: 600; color: #FFFFFF; margin: 0;">Security & Login History</h1>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 4px 0 0 0;">Monitor your account security
+                and login activities</p>
         </div>
     </div>
 </div>
@@ -26,57 +29,68 @@
 @if (isLoading)
 {
     <div style="text-align: center; padding: 60px;">
-        <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #dc2626; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-        <p style="color: #6b7280; margin-top: 16px;">Loading security data...</p>
+        <div
+            style="display: inline-block; width: 40px; height: 40px; border: 4px solid #E2E2DC; border-top-color: #5F6F52; border-radius: 50%; animation: spin 1s linear infinite;">
+        </div>
+        <p style="color: #6B6B6B; margin-top: 16px;">Loading security data...</p>
     </div>
 }
 else
 {
     <!-- Security Status Cards -->
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
-        <div style="background: @(accountStatus == "LOCKED" ? "linear-gradient(135deg, #fee2e2, #fecaca)" : accountStatus == "WARNING" ? "linear-gradient(135deg, #fef3c7, #fde68a)" : "linear-gradient(135deg, #d1fae5, #a7f3d0)"); border-radius: 16px; padding: 20px; border: 2px solid @(accountStatus == "LOCKED" ? "#dc2626" : accountStatus == "WARNING" ? "#f59e0b" : "#10b981");">
-            <div style="font-size: 13px; color: @(accountStatus == "LOCKED" ? "#991b1b" : accountStatus == "WARNING" ? "#92400e" : "#065f46"); margin-bottom: 4px;">
+        <div
+            style="background: @(accountStatus == "LOCKED" ? "rgba(155, 58, 58, 0.1)" : accountStatus == "WARNING" ? "rgba(196, 154, 58, 0.15)" : "rgba(95, 111, 82, 0.2)"); border-radius: 14px; padding: 20px; border: 2px solid @(accountStatus == "LOCKED" ? "#9B3A3A" : accountStatus == "WARNING" ? "#C49A3A" : "#5F6F52");">
+            <div
+                style="font-size: 13px; color: @(accountStatus == "LOCKED" ? "#9B3A3A" : accountStatus == "WARNING" ? "#92400e" : "#2F3E2A"); margin-bottom: 4px;">
                 @(accountStatus == "LOCKED" ? "🔒 Account Status" : accountStatus == "WARNING" ? "⚠️ Account Status" : "✅ Account Status")
             </div>
-            <div style="font-size: 24px; font-weight: 800; color: @(accountStatus == "LOCKED" ? "#dc2626" : accountStatus == "WARNING" ? "#f59e0b" : "#10b981");">
+            <div
+                style="font-size: 24px; font-weight: 600; color: @(accountStatus == "LOCKED" ? "#9B3A3A" : accountStatus == "WARNING" ? "#C49A3A" : "#5F6F52");">
                 @(accountStatus == "LOCKED" ? "LOCKED" : accountStatus == "WARNING" ? "WARNING" : "SECURE")
             </div>
-            <div style="font-size: 11px; color: @(accountStatus == "LOCKED" ? "#7f1d1d" : accountStatus == "WARNING" ? "#78350f" : "#064e3b"); margin-top: 4px;">
+            <div
+                style="font-size: 11px; color: @(accountStatus == "LOCKED" ? "#7f1d1d" : accountStatus == "WARNING" ? "#78350f" : "#4F6F52"); margin-top: 4px;">
                 @statusMessage
             </div>
         </div>
 
-        <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb;">
-            <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Total Logins</div>
-            <div style="font-size: 28px; font-weight: 700; color: #1f2937;">@totalLogins</div>
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 20px; border: 1px solid #E2E2DC;">
+            <div style="font-size: 13px; color: #6B6B6B; margin-bottom: 4px;">Total Logins</div>
+            <div style="font-size: 28px; font-weight: 600; color: #2B2B2B;">@totalLogins</div>
             <div style="font-size: 11px; color: #9ca3af; margin-top: 4px;">Last 30 days</div>
         </div>
 
-        <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb;">
-            <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Failed Attempts</div>
-            <div style="font-size: 28px; font-weight: 700; color: @(failedAttempts > 0 ? "#f59e0b" : "#10b981");">@failedAttempts</div>
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 20px; border: 1px solid #E2E2DC;">
+            <div style="font-size: 13px; color: #6B6B6B; margin-bottom: 4px;">Failed Attempts</div>
+            <div style="font-size: 28px; font-weight: 600; color: @(failedAttempts > 0 ? "#C49A3A" : "#5F6F52");">
+                @failedAttempts</div>
             <div style="font-size: 11px; color: #9ca3af; margin-top: 4px;">Last 24 hours</div>
         </div>
 
-        <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb;">
-            <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Last Login</div>
-            <div style="font-size: 16px; font-weight: 700; color: #1f2937;">@(lastLoginTime?.ToString("MMM dd, HH:mm") ?? "N/A")</div>
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 20px; border: 1px solid #E2E2DC;">
+            <div style="font-size: 13px; color: #6B6B6B; margin-bottom: 4px;">Last Login</div>
+            <div style="font-size: 16px; font-weight: 600; color: #2B2B2B;">@(lastLoginTime?.ToString("MMM dd, HH:mm") ??
+                            "N/A")</div>
             <div style="font-size: 11px; color: #9ca3af; margin-top: 4px;">@(lastLoginIp ?? "Unknown IP")</div>
         </div>
     </div>
 
     <!-- Tabs -->
     <div style="display: flex; gap: 8px; margin-bottom: 24px;">
-        <button style="padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; background: @(activeTab == "recent" ? "#dc2626" : "#f3f4f6"); color: @(activeTab == "recent" ? "white" : "#374151");"
-                @onclick='() => SetActiveTab("recent")'>
+        <button
+            style="padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; background: @(activeTab == "recent" ? "#5F6F52" : "#F7F7F4"); color: @(activeTab == "recent" ? "#FFFFFF" : "#2B2B2B");"
+            @onclick='() => SetActiveTab("recent")'>
             🔐 Recent Activity
         </button>
-        <button style="padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; background: @(activeTab == "logins" ? "#3b82f6" : "#f3f4f6"); color: @(activeTab == "logins" ? "white" : "#374151");"
-                @onclick='() => SetActiveTab("logins")'>
+        <button
+            style="padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; background: @(activeTab == "logins" ? "#5F6F52" : "#F7F7F4"); color: @(activeTab == "logins" ? "#FFFFFF" : "#2B2B2B");"
+            @onclick='() => SetActiveTab("logins")'>
             📋 Login History
         </button>
-        <button style="padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; background: @(activeTab == "security" ? "#f59e0b" : "#f3f4f6"); color: @(activeTab == "security" ? "white" : "#374151");"
-                @onclick='() => SetActiveTab("security")'>
+        <button
+            style="padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; background: @(activeTab == "security" ? "#C49A3A" : "#F7F7F4"); color: @(activeTab == "security" ? "#FFFFFF" : "#2B2B2B");"
+            @onclick='() => SetActiveTab("security")'>
             ⚠️ Security Events
         </button>
     </div>
@@ -84,25 +98,28 @@ else
     @if (activeTab == "recent")
     {
         <!-- Recent Activity -->
-        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb; margin-bottom: 24px;">
-            <h3 style="font-size: 18px; font-weight: 700; margin: 0 0 20px 0; color: #1f2937;">📊 Recent Account Activity</h3>
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 24px; border: 1px solid #E2E2DC; margin-bottom: 24px;">
+            <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 20px 0; color: #2B2B2B;">📊 Recent Account Activity</h3>
 
             @if (recentLogs.Any())
             {
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     @foreach (var log in recentLogs.Take(15))
                     {
-                        var isSecurityEvent = log.Action.Contains("FAIL") || log.Action.Contains("MALICIOUS") || log.Action.Contains("LOCK");
-                        <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: @(isSecurityEvent ? "#fef2f2" : "#f9fafb"); border-radius: 12px; border: 1px solid @(isSecurityEvent ? "#fecaca" : "#e5e7eb");">
-                            <div style="width: 48px; height: 48px; background: @GetActivityIconBackground(log.Action); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                        var isSecurityEvent = log.Action.Contains("FAIL") || log.Action.Contains("MALICIOUS") ||
+                        log.Action.Contains("LOCK");
+                        <div
+                            style="display: flex; align-items: center; gap: 16px; padding: 16px; background: @(isSecurityEvent ? "rgba(155, 58, 58, 0.1)" : "#F7F7F4"); border-radius: 10px; border: 1px solid @(isSecurityEvent ? "rgba(155, 58, 58, 0.3)" : "#E2E2DC");">
+                            <div
+                                style="width: 48px; height: 48px; background: @GetActivityIconBackground(log.Action); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
                                 @GetActivityIcon(log.Action)
                             </div>
                             <div style="flex: 1;">
-                                <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">@GetActivityTitle(log.Action)</div>
-                                <div style="font-size: 13px; color: #6b7280;">@log.Description</div>
+                                <div style="font-weight: 600; color: #2B2B2B; margin-bottom: 4px;">@GetActivityTitle(log.Action)</div>
+                                <div style="font-size: 13px; color: #6B6B6B;">@log.Description</div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-size: 13px; font-weight: 600; color: #374151;">@log.CreatedAt.ToString("MMM dd")</div>
+                                <div style="font-size: 13px; font-weight: 600; color: #2B2B2B;">@log.CreatedAt.ToString("MMM dd")</div>
                                 <div style="font-size: 12px; color: #9ca3af;">@log.CreatedAt.ToString("HH:mm:ss")</div>
                             </div>
                         </div>
@@ -111,9 +128,12 @@ else
             }
             else
             {
-                <div style="text-align: center; padding: 40px; color: #6b7280;">
-                    <svg width="48" height="48" fill="none" stroke="#9ca3af" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 16px;">
-                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                <div style="text-align: center; padding: 40px; color: #6B6B6B;">
+                    <svg width="48" height="48" fill="none" stroke="#9ca3af" stroke-width="1.5" viewBox="0 0 24 24"
+                        style="margin: 0 auto 16px;">
+                        <path
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                        </path>
                     </svg>
                     <p>No recent activity found</p>
                 </div>
@@ -124,16 +144,20 @@ else
     @if (activeTab == "logins")
     {
         <!-- Login History Table -->
-        <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb; margin-bottom: 24px;">
-            <h3 style="font-size: 18px; font-weight: 700; margin: 0 0 20px 0; color: #1f2937;">📋 Login History</h3>
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 24px; border: 1px solid #E2E2DC; margin-bottom: 24px;">
+            <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 20px 0; color: #2B2B2B;">📋 Login History</h3>
 
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr style="border-bottom: 2px solid #e5e7eb; background: #f9fafb;">
-                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #374151;">DATE & TIME</th>
-                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #374151;">STATUS</th>
-                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #374151;">IP ADDRESS</th>
-                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #374151;">DETAILS</th>
+                    <tr style="border-bottom: 2px solid #E2E2DC; background: #F7F7F4;">
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #2B2B2B;">DATE &
+                            TIME</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #2B2B2B;">STATUS
+                        </th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #2B2B2B;">IP
+                            ADDRESS</th>
+                        <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #2B2B2B;">DETAILS
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -142,20 +166,22 @@ else
                         @foreach (var log in loginLogs.Take(30))
                         {
                             var isSuccess = log.Action == "LOGIN_SUCCESS";
-                            <tr style="border-bottom: 1px solid #e5e7eb; background: @(isSuccess ? "white" : "#fef2f2");">
+                            <tr
+                                style="border-bottom: 1px solid #E2E2DC; background: @(isSuccess ? "#FFFFFF" : "rgba(155, 58, 58, 0.1)");">
                                 <td style="padding: 16px;">
-                                    <div style="font-weight: 600; color: #1f2937;">@log.CreatedAt.ToString("MMM dd, yyyy")</div>
-                                    <div style="font-size: 12px; color: #6b7280;">@log.CreatedAt.ToString("HH:mm:ss")</div>
+                                    <div style="font-weight: 600; color: #2B2B2B;">@log.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                    <div style="font-size: 12px; color: #6B6B6B;">@log.CreatedAt.ToString("HH:mm:ss")</div>
                                 </td>
                                 <td style="padding: 16px;">
-                                    <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(isSuccess ? "#d1fae5" : "#fee2e2"); color: @(isSuccess ? "#065f46" : "#991b1b");">
+                                    <span
+                                        style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: @(isSuccess ? "rgba(95, 111, 82, 0.2)" : "rgba(155, 58, 58, 0.1)"); color: @(isSuccess ? "#2F3E2A" : "#9B3A3A");">
                                         @(isSuccess ? "✓ Success" : "✗ Failed")
                                     </span>
                                 </td>
-                                <td style="padding: 16px; font-family: monospace; font-size: 12px; color: #374151;">
+                                <td style="padding: 16px; font-family: monospace; font-size: 12px; color: #2B2B2B;">
                                     @(log.IpAddress ?? "Unknown")
                                 </td>
-                                <td style="padding: 16px; font-size: 13px; color: #6b7280;">
+                                <td style="padding: 16px; font-size: 13px; color: #6B6B6B;">
                                     @(log.Description ?? "Login attempt")
                                 </td>
                             </tr>
@@ -164,7 +190,7 @@ else
                     else
                     {
                         <tr>
-                            <td colspan="4" style="padding: 40px; text-align: center; color: #6b7280;">
+                            <td colspan="4" style="padding: 40px; text-align: center; color: #6B6B6B;">
                                 No login history available
                             </td>
                         </tr>
@@ -177,31 +203,35 @@ else
     @if (activeTab == "security")
     {
         <!-- Security Events -->
-        <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #f59e0b; margin-bottom: 24px;">
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 24px; border: 2px solid #C49A3A; margin-bottom: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="font-size: 18px; font-weight: 700; margin: 0; color: #92400e;">⚠️ Security Events & Alerts</h3>
-                <span style="font-size: 12px; color: #6b7280;">Events that may indicate suspicious activity</span>
+                <h3 style="font-size: 18px; font-weight: 600; margin: 0; color: #92400e;">⚠️ Security Events & Alerts</h3>
+                <span style="font-size: 12px; color: #6B6B6B;">Events that may indicate suspicious activity</span>
             </div>
 
             @if (securityEvents.Any())
             {
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
-                        <tr style="border-bottom: 2px solid #fde68a; background: #fef3c7;">
-                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #92400e;">DATE & TIME</th>
-                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #92400e;">EVENT TYPE</th>
-                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #92400e;">SEVERITY</th>
-                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #92400e;">DETAILS</th>
+                        <tr style="border-bottom: 2px solid rgba(196, 154, 58, 0.4); background: rgba(196, 154, 58, 0.15);">
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #92400e;">DATE &
+                                TIME</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #92400e;">EVENT
+                                TYPE</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #92400e;">SEVERITY
+                            </th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #92400e;">DETAILS
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var log in securityEvents.Take(20))
                         {
                             var severity = GetSeverity(log.Action);
-                            <tr style="border-bottom: 1px solid #fde68a; background: @GetSeverityBackground(severity);">
+                            <tr style="border-bottom: 1px solid rgba(196, 154, 58, 0.3); background: @GetSeverityBackground(severity);">
                                 <td style="padding: 16px;">
-                                    <div style="font-weight: 600; color: #1f2937;">@log.CreatedAt.ToString("MMM dd, yyyy")</div>
-                                    <div style="font-size: 12px; color: #6b7280;">@log.CreatedAt.ToString("HH:mm:ss")</div>
+                                    <div style="font-weight: 600; color: #2B2B2B;">@log.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                    <div style="font-size: 12px; color: #6B6B6B;">@log.CreatedAt.ToString("HH:mm:ss")</div>
                                 </td>
                                 <td style="padding: 16px;">
                                     <span style="font-weight: 600; color: @GetSeverityColor(severity);">
@@ -209,11 +239,12 @@ else
                                     </span>
                                 </td>
                                 <td style="padding: 16px;">
-                                    <span style="padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; background: @GetSeverityBadgeBackground(severity); color: @GetSeverityColor(severity);">
+                                    <span
+                                        style="padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; background: @GetSeverityBadgeBackground(severity); color: @GetSeverityColor(severity);">
                                         @severity
                                     </span>
                                 </td>
-                                <td style="padding: 16px; font-size: 13px; color: #6b7280;">
+                                <td style="padding: 16px; font-size: 13px; color: #6B6B6B;">
                                     @log.Description
                                 </td>
                             </tr>
@@ -223,9 +254,13 @@ else
             }
             else
             {
-                <div style="text-align: center; padding: 40px; color: #065f46; background: #d1fae5; border-radius: 12px;">
-                    <svg width="48" height="48" fill="none" stroke="#10b981" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 16px;">
-                        <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                <div
+                    style="text-align: center; padding: 40px; color: #2F3E2A; background: rgba(95, 111, 82, 0.2); border-radius: 10px;">
+                    <svg width="48" height="48" fill="none" stroke="#5F6F52" stroke-width="1.5" viewBox="0 0 24 24"
+                        style="margin: 0 auto 16px;">
+                        <path
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                        </path>
                     </svg>
                     <p style="font-weight: 600; margin: 0;">✅ No security events detected</p>
                     <p style="font-size: 13px; margin-top: 8px;">Your account has no suspicious activity</p>
@@ -235,35 +270,44 @@ else
     }
 
     <!-- Security Tips -->
-    <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 16px; padding: 24px; border: 1px solid #93c5fd;">
-        <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 16px 0; color: #1e40af;">💡 Security Tips</h3>
+    <div
+        style="background: rgba(95, 111, 82, 0.1); border-radius: 14px; padding: 24px; border: 1px solid rgba(95, 111, 82, 0.3);">
+        <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 16px 0; color: #2F3E2A;">💡 Security Tips</h3>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
             <div style="display: flex; gap: 12px; align-items: flex-start;">
-                <div style="width: 32px; height: 32px; background: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0;">🔑</div>
+                <div
+                    style="width: 32px; height: 32px; background: #5F6F52; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 14px; flex-shrink: 0;">
+                    🔑</div>
                 <div>
-                    <div style="font-weight: 600; color: #1e40af; font-size: 14px;">Use Strong Passwords</div>
-                    <div style="font-size: 12px; color: #3b82f6;">Combine letters, numbers, and symbols</div>
+                    <div style="font-weight: 600; color: #2F3E2A; font-size: 14px;">Use Strong Passwords</div>
+                    <div style="font-size: 12px; color: #5F6F52;">Combine letters, numbers, and symbols</div>
                 </div>
             </div>
             <div style="display: flex; gap: 12px; align-items: flex-start;">
-                <div style="width: 32px; height: 32px; background: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0;">📱</div>
+                <div
+                    style="width: 32px; height: 32px; background: #5F6F52; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 14px; flex-shrink: 0;">
+                    📱</div>
                 <div>
-                    <div style="font-weight: 600; color: #1e40af; font-size: 14px;">Set Up Transfer PIN</div>
-                    <div style="font-size: 12px; color: #3b82f6;">Add an extra layer of security</div>
+                    <div style="font-weight: 600; color: #2F3E2A; font-size: 14px;">Set Up Transfer PIN</div>
+                    <div style="font-size: 12px; color: #5F6F52;">Add an extra layer of security</div>
                 </div>
             </div>
             <div style="display: flex; gap: 12px; align-items: flex-start;">
-                <div style="width: 32px; height: 32px; background: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0;">👁️</div>
+                <div
+                    style="width: 32px; height: 32px; background: #5F6F52; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 14px; flex-shrink: 0;">
+                    👁️</div>
                 <div>
-                    <div style="font-weight: 600; color: #1e40af; font-size: 14px;">Monitor Your Activity</div>
-                    <div style="font-size: 12px; color: #3b82f6;">Check this page regularly</div>
+                    <div style="font-weight: 600; color: #2F3E2A; font-size: 14px;">Monitor Your Activity</div>
+                    <div style="font-size: 12px; color: #5F6F52;">Check this page regularly</div>
                 </div>
             </div>
             <div style="display: flex; gap: 12px; align-items: flex-start;">
-                <div style="width: 32px; height: 32px; background: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0;">🚫</div>
+                <div
+                    style="width: 32px; height: 32px; background: #5F6F52; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 14px; flex-shrink: 0;">
+                    🚫</div>
                 <div>
-                    <div style="font-weight: 600; color: #1e40af; font-size: 14px;">Never Share Credentials</div>
-                    <div style="font-size: 12px; color: #3b82f6;">Keep your login details private</div>
+                    <div style="font-weight: 600; color: #2F3E2A; font-size: 14px;">Never Share Credentials</div>
+                    <div style="font-size: 12px; color: #5F6F52;">Keep your login details private</div>
                 </div>
             </div>
         </div>
@@ -283,13 +327,13 @@ else
     private string activeTab = "recent";
     private string accountStatus = "SECURE";
     private string statusMessage = "Your account is secure";
-    
+
     // Stats
     private int totalLogins = 0;
     private int failedAttempts = 0;
     private DateTime? lastLoginTime;
     private string? lastLoginIp;
-    
+
     // Log collections
     private List<AuditLog> recentLogs = new();
     private List<AuditLog> loginLogs = new();
@@ -309,55 +353,55 @@ else
             if (userId == null) return;
 
             using var context = await DbContextFactory.CreateDbContextAsync();
-            
+
             // Get all logs for this user
             var userIdString = userId.ToString();
             var thirtyDaysAgo = DateTime.Now.AddDays(-30);
             var twentyFourHoursAgo = DateTime.Now.AddHours(-24);
-            
+
             // Get recent logs (all activity for this user)
             recentLogs = await context.AuditLogs
-                .Where(a => a.UserId == userIdString || 
-                           (a.CustomerAccountId != null && a.CustomerAccountId == userId))
-                .Where(a => a.CreatedAt >= thirtyDaysAgo)
-                .OrderByDescending(a => a.CreatedAt)
-                .Take(50)
-                .ToListAsync();
-            
+            .Where(a => a.UserId == userIdString ||
+            (a.CustomerAccountId != null && a.CustomerAccountId == userId))
+            .Where(a => a.CreatedAt >= thirtyDaysAgo)
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(50)
+            .ToListAsync();
+
             // Get login-related logs
             loginLogs = await context.AuditLogs
-                .Where(a => (a.UserId == userIdString || 
-                            (a.CustomerAccountId != null && a.CustomerAccountId == userId)) &&
-                           (a.Action == "LOGIN_SUCCESS" || a.Action == "LOGIN_FAILED"))
-                .OrderByDescending(a => a.CreatedAt)
-                .Take(50)
-                .ToListAsync();
-            
+            .Where(a => (a.UserId == userIdString ||
+            (a.CustomerAccountId != null && a.CustomerAccountId == userId)) &&
+            (a.Action == "LOGIN_SUCCESS" || a.Action == "LOGIN_FAILED"))
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(50)
+            .ToListAsync();
+
             // Get security events (failed logins, malicious attempts, locks)
             securityEvents = await context.AuditLogs
-                .Where(a => (a.UserId == userIdString || 
-                            (a.CustomerAccountId != null && a.CustomerAccountId == userId)) &&
-                           (a.Action.Contains("FAIL") || 
-                            a.Action.Contains("MALICIOUS") || 
-                            a.Action.Contains("LOCK") ||
-                            a.Action.Contains("PIN") ||
-                            a.IsMalicious))
-                .OrderByDescending(a => a.CreatedAt)
-                .Take(30)
-                .ToListAsync();
-            
+            .Where(a => (a.UserId == userIdString ||
+            (a.CustomerAccountId != null && a.CustomerAccountId == userId)) &&
+            (a.Action.Contains("FAIL") ||
+            a.Action.Contains("MALICIOUS") ||
+            a.Action.Contains("LOCK") ||
+            a.Action.Contains("PIN") ||
+            a.IsMalicious))
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(30)
+            .ToListAsync();
+
             // Calculate stats
             totalLogins = loginLogs.Count(l => l.Action == "LOGIN_SUCCESS");
             failedAttempts = await context.AuditLogs
-                .CountAsync(a => (a.UserId == userIdString || 
-                                 (a.CustomerAccountId != null && a.CustomerAccountId == userId)) &&
-                                a.Action == "LOGIN_FAILED" &&
-                                a.CreatedAt >= twentyFourHoursAgo);
-            
+            .CountAsync(a => (a.UserId == userIdString ||
+            (a.CustomerAccountId != null && a.CustomerAccountId == userId)) &&
+            a.Action == "LOGIN_FAILED" &&
+            a.CreatedAt >= twentyFourHoursAgo);
+
             var lastLogin = loginLogs.FirstOrDefault(l => l.Action == "LOGIN_SUCCESS");
             lastLoginTime = lastLogin?.CreatedAt;
             lastLoginIp = lastLogin?.IpAddress;
-            
+
             // Check account status
             await CheckAccountStatus(context, userId.Value);
         }
@@ -376,7 +420,7 @@ else
 
             // Check if account is locked
             var (isLocked, lockType, reason) = await AuthService.IsAccountLockedAsync(user.Username);
-            
+
             if (isLocked)
             {
                 if (lockType == "FULL")
@@ -442,16 +486,16 @@ else
     {
         return action switch
         {
-            "LOGIN_SUCCESS" => "#d1fae5",
-            "LOGIN_FAILED" => "#fee2e2",
-            "LOGOUT" => "#dbeafe",
-            "MALICIOUS_ATTEMPT" => "#fee2e2",
-            "ACCOUNT_LOCKED" => "#fef3c7",
-            "ACCOUNT_UNLOCKED" => "#d1fae5",
-            "PASSWORD_RESET" => "#dbeafe",
-            "PIN_VERIFIED" => "#d1fae5",
-            "PIN_FAILED" => "#fef3c7",
-            _ => "#f3f4f6"
+            "LOGIN_SUCCESS" => "rgba(95, 111, 82, 0.2)",
+            "LOGIN_FAILED" => "rgba(155, 58, 58, 0.1)",
+            "LOGOUT" => "rgba(95, 111, 82, 0.15)",
+            "MALICIOUS_ATTEMPT" => "rgba(155, 58, 58, 0.1)",
+            "ACCOUNT_LOCKED" => "rgba(196, 154, 58, 0.15)",
+            "ACCOUNT_UNLOCKED" => "rgba(95, 111, 82, 0.2)",
+            "PASSWORD_RESET" => "rgba(95, 111, 82, 0.15)",
+            "PIN_VERIFIED" => "rgba(95, 111, 82, 0.2)",
+            "PIN_FAILED" => "rgba(196, 154, 58, 0.15)",
+            _ => "#F7F7F4"
         };
     }
 
@@ -508,10 +552,10 @@ else
         return severity switch
         {
             "CRITICAL" => "#7f1d1d",
-            "HIGH" => "#991b1b",
+            "HIGH" => "#9B3A3A",
             "MEDIUM" => "#92400e",
-            "LOW" => "#065f46",
-            _ => "#374151"
+            "LOW" => "#2F3E2A",
+            _ => "#2B2B2B"
         };
     }
 
@@ -519,11 +563,11 @@ else
     {
         return severity switch
         {
-            "CRITICAL" => "#fee2e2",
-            "HIGH" => "#fef2f2",
-            "MEDIUM" => "#fef3c7",
-            "LOW" => "#f9fafb",
-            _ => "white"
+            "CRITICAL" => "rgba(155, 58, 58, 0.1)",
+            "HIGH" => "rgba(155, 58, 58, 0.1)",
+            "MEDIUM" => "rgba(196, 154, 58, 0.15)",
+            "LOW" => "#F7F7F4",
+            _ => "#FFFFFF"
         };
     }
 
@@ -531,11 +575,11 @@ else
     {
         return severity switch
         {
-            "CRITICAL" => "#fee2e2",
-            "HIGH" => "#fecaca",
-            "MEDIUM" => "#fde68a",
-            "LOW" => "#d1fae5",
-            _ => "#f3f4f6"
+            "CRITICAL" => "rgba(155, 58, 58, 0.1)",
+            "HIGH" => "rgba(155, 58, 58, 0.15)",
+            "MEDIUM" => "rgba(196, 154, 58, 0.3)",
+            "LOW" => "rgba(95, 111, 82, 0.2)",
+            _ => "#F7F7F4"
         };
     }
 }
